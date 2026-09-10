@@ -82,9 +82,9 @@ def test_inventory_ps1_is_pure_ascii():
 def test_inventory_ps1_uses_sid_not_localized_name():
     text = (_SKILL_DIR / "inventory.ps1").read_text(encoding="ascii")
     assert "S-1-5-32-580" in text, "inventory.ps1 must reference RMU by SID"
-    assert (
-        "'Remote Management Users'" not in text
-    ), "inventory.ps1 must NOT use the localized group name"
+    assert "'Remote Management Users'" not in text, (
+        "inventory.ps1 must NOT use the localized group name"
+    )
 
 
 @pytest.mark.req("REQ-YG-635")

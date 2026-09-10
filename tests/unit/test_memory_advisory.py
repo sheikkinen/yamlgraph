@@ -29,7 +29,9 @@ def run_tool(script: Path, *args: str) -> subprocess.CompletedProcess:
 def memory_root(tmp_path: Path) -> Path:
     root = tmp_path / "memories"
     (root / "repo").mkdir(parents=True)
-    (root / "repo" / "keepme.md").write_text("# Durable\nstill true\n", encoding="utf-8")
+    (root / "repo" / "keepme.md").write_text(
+        "# Durable\nstill true\n", encoding="utf-8"
+    )
     (root / "repo" / "stale.md").write_text("# Pin\nfoo v0.1.7\n", encoding="utf-8")
     return root
 
@@ -77,8 +79,9 @@ def curate(memory_root: Path, out_dir: Path, verdicts: dict) -> None:
     review = out_dir / "disposition.md"
     review.write_text(
         review.read_text(encoding="utf-8")
-        + f"\nSIGN-OFF: approved HUMAN=operator manifest={h_m} disposition={h_d}\n"
-    , encoding="utf-8")
+        + f"\nSIGN-OFF: approved HUMAN=operator manifest={h_m} disposition={h_d}\n",
+        encoding="utf-8",
+    )
     result = subprocess.run(
         [
             sys.executable,
@@ -117,7 +120,9 @@ FORGET = {
 class TestMarker:
     def test_apply_writes_post_apply_baseline(self, memory_root, tmp_path):
         curate(memory_root, tmp_path / "out", FORGET)
-        marker = json.loads((memory_root / ".curation-state.json").read_text(encoding="utf-8"))
+        marker = json.loads(
+            (memory_root / ".curation-state.json").read_text(encoding="utf-8")
+        )
         assert marker["version"] == 1
         assert "applied_at" in marker and "manifest_sha256" in marker
         assert "repo/stale.md" not in marker["notes"]  # forgotten path absent
@@ -135,7 +140,9 @@ class TestMarker:
 class TestAdvisory:
     def test_silent_below_threshold(self, memory_root, tmp_path):
         curate(memory_root, tmp_path / "out", {})
-        (memory_root / "repo" / "keepme.md").write_text("edited once\n", encoding="utf-8")
+        (memory_root / "repo" / "keepme.md").write_text(
+            "edited once\n", encoding="utf-8"
+        )
         result = advisory(memory_root, threshold=5)
         assert result.returncode == 0 and result.stdout.strip() == ""
 

@@ -87,7 +87,9 @@ def test_ac05_group_prompt_uses_aggregated_counts() -> None:
     group_node = config.nodes["group_themes"]
     assert group_node["variables"]["theme_counts"] == "{state.theme_counts}"
 
-    prompt = yaml.safe_load((DEMO_DIR / "prompts" / "group_themes.yaml").read_text(encoding="utf-8"))
+    prompt = yaml.safe_load(
+        (DEMO_DIR / "prompts" / "group_themes.yaml").read_text(encoding="utf-8")
+    )
     rendered_body = (prompt.get("user") or "") + (prompt.get("template") or "")
     assert "theme_counts" in rendered_body
     assert "classifications_json" not in rendered_body
@@ -120,8 +122,9 @@ def test_ac08_list_prompts_filters_empty_or_invalid_inputs(tmp_path: Path) -> No
     valid_dir = tmp_path / "20260516-valid"
     valid_dir.mkdir()
     (valid_dir / "prompts.txt").write_text(
-        "Highly detailed fantasy portrait with ornate armor and dramatic lighting."
-    , encoding="utf-8")
+        "Highly detailed fantasy portrait with ornate armor and dramatic lighting.",
+        encoding="utf-8",
+    )
 
     short_dir = tmp_path / "20260516-short"
     short_dir.mkdir()
@@ -129,13 +132,15 @@ def test_ac08_list_prompts_filters_empty_or_invalid_inputs(tmp_path: Path) -> No
 
     dump_dir = tmp_path / "20260516-dump"
     dump_dir.mkdir()
-    (dump_dir / "prompts.txt").write_text("{_map_index: 1, error: true}", encoding="utf-8")
+    (dump_dir / "prompts.txt").write_text(
+        "{_map_index: 1, error: true}", encoding="utf-8"
+    )
 
     refusal_dir = tmp_path / "20260516-refusal"
     refusal_dir.mkdir()
     (refusal_dir / "prompts.txt").write_text(
-        "I'm sorry, but I can't help with that request."
-    , encoding="utf-8")
+        "I'm sorry, but I can't help with that request.", encoding="utf-8"
+    )
 
     result = list_prompts({"source_dir": str(tmp_path)})
     assert len(result["prompt_entries"]) == 1

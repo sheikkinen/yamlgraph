@@ -163,12 +163,15 @@ class TestLoadReqDescriptions:
     def test_parses(self, tmp_path: Path) -> None:
         """Should parse requirement descriptions from ARCHITECTURE.md."""
         arch_md = tmp_path / "ARCHITECTURE.md"
-        arch_md.write_text("""\
+        arch_md.write_text(
+            """\
 # Requirements
 
 | REQ-YG-001 | Load graph configurations from YAML | modules |
 | REQ-YG-002 | Validate graph configs with Pydantic | models |
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         descriptions = req_coverage._load_req_descriptions(tmp_path)
 
@@ -194,12 +197,15 @@ class TestMain:
         test_dir = tmp_path / "tests" / "unit"
         test_dir.mkdir(parents=True)
         test_file = test_dir / "test_smoke.py"
-        test_file.write_text("""\
+        test_file.write_text(
+            """\
 
 @pytest.mark.req("REQ-YG-001")
 def test_smoke():
     pass
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         with (
             patch.object(req_coverage.sys, "argv", ["req_coverage.py"]),
@@ -269,12 +275,15 @@ class TestArchitectureCrossCheck:
         test_dir = tmp_path / "tests" / "unit"
         test_dir.mkdir(parents=True)
         test_file = test_dir / "test_smoke.py"
-        test_file.write_text("""\
+        test_file.write_text(
+            """\
 
 @pytest.mark.req("REQ-YG-001")
 def test_smoke():
     pass
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
         # Write ARCHITECTURE.md with given req IDs
         arch_md = tmp_path / "ARCHITECTURE.md"
         lines = ["# Requirements\n"]

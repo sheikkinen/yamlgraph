@@ -34,7 +34,9 @@ def run_tool(
 def memory_root(tmp_path: Path) -> Path:
     root = tmp_path / "memories"
     (root / "repo").mkdir(parents=True)
-    (root / "repo" / "keepme.md").write_text("# Durable\nstill true\n", encoding="utf-8")
+    (root / "repo" / "keepme.md").write_text(
+        "# Durable\nstill true\n", encoding="utf-8"
+    )
     (root / "repo" / "stale.md").write_text("# Pin\nfoo v0.1.7\n", encoding="utf-8")
     return root
 
@@ -100,8 +102,9 @@ def sign(out_dir: Path, extra: str = "") -> None:
     review = out_dir / "disposition.md"
     review.write_text(
         review.read_text(encoding="utf-8")
-        + f"\nSIGN-OFF: approved {extra} manifest={h_m} disposition={h_d}\n"
-    , encoding="utf-8")
+        + f"\nSIGN-OFF: approved {extra} manifest={h_m} disposition={h_d}\n",
+        encoding="utf-8",
+    )
 
 
 def apply_run(
@@ -155,7 +158,9 @@ class TestArchive:
         archived = list((memory_root / ".archive").rglob("keepme.md"))
         assert len(archived) == 1
         assert archived[0].read_text(encoding="utf-8") == "# Durable\nstill true\n"
-        assert "redact-backup" in (memory_root / "repo" / "_tombstones.md").read_text(encoding="utf-8")
+        assert "redact-backup" in (memory_root / "repo" / "_tombstones.md").read_text(
+            encoding="utf-8"
+        )
 
     def test_archive_excluded_from_collect(self, memory_root, out_dir, tmp_path):
         pipeline(memory_root, out_dir, FORGET)
@@ -173,7 +178,9 @@ class TestArchive:
         assert not any(".archive" in k for k in manifest["notes"])
 
     def test_tombstone_file_is_protected(self, memory_root, out_dir):
-        (memory_root / "repo" / "_tombstones.md").write_text("op | seed row\n", encoding="utf-8")
+        (memory_root / "repo" / "_tombstones.md").write_text(
+            "op | seed row\n", encoding="utf-8"
+        )
         pipeline(
             memory_root,
             out_dir,
@@ -255,8 +262,12 @@ class TestRestore:
         ref = self._forget_and_get_archive(memory_root, out_dir)
         result = run_tool(APPLY, "restore", ref, "--memory-root", str(memory_root))
         assert result.returncode == 0, result.stderr
-        assert (memory_root / "repo" / "stale.md").read_text(encoding="utf-8") == "# Pin\nfoo v0.1.7\n"
-        assert "restored" in (memory_root / "repo" / "_tombstones.md").read_text(encoding="utf-8")
+        assert (memory_root / "repo" / "stale.md").read_text(
+            encoding="utf-8"
+        ) == "# Pin\nfoo v0.1.7\n"
+        assert "restored" in (memory_root / "repo" / "_tombstones.md").read_text(
+            encoding="utf-8"
+        )
 
     def test_restore_idempotent_when_recorded(self, memory_root, out_dir):
         ref = self._forget_and_get_archive(memory_root, out_dir)
@@ -266,11 +277,15 @@ class TestRestore:
 
     def test_restore_conflict_on_diverged_live_file(self, memory_root, out_dir):
         ref = self._forget_and_get_archive(memory_root, out_dir)
-        (memory_root / "repo" / "stale.md").write_text("new unrelated note\n", encoding="utf-8")
+        (memory_root / "repo" / "stale.md").write_text(
+            "new unrelated note\n", encoding="utf-8"
+        )
         result = run_tool(APPLY, "restore", ref, "--memory-root", str(memory_root))
         assert result.returncode != 0
         assert "conflict" in (result.stdout + result.stderr).lower()
-        assert (memory_root / "repo" / "stale.md").read_text(encoding="utf-8") == "new unrelated note\n"
+        assert (memory_root / "repo" / "stale.md").read_text(
+            encoding="utf-8"
+        ) == "new unrelated note\n"
 
 
 @pytest.mark.req("REQ-YG-621")
@@ -281,7 +296,9 @@ class TestRederivation:
         pipeline(memory_root, out_dir, FORGET)
         sign(out_dir, "HUMAN=operator")
         apply_run(memory_root, out_dir)
-        (memory_root / "repo" / "stale.md").write_text("re-derived lesson\n", encoding="utf-8")
+        (memory_root / "repo" / "stale.md").write_text(
+            "re-derived lesson\n", encoding="utf-8"
+        )
         result = run_tool(
             NODES / "collect.py",
             "--memory-root",

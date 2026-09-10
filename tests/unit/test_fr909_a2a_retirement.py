@@ -50,7 +50,9 @@ def test_cli_parser_rejects_a2a_subcommand():
 
 @pytest.mark.req("REQ-YG-032")
 def test_cli_package_has_no_a2a_wiring():
-    source = (REPO_ROOT / "yamlgraph" / "cli" / "__init__.py").read_text(encoding="utf-8")
+    source = (REPO_ROOT / "yamlgraph" / "cli" / "__init__.py").read_text(
+        encoding="utf-8"
+    )
     assert "cmd_a2a_dispatch" not in source
     assert "a2a" not in source.lower()
 

@@ -104,9 +104,9 @@ class TestSharedLibraryExists:
     """`scripts/lib/finalize_lib.sh` must exist and be sourceable."""
 
     def test_finalize_lib_exists(self):
-        assert os.path.isfile(
-            FINALIZE_LIB_SH
-        ), f"Shared library not found: {FINALIZE_LIB_SH}"
+        assert os.path.isfile(FINALIZE_LIB_SH), (
+            f"Shared library not found: {FINALIZE_LIB_SH}"
+        )
 
     def test_finalize_lib_is_sourceable(self):
         """Sourcing the library must not produce errors."""
@@ -434,9 +434,9 @@ class TestFinalizeMergeSourcesLib:
 
     def test_sources_finalize_lib(self):
         content = _read_file(FINALIZE_MERGE_SH)
-        assert (
-            "finalize_lib.sh" in content
-        ), "finalize_merge.sh must source finalize_lib.sh"
+        assert "finalize_lib.sh" in content, (
+            "finalize_merge.sh must source finalize_lib.sh"
+        )
 
     def test_calls_extract_fr_metadata(self):
         content = _read_file(FINALIZE_MERGE_SH)
@@ -460,15 +460,14 @@ class TestFinalizeMergeSourcesLib:
         # The old inline pattern was: FR_HEADING=$(grep -m1 ...
         # After refactor, this should only appear in the library, not in the script
         # The script should call extract_fr_metadata instead
-        assert (
-            content.count("FR_HEADING=") == 0
-        ), "FR_HEADING= should not be defined inline — use extract_fr_metadata"
+        assert content.count("FR_HEADING=") == 0, (
+            "FR_HEADING= should not be defined inline — use extract_fr_metadata"
+        )
 
 
 # ---------------------------------------------------------------------------
 # 8. .gitignore
 # ---------------------------------------------------------------------------
-
 
 
 # ---------------------------------------------------------------------------
@@ -555,8 +554,8 @@ class TestFinalizeMergeStillWorks:
             env=env,
         )
         (repo / "CHANGELOG.md").write_text(
-            "# Changelog\n\n## [Unreleased]\n\n### Added\n"
-        , encoding="utf-8")
+            "# Changelog\n\n## [Unreleased]\n\n### Added\n", encoding="utf-8"
+        )
         (repo / "changelog" / "unreleased").mkdir(parents=True)
         (repo / "docs" / "diary").mkdir(parents=True)
         (repo / "feature-requests").mkdir()
@@ -591,8 +590,9 @@ class TestFinalizeMergeStillWorks:
             ## Summary
 
             Integration test for refactored finalize_merge.sh.
-        """)
-        , encoding="utf-8")
+        """),
+            encoding="utf-8",
+        )
         subprocess.run(
             ["git", "add", "."], cwd=repo, check=True, capture_output=True, env=env
         )

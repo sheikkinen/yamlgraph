@@ -230,7 +230,9 @@ class TestCliExport:
             "event": "run",
             "artifact_hash": compute_artifact_hash(REFLEXION),
         }
-        route_file.write_text("\n".join(json.dumps(e) for e in [header, *ROUTE]) + "\n", encoding="utf-8")
+        route_file.write_text(
+            "\n".join(json.dumps(e) for e in [header, *ROUTE]) + "\n", encoding="utf-8"
+        )
         cmd_graph_export(
             Namespace(
                 graph_path=str(REFLEXION),

@@ -178,8 +178,12 @@ class TestDeterminism:
         graph2 = extract_graph()
         # Compare serialized form
         with (
-            tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w") as f1,
-            tempfile.NamedTemporaryFile(encoding="utf-8", suffix=".yaml", mode="w") as f2,
+            tempfile.NamedTemporaryFile(
+                encoding="utf-8", suffix=".yaml", mode="w"
+            ) as f1,
+            tempfile.NamedTemporaryFile(
+                encoding="utf-8", suffix=".yaml", mode="w"
+            ) as f2,
         ):
             p1, p2 = Path(f1.name), Path(f2.name)
             write_graph(graph1, p1)
@@ -223,14 +227,18 @@ class TestStaleness:
     def test_stale_when_no_output(self, tmp_path):
         fr_dir = tmp_path / "frs"
         fr_dir.mkdir()
-        (fr_dir / "FR-001-test.md").write_text("**Status:** Proposed\n", encoding="utf-8")
+        (fr_dir / "FR-001-test.md").write_text(
+            "**Status:** Proposed\n", encoding="utf-8"
+        )
         output = tmp_path / "graph.yaml"
         assert check_staleness(fr_dir, output) is False
 
     def test_current_after_generation(self, tmp_path):
         fr_dir = tmp_path / "frs"
         fr_dir.mkdir()
-        (fr_dir / "FR-001-test.md").write_text("**Status:** Proposed\n", encoding="utf-8")
+        (fr_dir / "FR-001-test.md").write_text(
+            "**Status:** Proposed\n", encoding="utf-8"
+        )
         output = tmp_path / "graph.yaml"
         graph = extract_graph(fr_dir)
         write_graph(graph, output)
@@ -326,9 +334,9 @@ class TestCrossClusterMentions:
             tgt_cluster = nodes.get(e["t"], {}).get("cluster")
             assert src_cluster is not None, f"{e['s']} has no cluster"
             assert tgt_cluster is not None, f"{e['t']} has no cluster"
-            assert (
-                src_cluster != tgt_cluster
-            ), f"{e['s']}({src_cluster}) and {e['t']}({tgt_cluster}) same cluster"
+            assert src_cluster != tgt_cluster, (
+                f"{e['s']}({src_cluster}) and {e['t']}({tgt_cluster}) same cluster"
+            )
 
     def test_edges_deterministic_order(self, graph_data):
         edges = graph_data["cross_cluster_mentions"]["edges"]

@@ -24,4 +24,6 @@ def test_gc_join_surfaces_shipped() -> None:
     worktree = Path("scripts/worktree.sh").read_text(encoding="utf-8")
     assert "gc_session_lanes()" in worktree
     assert Path("scripts/vscode/session_join.py").exists()
-    assert "session_lane_lines" in Path("scripts/vscode/now.py").read_text(encoding="utf-8")
+    assert "session_lane_lines" in Path("scripts/vscode/now.py").read_text(
+        encoding="utf-8"
+    )

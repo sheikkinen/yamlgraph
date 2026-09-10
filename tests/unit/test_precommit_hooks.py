@@ -49,7 +49,9 @@ def run_hook_entry(entry: str, commit_msg: str) -> subprocess.CompletedProcess:
     Returns:
         CompletedProcess with exit code and output
     """
-    with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".txt", delete=False) as f:
+    with tempfile.NamedTemporaryFile(
+        encoding="utf-8", mode="w", suffix=".txt", delete=False
+    ) as f:
         f.write(commit_msg)
         f.flush()
         msg_file = f.name
@@ -150,9 +152,9 @@ class TestChangelogRequired:
             "git diff --cached --name-only", "echo 'CHANGELOG.md'"
         )
         result = run_hook_entry(entry_with_mock, "feat: FR-083 add feature\n")
-        assert (
-            result.returncode == 0
-        ), f"feat: with CHANGELOG.md should pass: {result.stdout}"
+        assert result.returncode == 0, (
+            f"feat: with CHANGELOG.md should pass: {result.stdout}"
+        )
 
     def test_fix_without_changelog_rejected(self) -> None:
         """A fix: commit without CHANGELOG.md staged should be rejected."""
@@ -217,15 +219,15 @@ class TestHookEntryFormat:
 
     def test_feat_requires_fr_has_placeholder(self) -> None:
         """The feat-requires-fr entry should have _ placeholder at end."""
-        assert FEAT_REQUIRES_FR_ENTRY.endswith(
-            "' _"
-        ), "Entry must end with ' _' for proper $1 handling"
+        assert FEAT_REQUIRES_FR_ENTRY.endswith("' _"), (
+            "Entry must end with ' _' for proper $1 handling"
+        )
 
     def test_changelog_required_has_placeholder(self) -> None:
         """The changelog-required entry should have _ placeholder at end."""
-        assert CHANGELOG_REQUIRED_ENTRY.endswith(
-            "' _"
-        ), "Entry must end with ' _' for proper $1 handling"
+        assert CHANGELOG_REQUIRED_ENTRY.endswith("' _"), (
+            "Entry must end with ' _' for proper $1 handling"
+        )
 
 
 # ── FR-144: Diary Reflection Content Enforcement ────────────────────────────
@@ -310,7 +312,9 @@ class TestDiaryReflectionCheck:
     def test_unfilled_trap_placeholder_rejected(self, tmp_path: Path) -> None:
         """A reflection with [What cognitive trap] placeholder is rejected."""
         f = tmp_path / "reflection.md"
-        f.write_text("**Trap:** [What cognitive trap was encountered?]\n", encoding="utf-8")
+        f.write_text(
+            "**Trap:** [What cognitive trap was encountered?]\n", encoding="utf-8"
+        )
         result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
         assert result.returncode == 1, f"Unfilled trap should fail: {result.stdout}"
         assert "Unfilled" in result.stdout
@@ -335,12 +339,13 @@ class TestDiaryReflectionCheck:
         f.write_text(
             "## Reflection\n\n"
             "**Trap:** Assumed checks were aligned.\n\n"
-            "**Heuristic:** Keep local and CI semantics in parity.\n"
-        , encoding="utf-8")
+            "**Heuristic:** Keep local and CI semantics in parity.\n",
+            encoding="utf-8",
+        )
         result = run_diary_hook(DIARY_REFLECTION_CHECK_ENTRY, [str(f)])
-        assert (
-            result.returncode == 1
-        ), f"Missing Seed marker should fail: {result.stdout}"
+        assert result.returncode == 1, (
+            f"Missing Seed marker should fail: {result.stdout}"
+        )
         assert "Seed:" in result.stdout
 
     def test_filled_reflection_accepted(self, tmp_path: Path) -> None:
@@ -395,19 +400,19 @@ class TestFinalizeMergeUnstagedDiary:
         ]
         assert git_add_lines, "Expected a git add line in the script"
         for line in git_add_lines:
-            assert (
-                "docs/diary" not in line
-            ), f"git add must not include docs/diary/: {line}"
+            assert "docs/diary" not in line, (
+                f"git add must not include docs/diary/: {line}"
+            )
 
     def test_commit_message_says_untracked(self) -> None:
         """The commit message template must say 'untracked', not 'appended'."""
         content = self.SCRIPT_PATH.read_text(encoding="utf-8")
-        assert (
-            "stub appended" not in content
-        ), "Commit message should not say 'appended'"
-        assert (
-            "untracked" in content.lower()
-        ), "Commit message should mention 'untracked'"
+        assert "stub appended" not in content, (
+            "Commit message should not say 'appended'"
+        )
+        assert "untracked" in content.lower(), (
+            "Commit message should mention 'untracked'"
+        )
 
 
 # ── FR-212: Block AI Co-Author Trailers ─────────────────────────────────────
@@ -417,7 +422,9 @@ BLOCK_AI_COAUTHOR_SCRIPT = Path("scripts/block_ai_coauthor.py")
 
 def run_block_ai_coauthor(commit_msg: str) -> subprocess.CompletedProcess:
     """Run block_ai_coauthor.py with a commit message written to a temp file."""
-    with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".txt", delete=False) as f:
+    with tempfile.NamedTemporaryFile(
+        encoding="utf-8", mode="w", suffix=".txt", delete=False
+    ) as f:
         f.write(commit_msg)
         f.flush()
         msg_file = f.name

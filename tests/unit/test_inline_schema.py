@@ -17,7 +17,8 @@ class TestInlineSchemaIntegration:
         prompt_dir.mkdir(parents=True)
 
         prompt_file = prompt_dir / "classify.yaml"
-        prompt_file.write_text("""
+        prompt_file.write_text(
+            """
 name: classify_tone
 version: "1.0"
 
@@ -36,7 +37,9 @@ schema:
 
 system: You are a classifier.
 user: "Classify: {message}"
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         # Patch prompts directory
         monkeypatch.setenv("PROMPTS_DIR", str(tmp_path / "prompts"))
@@ -68,7 +71,8 @@ user: "Classify: {message}"
         prompt_dir.mkdir(parents=True)
 
         prompt_file = prompt_dir / "with_schema.yaml"
-        prompt_file.write_text("""
+        prompt_file.write_text(
+            """
 name: test_prompt
 schema:
   name: InlineModel
@@ -76,7 +80,9 @@ schema:
     value: {type: str}
 system: Test
 user: "{input}"
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         monkeypatch.setenv("PROMPTS_DIR", str(tmp_path / "prompts"))
 
@@ -101,11 +107,14 @@ user: "{input}"
         prompt_dir.mkdir(parents=True)
 
         prompt_file = prompt_dir / "plain.yaml"
-        prompt_file.write_text("""
+        prompt_file.write_text(
+            """
 name: plain_prompt
 system: Test
 user: "{input}"
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         monkeypatch.setenv("PROMPTS_DIR", str(tmp_path / "prompts"))
 

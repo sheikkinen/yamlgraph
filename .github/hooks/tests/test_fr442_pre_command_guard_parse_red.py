@@ -42,8 +42,9 @@ def _run_hook_with_python_counter(
         '  current=$(cat "$counter")\n'
         "fi\n"
         'printf "%s" "$((current + 1))" > "$counter"\n'
-        f'exec "{real_python}" "$@"\n'
-    , encoding="utf-8")
+        f'exec "{real_python}" "$@"\n',
+        encoding="utf-8",
+    )
     shim.chmod(0o755)
 
     env = os.environ.copy()

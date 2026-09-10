@@ -86,8 +86,9 @@ def _make_repo(tmp_path):
 
         ### Added
         - Old entry
-    """)
-    , encoding="utf-8")
+    """),
+        encoding="utf-8",
+    )
 
     # Create changelog/unreleased/ for fragment files (FR-179)
     changelog_dir = repo / "changelog" / "unreleased"
@@ -301,7 +302,10 @@ class TestChangelogEntry:
 
         # Reset status back to Approved so the script can run status update again
         fr_path = repo / fr_rel
-        fr_path.write_text(fr_path.read_text(encoding="utf-8").replace("✅ Implemented", "Approved"), encoding="utf-8")
+        fr_path.write_text(
+            fr_path.read_text(encoding="utf-8").replace("✅ Implemented", "Approved"),
+            encoding="utf-8",
+        )
         subprocess.run(
             ["git", "add", "."],
             cwd=repo,
@@ -338,8 +342,9 @@ class TestChangelogEntry:
             - **FR-099 Bug Fix**: Fixed something
 
             ## [0.4.60] — 2026-03-06
-        """)
-        , encoding="utf-8")
+        """),
+            encoding="utf-8",
+        )
         subprocess.run(
             ["git", "add", "."],
             cwd=repo,
@@ -402,9 +407,9 @@ class TestDiaryStub:
         diary_dir = repo / "docs" / "diary"
         assert diary_dir.exists(), "docs/diary/ folder should exist"
         reflection_files = list(diary_dir.glob("*-reflection-FR-230.md"))
-        assert (
-            len(reflection_files) == 1
-        ), f"Expected 1 reflection file, found: {list(diary_dir.iterdir())}"
+        assert len(reflection_files) == 1, (
+            f"Expected 1 reflection file, found: {list(diary_dir.iterdir())}"
+        )
         content = reflection_files[0].read_text(encoding="utf-8")
         assert "FR-230" in content
         assert "Implementation Reflection" in content

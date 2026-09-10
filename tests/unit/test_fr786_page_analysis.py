@@ -50,7 +50,9 @@ def test_tool_manifest_exists():
 @pytest.mark.req("REQ-YG-587")
 def test_tool_manifest_structure():
     """AC-02: manifest has runtime.type: graph, relative path, mappings."""
-    manifest = yaml.safe_load((STEPS_DIR / "page_analysis.tool.yaml").read_text(encoding="utf-8"))
+    manifest = yaml.safe_load(
+        (STEPS_DIR / "page_analysis.tool.yaml").read_text(encoding="utf-8")
+    )
     assert manifest["name"] == "page_analysis"
     runtime = manifest["runtime"]
     assert runtime["type"] == "graph"
@@ -103,7 +105,9 @@ def test_graph_loads_platform_catalog_via_data_files():
 @pytest.mark.req("REQ-YG-587")
 def test_platform_catalog_contains_required_families():
     """AC-04: catalog covers CKAN, PxWeb, SwaggerUI, OData, Liferay, JSF, WordPress REST, EntryScape."""
-    catalog = yaml.safe_load((GRAPH_DIR / "data" / "platform_catalog.yaml").read_text(encoding="utf-8"))
+    catalog = yaml.safe_load(
+        (GRAPH_DIR / "data" / "platform_catalog.yaml").read_text(encoding="utf-8")
+    )
     names = {p["name"] for p in catalog["platforms"]}
     required = {
         "CKAN",
@@ -136,7 +140,9 @@ def test_prompt_renders_platform_catalog_not_hardcoded():
 @pytest.mark.req("REQ-YG-587")
 def test_page_analysis_schema_exact_fields():
     """AC-05: PageAnalysis schema has exactly the four required fields."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "analyze.yaml").read_text(encoding="utf-8"))
+    prompt = yaml.safe_load(
+        (GRAPH_DIR / "prompts" / "analyze.yaml").read_text(encoding="utf-8")
+    )
     schema = prompt["schema"]
     assert schema["name"] == "PageAnalysis"
     fields = set(schema["fields"].keys())
@@ -146,7 +152,9 @@ def test_page_analysis_schema_exact_fields():
 @pytest.mark.req("REQ-YG-587")
 def test_page_analysis_schema_field_types():
     """AC-05: field types match bool/list[str] contract."""
-    prompt = yaml.safe_load((GRAPH_DIR / "prompts" / "analyze.yaml").read_text(encoding="utf-8"))
+    prompt = yaml.safe_load(
+        (GRAPH_DIR / "prompts" / "analyze.yaml").read_text(encoding="utf-8")
+    )
     fields = prompt["schema"]["fields"]
     assert fields["api_found"]["type"] == "bool"
     assert fields["is_spa"]["type"] == "bool"
@@ -184,7 +192,9 @@ def test_spa_fixture_has_no_static_api_references():
     html = (GRAPH_DIR / "fixtures" / "spa_no_api.html").read_text(encoding="utf-8")
     assert "fetch(" not in html
     assert "data-api" not in html
-    catalog = yaml.safe_load((GRAPH_DIR / "data" / "platform_catalog.yaml").read_text(encoding="utf-8"))
+    catalog = yaml.safe_load(
+        (GRAPH_DIR / "data" / "platform_catalog.yaml").read_text(encoding="utf-8")
+    )
     for platform in catalog["platforms"]:
         for marker in platform["markers"]:
             assert marker not in html

@@ -133,8 +133,12 @@ def test_docs_and_feature_requests_locked(lock_repo):
     assert wt_sh(lock_repo, "lock-main").returncode == 0
     for lane in ("docs", "feature-requests"):
         with pytest.raises(PermissionError):
-            (lock_repo / lane / "note.md").write_text("no business on main", encoding="utf-8")
-    (lock_repo / "changelog" / "fragment.md").write_text("runtime lane open", encoding="utf-8")
+            (lock_repo / lane / "note.md").write_text(
+                "no business on main", encoding="utf-8"
+            )
+    (lock_repo / "changelog" / "fragment.md").write_text(
+        "runtime lane open", encoding="utf-8"
+    )
 
 
 def test_sync_pulls_and_relocks(lock_repo, tmp_path):

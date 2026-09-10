@@ -164,7 +164,7 @@ def _compile(tmp_path: Path, parent_yaml: str, children: dict[str, str]):
     return compile_graph(config).compile(checkpointer=MemorySaver())
 
 
-MAPPING_EXTRA = "    interrupt_output_mapping:\n" "      child_phase: phase\n"
+MAPPING_EXTRA = "    interrupt_output_mapping:\n      child_phase: phase\n"
 
 
 class TestMultiInterruptChild:

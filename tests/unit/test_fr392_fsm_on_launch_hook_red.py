@@ -45,9 +45,9 @@ class TestFR392OnLaunchHookRed:
 
         assert snapshot_pos != -1, "Expected snapshot materialization in execute()"
         assert launch_hook_pos != -1, "Expected execute() to call self.on_launch(...)"
-        assert (
-            create_task_pos != -1
-        ), "Expected execute() to schedule run_and_dispatch task"
+        assert create_task_pos != -1, (
+            "Expected execute() to schedule run_and_dispatch task"
+        )
         assert snapshot_pos < launch_hook_pos < create_task_pos
 
     @pytest.mark.asyncio

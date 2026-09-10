@@ -136,8 +136,9 @@ class TestFrStatusesBoundary:
         frdir.mkdir()
         (frdir / "FR-001-thing.md").write_text(
             "# FR-001\n\n**Status:** Rejected\n\n"
-            "The Status of this work depends on Status checks in prose.\n"
-        , encoding="utf-8")
+            "The Status of this work depends on Status checks in prose.\n",
+            encoding="utf-8",
+        )
         _git(tmp_path, "add", "-A")
         _git(tmp_path, "commit", "-q", "-m", "FR-001 add fr")
         out = self._node_fn()({"repo_path": str(tmp_path), "since": "1 day ago"})

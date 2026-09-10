@@ -95,8 +95,9 @@ class TestGetOutputModelForNode:
             "  fields:\n"
             "    summary:\n"
             "      type: str\n"
-            "      description: Brief summary\n"
-        , encoding="utf-8")
+            "      description: Brief summary\n",
+            encoding="utf-8",
+        )
 
         node_config = {"prompt": "analyze"}
 
@@ -157,8 +158,9 @@ class TestGetOutputModelForNode:
             "  fields:\n"
             "    score:\n"
             "      type: float\n"
-            "      description: Score 0-1\n"
-        , encoding="utf-8")
+            "      description: Score 0-1\n",
+            encoding="utf-8",
+        )
 
         node_config = {"prompt": "prompts/eval"}
 

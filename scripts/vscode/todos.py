@@ -127,7 +127,9 @@ def load_dispositions(sidecar: Path = DISPOSITIONS_PATH) -> set[str]:
     if not sidecar.is_file():
         return set()
     return {
-        json.loads(ln)["key"] for ln in sidecar.read_text(encoding="utf-8").splitlines() if ln.strip()
+        json.loads(ln)["key"]
+        for ln in sidecar.read_text(encoding="utf-8").splitlines()
+        if ln.strip()
     }
 
 

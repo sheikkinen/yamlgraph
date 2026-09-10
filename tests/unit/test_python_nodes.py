@@ -237,7 +237,9 @@ class TestLoadPythonFunctionPath:
     def test_loads_function_from_path(self, tmp_path):
         """Can load function from a file path."""
         tool_file = tmp_path / "my_tool.py"
-        tool_file.write_text("def greet(state):\n    return {'greeting': 'hello'}\n", encoding="utf-8")
+        tool_file.write_text(
+            "def greet(state):\n    return {'greeting': 'hello'}\n", encoding="utf-8"
+        )
         config = PythonToolConfig(
             path=str(tool_file),
             function="greet",
@@ -296,7 +298,9 @@ class TestLoadPythonFunctionPath:
         graph_root = tmp_path / "graph_root"
         tool_file = graph_root / "tools" / "helper.py"
         tool_file.parent.mkdir(parents=True, exist_ok=True)
-        tool_file.write_text("def helper(state):\n    return {'ok': True}\n", encoding="utf-8")
+        tool_file.write_text(
+            "def helper(state):\n    return {'ok': True}\n", encoding="utf-8"
+        )
         monkeypatch.chdir(tmp_path)
 
         config = PythonToolConfig(

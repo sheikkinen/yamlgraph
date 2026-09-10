@@ -176,16 +176,16 @@ def test_race_loser_teardown_live(monkeypatch, caplog) -> None:
             # within client-timeout + margin. FR-713 AC-02: exactly one
             # persistent loop thread; zero per-invocation bridge threads.
             count, names = _settle_to(baseline_count)
-            assert (
-                count <= baseline_count
-            ), f"race {i + 1}: thread growth {baseline_count} -> {count}: {names}"
+            assert count <= baseline_count, (
+                f"race {i + 1}: thread growth {baseline_count} -> {count}: {names}"
+            )
             assert names.count("yamlgraph-bridge-loop") == 1, (
                 f"race {i + 1}: expected exactly one persistent bridge loop "
                 f"thread: {names}"
             )
-            assert not any(
-                "race-bridge" in n for n in names
-            ), f"race {i + 1}: per-invocation bridge thread survived: {names}"
+            assert not any("race-bridge" in n for n in names), (
+                f"race {i + 1}: per-invocation bridge thread survived: {names}"
+            )
 
     # Invariant 3: log discipline — clean drain, or WARNING naming the
     # abandoned candidate; anything anonymous fails.

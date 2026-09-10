@@ -63,12 +63,12 @@ class TestPrepareMessagesState:
             user_content = messages[1].content if len(messages) > 1 else ""
 
             # These assertions should now PASS
-            assert (
-                "machine learning" in system_content
-            ), f"System message should contain state.topic, got: {system_content}"
-            assert (
-                "machine learning" in user_content
-            ), f"User message should contain state.topic, got: {user_content}"
+            assert "machine learning" in system_content, (
+                f"System message should contain state.topic, got: {system_content}"
+            )
+            assert "machine learning" in user_content, (
+                f"User message should contain state.topic, got: {user_content}"
+            )
 
     @pytest.mark.req("REQ-YG-024")
     def test_prepare_messages_should_accept_state_parameter(self) -> None:
@@ -81,9 +81,9 @@ class TestPrepareMessagesState:
         params = list(sig.parameters.keys())
 
         # BUG: prepare_messages does not have a state parameter
-        assert (
-            "state" in params
-        ), f"prepare_messages should accept state parameter. Current params: {params}"
+        assert "state" in params, (
+            f"prepare_messages should accept state parameter. Current params: {params}"
+        )
 
 
 class TestExecutorStateIntegration:
@@ -100,9 +100,9 @@ class TestExecutorStateIntegration:
         params = list(sig.parameters.keys())
 
         # BUG: execute_prompt does not have a state parameter
-        assert (
-            "state" in params
-        ), f"execute_prompt should accept state parameter. Current params: {params}"
+        assert "state" in params, (
+            f"execute_prompt should accept state parameter. Current params: {params}"
+        )
 
     @pytest.mark.req("REQ-YG-024")
     def test_execute_prompt_async_passes_state(self) -> None:

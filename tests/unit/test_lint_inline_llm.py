@@ -29,7 +29,9 @@ def main():
 if __name__ == "__main__":
     main()
 """
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".py", delete=False
+        ) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -52,7 +54,9 @@ def main():
 if __name__ == "__main__":
     main()
 """
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".py", delete=False
+        ) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -76,7 +80,9 @@ def main():
 if __name__ == "__main__":
     main()
 """
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".py", delete=False
+        ) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -98,7 +104,9 @@ def main():
 if __name__ == "__main__":
     main()
 """
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".py", delete=False
+        ) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -118,7 +126,9 @@ def helper():
 class SomeClass:
     pass
 """
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".py", delete=False
+        ) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -140,7 +150,9 @@ if __name__ == "__main__":
     import asyncio
     asyncio.run(main())
 """
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".py", delete=False
+        ) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -162,7 +174,9 @@ def main():
 if __name__ == "__main__":
     main()
 """
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".py", delete=False
+        ) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -185,7 +199,9 @@ def main():
 if __name__ == "__main__":
     main()
 """
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".py", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".py", delete=False
+        ) as f:
             f.write(code)
             f.flush()
             result = check_file(Path(f.name))
@@ -203,13 +219,16 @@ class TestLintInlineLLMCLI:
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a clean file
             clean = Path(tmpdir) / "clean.py"
-            clean.write_text("""
+            clean.write_text(
+                """
 def main():
     print("hello")
 
 if __name__ == "__main__":
     main()
-""", encoding="utf-8")
+""",
+                encoding="utf-8",
+            )
             violations = scan_directory(Path(tmpdir))
             assert len(violations) == 0
 
@@ -221,7 +240,8 @@ if __name__ == "__main__":
         with tempfile.TemporaryDirectory() as tmpdir:
             # Create a violating file
             bad = Path(tmpdir) / "bad.py"
-            bad.write_text("""
+            bad.write_text(
+                """
 from yamlgraph.executor import execute_prompt
 
 def main():
@@ -229,7 +249,9 @@ def main():
 
 if __name__ == "__main__":
     main()
-""", encoding="utf-8")
+""",
+                encoding="utf-8",
+            )
             violations = scan_directory(Path(tmpdir))
             assert len(violations) == 1
             assert "bad.py" in violations[0][0].name

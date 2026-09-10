@@ -80,7 +80,9 @@ def _run_ci_demo_gate_check(
 
         semantics_dest = tmppath / "scripts" / "demo_log_semantics.sh"
         semantics_dest.parent.mkdir(parents=True, exist_ok=True)
-        semantics_dest.write_text(SEMANTICS_SCRIPT_PATH.read_text(encoding="utf-8"), encoding="utf-8")
+        semantics_dest.write_text(
+            SEMANTICS_SCRIPT_PATH.read_text(encoding="utf-8"), encoding="utf-8"
+        )
         semantics_dest.chmod(0o755)
 
         (tmppath / "README.md").write_text("base\n", encoding="utf-8")
@@ -126,12 +128,12 @@ class TestFR325DemoGateLogContentValidation:
         run_script = _demo_gate_run_script()
         semantics = SEMANTICS_SCRIPT_PATH.read_text(encoding="utf-8")
 
-        assert (
-            "source scripts/demo_log_semantics.sh" in run_script
-        ), "CI demo-gate must source shared semantic validation rules"
-        assert (
-            "validate_demo_output_log_file" in run_script
-        ), "CI demo-gate must validate demo-output.log contents"
+        assert "source scripts/demo_log_semantics.sh" in run_script, (
+            "CI demo-gate must source shared semantic validation rules"
+        )
+        assert "validate_demo_output_log_file" in run_script, (
+            "CI demo-gate must validate demo-output.log contents"
+        )
         assert "Node .+ failed" in semantics
         assert "\\[ERROR\\]" in semantics
         assert "❌ Error:" in semantics

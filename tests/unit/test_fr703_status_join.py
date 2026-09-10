@@ -181,9 +181,9 @@ class TestGraphAndPromptContract:
         assert "fr_statuses" not in text
         assert "[no FR status]" not in text
         assert "Disposition" not in text
-        assert (
-            "full" in text and "shorthand" in text
-        ), "full-id formatting bound missing"
+        assert "full" in text and "shorthand" in text, (
+            "full-id formatting bound missing"
+        )
 
     @pytest.mark.req("REQ-YG-535")
     def test_synthesize_variables_shed_fr_statuses(self) -> None:

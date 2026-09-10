@@ -109,9 +109,9 @@ def test_demo_witness_reports_no_real_supplementary_availability():
     itself personal data. The witness probes a synthetic home, so every
     supplementary source must read as absent."""
     text = (DEMO / "demo-output.log").read_text(encoding="utf-8")
-    assert (
-        "present (not parsed)" not in text
-    ), "witness discloses real supplementary database availability"
+    assert "present (not parsed)" not in text, (
+        "witness discloses real supplementary database availability"
+    )
 
 
 # ─── AC-04: typed extraction at the SQLite boundary ──────────────────────

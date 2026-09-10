@@ -17,31 +17,31 @@ Each confession must include:
 ## Scripts
 
 ### CONF-200
-- **File**: [scripts/noqa_coverage.py](../scripts/noqa_coverage.py#L44)
+- **File**: [scripts/noqa_coverage.py](../scripts/noqa_coverage.py#L46)
 - **Code**: E402
 - **Sin**: Example pattern in regex documentation comment.
 - **Penance**: This script documents noqa patterns; the examples are not real suppressions but show what the regex matches.
 
 ### CONF-201
-- **File**: [scripts/noqa_coverage.py](../scripts/noqa_coverage.py#L45)
+- **File**: [scripts/noqa_coverage.py](../scripts/noqa_coverage.py#L47)
 - **Code**: E402
 - **Sin**: Example pattern in regex documentation comment.
 - **Penance**: Same as CONF-200.
 
 ### CONF-202
-- **File**: [scripts/noqa_coverage.py](../scripts/noqa_coverage.py#L46)
+- **File**: [scripts/noqa_coverage.py](../scripts/noqa_coverage.py#L48)
 - **Code**: E402
 - **Sin**: Example pattern in regex documentation comment.
 - **Penance**: Same as CONF-200.
 
 ### CONF-203
-- **File**: [scripts/noqa_coverage.py](../scripts/noqa_coverage.py#L46)
+- **File**: [scripts/noqa_coverage.py](../scripts/noqa_coverage.py#L48)
 - **Code**: F401
 - **Sin**: Example pattern in regex documentation comment (multi-code example).
 - **Penance**: Same as CONF-200.
 
 ### CONF-204
-- **File**: [scripts/noqa_coverage.py](../scripts/noqa_coverage.py#L47)
+- **File**: [scripts/noqa_coverage.py](../scripts/noqa_coverage.py#L49)
 - **Code**: ALL
 - **Sin**: Example pattern showing blanket noqa in documentation comment.
 - **Penance**: Same as CONF-200.
@@ -359,19 +359,19 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Penance**: Same as CONF-024.
 
 ### CONF-031
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L137)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L140)
 - **Code**: E402
 - **Sin**: Same as CONF-024 — noqa pattern inside confessions test fixture.
 - **Penance**: Same as CONF-024.
 
 ### CONF-032
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L166)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L169)
 - **Code**: E402
 - **Sin**: Same as CONF-024 — noqa pattern inside documented entry test fixture.
 - **Penance**: Same as CONF-024.
 
 ### CONF-033
-- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L190)
+- **File**: [tests/unit/test_noqa_coverage.py](../tests/unit/test_noqa_coverage.py#L193)
 - **Code**: E402
 - **Sin**: Same as CONF-024 — noqa pattern inside documented entry test fixture.
 - **Penance**: Same as CONF-024.
@@ -599,53 +599,17 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Sin**: Import `worktree_helpers` functions without using them in Python.
 - **Penance**: Vulture's standard false-positive suppression mechanism. These functions are invoked via `python3 -c` in `scripts/enforce_worktree.sh`, invisible to static analysis. The import makes them visible to Vulture.
 
-### CONF-127
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L275)
-- **Code**: ARG001 (unused function argument)
-- **Sin**: `capture_env(**kwargs)` side-effect helper ignores kwargs; it only captures `os.environ` state.
-- **Penance**: The `**kwargs` signature is required to match `ChatGoogleGenerativeAI`'s constructor call signature. The argument is intentionally unused.
-
-### CONF-128
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L346)
-- **Code**: ARG001
-- **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
-- **Penance**: Same as CONF-127.
-
-### CONF-129
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L371)
-- **Code**: SLF001 (private member accessed)
-- **Sin**: Test accesses `llm_mod._VERTEX_CONSTRUCT_LOCK` to verify it exists and is a `threading.Lock`.
-- **Penance**: The lock is a module-level private attribute deliberately tested as part of FR-227 acceptance criteria. Test access to private implementation details is an accepted pattern here.
-
-### CONF-130
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L389)
-- **Code**: SLF001
-- **Sin**: Test invokes `llm_mod._masked_env(key)` to verify the context manager's remove-and-restore behavior.
-- **Penance**: `_masked_env` is a private implementation helper mandated by FR-227; direct testing of its contract is required.
-
-### CONF-131
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L409)
-- **Code**: SLF001
-- **Sin**: Same as CONF-130 — invokes `llm_mod._masked_env` inside `pytest.raises` to verify restore-on-exception.
-- **Penance**: Same as CONF-130.
-
-### CONF-132
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L425)
-- **Code**: ARG001
-- **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
-- **Penance**: Same as CONF-127.
-
 ### CONF-133
 - **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L287)
 - **Code**: ARG001
-- **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
-- **Penance**: Same as CONF-127.
+- **Sin**: `capture_env(**kwargs)` side-effect helper ignores kwargs; it only captures `os.environ` state.
+- **Penance**: The `**kwargs` signature is required to match `ChatGoogleGenerativeAI`'s constructor call signature. The argument is intentionally unused.
 
 ### CONF-134
 - **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L358)
 - **Code**: ARG001
-- **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
-- **Penance**: Same as CONF-127.
+- **Sin**: `capture_env(**kwargs)` side-effect helper ignores kwargs; it only captures `os.environ` state.
+- **Penance**: The `**kwargs` signature is required to match `ChatGoogleGenerativeAI`'s constructor call signature. The argument is intentionally unused.
 
 ### CONF-135
 - **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L383)
@@ -668,14 +632,14 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 ### CONF-138
 - **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L437)
 - **Code**: ARG001
-- **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
-- **Penance**: Same as CONF-127.
+- **Sin**: `capture_env(**kwargs)` side-effect helper ignores kwargs; it only captures `os.environ` state.
+- **Penance**: The `**kwargs` signature is required to match `ChatGoogleGenerativeAI`'s constructor call signature. The argument is intentionally unused.
 
 ### CONF-139
 - **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L469)
 - **Code**: ARG001
 - **Sin**: `capture_env(**kwargs)` ignores kwargs to capture env snapshot for FR-229 test.
-- **Penance**: Same as CONF-127 — `ChatGoogleGenerativeAI` is constructed with kwargs; the test only needs to inspect `os.environ`, not the constructor arguments.
+- **Penance**: `ChatGoogleGenerativeAI` is constructed with kwargs; the test only needs to inspect `os.environ`, not the constructor arguments.
 
 ### CONF-140
 - **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L523)
@@ -1381,19 +1345,19 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Internal test utility returning `list[str]`. Test-only.
 
 ### CONF-368
-- **File**: [tests/unit/test_fr689_genesis_consistency.py](../tests/unit/test_fr689_genesis_consistency.py#L212)
+- **File**: [tests/unit/test_fr689_genesis_consistency.py](../tests/unit/test_fr689_genesis_consistency.py#L214)
 - **Code**: ANN202
 - **Sin**: `_canon_fixture` pytest fixture omits return type annotation.
 - **Penance**: Pytest fixture returning `Path`. Consistent with test fixture patterns.
 
 ### CONF-369
-- **File**: [tests/unit/test_fr689_genesis_consistency.py](../tests/unit/test_fr689_genesis_consistency.py#L305)
+- **File**: [tests/unit/test_fr689_genesis_consistency.py](../tests/unit/test_fr689_genesis_consistency.py#L309)
 - **Code**: ANN202
 - **Sin**: `_canon_with_files` pytest fixture omits return type annotation.
 - **Penance**: Pytest fixture returning `Path`. Consistent with test fixture patterns.
 
 ### CONF-370
-- **File**: [tests/unit/test_fr689_genesis_consistency.py](../tests/unit/test_fr689_genesis_consistency.py#L417)
+- **File**: [tests/unit/test_fr689_genesis_consistency.py](../tests/unit/test_fr689_genesis_consistency.py#L425)
 - **Code**: ANN202
 - **Sin**: `_canon_fixture` pytest fixture omits return type annotation.
 - **Penance**: Pytest fixture returning `Path`. Consistent with test fixture patterns.
@@ -1877,7 +1841,7 @@ The ID ranges are:
 - **Penance**: FR-858 C-5 requires that a live-computation failure be *surfaced*, never silently downgraded to stale committed state. The handler names the exception type and message in the output line; a narrower except would let an unanticipated parser error crash a situational-awareness tool whose whole job is to keep reporting.
 
 ### CONF-437
-- **File**: [tests/unit/test_fr909_a2a_retirement.py](../tests/unit/test_fr909_a2a_retirement.py#L62)
+- **File**: [tests/unit/test_fr909_a2a_retirement.py](../tests/unit/test_fr909_a2a_retirement.py#L64)
 - **Code**: S603
 - **Sin**: `subprocess.run(["git", "ls-files", relative_path])` in the FR-909 tracked-absence witness.
 - **Penance**: FR-924 — FR-909 AC-01 asks whether git tracks the path; only git can answer. Fixed argument list, `relative_path` iterates a literal module-level list, `git` is PATH-resolved by design in developer tooling (CONF-432 pattern).
@@ -1907,7 +1871,7 @@ The ID ranges are:
 - **Penance**: read-only `git rev-parse` plumbing with a fixed subcommand vector; GIT resolved via `shutil.which`; the probe path is derived from the hook payload solely to CLASSIFY the write (worktree vs main), list-form argv, no shell. Same idiom as CONF-390/CONF-440; extracted verbatim from the previously unlinted guard heredoc.
 
 ### CONF-442
-- **File**: [tests/unit/test_fr912_skill_export_retirement.py](../tests/unit/test_fr912_skill_export_retirement.py#L96)
+- **File**: [tests/unit/test_fr912_skill_export_retirement.py](../tests/unit/test_fr912_skill_export_retirement.py#L98)
 - **Code**: S603
 - **Sin**: `subprocess.run(["git", "ls-files", relative_path])` in the FR-912 tracked-absence witness.
 - **Penance**: FR-912 — literal pathspec from a module-level constant, no interpolation; same rationale as CONF-437/CONF-438.
@@ -2021,7 +1985,7 @@ The ID ranges are:
 - **Penance**: Same validation as CONF-459; only runs when `--post` is given.
 
 ### CONF-461
-- **File**: [tests/unit/test_fr1014_authoring_proof_dir_graphs.py](../tests/unit/test_fr1014_authoring_proof_dir_graphs.py#L66)
+- **File**: [tests/unit/test_fr1014_authoring_proof_dir_graphs.py](../tests/unit/test_fr1014_authoring_proof_dir_graphs.py#L68)
 - **Code**: S102
 - **Sin**: `exec()` of the `def governed_path` text extracted from `.github/hooks/scripts/pre-command-guard.sh`'s Python heredoc.
 - **Penance**: FR-1014 witness: the predicate lives inside a bash heredoc and cannot be imported; executing the repository's own hook source (read from the tree, not from input) is the only way to assert it row-for-row against `check_authoring_proof.GOVERNED` on hosts that cannot exec the bash hook. Namespace is limited to `re`.

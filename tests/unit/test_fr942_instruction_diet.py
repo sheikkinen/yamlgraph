@@ -178,9 +178,9 @@ def test_combined_instruction_bytes_within_ceiling():
     """AC-08: combined size of both instruction files ≤ 33,966 bytes."""
     a, b = DOCTRINE.stat().st_size, CLAUDE.stat().st_size
     assert a > 0 and b > 0, "instruction file empty"
-    assert (
-        a + b <= BYTE_CEILING
-    ), f"combined instruction bytes {a + b} exceed ceiling {BYTE_CEILING}"
+    assert a + b <= BYTE_CEILING, (
+        f"combined instruction bytes {a + b} exceed ceiling {BYTE_CEILING}"
+    )
 
 
 def test_submitting_proposals_removed_everywhere():

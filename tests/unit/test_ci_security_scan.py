@@ -33,9 +33,9 @@ class TestSecurityWorkflowExists:
         """The security workflow file must exist."""
         import os
 
-        assert os.path.isfile(
-            WORKFLOW_PATH
-        ), f"Missing {WORKFLOW_PATH} — FR-187 requires a security workflow"
+        assert os.path.isfile(WORKFLOW_PATH), (
+            f"Missing {WORKFLOW_PATH} — FR-187 requires a security workflow"
+        )
 
     def test_workflow_is_valid_yaml(self) -> None:
         """The workflow must be parseable YAML."""
@@ -50,9 +50,9 @@ class TestSecurityWorkflowTriggers:
     def test_pull_request_trigger(self) -> None:
         """The workflow must trigger on pull_request events."""
         wf = _load_workflow()
-        assert "pull_request" in wf.get(
-            "on", wf.get(True, {})
-        ), "Workflow must trigger on pull_request"
+        assert "pull_request" in wf.get("on", wf.get(True, {})), (
+            "Workflow must trigger on pull_request"
+        )
 
     def test_pull_request_event_types(self) -> None:
         """PR trigger must include opened, synchronize, reopened."""
@@ -61,9 +61,9 @@ class TestSecurityWorkflowTriggers:
         pr_config = on["pull_request"]
         types = pr_config.get("types", [])
         for event_type in ["opened", "synchronize", "reopened"]:
-            assert (
-                event_type in types
-            ), f"pull_request trigger must include '{event_type}'"
+            assert event_type in types, (
+                f"pull_request trigger must include '{event_type}'"
+            )
 
     def test_tag_push_trigger(self) -> None:
         """The workflow must trigger on version tag pushes (v*.*.*)."""
@@ -82,9 +82,9 @@ class TestSecurityWorkflowPermissions:
         """The workflow must request only contents: read permission."""
         wf = _load_workflow()
         perms = wf.get("permissions", {})
-        assert (
-            perms.get("contents") == "read"
-        ), "Workflow must have 'contents: read' permission"
+        assert perms.get("contents") == "read", (
+            "Workflow must have 'contents: read' permission"
+        )
 
 
 @pytest.mark.req("REQ-YG-186")
@@ -94,9 +94,9 @@ class TestSecurityJobStructure:
     def test_security_job_exists(self) -> None:
         """The workflow must contain a 'security' job."""
         wf = _load_workflow()
-        assert "security" in wf.get(
-            "jobs", {}
-        ), "Missing 'security' job in security.yml"
+        assert "security" in wf.get("jobs", {}), (
+            "Missing 'security' job in security.yml"
+        )
 
     def test_runs_on_ubuntu(self) -> None:
         """The security job must run on ubuntu-latest."""
@@ -137,9 +137,9 @@ class TestSecurityJobStructure:
         assert install_steps, "Must have a step that installs the dev extra"
 
         pyproject_text = Path("pyproject.toml").read_text(encoding="utf-8")
-        assert (
-            "pip-audit" in pyproject_text
-        ), "pip-audit must be declared as a dependency (dev extra) in pyproject.toml"
+        assert "pip-audit" in pyproject_text, (
+            "pip-audit must be declared as a dependency (dev extra) in pyproject.toml"
+        )
 
     def test_pip_audit_step(self) -> None:
         """The job must run pip-audit with --desc and --skip-editable.
@@ -176,9 +176,9 @@ class TestSecurityJobStructure:
             and "--desc" in s["with"]["command"]
         ]
 
-        assert (
-            direct_audit_steps or retry_audit_steps
-        ), "Must have a step that runs 'pip-audit --strict --desc'"
+        assert direct_audit_steps or retry_audit_steps, (
+            "Must have a step that runs 'pip-audit --strict --desc'"
+        )
 
 
 # ── Documentation Tests ───────────────────────────────────────────────────
@@ -196,17 +196,17 @@ class TestSecurityDocumentation:
         """The CI checks list must include 'security' as a check."""
         with open("reference/development-operations.md", encoding="utf-8") as f:
             content = f.read()
-        assert (
-            "`security`" in content
-        ), "development-operations.md must mention `security` status check"
+        assert "`security`" in content, (
+            "development-operations.md must mention `security` status check"
+        )
 
     def test_security_in_status_checks_list(self) -> None:
         """The status checks list must describe the security job."""
         with open("reference/development-operations.md", encoding="utf-8") as f:
             content = f.read()
-        assert (
-            "pip-audit" in content
-        ), "development-operations.md must describe pip-audit in the security entry"
-        assert (
-            "security.yml" in content
-        ), "development-operations.md must reference security.yml workflow"
+        assert "pip-audit" in content, (
+            "development-operations.md must describe pip-audit in the security entry"
+        )
+        assert "security.yml" in content, (
+            "development-operations.md must reference security.yml workflow"
+        )

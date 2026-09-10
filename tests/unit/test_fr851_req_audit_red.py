@@ -95,8 +95,9 @@ class TestDeriveResolution:
         f = tmp_path / "test_ast.py"
         f.write_text(
             "from yamlgraph.config import PACKAGE_ROOT\n\n"
-            "def test_thing():\n    assert PACKAGE_ROOT\n"
-        , encoding="utf-8")
+            "def test_thing():\n    assert PACKAGE_ROOT\n",
+            encoding="utf-8",
+        )
         cls, files = derive_resolution(
             "test_ast::test_thing",
             coverage_map={},
@@ -116,8 +117,9 @@ class TestDeriveResolution:
                 def test_doc_has_section():
                     text = Path("reference/graph-yaml.md").read_text()
                     assert "race" in text
-            """)
-        , encoding="utf-8")
+            """),
+            encoding="utf-8",
+        )
         cls, files = derive_resolution(
             "test_docs::test_doc_has_section",
             coverage_map={},
@@ -198,7 +200,9 @@ class TestWriteQuestions:
 class TestStage2:
     def test_stage2_includes_test_body(self, tmp_path: Path) -> None:
         f = tmp_path / "test_body.py"
-        f.write_text("def test_specific_seam():\n    assert compute() == 42\n", encoding="utf-8")
+        f.write_text(
+            "def test_specific_seam():\n    assert compute() == 42\n", encoding="utf-8"
+        )
         q = _question("REQ-YG-001")
         q2 = build_stage2_question(
             q, test_files={"test_x::test_y": f}, repo_root=tmp_path

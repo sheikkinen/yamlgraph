@@ -58,7 +58,9 @@ def _run_gate(
 
         semantics_dest = tmppath / "scripts" / "gate_artifact_semantics.sh"
         semantics_dest.parent.mkdir(parents=True, exist_ok=True)
-        semantics_dest.write_text(SEMANTICS_SCRIPT_PATH.read_text(encoding="utf-8"), encoding="utf-8")
+        semantics_dest.write_text(
+            SEMANTICS_SCRIPT_PATH.read_text(encoding="utf-8"), encoding="utf-8"
+        )
         semantics_dest.chmod(0o755)
 
         (tmppath / "README.md").write_text("base\n", encoding="utf-8")

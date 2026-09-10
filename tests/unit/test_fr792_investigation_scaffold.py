@@ -120,11 +120,15 @@ def test_step_graphs_have_placeholder_agent_and_typed_schema(scaffold, tmp_path:
     """AC-06: default skeleton step = agent node + typed output schema stub."""
     home = _generate(scaffold, tmp_path / "invest", THREE_STEPS)
     for step in THREE_STEPS:
-        graph = yaml.safe_load((home / "steps" / step / "graph.yaml").read_text(encoding="utf-8"))
+        graph = yaml.safe_load(
+            (home / "steps" / step / "graph.yaml").read_text(encoding="utf-8")
+        )
         agent_nodes = [n for n in graph["nodes"].values() if n["type"] == "agent"]
         assert len(agent_nodes) == 1
         prompt = yaml.safe_load(
-            (home / "steps" / step / "prompts" / "investigate.yaml").read_text(encoding="utf-8")
+            (home / "steps" / step / "prompts" / "investigate.yaml").read_text(
+                encoding="utf-8"
+            )
         )
         schema = prompt["output_schema"]
         assert schema["properties"]["findings"]["items"]["type"] == "string"

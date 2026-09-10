@@ -22,7 +22,9 @@ class TestEmptyYamlHandling:
         """
         from yamlgraph.compile.graph_loader import load_graph_config
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             f.write("")  # Empty file
             tmpfile = Path(f.name)
 
@@ -32,9 +34,9 @@ class TestEmptyYamlHandling:
 
             # Should give clear error about empty/invalid config
             error_message = str(exc_info.value).lower()
-            assert (
-                "empty" in error_message or "invalid" in error_message
-            ), f"Error should mention empty/invalid config. Got: {exc_info.value}"
+            assert "empty" in error_message or "invalid" in error_message, (
+                f"Error should mention empty/invalid config. Got: {exc_info.value}"
+            )
         finally:
             tmpfile.unlink()
 
@@ -43,7 +45,9 @@ class TestEmptyYamlHandling:
         """YAML with only comments is effectively empty."""
         from yamlgraph.compile.graph_loader import load_graph_config
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             f.write("# This is a comment\n# Another comment\n")
             tmpfile = Path(f.name)
 
@@ -61,7 +65,9 @@ class TestEmptyYamlHandling:
         """YAML containing just 'null' should give clear error."""
         from yamlgraph.compile.graph_loader import load_graph_config
 
-        with tempfile.NamedTemporaryFile(encoding="utf-8", mode="w", suffix=".yaml", delete=False) as f:
+        with tempfile.NamedTemporaryFile(
+            encoding="utf-8", mode="w", suffix=".yaml", delete=False
+        ) as f:
             f.write("null\n")
             tmpfile = Path(f.name)
 

@@ -290,7 +290,9 @@ def test_non_terminal_tool_never_warns(tmp_path):
 
 def test_ramp_declined_suppresses_and_audits(tmp_path):
     repo = make_repo(tmp_path, "foreign", hooks="none")
-    (repo / ".ramp-declined").write_text("operator declined 2026-08-23\n", encoding="utf-8")
+    (repo / ".ramp-declined").write_text(
+        "operator declined 2026-08-23\n", encoding="utf-8"
+    )
     stage_file(
         repo,
         ".github/workflows/pub.yml",

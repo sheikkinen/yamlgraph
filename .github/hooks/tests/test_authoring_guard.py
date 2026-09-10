@@ -41,8 +41,12 @@ UNGOVERNED = "docs/notes.md"
 GOVERNED_FLAT_SYNTHETIC = "graphs/fr1014-flat.yaml"  # synthetic: flat arm
 GOVERNED_DIR_DIRECT_EXISTS = "graphs/enforcement/changelog-req-check.yaml"  # exists
 GOVERNED_DIR_PROMPT_EXISTS = "graphs/enforcement/prompts/cross_check.yaml"  # exists
-GOVERNED_DIR_GRAPH_FR1011 = "graphs/fr_triage/graph.yaml"  # exists (relocated by FR-1011)
-GOVERNED_DIR_PROMPT_FR1011 = "graphs/fr_triage/prompts/triage_fr.yaml"  # exists (relocated by FR-1011)
+GOVERNED_DIR_GRAPH_FR1011 = (
+    "graphs/fr_triage/graph.yaml"  # exists (relocated by FR-1011)
+)
+GOVERNED_DIR_PROMPT_FR1011 = (
+    "graphs/fr_triage/prompts/triage_fr.yaml"  # exists (relocated by FR-1011)
+)
 
 FR1014_POSITIVES = [
     GOVERNED_DIR_DIRECT_EXISTS,

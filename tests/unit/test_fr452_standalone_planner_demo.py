@@ -103,9 +103,9 @@ class TestPlannerDemoGraphStructure:
     def test_no_hardcoded_model(self) -> None:
         """No hardcoded model — uses env var fallthrough."""
         raw = yaml.safe_load((DEMO_DIR / "graph.yaml").read_text(encoding="utf-8"))
-        assert (
-            "model" not in raw["nodes"]["planner"]
-        ), "Planner node must not hardcode model — use PROVIDER/MODEL env vars"
+        assert "model" not in raw["nodes"]["planner"], (
+            "Planner node must not hardcode model — use PROVIDER/MODEL env vars"
+        )
 
     @pytest.mark.req("REQ-YG-424")
     def test_planner_state_key_is_plan_result(self) -> None:
@@ -118,7 +118,9 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_prompt_has_structured_schema(self) -> None:
         """Prompt must define PlanResult schema with 6 fields."""
-        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "planner.yaml").read_text(encoding="utf-8"))
+        prompt = yaml.safe_load(
+            (DEMO_DIR / "prompts" / "planner.yaml").read_text(encoding="utf-8")
+        )
         schema = prompt["schema"]
         assert schema["name"] == "PlanResult"
         expected_fields = {
@@ -134,7 +136,9 @@ class TestPlannerDemoGraphStructure:
     @pytest.mark.req("REQ-YG-424")
     def test_prompt_instructs_template_and_architecture(self) -> None:
         """Prompt must instruct agent to read FR template and architecture doc."""
-        prompt_text = (DEMO_DIR / "prompts" / "planner.yaml").read_text(encoding="utf-8")
+        prompt_text = (DEMO_DIR / "prompts" / "planner.yaml").read_text(
+            encoding="utf-8"
+        )
         assert "TEMPLATE.md" in prompt_text
         assert "ARCHITECTURE.md" in prompt_text
 

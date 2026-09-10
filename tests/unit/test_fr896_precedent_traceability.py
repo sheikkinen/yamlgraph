@@ -170,9 +170,9 @@ def test_shared_predicate_exists_in_both_modules(tools, preflight):
     assert tools.is_librarian("Web-Librarian (grounded)")
     assert preflight.is_librarian("Web-Librarian (grounded)")
     assert not tools.is_librarian("subtractionist")
-    assert (
-        tools.SOLUTION_CLASSES == preflight.SOLUTION_CLASSES
-    ), "enum drift between reducer and verifier"
+    assert tools.SOLUTION_CLASSES == preflight.SOLUTION_CLASSES, (
+        "enum drift between reducer and verifier"
+    )
 
 
 # --- AC-03/AC-04: precedent three-way validation (R-1) ------------------------

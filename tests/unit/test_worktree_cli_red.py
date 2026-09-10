@@ -106,4 +106,6 @@ def test_worktree_spike_rm_appends_spike_note_log_line(tmp_path: Path) -> None:
     )
     log_file = repo / "docs/diary/spike-notes.log"
     assert log_file.exists()
-    assert "fr-697-log-test: Captured useful teardown insight" in log_file.read_text(encoding="utf-8")
+    assert "fr-697-log-test: Captured useful teardown insight" in log_file.read_text(
+        encoding="utf-8"
+    )

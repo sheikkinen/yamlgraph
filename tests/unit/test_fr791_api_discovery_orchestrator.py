@@ -30,7 +30,9 @@ def _graph() -> dict:
 
 
 def _synth_schema() -> dict:
-    prompt = yaml.safe_load((EXAMPLE_DIR / "prompts" / "synthesize.yaml").read_text(encoding="utf-8"))
+    prompt = yaml.safe_load(
+        (EXAMPLE_DIR / "prompts" / "synthesize.yaml").read_text(encoding="utf-8")
+    )
     return prompt["output_schema"]
 
 

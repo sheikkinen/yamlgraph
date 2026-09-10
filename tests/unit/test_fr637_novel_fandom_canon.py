@@ -246,9 +246,9 @@ class TestReferenceGate:
             orphan_violations = [
                 v for v in result["gate_result"]["violations"] if "orphan" in v
             ]
-            assert (
-                not orphan_violations
-            ), f"Seed page '{page_id}' has orphan references: {orphan_violations}"
+            assert not orphan_violations, (
+                f"Seed page '{page_id}' has orphan references: {orphan_violations}"
+            )
 
 
 # --- Lane immutability tests (REQ-YG-483) ---

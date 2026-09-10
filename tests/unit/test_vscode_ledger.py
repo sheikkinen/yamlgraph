@@ -111,7 +111,9 @@ def test_unknown_model_fallback_is_conservative_and_has_cache_write():
 def test_workspace_name_resolves_uri_basename(tmp_path, key):
     ws = tmp_path / "0123456789abcdef"
     ws.mkdir()
-    (ws / "workspace.json").write_text(json.dumps({key: "file:///Users/x/src/myrepo"}), encoding="utf-8")
+    (ws / "workspace.json").write_text(
+        json.dumps({key: "file:///Users/x/src/myrepo"}), encoding="utf-8"
+    )
     assert ledger.workspace_name(ws) == "myrepo"
 
 
@@ -128,15 +130,18 @@ def test_workspace_name_falls_back_to_hash_prefix(tmp_path):
 def _fake_store(tmp_path: Path) -> Path:
     ws = tmp_path / "aaaa1111"
     (ws / "chatSessions").mkdir(parents=True)
-    (ws / "workspace.json").write_text(json.dumps({"folder": "file:///src/repo-a"}), encoding="utf-8")
+    (ws / "workspace.json").write_text(
+        json.dumps({"folder": "file:///src/repo-a"}), encoding="utf-8"
+    )
     ts = int(datetime(2026, 8, 15, 12, 0).timestamp() * 1000)
     old = int(datetime(2026, 7, 1, 12, 0).timestamp() * 1000)
     (ws / "chatSessions/s1.jsonl").write_text(
         f'{{"requestId":"r1","timestamp":{ts},"modelId":"copilot/claude-fable-5",'
         f'"promptTokens":1000000,"outputTokens":100}}\n'
         f'{{"requestId":"r2","timestamp":{old},"modelId":"copilot/claude-fable-5",'
-        f'"promptTokens":500,"outputTokens":5}}\n'
-    , encoding="utf-8")
+        f'"promptTokens":500,"outputTokens":5}}\n',
+        encoding="utf-8",
+    )
     return tmp_path
 
 

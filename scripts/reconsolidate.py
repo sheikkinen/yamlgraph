@@ -32,7 +32,9 @@ def reconsolidate(output_dir: Path) -> None:
 
             # Rewrite final files
             final_json = output_dir / "final.json"
-            final_json.write_text(json.dumps(final, ensure_ascii=False, indent=2), encoding="utf-8")
+            final_json.write_text(
+                json.dumps(final, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
             _write_plain_text(final, output_dir / "final.txt")
 
     print(f"Done! {final['stats']['total_paragraphs']} paragraphs")

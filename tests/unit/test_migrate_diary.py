@@ -70,8 +70,9 @@ class TestSplitDiary:
         diary.write_text(
             "# Development Diary\n\nHeader text.\n\n---\n\n"
             "## 2026-03-07: Inquisitor Audit XXIII — summary\n\nContent 1.\n\n---\n\n"
-            "## 2026-03-06: FR-125 — Implementation Reflection\n\nContent 2.\n"
-        , encoding="utf-8")
+            "## 2026-03-06: FR-125 — Implementation Reflection\n\nContent 2.\n",
+            encoding="utf-8",
+        )
         entries = migrate_diary_to_folder.split_diary(diary)
         assert len(entries) == 2
 
@@ -81,8 +82,9 @@ class TestSplitDiary:
         diary.write_text(
             "# Diary\n\n---\n\n"
             "## 2026-03-07: World Digest — Theme\n\nBody text.\n\n"
-            "**Seed:** Question?\n"
-        , encoding="utf-8")
+            "**Seed:** Question?\n",
+            encoding="utf-8",
+        )
         entries = migrate_diary_to_folder.split_diary(diary)
         assert len(entries) == 1
         assert "Body text." in entries[0]
@@ -100,8 +102,9 @@ class TestMigrate:
             "# Development Diary\n\n---\n\n"
             "## 2026-03-07: Inquisitor Audit XXIII — summary\n\n"
             "**Context:** commits `aaa1111`..`bbb2222`\n\n---\n\n"
-            "## 2026-03-06: FR-125 — Implementation Reflection\n\nReflection.\n"
-        , encoding="utf-8")
+            "## 2026-03-06: FR-125 — Implementation Reflection\n\nReflection.\n",
+            encoding="utf-8",
+        )
         out_dir = tmp_path / "diary"
         out_dir.mkdir()
 
@@ -117,8 +120,9 @@ class TestMigrate:
         diary.write_text(
             "# Diary\n\n---\n\n"
             "## 2026-03-07: World Digest — Theme A\n\nContent A.\n\n---\n\n"
-            "## 2026-03-07: World Digest — Theme B\n\nContent B.\n"
-        , encoding="utf-8")
+            "## 2026-03-07: World Digest — Theme B\n\nContent B.\n",
+            encoding="utf-8",
+        )
         out_dir = tmp_path / "diary"
         out_dir.mkdir()
 

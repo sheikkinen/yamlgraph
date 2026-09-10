@@ -1,0 +1,41 @@
+name: Pre-Commit Gate Hygiene
+id: CAP-271
+status: active
+fr: FR-1044
+feature_request: FR-1044
+description: >
+  The gates that guard a commit must not themselves generate work. The
+  formatter runs at one version, sourced from constraints/dev-py312.txt,
+  so the hook and the developer environment never reformat each other's
+  output. The confession ledger's line references are repaired
+  mechanically before --strict reads them, and the repair refuses any
+  shape where the mapping from ledger entry to suppression is not
+  one-to-one.
+modules:
+  - scripts/noqa_coverage.py
+  - .pre-commit-config.yaml
+requirements:
+  - id: REQ-YG-676
+    description: >
+      Ruff version convergence (FR-1044). The ruff-pre-commit repo rev
+      equals the ruff pin in constraints/dev-py312.txt, normalised for
+      the leading v of the git tag. Exactly one ruff-pre-commit repo is
+      declared. Without this, the hook and the developer's ruff format
+      the same file differently and each commit reverts the other.
+    modules:
+      - .pre-commit-config.yaml
+      - constraints/dev-py312.txt
+      - tests/unit/test_fr1044_gate_hygiene.py
+  - id: REQ-YG-677
+    description: >
+      Confession line repair (FR-1044). scripts/noqa_coverage.py --fix
+      realigns the #L<n> reference of each confession entry when the
+      suppressions in a file map one-to-one and in order onto the
+      ledger entries for that file by rule code; it refuses and changes
+      nothing when a suppression was added, removed, or its code
+      changed, leaving those for --strict to report. The fix hook runs
+      before the strict hook and stages nothing.
+    modules:
+      - scripts/noqa_coverage.py
+      - .pre-commit-config.yaml
+      - tests/unit/test_fr1044_gate_hygiene.py

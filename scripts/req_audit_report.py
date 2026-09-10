@@ -192,7 +192,9 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    manifest = json.loads((args.audit_dir / "manifest.json").read_text(encoding="utf-8"))
+    manifest = json.loads(
+        (args.audit_dir / "manifest.json").read_text(encoding="utf-8")
+    )
     responses = _load_responses(args.audit_dir / "raw")
     retry_responses = _load_responses(args.audit_dir / "raw-retry")
 
@@ -208,7 +210,9 @@ def main() -> None:
 
     result = reconcile(manifest, responses, retry_responses)
     run_manifest = (
-        json.loads(args.run_manifest.read_text(encoding="utf-8")) if args.run_manifest else {}
+        json.loads(args.run_manifest.read_text(encoding="utf-8"))
+        if args.run_manifest
+        else {}
     )
     report = render_report(
         result,

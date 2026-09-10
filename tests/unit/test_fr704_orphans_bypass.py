@@ -159,7 +159,9 @@ class TestGraphAndPromptContract:
 
     @pytest.mark.req("REQ-YG-536")
     def test_schema_two_judgement_fields(self) -> None:
-        prompt = yaml.safe_load((DEMO_DIR / "prompts" / "recap.yaml").read_text(encoding="utf-8"))
+        prompt = yaml.safe_load(
+            (DEMO_DIR / "prompts" / "recap.yaml").read_text(encoding="utf-8")
+        )
         assert set(prompt["schema"]["fields"]) == {"workstreams", "hotspots"}
 
     @pytest.mark.req("REQ-YG-536")

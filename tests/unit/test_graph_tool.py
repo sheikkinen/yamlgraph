@@ -257,8 +257,9 @@ edges:
     to: echo
   - from: echo
     to: END
-"""
-        , encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
         parent_yaml = tmp_path / "parent.yaml"
         # Create a minimal GraphConfig-like object
         from yamlgraph.compile.graph_loader import GraphConfig, _parse_graph_tools
@@ -314,8 +315,9 @@ edges:
     to: echo
   - from: echo
     to: END
-"""
-        , encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
         parent_yaml = tmp_path / "parent.yaml"
         from yamlgraph.compile.graph_loader import GraphConfig, _parse_graph_tools
 

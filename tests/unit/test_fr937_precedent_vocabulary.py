@@ -51,7 +51,9 @@ def test_no_prompt_instructs_the_retired_marker():
         for p in PROMPTS.glob("*.yaml")
         if rt.ECHO_MARKER in p.read_text(encoding="utf-8")
     ]
-    assert not offenders, f"prompts still instruct {rt.ECHO_MARKER!r}, which the reducer rejects: {offenders}"
+    assert not offenders, (
+        f"prompts still instruct {rt.ECHO_MARKER!r}, which the reducer rejects: {offenders}"
+    )
 
 
 @pytest.mark.req("REQ-YG-623")
@@ -61,7 +63,9 @@ def test_internal_personas_are_taught_the_accepted_marker():
         for p in INTERNAL_PROMPTS
         if rt.NONE_RETRIEVED not in p.read_text(encoding="utf-8")
     ]
-    assert not silent, f"internal personas are never told they may claim {rt.NONE_RETRIEVED!r}: {silent}"
+    assert not silent, (
+        f"internal personas are never told they may claim {rt.NONE_RETRIEVED!r}: {silent}"
+    )
 
 
 @pytest.mark.req("REQ-YG-623")
@@ -69,9 +73,9 @@ def test_internal_personas_are_taught_the_accepted_marker():
 def test_librarian_keeps_its_url_only_contract(prompt):
     """The librarian cites a real URL from tool results; it has no honest miss."""
     text = prompt.read_text(encoding="utf-8")
-    assert (
-        rt.NONE_RETRIEVED not in text
-    ), "librarian must not be offered an internal honest-miss escape"
+    assert rt.NONE_RETRIEVED not in text, (
+        "librarian must not be offered an internal honest-miss escape"
+    )
     assert "URL" in text or "url" in text, "librarian must still require a URL"
 
 

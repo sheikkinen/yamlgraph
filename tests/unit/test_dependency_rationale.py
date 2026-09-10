@@ -24,13 +24,16 @@ class TestParsePyprojectDependencies:
     def test_extracts_core_dependencies(self, tmp_path: Path) -> None:
         """Core dependencies should be extracted with version specifiers stripped."""
         toml = tmp_path / "pyproject.toml"
-        toml.write_text("""\
+        toml.write_text(
+            """\
 [project]
 dependencies = [
     "pydantic>=2.0.0",
     "pyyaml>=6.0",
 ]
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         result = dependency_rationale.parse_pyproject_dependencies(toml)
 
@@ -40,7 +43,8 @@ dependencies = [
     def test_extracts_optional_dependencies(self, tmp_path: Path) -> None:
         """Optional dependency groups should be extracted."""
         toml = tmp_path / "pyproject.toml"
-        toml.write_text("""\
+        toml.write_text(
+            """\
 [project]
 dependencies = []
 
@@ -52,7 +56,9 @@ dev = [
 redis = [
     "langgraph-checkpoint-redis>=0.3.0",
 ]
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         result = dependency_rationale.parse_pyproject_dependencies(toml)
 
@@ -63,13 +69,16 @@ redis = [
     def test_strips_version_specifiers(self, tmp_path: Path) -> None:
         """Version specifiers (>=, <, ==, ~=) should be stripped from names."""
         toml = tmp_path / "pyproject.toml"
-        toml.write_text("""\
+        toml.write_text(
+            """\
 [project]
 dependencies = [
     "a2a-sdk[http-server]>=0.3,<1.0",
     "langchain-anthropic>=0.3.0",
 ]
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         result = dependency_rationale.parse_pyproject_dependencies(toml)
 
@@ -96,7 +105,8 @@ class TestParseRationaleRegistry:
     def test_extracts_documented_packages(self, tmp_path: Path) -> None:
         """Documented packages should be returned as a set."""
         registry = tmp_path / "dependency-rationale.yaml"
-        registry.write_text("""\
+        registry.write_text(
+            """\
 dependencies:
   pydantic:
     rationale: "Structured validation"
@@ -106,7 +116,9 @@ dependencies:
     rationale: "YAML parsing"
     modules: ["yamlgraph/data_loader.py"]
     added: "0.1.0"
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         result = dependency_rationale.parse_rationale_registry(registry)
 
@@ -123,13 +135,16 @@ dependencies:
     def test_validates_required_fields(self, tmp_path: Path) -> None:
         """Entries missing required fields should be reported."""
         registry = tmp_path / "dependency-rationale.yaml"
-        registry.write_text("""\
+        registry.write_text(
+            """\
 dependencies:
   pydantic:
     rationale: "Structured validation"
   pyyaml:
     modules: ["yamlgraph/data_loader.py"]
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         result = dependency_rationale.parse_rationale_registry(registry)
 
@@ -203,20 +218,26 @@ class TestMain:
     def test_no_gaps_returns_zero(self, tmp_path: Path) -> None:
         """All documented → exit 0."""
         toml = tmp_path / "pyproject.toml"
-        toml.write_text("""\
+        toml.write_text(
+            """\
 [project]
 dependencies = ["pydantic>=2.0.0"]
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         registry = tmp_path / "docs" / "dependency-rationale.yaml"
         registry.parent.mkdir()
-        registry.write_text("""\
+        registry.write_text(
+            """\
 dependencies:
   pydantic:
     rationale: "Validation"
     modules: ["yamlgraph/models/"]
     added: "0.1.0"
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         with patch.object(dependency_rationale.sys, "argv", ["dep_rationale.py"]):
             original_file = dependency_rationale.__file__
@@ -233,20 +254,26 @@ dependencies:
     def test_strict_with_gaps_returns_one(self, tmp_path: Path) -> None:
         """Undocumented deps + --strict → exit 1."""
         toml = tmp_path / "pyproject.toml"
-        toml.write_text("""\
+        toml.write_text(
+            """\
 [project]
 dependencies = ["pydantic>=2.0.0", "pyyaml>=6.0"]
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         registry = tmp_path / "docs" / "dependency-rationale.yaml"
         registry.parent.mkdir()
-        registry.write_text("""\
+        registry.write_text(
+            """\
 dependencies:
   pydantic:
     rationale: "Validation"
     modules: ["yamlgraph/models/"]
     added: "0.1.0"
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         with patch.object(
             dependency_rationale.sys, "argv", ["dep_rationale.py", "--strict"]
@@ -265,20 +292,26 @@ dependencies:
     def test_non_strict_with_gaps_returns_zero(self, tmp_path: Path) -> None:
         """Undocumented deps without --strict → exit 0 (advisory)."""
         toml = tmp_path / "pyproject.toml"
-        toml.write_text("""\
+        toml.write_text(
+            """\
 [project]
 dependencies = ["pydantic>=2.0.0", "pyyaml>=6.0"]
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         registry = tmp_path / "docs" / "dependency-rationale.yaml"
         registry.parent.mkdir()
-        registry.write_text("""\
+        registry.write_text(
+            """\
 dependencies:
   pydantic:
     rationale: "Validation"
     modules: ["yamlgraph/models/"]
     added: "0.1.0"
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         with patch.object(dependency_rationale.sys, "argv", ["dep_rationale.py"]):
             original_file = dependency_rationale.__file__
@@ -295,20 +328,26 @@ dependencies:
     def test_detail_mode(self, tmp_path: Path, capsys) -> None:
         """--detail should print all rationale entries."""
         toml = tmp_path / "pyproject.toml"
-        toml.write_text("""\
+        toml.write_text(
+            """\
 [project]
 dependencies = ["pydantic>=2.0.0"]
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         registry = tmp_path / "docs" / "dependency-rationale.yaml"
         registry.parent.mkdir()
-        registry.write_text("""\
+        registry.write_text(
+            """\
 dependencies:
   pydantic:
     rationale: "Structured validation"
     modules: ["yamlgraph/models/"]
     added: "0.1.0"
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         with patch.object(
             dependency_rationale.sys, "argv", ["dep_rationale.py", "--detail"]
@@ -484,7 +523,9 @@ class TestMainDeepAudit:
         """Create pyproject.toml and registry in tmp_path."""
         (tmp_path / "pyproject.toml").write_text(toml_text, encoding="utf-8")
         (tmp_path / "docs").mkdir(exist_ok=True)
-        (tmp_path / "docs" / "dependency-rationale.yaml").write_text(registry_text, encoding="utf-8")
+        (tmp_path / "docs" / "dependency-rationale.yaml").write_text(
+            registry_text, encoding="utf-8"
+        )
 
     def test_strict_fails_on_orphans(self, tmp_path: Path) -> None:
         """--strict should exit 1 when orphaned registry entries exist."""

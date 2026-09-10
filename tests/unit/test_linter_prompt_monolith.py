@@ -99,9 +99,9 @@ def test_w026_calibration_witness(tmp_path: Path) -> None:
     }
 
     assert fired >= FIRE, f"W026 must fire on monoliths; missing {FIRE - fired}"
-    assert not (
-        SILENT & fired
-    ), f"W026 must stay silent on clean prompts: {SILENT & fired}"
+    assert not (SILENT & fired), (
+        f"W026 must stay silent on clean prompts: {SILENT & fired}"
+    )
 
 
 @pytest.mark.req("REQ-YG-473")

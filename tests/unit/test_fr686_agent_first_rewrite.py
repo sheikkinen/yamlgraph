@@ -66,9 +66,9 @@ class TestGenesisAgentStructure:
         for name, node in config["nodes"].items():
             if name == "synopsis":
                 continue  # AC-1 amendment: synopsis is separate LLM node
-            assert (
-                node.get("type") != "llm"
-            ), f"Node '{name}' is type: llm — FR-686 forbids LLM entity generation"
+            assert node.get("type") != "llm", (
+                f"Node '{name}' is type: llm — FR-686 forbids LLM entity generation"
+            )
 
     @pytest.mark.req("REQ-YG-518")
     def test_genesis_agent_has_creation_tools(self) -> None:
@@ -175,9 +175,9 @@ class TestCreationToolPipelines:
         tool_name = graph_file.replace(".yaml", "")
         tools = config.get("tools", {})
         assert tool_name in tools, f"Missing tool definition: {tool_name}"
-        assert (
-            tools[tool_name].get("type") == "graph"
-        ), f"{tool_name} must be type: graph (FR-658 showcase)"
+        assert tools[tool_name].get("type") == "graph", (
+            f"{tool_name} must be type: graph (FR-658 showcase)"
+        )
 
     @pytest.mark.req("REQ-YG-519")
     @pytest.mark.parametrize(
@@ -196,9 +196,9 @@ class TestCreationToolPipelines:
         config = _load_graph(graph_file)
         nodes = config.get("nodes", {})
         llm_nodes = [n for n, v in nodes.items() if v.get("type") == "llm"]
-        assert (
-            len(llm_nodes) >= 1
-        ), f"{graph_file} must have at least one LLM check node (AC-8)"
+        assert len(llm_nodes) >= 1, (
+            f"{graph_file} must have at least one LLM check node (AC-8)"
+        )
 
     @pytest.mark.req("REQ-YG-519")
     @pytest.mark.parametrize(
@@ -238,9 +238,9 @@ class TestCreationToolPipelines:
         config = _load_graph(graph_file)
         edges = config.get("edges", [])
         has_condition = any(e.get("condition") or e.get("conditions") for e in edges)
-        assert (
-            has_condition
-        ), f"{graph_file} must have conditional edge to skip LLM on persist failure"
+        assert has_condition, (
+            f"{graph_file} must have conditional edge to skip LLM on persist failure"
+        )
 
 
 class TestPersistEntityNode:
@@ -452,9 +452,9 @@ class TestWorldgenAgentStructure:
         """No type: map nodes — agent decides work order."""
         config = _load_graph("worldgen.yaml")
         for name, node in config["nodes"].items():
-            assert (
-                node.get("type") != "map"
-            ), f"Node '{name}' is type: map — FR-686 forbids map nodes"
+            assert node.get("type") != "map", (
+                f"Node '{name}' is type: map — FR-686 forbids map nodes"
+            )
 
     @pytest.mark.req("REQ-YG-520")
     def test_worldgen_agent_has_update_refs(self) -> None:
@@ -479,9 +479,9 @@ class TestWorldgenAgentStructure:
         tools = config.get("tools", {})
         for name, tool in tools.items():
             if name.startswith("create_"):
-                assert (
-                    tool.get("type") == "graph"
-                ), f"{name} must be type: graph in worldgen.yaml"
+                assert tool.get("type") == "graph", (
+                    f"{name} must be type: graph in worldgen.yaml"
+                )
 
     @pytest.mark.req("REQ-YG-520")
     def test_worldgen_graph_lints(self) -> None:
@@ -625,6 +625,6 @@ class TestRetiredFiles:
             "collect_red_links.py",
             "apply_merge_map.py",
         ):
-            assert not (
-                nodes / old_file
-            ).exists(), f"Retired file still exists: {old_file}"
+            assert not (nodes / old_file).exists(), (
+                f"Retired file still exists: {old_file}"
+            )

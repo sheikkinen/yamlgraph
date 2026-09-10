@@ -6,15 +6,30 @@ is properly configured and that the aggregate script produces correct output.
 
 from __future__ import annotations
 
+import importlib.util
+import sys
 from pathlib import Path
+from types import ModuleType
 
 import pytest
 import yaml
+
+# FR-756: this module loads scripts/aggregate_capabilities.py as a module.
+pytestmark = pytest.mark.process
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 PRE_COMMIT_CONFIG = REPO_ROOT / ".pre-commit-config.yaml"
 AGGREGATE_SCRIPT = REPO_ROOT / "scripts" / "aggregate_capabilities.py"
 ARCHITECTURE_MD = REPO_ROOT / "ARCHITECTURE.md"
+
+
+def _load_aggregate_module() -> ModuleType:
+    spec = importlib.util.spec_from_file_location(
+        "aggregate_capabilities", AGGREGATE_SCRIPT
+    )
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    return mod
 
 
 def _load_pre_commit_hooks() -> list[dict]:
@@ -42,9 +57,9 @@ class TestCapArchitectureSyncHook:
     def test_hook_exists(self) -> None:
         """cap-architecture-sync hook must be registered."""
         hook = _find_hook("cap-architecture-sync")
-        assert (
-            hook is not None
-        ), "Hook 'cap-architecture-sync' not found in .pre-commit-config.yaml"
+        assert hook is not None, (
+            "Hook 'cap-architecture-sync' not found in .pre-commit-config.yaml"
+        )
 
     @pytest.mark.req("REQ-YG-425")
     def test_hook_entry_runs_aggregate_script(self) -> None:
@@ -92,14 +107,43 @@ class TestCapArchitectureSyncHook:
         assert "<!-- END GENERATED CAPABILITIES -->" in text
 
     @pytest.mark.req("REQ-YG-425")
-    def test_aggregate_script_exits_zero(self) -> None:
-        """aggregate_capabilities.py must exit 0 (ruff-format pattern)."""
-        import importlib.util
+    def test_aggregate_script_exits_zero(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        """FR-1044 AC-01: exit 0 without ever reaching the write boundary.
 
-        spec = importlib.util.spec_from_file_location(
-            "aggregate_capabilities", AGGREGATE_SCRIPT
+        Byte equality and `git status` cannot witness this: on a synced tree the
+        script rewrites identical bytes and both proxies still pass.
+        """
+        mod = _load_aggregate_module()
+
+        def _forbidden(*args: object, **kwargs: object) -> None:
+            raise AssertionError(
+                "aggregate_capabilities wrote a file during a unit test "
+                "(FR-1044: the test must run --dry-run)"
+            )
+
+        monkeypatch.setattr(Path, "write_text", _forbidden)
+        monkeypatch.setattr(sys, "argv", ["aggregate_capabilities.py", "--dry-run"])
+
+        assert mod.main() == 0
+
+    @pytest.mark.req("REQ-YG-425")
+    def test_generated_section_matches_committed(
+        self, monkeypatch: pytest.MonkeyPatch, capsys: pytest.CaptureFixture[str]
+    ) -> None:
+        """FR-1044 AC-02: the committed section equals what generation produces.
+
+        Drift here is a failing test instead of a hook-side write mid-commit.
+        """
+        mod = _load_aggregate_module()
+        monkeypatch.setattr(sys, "argv", ["aggregate_capabilities.py", "--dry-run"])
+        assert mod.main() == 0
+        generated = capsys.readouterr().out.strip()
+
+        text = ARCHITECTURE_MD.read_text(encoding="utf-8")
+        begin = text.index(mod.BEGIN_MARKER) + len(mod.BEGIN_MARKER)
+        committed = text[begin : text.index(mod.END_MARKER)].strip()
+
+        assert generated == committed, (
+            "ARCHITECTURE.md generated section is out of sync with capabilities/ "
+            "— run: python scripts/aggregate_capabilities.py"
         )
-        mod = importlib.util.module_from_spec(spec)
-        spec.loader.exec_module(mod)
-        result = mod.main()
-        assert result == 0, "aggregate_capabilities.py must exit 0 for auto-fix pattern"

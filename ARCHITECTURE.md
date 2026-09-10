@@ -584,6 +584,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 267 | CAP-267 Graph run provider/model override | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/compile/default_overrides.py`, … | REQ-YG-671 |
 | 268 | CAP-268 Desktop Toast Notification Tool | `examples/shared/notify_toast.py`, `examples/shared/send_toast.tool.yaml`, `examples/demos/hello` | REQ-YG-672 |
 | 270 | CAP-270 Bounded local-Markdown census binding | `examples/demos/corpus_census/adapters/markdown_adapters.py`, `examples/demos/corpus_census/adapters/md-discover.tool.yaml`, `examples/demos/corpus_census/adapters/md-extract.tool.yaml`, `tests/unit/test_markdown_corpus_adapters.py` | REQ-YG-674 |
+| 271 | CAP-271 Pre-Commit Gate Hygiene | `scripts/noqa_coverage.py`, `.pre-commit-config.yaml` | REQ-YG-676 – 677 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3283,6 +3284,17 @@ Binds the FR-892 corpus-census pipeline to a bounded directory of Markdown files
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-674 | Bounded local-Markdown census adapters are fail-closed and identity-verified: md_discover returns every *.md file in the named directory sorted, or raises naming the observed count and the ceiling when the population exceeds it, and never returns a prefix; each item is a deterministically serialized reference carrying path, raw-byte sha256 and raw-byte count; md_extract validates that reference, then re-reads the bytes and raises a named error on byte-count or digest mismatch BEFORE decoding; a decoded file over the character ceiling raises naming path, count and ceiling rather than being truncated; invalid UTF-8 decodes with replacement only after identity is verified. | `examples/demos/corpus_census/adapters/markdown_adapters.py`, `examples/demos/corpus_census/adapters/md-discover.tool.yaml`, `examples/demos/corpus_census/adapters/md-extract.tool.yaml`, `tests/unit/test_markdown_corpus_adapters.py` |
+
+### 271. CAP-271 Pre-Commit Gate Hygiene
+
+The gates that guard a commit must not themselves generate work. The formatter runs at one version, sourced from constraints/dev-py312.txt, so the hook and the developer environment never reformat each other's output. The confession ledger's line references are repaired mechanically before --strict reads them, and the repair refuses any shape where the mapping from ledger entry to suppression is not one-to-one.
+
+**Feature Request:** FR-1044
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-676 | Ruff version convergence (FR-1044). The ruff-pre-commit repo rev equals the ruff pin in constraints/dev-py312.txt, normalised for the leading v of the git tag. Exactly one ruff-pre-commit repo is declared. Without this, the hook and the developer's ruff format the same file differently and each commit reverts the other. | `.pre-commit-config.yaml`, `constraints/dev-py312.txt`, `tests/unit/test_fr1044_gate_hygiene.py` |
+| REQ-YG-677 | Confession line repair (FR-1044). scripts/noqa_coverage.py --fix realigns the #L<n> reference of each confession entry when the suppressions in a file map one-to-one and in order onto the ledger entries for that file by rule code; it refuses and changes nothing when a suppression was added, removed, or its code changed, leaving those for --strict to report. The fix hook runs before the strict hook and stages nothing. | `scripts/noqa_coverage.py`, `.pre-commit-config.yaml`, `tests/unit/test_fr1044_gate_hygiene.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

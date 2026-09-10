@@ -55,6 +55,6 @@ def test_probe_still_observes_notification_events():
     config = json.loads(PROBE_CONFIG.read_text(encoding="utf-8"))
     for event in ("SessionStart", "UserPromptSubmit", "Stop", "SessionEnd"):
         handlers = config["hooks"].get(event, [])
-        assert any(
-            PROBE_SCRIPT in h.get("command", "") for h in handlers
-        ), f"probe missing from fail-open event {event}"
+        assert any(PROBE_SCRIPT in h.get("command", "") for h in handlers), (
+            f"probe missing from fail-open event {event}"
+        )

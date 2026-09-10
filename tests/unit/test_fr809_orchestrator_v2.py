@@ -42,7 +42,9 @@ def _graph() -> dict:
 
 
 def _synth_prompt() -> dict:
-    return yaml.safe_load((EXAMPLE_DIR / "prompts" / "synthesize.yaml").read_text(encoding="utf-8"))
+    return yaml.safe_load(
+        (EXAMPLE_DIR / "prompts" / "synthesize.yaml").read_text(encoding="utf-8")
+    )
 
 
 def _edges_from(graph: dict, source: str) -> list[dict]:
@@ -200,7 +202,9 @@ def test_steps_tried_evidence_covers_new_wrappers():
 def test_fetch_page_output_is_byte_capped():
     """Boundary: unbounded page HTML overflowed the LLM context (smoke pos5,
     213k tokens > 200k anthropic limit). fetch_page must cap its output."""
-    raw = yaml.safe_load((EXAMPLE_DIR / "tools" / "fetch_page.tool.yaml").read_text(encoding="utf-8"))
+    raw = yaml.safe_load(
+        (EXAMPLE_DIR / "tools" / "fetch_page.tool.yaml").read_text(encoding="utf-8")
+    )
     cmd = raw["runtime"]["command"]
     assert "head -c" in cmd, "fetch_page command must byte-cap its output"
     cap = int(cmd.split("head -c")[1].split()[0])

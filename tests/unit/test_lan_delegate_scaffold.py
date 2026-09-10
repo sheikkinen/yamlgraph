@@ -45,9 +45,9 @@ def test_delegation_policy_status_precedence_is_total():
         f"Missing from precedence: {enum_values - precedence_values}; "
         f"Extra in precedence: {precedence_values - enum_values}"
     )
-    assert len(models._PRECEDENCE) == len(
-        set(models._PRECEDENCE)
-    ), "Precedence table has duplicate entries"
+    assert len(models._PRECEDENCE) == len(set(models._PRECEDENCE)), (
+        "Precedence table has duplicate entries"
+    )
 
 
 @pytest.mark.req("REQ-YG-636")
@@ -167,9 +167,9 @@ def test_pre_launch_exceptions_tuple_lists_all_typed_classes():
 def test_pre_launch_exceptions_all_inherit_lan_delegate_error():
     """Every typed exception must be catchable via LanDelegateError."""
     for exc_cls in errors.PRE_LAUNCH_EXCEPTIONS:
-        assert issubclass(
-            exc_cls, errors.LanDelegateError
-        ), f"{exc_cls.__name__} does not inherit LanDelegateError"
+        assert issubclass(exc_cls, errors.LanDelegateError), (
+            f"{exc_cls.__name__} does not inherit LanDelegateError"
+        )
 
 
 @pytest.mark.req("REQ-YG-636")

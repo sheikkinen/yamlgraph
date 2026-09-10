@@ -92,7 +92,8 @@ class TestParseConfessions:
     def test_parse_confessions_extracts_entries(self, tmp_path: Path) -> None:
         """Parse confessions.md and extract documented entries."""
         confessions_md = tmp_path / "confessions.md"
-        confessions_md.write_text("""\
+        confessions_md.write_text(
+            """\
 # Confessions
 
 ### CONF-001
@@ -106,7 +107,9 @@ class TestParseConfessions:
 - **Code**: F401
 - **Sin**: Unused import
 - **Penance**: Needed for pytest fixtures
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         confessions = noqa_coverage.parse_confessions(confessions_md)
 
@@ -193,7 +196,8 @@ class TestMain:
         docs_dir = tmp_path / "docs"
         docs_dir.mkdir()
         confessions = docs_dir / "confessions.md"
-        confessions.write_text("""\
+        confessions.write_text(
+            """\
 # Confessions
 
 ### CONF-001
@@ -201,7 +205,9 @@ class TestMain:
 - **Code**: E402
 - **Sin**: Test
 - **Penance**: Test
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
 
         with patch.object(noqa_coverage.sys, "argv", ["noqa_coverage.py", "--strict"]):
             original_file = noqa_coverage.__file__

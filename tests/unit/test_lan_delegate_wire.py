@@ -160,9 +160,9 @@ def test_wrapper_sets_cwd_to_worktree_before_invoking_copilot():
     copilot_call_idx = text.find("& 'C:\\Program Files\\nodejs\\copilot.ps1'")
     assert set_loc_idx != -1, "wrapper must Set-Location to $W"
     assert copilot_call_idx != -1, "wrapper must invoke copilot.ps1"
-    assert (
-        set_loc_idx < copilot_call_idx
-    ), "Set-Location must precede copilot.ps1 invocation"
+    assert set_loc_idx < copilot_call_idx, (
+        "Set-Location must precede copilot.ps1 invocation"
+    )
 
 
 @pytest.mark.req("REQ-YG-636")
@@ -173,9 +173,9 @@ def test_wrapper_invokes_ps1_entrypoint_not_cmd_shim():
     text = WRAPPER_PATH.read_text(encoding="utf-8")
     assert "copilot.ps1" in text, "wrapper must use the .ps1 entrypoint"
     # No live-execution reference to the .cmd shim (constant name COPILOT_CMD stays).
-    assert (
-        "'C:\\Program Files\\nodejs\\copilot.cmd'" not in text
-    ), "wrapper must not dispatch through cmd.exe (argv truncation on newline)"
+    assert "'C:\\Program Files\\nodejs\\copilot.cmd'" not in text, (
+        "wrapper must not dispatch through cmd.exe (argv truncation on newline)"
+    )
 
 
 @pytest.mark.req("REQ-YG-636")
@@ -187,9 +187,9 @@ def test_wrapper_writes_prompt_to_file_and_passes_pointer():
     text = WRAPPER_PATH.read_text(encoding="utf-8")
     assert ".lan-delegate" in text, "wrapper must define the prompt file directory"
     assert "prompt.md" in text, "wrapper must write prompt to prompt.md"
-    assert (
-        "WriteAllBytes" in text and "$Prompt" in text
-    ), "wrapper must persist $Prompt bytes to disk"
+    assert "WriteAllBytes" in text and "$Prompt" in text, (
+        "wrapper must persist $Prompt bytes to disk"
+    )
     assert "$pointerPrompt" in text, "wrapper must define a pointerPrompt variable"
 
 

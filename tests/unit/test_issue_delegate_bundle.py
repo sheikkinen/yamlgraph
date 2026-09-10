@@ -239,7 +239,9 @@ def test_worker_cli_parse_issue_emits_request_fields(tmp_path):
 @pytest.mark.req("REQ-YG-637")
 def test_worker_cli_parse_issue_invalid_body_fails_typed(tmp_path):
     event = tmp_path / "event.json"
-    event.write_text(json.dumps({"issue": {"body": "no yaml block here"}}), encoding="utf-8")
+    event.write_text(
+        json.dumps({"issue": {"body": "no yaml block here"}}), encoding="utf-8"
+    )
     res = _run_worker("parse-issue", str(event))
     assert res.returncode == 1
     assert "INVALID_REQUEST" in res.stderr
@@ -452,7 +454,9 @@ class SubmitFixture:
             if drift and src_name == "worker.py":
                 sha = "0" * 40
             key = deployed.replace("/", "__")
-            (self.contents_dir / f"{key}.json").write_text(json.dumps({"sha": sha}), encoding="utf-8")
+            (self.contents_dir / f"{key}.json").write_text(
+                json.dumps({"sha": sha}), encoding="utf-8"
+            )
 
     @property
     def head(self) -> str:

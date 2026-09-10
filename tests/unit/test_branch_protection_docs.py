@@ -25,30 +25,30 @@ class TestBreakGlassDocumentation:
     def test_break_glass_contains_emergency_procedure(self):
         path = REPO_ROOT / "reference" / "break-glass.md"
         content = path.read_text(encoding="utf-8")
-        assert (
-            "emergency" in content.lower()
-        ), "break-glass.md must document the emergency bypass procedure"
+        assert "emergency" in content.lower(), (
+            "break-glass.md must document the emergency bypass procedure"
+        )
 
     def test_break_glass_contains_audit_trail_requirement(self):
         path = REPO_ROOT / "reference" / "break-glass.md"
         content = path.read_text(encoding="utf-8")
-        assert (
-            "audit" in content.lower()
-        ), "break-glass.md must require an audit trail for overrides"
+        assert "audit" in content.lower(), (
+            "break-glass.md must require an audit trail for overrides"
+        )
 
     def test_break_glass_contains_diary_entry_requirement(self):
         path = REPO_ROOT / "reference" / "break-glass.md"
         content = path.read_text(encoding="utf-8")
-        assert (
-            "diary" in content.lower()
-        ), "break-glass.md must require a docs/diary/ entry after bypass"
+        assert "diary" in content.lower(), (
+            "break-glass.md must require a docs/diary/ entry after bypass"
+        )
 
     def test_break_glass_contains_re_enable_steps(self):
         path = REPO_ROOT / "reference" / "break-glass.md"
         content = path.read_text(encoding="utf-8")
-        assert (
-            "re-enable" in content.lower() or "restore" in content.lower()
-        ), "break-glass.md must document how to re-enable protection"
+        assert "re-enable" in content.lower() or "restore" in content.lower(), (
+            "break-glass.md must document how to re-enable protection"
+        )
 
 
 @pytest.mark.req("REQ-YG-149")
@@ -57,29 +57,29 @@ class TestClaudeMdBranchProtection:
 
     def test_dev_ops_has_branch_protection_section(self):
         content = DEV_OPS.read_text(encoding="utf-8")
-        assert (
-            "## Branch Protection" in content
-        ), "development-operations.md must have a 'Branch Protection' section"
+        assert "## Branch Protection" in content, (
+            "development-operations.md must have a 'Branch Protection' section"
+        )
 
     def test_claude_md_references_squash_merge(self):
         path = REPO_ROOT / "CLAUDE.md"
         content = path.read_text(encoding="utf-8")
         # Find the branch protection section and verify it mentions squash merge
-        assert (
-            "squash" in content.lower()
-        ), "CLAUDE.md branch protection section must mention squash merge"
+        assert "squash" in content.lower(), (
+            "CLAUDE.md branch protection section must mention squash merge"
+        )
 
     def test_dev_ops_references_break_glass(self):
         content = DEV_OPS.read_text(encoding="utf-8")
-        assert (
-            "break-glass" in content.lower()
-        ), "development-operations.md must reference break-glass.md"
+        assert "break-glass" in content.lower(), (
+            "development-operations.md must reference break-glass.md"
+        )
 
     def test_dev_ops_references_required_checks(self):
         content = DEV_OPS.read_text(encoding="utf-8")
-        assert (
-            "commitlint" in content.lower()
-        ), "development-operations.md must list required status checks"
+        assert "commitlint" in content.lower(), (
+            "development-operations.md must list required status checks"
+        )
 
 
 @pytest.mark.req("REQ-YG-149")
@@ -95,9 +95,9 @@ class TestClaudeMdMergeQueue:
 
     def test_dev_ops_documents_dormant_merge_group_wiring(self):
         content = DEV_OPS.read_text(encoding="utf-8")
-        assert (
-            "merge_group" in content
-        ), "ops reference must state required contexts also report on merge_group"
+        assert "merge_group" in content, (
+            "ops reference must state required contexts also report on merge_group"
+        )
 
     def test_dev_ops_strict_up_to_date_still_enforced(self):
         content = DEV_OPS.read_text(encoding="utf-8")

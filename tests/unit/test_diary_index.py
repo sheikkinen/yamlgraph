@@ -230,8 +230,12 @@ class TestListDiaryFiles:
 
         diary_dir = tmp_path / "docs" / "diary"
         diary_dir.mkdir(parents=True)
-        (diary_dir / "2026-01-01-test.md").write_text("# Test\nContent here", encoding="utf-8")
-        (diary_dir / "2026-01-02-test.md").write_text("# Another\nMore content", encoding="utf-8")
+        (diary_dir / "2026-01-01-test.md").write_text(
+            "# Test\nContent here", encoding="utf-8"
+        )
+        (diary_dir / "2026-01-02-test.md").write_text(
+            "# Another\nMore content", encoding="utf-8"
+        )
 
         with patch(
             "examples.demos.diary_index.tools.DIARY_DIR",

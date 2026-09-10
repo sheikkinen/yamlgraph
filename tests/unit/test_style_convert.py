@@ -320,9 +320,9 @@ class TestFailurePathSurfacesError:
         entries = out["prompts"]
         assert len(entries) == 1
         assert entries[0].get("_error"), "failed entry must carry _error marker"
-        assert (
-            "prompt_text" not in entries[0]
-        ), "a failed branch must not masquerade as a converted prompt"
+        assert "prompt_text" not in entries[0], (
+            "a failed branch must not masquerade as a converted prompt"
+        )
 
     def test_validate_node_raises_on_error_marker(self):
         # R-3/C-4 unit: the gate rejects an _error marker before save runs.

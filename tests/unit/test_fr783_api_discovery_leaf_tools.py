@@ -152,7 +152,9 @@ def test_curl_probe_body_head_capped():
 @pytest.mark.req("REQ-YG-585")
 def test_fetch_page_manifest_shape():
     """AC-04: fetch_page is a shell manifest with required url and user_agent, no extra quotes."""
-    raw = yaml.safe_load((TOOLS_DIR / "fetch_page.tool.yaml").read_text(encoding="utf-8"))
+    raw = yaml.safe_load(
+        (TOOLS_DIR / "fetch_page.tool.yaml").read_text(encoding="utf-8")
+    )
     manifest = ToolManifest.model_validate(raw)
     assert manifest.runtime.type == "shell"
     cmd = manifest.runtime.command
@@ -171,7 +173,9 @@ def test_fetch_page_manifest_shape():
 @pytest.mark.req("REQ-YG-585")
 def test_gh_code_search_manifest_shape():
     """AC-05: gh_code_search declares parse: json and has {query} placeholder."""
-    raw = yaml.safe_load((TOOLS_DIR / "gh_code_search.tool.yaml").read_text(encoding="utf-8"))
+    raw = yaml.safe_load(
+        (TOOLS_DIR / "gh_code_search.tool.yaml").read_text(encoding="utf-8")
+    )
     manifest = ToolManifest.model_validate(raw)
     assert manifest.runtime.type == "shell"
     assert manifest.runtime.parse == "json"

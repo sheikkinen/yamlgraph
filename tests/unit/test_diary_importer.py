@@ -102,7 +102,9 @@ class TestImportScheduledEntries:
         """Should skip if target file already exists."""
         entry = source_dir / "diary_entry_20260217.md"
         entry.write_text(DIARY_ENTRY_CONTENT, encoding="utf-8")
-        (diary_dir / "2026-02-17-world-digest.md").write_text("Already exists\n", encoding="utf-8")
+        (diary_dir / "2026-02-17-world-digest.md").write_text(
+            "Already exists\n", encoding="utf-8"
+        )
 
         results = import_scheduled_entries(diary_dir, source_dir)
 
@@ -188,7 +190,9 @@ class TestImportGitReports:
         git_dir.mkdir()
         report = git_dir / "report_20260218_080000.txt"
         report.write_text(GIT_REPORT_CONTENT, encoding="utf-8")
-        (diary_dir / "2026-02-18-git-report.md").write_text("Already exists\n", encoding="utf-8")
+        (diary_dir / "2026-02-18-git-report.md").write_text(
+            "Already exists\n", encoding="utf-8"
+        )
 
         results = import_git_reports(diary_dir, source_dir)
 

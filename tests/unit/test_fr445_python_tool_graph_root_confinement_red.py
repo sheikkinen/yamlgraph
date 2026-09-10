@@ -52,10 +52,7 @@ def test_ac01_relative_in_root_path_loads_from_graph_root(
     graph_path = graph_dir / "graph.yaml"
     _write_graph(
         graph_path,
-        "  test_tool:\n"
-        "    type: python\n"
-        "    path: tools/helper.py\n"
-        "    function: run",
+        "  test_tool:\n    type: python\n    path: tools/helper.py\n    function: run",
     )
 
     monkeypatch.chdir(tmp_path)
@@ -73,10 +70,7 @@ def test_ac02_relative_escape_path_is_rejected(
     graph_path = graph_dir / "graph.yaml"
     _write_graph(
         graph_path,
-        "  test_tool:\n"
-        "    type: python\n"
-        "    path: ../outside.py\n"
-        "    function: run",
+        "  test_tool:\n    type: python\n    path: ../outside.py\n    function: run",
     )
 
     monkeypatch.chdir(graph_dir)
@@ -93,10 +87,7 @@ def test_ac03_absolute_out_of_root_path_is_rejected(tmp_path: Path) -> None:
     graph_path = graph_dir / "graph.yaml"
     _write_graph(
         graph_path,
-        "  test_tool:\n"
-        "    type: python\n"
-        f"    path: {outside_tool}\n"
-        "    function: run",
+        f"  test_tool:\n    type: python\n    path: {outside_tool}\n    function: run",
     )
 
     with pytest.raises(ValueError, match="escape|outside|graph root|graph directory"):
@@ -112,10 +103,7 @@ def test_ac04_absolute_in_root_path_is_allowed(tmp_path: Path) -> None:
     graph_path = graph_dir / "graph.yaml"
     _write_graph(
         graph_path,
-        "  test_tool:\n"
-        "    type: python\n"
-        f"    path: {in_root_tool}\n"
-        "    function: run",
+        f"  test_tool:\n    type: python\n    path: {in_root_tool}\n    function: run",
     )
 
     load_and_compile(graph_path)
@@ -126,10 +114,7 @@ def test_ac05_module_loading_unchanged(tmp_path: Path) -> None:
     graph_path = tmp_path / "graph.yaml"
     _write_graph(
         graph_path,
-        "  test_tool:\n"
-        "    type: python\n"
-        "    module: os.path\n"
-        "    function: join",
+        "  test_tool:\n    type: python\n    module: os.path\n    function: join",
     )
 
     load_and_compile(graph_path)

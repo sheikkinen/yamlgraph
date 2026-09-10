@@ -289,7 +289,6 @@ def resolve_config_state_ref(
         return default
     if not isinstance(resolved, str):
         raise ValueError(
-            f"node {field_name} reference {value} resolved to "
-            f"non-string: {resolved!r}"
+            f"node {field_name} reference {value} resolved to non-string: {resolved!r}"
         )
     return resolved.strip()

@@ -73,14 +73,14 @@ class TestFR282CVEIgnore:
             content = f.read()
 
         # Must contain CVE reference in comment
-        assert (
-            "CVE-2026-3219" in content
-        ), "Workflow must contain CVE-2026-3219 reference in comments"
+        assert "CVE-2026-3219" in content, (
+            "Workflow must contain CVE-2026-3219 reference in comments"
+        )
 
         # Must contain date when added
-        assert (
-            "2026-04-25" in content
-        ), "Workflow must document when the ignore was added (2026-04-25)"
+        assert "2026-04-25" in content, (
+            "Workflow must document when the ignore was added (2026-04-25)"
+        )
 
         # Must explain the vulnerability
         vulnerability_keywords = ["pip", "tar+ZIP", "concatenated", "vulnerability"]
@@ -154,14 +154,16 @@ class TestFR282CVEIgnore:
         found_valid_cmd = False
         for cmd in pip_audit_commands:
             if "pip-audit" in cmd and "install" not in cmd:
-                assert (
-                    "--skip-editable" in cmd
-                ), f"pip-audit must skip the local editable install: {cmd}"
+                assert "--skip-editable" in cmd, (
+                    f"pip-audit must skip the local editable install: {cmd}"
+                )
                 assert "--desc" in cmd, f"pip-audit must retain --desc flag: {cmd}"
                 found_valid_cmd = True
                 break
 
-        assert found_valid_cmd, f"No pip-audit execution command found with required flags in: {pip_audit_commands}"
+        assert found_valid_cmd, (
+            f"No pip-audit execution command found with required flags in: {pip_audit_commands}"
+        )
 
     def test_proper_yaml_structure_after_modification(self) -> None:
         """AC-05: Admin bypass no longer required for CVE-2026-3219-only failures.
@@ -178,9 +180,9 @@ class TestFR282CVEIgnore:
         assert "steps" in wf["jobs"]["security"], "Security job must have steps"
 
         # Verify the workflow is still valid GitHub Actions YAML
-        assert (
-            wf.get("name") == "Dependency Security Scan"
-        ), "Workflow name must be preserved"
+        assert wf.get("name") == "Dependency Security Scan", (
+            "Workflow name must be preserved"
+        )
         assert "pull_request" in wf.get("on", {}), "Must still trigger on PRs"
 
     def test_ignore_flag_is_specific_to_cve_2026_3219(self) -> None:
@@ -205,6 +207,6 @@ class TestFR282CVEIgnore:
             if "pip-audit" in cmd and "--ignore-vuln" in cmd:
                 # Should not have generic ignore patterns
                 assert "--ignore-vuln *" not in cmd, "Must not ignore all vulns"
-                assert (
-                    "--ignore-vuln CVE-" not in cmd or "CVE-2026-3219" in cmd
-                ), "Must only ignore the specific CVE-2026-3219"
+                assert "--ignore-vuln CVE-" not in cmd or "CVE-2026-3219" in cmd, (
+                    "Must only ignore the specific CVE-2026-3219"
+                )

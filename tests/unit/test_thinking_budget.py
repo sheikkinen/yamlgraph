@@ -165,7 +165,8 @@ class TestThinkingBudgetLinter:
     def test_linter_warns_non_anthropic_provider(self, tmp_path):
         """Linter warns when thinking_budget > 0 with non-Anthropic provider."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("""
+        graph_file.write_text(
+            """
 defaults:
   provider: openai
   thinking_budget: 8000
@@ -178,7 +179,9 @@ edges:
     to: test
   - from: test
     to: END
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
         from yamlgraph.linter import lint_graph
 
         result = lint_graph(graph_file)
@@ -189,7 +192,8 @@ edges:
     def test_linter_warns_old_model(self, tmp_path):
         """Linter warns when thinking_budget > 0 with pre-3.7 model."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("""
+        graph_file.write_text(
+            """
 defaults:
   provider: anthropic
   model: claude-3-5-sonnet-20241022
@@ -203,7 +207,9 @@ edges:
     to: test
   - from: test
     to: END
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
         from yamlgraph.linter import lint_graph
 
         result = lint_graph(graph_file)
@@ -214,7 +220,8 @@ edges:
     def test_linter_warns_below_minimum(self, tmp_path):
         """Linter warns when 0 < thinking_budget < 1024."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("""
+        graph_file.write_text(
+            """
 defaults:
   provider: anthropic
   thinking_budget: 500
@@ -227,7 +234,9 @@ edges:
     to: test
   - from: test
     to: END
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
         from yamlgraph.linter import lint_graph
 
         result = lint_graph(graph_file)
@@ -238,7 +247,8 @@ edges:
     def test_linter_warns_temperature_conflict(self, tmp_path):
         """Linter warns when explicit temperature != 1 with thinking_budget > 0."""
         graph_file = tmp_path / "graph.yaml"
-        graph_file.write_text("""
+        graph_file.write_text(
+            """
 defaults:
   provider: anthropic
   temperature: 0.7
@@ -252,7 +262,9 @@ edges:
     to: test
   - from: test
     to: END
-""", encoding="utf-8")
+""",
+            encoding="utf-8",
+        )
         from yamlgraph.linter import lint_graph
 
         result = lint_graph(graph_file)

@@ -52,9 +52,9 @@ def test_dependency_rationale_entry():
 
     rationale = Path(__file__).parents[2] / "docs" / "dependency-rationale.yaml"
     content = rationale.read_text(encoding="utf-8")
-    assert (
-        "pytest-xdist" in content
-    ), "pytest-xdist missing from dependency-rationale.yaml"
+    assert "pytest-xdist" in content, (
+        "pytest-xdist missing from dependency-rationale.yaml"
+    )
 
 
 @pytest.mark.req("REQ-YG-012")

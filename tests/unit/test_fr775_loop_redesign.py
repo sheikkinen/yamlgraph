@@ -324,7 +324,9 @@ def test_graph_wires_gates_before_map_and_reduce():
 
 @pytest.mark.req("REQ-YG-577")
 def test_summarize_prompt_echoes_provided_page():
-    prompt = yaml.safe_load((PROMPTS / "summarize_page.yaml").read_text(encoding="utf-8"))
+    prompt = yaml.safe_load(
+        (PROMPTS / "summarize_page.yaml").read_text(encoding="utf-8")
+    )
     fields = prompt["schema"]["fields"]
     assert "page" in fields and "summary" in fields
     assert "chunk.page" in prompt["user"]

@@ -319,8 +319,8 @@ class TestRuntimeEquivalence:
         }
         (tmp_path / "sub").mkdir()
         (tmp_path / "sub" / "child_impl.py").write_text(
-            "def run(state):\n    return {'echoed': 'from-child'}\n"
-        , encoding="utf-8")
+            "def run(state):\n    return {'echoed': 'from-child'}\n", encoding="utf-8"
+        )
         write_yaml(tmp_path / "sub" / "child.yaml", child)
         write_yaml(
             tmp_path / "sub" / "target.tool.yaml",

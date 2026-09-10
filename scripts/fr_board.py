@@ -79,7 +79,9 @@ def repo_display_name(repo: Path) -> str:
     """
     pyproject = repo / "pyproject.toml"
     if pyproject.is_file():
-        match = PYPROJECT_NAME_RE.search(pyproject.read_text(errors="replace", encoding="utf-8"))
+        match = PYPROJECT_NAME_RE.search(
+            pyproject.read_text(errors="replace", encoding="utf-8")
+        )
         if match:
             return match.group(1)
     return repo.name

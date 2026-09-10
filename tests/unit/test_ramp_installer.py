@@ -45,7 +45,12 @@ def make_target(tmp_path: Path, shape: str = "supported") -> Path:
         shutil.rmtree(target / "tests")
     elif shape == "missing-ruff":
         py = target / "pyproject.toml"
-        py.write_text(py.read_text(encoding="utf-8").replace("[tool.ruff]\nline-length = 88\n", ""), encoding="utf-8")
+        py.write_text(
+            py.read_text(encoding="utf-8").replace(
+                "[tool.ruff]\nline-length = 88\n", ""
+            ),
+            encoding="utf-8",
+        )
     elif shape == "non-repo":
         shutil.rmtree(target / ".git")
     elif shape == "worktree":
@@ -151,7 +156,10 @@ def test_manifest_no_duplicate_destinations(entries):
 def test_manifest_rejects_bad_entries(tmp_path, entry, reason):
     bad = tmp_path / "manifest.yaml"
     base = {"overwrite": "never", "authored": True}
-    bad.write_text(yaml.safe_dump({"schema_version": 1, "entries": [base | entry]}), encoding="utf-8")
+    bad.write_text(
+        yaml.safe_dump({"schema_version": 1, "entries": [base | entry]}),
+        encoding="utf-8",
+    )
     with pytest.raises(ri.ManifestError):
         ri.load_manifest(bad, ramp_dir=RAMP_DIR)
 
@@ -166,7 +174,9 @@ def test_manifest_rejects_duplicate_destination(tmp_path):
         "authored": True,
     }
     bad = tmp_path / "manifest.yaml"
-    bad.write_text(yaml.safe_dump({"schema_version": 1, "entries": [e, dict(e)]}), encoding="utf-8")
+    bad.write_text(
+        yaml.safe_dump({"schema_version": 1, "entries": [e, dict(e)]}), encoding="utf-8"
+    )
     with pytest.raises(ri.ManifestError):
         ri.load_manifest(bad, ramp_dir=RAMP_DIR)
 
@@ -182,7 +192,9 @@ def test_manifest_rejects_double_provenance(tmp_path):
         "mirror_exact": "AGENTS.md",
     }
     bad = tmp_path / "manifest.yaml"
-    bad.write_text(yaml.safe_dump({"schema_version": 1, "entries": [e]}), encoding="utf-8")
+    bad.write_text(
+        yaml.safe_dump({"schema_version": 1, "entries": [e]}), encoding="utf-8"
+    )
     with pytest.raises(ri.ManifestError):
         ri.load_manifest(bad, ramp_dir=RAMP_DIR)
 

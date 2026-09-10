@@ -19,9 +19,9 @@ class TestDeadCodeRemoval:
     def test_sanitize_module_does_not_exist(self):
         """sanitize.py was dead code — it must not exist."""
         sanitize_path = PROJECT_ROOT / "yamlgraph" / "utils" / "sanitize.py"
-        assert (
-            not sanitize_path.exists()
-        ), f"Dead code module still exists: {sanitize_path}"
+        assert not sanitize_path.exists(), (
+            f"Dead code module still exists: {sanitize_path}"
+        )
 
     def test_sanitize_module_not_importable(self):
         """Importing the deleted module must raise ModuleNotFoundError."""

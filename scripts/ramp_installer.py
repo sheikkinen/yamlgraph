@@ -224,8 +224,7 @@ def render_target_doc(sha: str, tier: int, rows: list[dict]) -> str:
         "- reviewed_source_sha: pending-human-review",
         f"- tier: {tier}",
         "",
-        "| destination | source | action | source_sha256 | installed_sha256 "
-        "| backup |",
+        "| destination | source | action | source_sha256 | installed_sha256 | backup |",
         "|---|---|---|---|---|---|",
     ]
     for r in rows:
@@ -365,7 +364,9 @@ def install(
     doc_path = target / TARGET_DOC
     if changed or not doc_path.exists():
         doc_path.parent.mkdir(parents=True, exist_ok=True)
-        doc_path.write_text(render_target_doc(source_sha(), tier, rows), encoding="utf-8")
+        doc_path.write_text(
+            render_target_doc(source_sha(), tier, rows), encoding="utf-8"
+        )
     if consumer:
         registry = Path(os.environ.get(CONSUMERS_ENV, DEFAULT_CONSUMERS))
         row = record_consumer(consumer, tier, manifest_path, registry)

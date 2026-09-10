@@ -173,8 +173,12 @@ class TestSaveReportV3:
                 "gen_summary": {"attempts": 3, "verdict_counts": {}},
             }
         )
-        assert "secret full text" not in Path(result["report_file"]).read_text(encoding="utf-8")
-        assert "secret full text" in Path(result["local_report_file"]).read_text(encoding="utf-8")
+        assert "secret full text" not in Path(result["report_file"]).read_text(
+            encoding="utf-8"
+        )
+        assert "secret full text" in Path(result["local_report_file"]).read_text(
+            encoding="utf-8"
+        )
 
     def test_v2_output_path_regression(self):
         """R-4: v2 must keep writing under outputs/image_pipeline_v2."""

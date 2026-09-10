@@ -112,9 +112,9 @@ class TestW803Gap:
             "  - {from: critique, to: retry, condition: 'score < 0.5'}",
         )
         w803 = _issues_by_code(check_condition_smt(g), "W803")
-        assert any(
-            "<missing>" in i.message for i in w803
-        ), "missing-variable fallthrough must be reported distinctly"
+        assert any("<missing>" in i.message for i in w803), (
+            "missing-variable fallthrough must be reported distinctly"
+        )
 
     @pytest.mark.req("REQ-YG-545")
     def test_null_guard_silences_missing_gap(self, tmp_path):

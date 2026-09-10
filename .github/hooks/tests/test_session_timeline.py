@@ -25,15 +25,18 @@ def run_timeline(
     """Create temp files, run script, return (exit_code, stdout)."""
     with tempfile.TemporaryDirectory() as tmpdir:
         audit_path = Path(tmpdir) / "audit.jsonl"
-        audit_path.write_text("\n".join(json.dumps(e) for e in audit_entries) + "\n", encoding="utf-8")
+        audit_path.write_text(
+            "\n".join(json.dumps(e) for e in audit_entries) + "\n", encoding="utf-8"
+        )
 
         cmd = [sys.executable, str(SCRIPT), "--audit", str(audit_path)]
 
         if transcript_entries is not None:
             transcript_path = Path(tmpdir) / "transcript.jsonl"
             transcript_path.write_text(
-                "\n".join(json.dumps(e) for e in transcript_entries) + "\n"
-            , encoding="utf-8")
+                "\n".join(json.dumps(e) for e in transcript_entries) + "\n",
+                encoding="utf-8",
+            )
             cmd.extend(["--transcript", str(transcript_path)])
 
         if args:
@@ -145,9 +148,9 @@ def test_timestamp_normalization():
     assert coauthor_idx >= 0, "missing coauthor user message in output"
     assert create_idx >= 0, "missing create user message in output"
     assert deny_idx >= 0, "missing deny line in output"
-    assert (
-        coauthor_idx < deny_idx < create_idx
-    ), f"deny should be between coauthor({coauthor_idx}) and create({create_idx}), got {deny_idx}"
+    assert coauthor_idx < deny_idx < create_idx, (
+        f"deny should be between coauthor({coauthor_idx}) and create({create_idx}), got {deny_idx}"
+    )
 
 
 def test_filter_deny():
@@ -221,9 +224,9 @@ def test_summary_line():
     code, out = run_timeline(audit_entries=AUDIT, transcript_entries=TRANSCRIPT)
     assert code == 0, f"exit {code}: {out}"
     lower = out.lower()
-    assert "deny" in lower and (
-        "1" in out or "total" in lower
-    ), "summary should mention deny count"
+    assert "deny" in lower and ("1" in out or "total" in lower), (
+        "summary should mention deny count"
+    )
 
 
 def main() -> int:
