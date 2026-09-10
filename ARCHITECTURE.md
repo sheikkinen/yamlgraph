@@ -565,7 +565,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 247 | CAP-247 Memory-Corpus Curation (Selective Amnesia) | `examples` | REQ-YG-620 – 622 |
 | 248 | CAP-248 Research Sole Route (Closed-Input Alternatives) | `examples` | REQ-YG-623, 665 |
 | 249 | CAP-249 Invocation-time tool-slot binding | `tools/tool_slots`, `compile/graph_loader` | REQ-YG-624 |
-| 250 | CAP-250 Corpus-census synthesize tail | `examples/demos/corpus_census` | REQ-YG-625, 633 – 634 |
+| 250 | CAP-250 Corpus-census synthesize tail | `examples/demos/corpus_census` | REQ-YG-625, 633 – 634, 675 |
 | 251 | CAP-251 Copilot cost ledger — priced attribution | `scripts/vscode` | REQ-YG-626 |
 | 252 | CAP-252 Shared SMTP Email Tool | `examples` | REQ-YG-627 |
 | 253 | CAP-253 Org repository census with pinned-Azure delegation | `examples/demos/repo_census`, `examples/demos/corpus_census` | REQ-YG-628 |
@@ -583,9 +583,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 265 | CAP-265 Static module map | `scripts/generate_module_map.py`, `reference/module-map.md`, `tests/unit/test_fr331_static_module_map_tier2_context.py`, `tests/unit/test_fr335_module_map_compression.py` | REQ-YG-667 |
 | 267 | CAP-267 Graph run provider/model override | `yamlgraph/cli/__init__.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/compile/default_overrides.py`, … | REQ-YG-671 |
 | 268 | CAP-268 Desktop Toast Notification Tool | `examples/shared/notify_toast.py`, `examples/shared/send_toast.tool.yaml`, `examples/demos/hello` | REQ-YG-672 |
-| REQ-YG-674 | Bounded local-Markdown census adapters are fail-closed and identity-verified: md_discover returns every `*.md` file in the named directory sorted, or raises naming the observed count and the ceiling (MD_MAX_ITEMS=200) when the population exceeds it, and never returns a prefix; each item is a deterministically serialized MarkdownItemRef carrying path, raw-byte sha256 and raw-byte count; md_extract validates that reference, re-reads the bytes and raises a named error on byte-count or digest mismatch BEFORE decoding; a decoded file over MD_MAX_CHARS=65536 raises naming path, count and ceiling rather than being truncated; invalid UTF-8 decodes with replacement only after identity verification. | `examples/demos/corpus_census/adapters/markdown_adapters.py`, `examples/demos/corpus_census/adapters/md-discover.tool.yaml`, `examples/demos/corpus_census/adapters/md-extract.tool.yaml` |
-| REQ-YG-675 | Census synthesis provider/model selected independently of the per-item judgement: `brief_provider`/`brief_model` each fall back to `provider`/`model` when absent or blank, independently of one another; values are trimmed and a blank counts as absent; a missing or blank base value raises. `render_brief` stamps `run_meta.model` from the resolved `brief_llm.model` and raises when that mapping or field is absent or blank, never reverting to the map model, so a brief names the model that wrote it. | `examples/demos/corpus_census/brief_model_selection.py`, `examples/demos/corpus_census/tools.py`, `examples/demos/corpus_census/graph.yaml` |
-| 270 | CAP-270 Bounded Local-Markdown Census Binding | `examples/demos/corpus_census/adapters/markdown_adapters.py`, `md-discover.tool.yaml`, `md-extract.tool.yaml` | REQ-YG-674 |
+| 270 | CAP-270 Bounded local-Markdown census binding | `examples/demos/corpus_census/adapters/markdown_adapters.py`, `examples/demos/corpus_census/adapters/md-discover.tool.yaml`, `examples/demos/corpus_census/adapters/md-extract.tool.yaml`, `tests/unit/test_markdown_corpus_adapters.py` | REQ-YG-674 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3091,15 +3089,16 @@ Graph `tools:` entries may declare `slot: true` with a `contract:` block (runtim
 
 ### 250. CAP-250 Corpus-census synthesize tail
 
-The corpus-census pipeline ends in a human-readable brief: a bounded, column-allowlisted synthesis input (top-N ledger rows), a single structured-claims LLM call whose provider and model are independently selectable (FR-1034), and an LLM-free citation boundary that validates every claim citation against the source artifact before rendering. Validation failure emits no brief — only a .REJECTED.md artifact carrying the deterministic summary head and rejection reasons. Missing brief inputs fail loudly before any synthesis call.
+The corpus-census pipeline ends in a human-readable brief: a bounded, column-allowlisted synthesis input (top-N ledger rows), a single structured-claims LLM call, and an LLM-free citation boundary that validates every claim citation against the source artifact before rendering. Validation failure emits no brief — only a .REJECTED.md artifact carrying the deterministic summary head and rejection reasons. Missing brief inputs fail loudly before any synthesis call.
 
-**Feature Request:** FR-895, FR-940, FR-943
+**Feature Request:** FR-895, FR-940, FR-943, FR-1034
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-625 | Census brief emission is fail-closed: claims with fabricated, missing, or out-of-source citations are rejected mechanically (LLM-free); accepted briefs carry the deterministic summary head, cited findings, and run provenance; synthesis input is bounded and restricted to the public-safe column allowlist | `examples/demos/corpus_census` |
 | REQ-YG-633 | Census judgement labels are normalized at the ledger boundary by a deterministic LLM-free algorithm (prefix strip, separator cut, grammar gate, optional caller vocabulary with canonical spelling); non-conforming values are demoted to abstain with a frozen reason, never dropped; raw_judgement/repaired audit fields and the frozen normalization summary line record every reconciliation; the judge and synthesis model is caller-selectable via the model variable with provenance carrying the effective model | `examples/demos/corpus_census` |
 | REQ-YG-634 | Attributable model-owned failures (map-error findings with usable _map_index, error-string judgements, envelope validation errors wholly rooted in model-owned fields) are contained as fail-closed abstained ledger rows with exact frozen cells, a bounded "row failed:" reason, and complete causal evidence preserved in raw_judgement; the internal count carries exactly four keys and the markdown summary uses the revised normalization line; structural impossibilities remain batch-fatal | `examples/demos/corpus_census` |
+| REQ-YG-675 | The synthesis call's provider and model are selected independently of the per-item judgement call's: brief_provider and brief_model each fall back to provider/model when absent or blank, independently of one another, with values trimmed and a blank treated as absent; a missing or blank base provider/model raises. render_brief stamps run_meta.model from the resolved brief_llm.model and raises when that mapping or field is absent or blank, never reverting to the per-item map model, so a brief always names the model that produced it. | `examples/demos/corpus_census/brief_model_selection.py`, `examples/demos/corpus_census/tools.py`, `examples/demos/corpus_census/graph.yaml`, `tests/unit/test_census_brief_model_selection.py` |
 
 ### 251. CAP-251 Copilot cost ledger — priced attribution
 
@@ -3274,6 +3273,16 @@ examples/shared/notify_toast.py exposes send_toast(title, message), which submit
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-672 | Desktop toast notification: send_toast(title, message) dispatches on sys.platform to osascript/powershell.exe/notify-send and returns {"submitted": True, "backend": <name>}; caller text travels as argv or child environment only, never inside the frozen script literals; every invocation is shell=False with a finite timeout; unsupported platform raises ToastError naming darwin/win32/linux before any subprocess, and missing binary, non-zero exit, and timeout each raise ToastError. | `examples/shared/notify_toast.py`, `examples/shared/send_toast.tool.yaml`, `examples/demos/hello` |
+
+### 270. CAP-270 Bounded local-Markdown census binding
+
+Binds the FR-892 corpus-census pipeline to a bounded directory of Markdown files. Both adapters fail closed rather than silently shrinking the result: a directory over the graph's map ceiling raises instead of returning a prefix, and a file over the character ceiling raises instead of being truncated. Each item carries the byte identity (path, sha256, byte count) frozen at discovery and re-verified before decoding, so a ledger row is provably about the bytes that were judged rather than about a pathname.
+
+**Feature Request:** FR-1033
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-674 | Bounded local-Markdown census adapters are fail-closed and identity-verified: md_discover returns every *.md file in the named directory sorted, or raises naming the observed count and the ceiling when the population exceeds it, and never returns a prefix; each item is a deterministically serialized reference carrying path, raw-byte sha256 and raw-byte count; md_extract validates that reference, then re-reads the bytes and raises a named error on byte-count or digest mismatch BEFORE decoding; a decoded file over the character ceiling raises naming path, count and ceiling rather than being truncated; invalid UTF-8 decodes with replacement only after identity is verified. | `examples/demos/corpus_census/adapters/markdown_adapters.py`, `examples/demos/corpus_census/adapters/md-discover.tool.yaml`, `examples/demos/corpus_census/adapters/md-extract.tool.yaml`, `tests/unit/test_markdown_corpus_adapters.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
