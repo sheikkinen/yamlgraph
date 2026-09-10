@@ -3,10 +3,12 @@
 fail_fast: true
 repos:
   - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.8.6
+    # Must equal the ruff pin in constraints/dev-py312.txt, or the hook and
+    # the developer environment reformat each other's output (FR-1044).
+    rev: v0.16.0
     hooks:
       # Run the linter
-      - id: ruff
+      - id: ruff-check
         args: [--fix, --exit-non-zero-on-fix]
       # Run the formatter
       - id: ruff-format
@@ -83,6 +85,16 @@ repos:
         language: system
         pass_filenames: false
         files: (^capabilities/.*\.yaml$|^scripts/aggregate_capabilities\.py$)
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
+      - id: noqa-confession-fix
+        name: noqa_coverage --fix
+        entry: .venv/bin/python scripts/noqa_coverage.py --fix
+        language: system
+        pass_filenames: false
+        files: (\.py$|^docs/confessions\.md$|^scripts/noqa_coverage\.py$)
         stages: [pre-commit]
 
   - repo: local

@@ -5,12 +5,14 @@ Usage:
     python scripts/noqa_coverage.py           # summary
     python scripts/noqa_coverage.py --detail  # show all confessions
     python scripts/noqa_coverage.py --strict  # exit 1 on undocumented noqa
+    python scripts/noqa_coverage.py --fix     # realign drifted line references
 """
 
 from __future__ import annotations
 
 import re
 import sys
+from collections import defaultdict
 from pathlib import Path
 
 # Directories to scan for noqa comments
@@ -155,6 +157,106 @@ def scan_codebase(root: Path) -> list[tuple[Path, int, str]]:
     return results
 
 
+def undocumented_noqa(root: Path, confessions_path: Path) -> list[tuple[str, int, str]]:
+    """Suppressions present in the code but absent from the ledger.
+
+    This is the condition --strict fails on. The direction is one-way by
+    design: a ledger entry with no matching suppression is not reported,
+    because the ledger also records historical context.
+    """
+    documented: set[tuple[str, int, str]] = set()
+    for locations in parse_confessions(confessions_path).values():
+        documented.update(locations)
+
+    missing = []
+    for filepath, line_num, code in scan_codebase(root):
+        rel_path = str(filepath.relative_to(root))
+        if (rel_path, line_num, code) not in documented:
+            missing.append((rel_path, line_num, code))
+    return sorted(missing)
+
+
+# The file reference of a confession entry, split so the line number can be
+# rewritten without disturbing the link text or the path.
+_FILE_REF = re.compile(r"(\*\*File\*\*:\s*\[.*?\]\(\.\./)([^)#]+)#L(\d+)")
+_CODE_REF = re.compile(r"\*\*Code\*\*:\s*([A-Z0-9]+)")
+
+
+def _ledger_records(
+    confessions_path: Path,
+) -> tuple[list[str], list[tuple[int, str, int, str]]]:
+    """Read the ledger as raw lines plus (md_index, path, line, code) records.
+
+    parse_confessions() returns a set keyed by CONF id, which is enough to
+    compare but not to rewrite; repair needs the position of each reference
+    within the markdown.
+    """
+    lines = confessions_path.read_text(encoding="utf-8").splitlines()
+    records: list[tuple[int, str, int, str]] = []
+    pending: tuple[int, str, int] | None = None
+
+    for idx, text in enumerate(lines):
+        file_match = _FILE_REF.search(text)
+        if file_match:
+            pending = (idx, file_match.group(2), int(file_match.group(3)))
+            continue
+        code_match = _CODE_REF.search(text)
+        if code_match and pending:
+            records.append((*pending, code_match.group(1).upper()))
+            pending = None
+    return lines, records
+
+
+def fix_confession_lines(root: Path, confessions_path: Path) -> int:
+    """Realign drifted #L references; return the number repaired.
+
+    Inserting a line above a suppression shifts every reference below it and
+    invalidates confessions that are otherwise still true. Repair is only
+    safe where identity is unambiguous: for a given file, the suppressions
+    must map one-to-one and in order onto that file's ledger entries by rule
+    code. Any other shape -- a suppression added, removed, or its code
+    changed -- is left untouched for --strict to report.
+    """
+    if not confessions_path.exists():
+        return 0
+
+    lines, records = _ledger_records(confessions_path)
+
+    ledger_by_path: dict[str, list[tuple[int, str, int, str]]] = defaultdict(list)
+    for record in records:
+        ledger_by_path[record[1]].append(record)
+
+    actual_by_path: dict[str, list[tuple[int, str]]] = defaultdict(list)
+    for filepath, line_num, code in scan_codebase(root):
+        actual_by_path[str(filepath.relative_to(root))].append((line_num, code))
+
+    repaired = 0
+    for path, entries in ledger_by_path.items():
+        actual = sorted(actual_by_path.get(path, []))
+        ledger = sorted(entries, key=lambda r: (r[2], r[3]))
+
+        if len(actual) != len(ledger):
+            continue
+        if [code for _, code in actual] != [record[3] for record in ledger]:
+            continue
+
+        for (new_line, _), (md_index, _, old_line, _) in zip(
+            actual, ledger, strict=True
+        ):
+            if new_line == old_line:
+                continue
+            lines[md_index] = _FILE_REF.sub(
+                lambda m, n=new_line: f"{m.group(1)}{m.group(2)}#L{n}",
+                lines[md_index],
+                count=1,
+            )
+            repaired += 1
+
+    if repaired:
+        confessions_path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return repaired
+
+
 def main() -> int:
     """Main entry point."""
     root = Path(__file__).parent.parent
@@ -162,6 +264,11 @@ def main() -> int:
 
     detail = "--detail" in sys.argv
     strict = "--strict" in sys.argv
+
+    if "--fix" in sys.argv:
+        repaired = fix_confession_lines(root, confessions_path)
+        print(f"Confession line references repaired: {repaired}")
+        return 0
 
     # Scan codebase for noqa
     codebase_noqa = scan_codebase(root)
@@ -175,12 +282,7 @@ def main() -> int:
         for file_path, line_num, code in locations:
             documented.add((file_path, line_num, code))
 
-    # Find undocumented noqa
-    undocumented = []
-    for filepath, line_num, code in codebase_noqa:
-        rel_path = str(filepath.relative_to(root))
-        if (rel_path, line_num, code) not in documented:
-            undocumented.append((rel_path, line_num, code))
+    undocumented = undocumented_noqa(root, confessions_path)
 
     # Print summary
     print("=" * 60)
@@ -205,7 +307,7 @@ def main() -> int:
         print("-" * 60)
         print("❌ Undocumented noqa (add to docs/confessions.md):")
         print("-" * 60)
-        for rel_path, line_num, code in sorted(undocumented):
+        for rel_path, line_num, code in undocumented:
             print(f"  {rel_path}:{line_num} ({code})")
         print()
         print("Each noqa requires a confession entry with:")
