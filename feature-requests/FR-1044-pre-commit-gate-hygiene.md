@@ -2,7 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** SPLIT — no implementation authority
+([judgement](FR-1044-pre-commit-gate-hygiene.judgement.md), round 1, 2026-09-10).
+Only the planning artifacts D-1…D-5 may be produced under this verdict; the
+three successors are unfiled pending the operator decision recorded below.
 **Effort:** 1 day
 **Requested:** 2026-09-10
 **First consumer / first event:** any agent committing a Python edit above an
@@ -117,6 +120,32 @@ This FR adds no code for it; item 1's idempotency test is the guard.
 - [ ] CONF-127..132 removed; `--strict` passes on main.
 - [ ] `@pytest.mark.req` tags; changelog fragment (`fix`, scope `hooks`).
 - [ ] Witness run: one commit that inserts a line above a `# noqa` in `tests/unit/test_llm_factory.py` passes pre-commit on the first attempt.
+
+## Judgement fold (round 1, 2026-09-10)
+
+Verdict **SPLIT**. Authority for every surface named in "Proposed Solution" is
+withheld. Dispositions:
+
+| # | Revision | Disposition |
+|---|---|---|
+| R-1 | Refile as three single-responsibility successors | **Accepted, unfiled.** Blocked on the operator decision below: three successors × (research + judge + doc PR + implementation PR) is the FR-1013 shape ("process outgrew the change", REJECTED 2026-09-06). |
+| R-2 | Substantive research record per successor | **Accepted.** The in-body table has dispositions but no solution-class labels, no per-class precedent, no preserved disagreement, no `is_this_a_graph` answer. `scripts/research.sh` per successor. |
+| R-3 | Human decision on first-invocation policy | **Open — operator input required.** Must a line-shift-only commit pass pre-commit on attempt 1, or is one fix-and-restage cycle acceptable? Under `fail_fast: true` an autofix hook that rewrites an unstaged ledger cannot deliver attempt-1 success; the AC and the hook design contradict each other until this is answered. |
+| R-4 | Drop removed-noqa detection from repair scope | **Accepted.** Correct reading of `scripts/noqa_coverage.py:172-183` — strict compares codebase → ledger only, never ledger → codebase. The original AC claimed a detection that does not exist. |
+| R-5 | Causal no-write witness, not a byte/`git status` proxy | **Accepted.** `aggregate_capabilities.py` rewrites identical bytes on a synced tree, so both proxies pass while the write still happens. The witness must fail when the write boundary is reached. |
+| R-6 | Freeze the ruff source, surface and witness | **Accepted.** Source of truth `constraints/dev-py312.txt`; `v`-prefix normalised in the equality test; the one-time reformat is its own `style:` commit. |
+| R-7 | Exact requirement IDs, not "`@pytest.mark.req` tags" | **Accepted.** |
+
+**One factual correction to the judgement (not a revision refused on preference).**
+The Consistency row and C-6 state that `ARCHITECTURE.md` still carries the
+hand-placed rows and that `7348d9cb` is not landed. Both were evaluated at this
+branch's base, which was one commit behind `origin/main`. Witness, after
+merging `origin/main` (`abc0e677`, PR #652 squash-merged 2026-09-10 15:57Z):
+`python scripts/aggregate_capabilities.py` (real run, not `--dry-run`) leaves
+`git status` empty — generated content and `capabilities/` agree on main today.
+The SHA `7348d9cb` is indeed not an ancestor (squash rewrote it); its *content*
+is. C-6 is therefore satisfied by the base refresh, and item 4 of the Proposed
+Solution stays a no-code item. The SPLIT itself, and R-1…R-7, stand unchanged.
 
 ## Related
 
