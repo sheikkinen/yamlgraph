@@ -2,10 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** SPLIT — no implementation authority
+**Status:** In progress — SPLIT overruled by the operator; single scope
 ([judgement](FR-1044-pre-commit-gate-hygiene.judgement.md), round 1, 2026-09-10).
-Only the planning artifacts D-1…D-5 may be produced under this verdict; the
-three successors are unfiled pending the operator decision recorded below.
 **Effort:** 1 day
 **Requested:** 2026-09-10
 **First consumer / first event:** any agent committing a Python edit above an
@@ -112,14 +110,16 @@ This FR adds no code for it; item 1's idempotency test is the guard.
 
 ## Acceptance Criteria
 
-- [ ] `pytest tests/unit/test_fr460_cap_architecture_auto_sync.py` leaves `git status` clean on a synced tree (witness test).
-- [ ] `--dry-run` output equals committed `ARCHITECTURE.md` section on main (idempotency test).
-- [ ] `ruff-pre-commit` rev == `constraints/` ruff version; test enforces.
-- [ ] `noqa_coverage.py --fix` realigns shifted refs; `--strict` still fails on new/removed noqa (two fixture tests).
-- [ ] `.pre-commit-config.yaml` runs `--fix` before `--strict`.
-- [ ] CONF-127..132 removed; `--strict` passes on main.
-- [ ] `@pytest.mark.req` tags; changelog fragment (`fix`, scope `hooks`).
-- [ ] Witness run: one commit that inserts a line above a `# noqa` in `tests/unit/test_llm_factory.py` passes pre-commit on the first attempt.
+- [ ] AC-01 (R-5): the FR-460 unit-test path cannot reach the `ARCHITECTURE.md` write boundary — the test fails if `Path.write_text` is called (`REQ-YG-425`).
+- [ ] AC-02: `--dry-run` generated content equals the committed section between the generation markers (`REQ-YG-425`).
+- [ ] AC-03 (R-6): `ruff-pre-commit` `rev` equals the `ruff==` pin in `constraints/dev-py312.txt`, `v`-prefix normalised; a test enforces it (`REQ-YG-676`).
+- [ ] AC-04: the one-time reformat produced by the bump is a separate `style:` commit (C-7).
+- [ ] AC-05 (R-4): `noqa_coverage.py --fix` realigns `#L<n>` only when a file's ledger entries and current suppressions match one-to-one by `(code, order)`; every other shape is left untouched (`REQ-YG-677`).
+- [ ] AC-06: `--strict` still fails on an added or code-changed suppression after `--fix` has run. No claim is made about *removed* suppressions — strict does not inspect that direction.
+- [ ] AC-07: `.pre-commit-config.yaml` runs `--fix` before `--strict`, in the ruff/ruff-format shape. `--fix` does not stage anything (C-5).
+- [ ] AC-08: CONF-127..132 removed as stale duplicates of CONF-133..138; `--strict` passes.
+- [ ] AC-09 (R-3, operator-decided): a commit that inserts a line above a `# noqa` succeeds within **one** fix-and-restage cycle, with no manual line arithmetic. Attempt-1 success is explicitly *not* claimed.
+- [ ] AC-10 (R-7): exact `@pytest.mark.req` IDs as listed above; changelog fragment (`fix`, scope `hooks`).
 
 ## Judgement fold (round 1, 2026-09-10)
 
@@ -128,13 +128,19 @@ withheld. Dispositions:
 
 | # | Revision | Disposition |
 |---|---|---|
-| R-1 | Refile as three single-responsibility successors | **Accepted, unfiled.** Blocked on the operator decision below: three successors × (research + judge + doc PR + implementation PR) is the FR-1013 shape ("process outgrew the change", REJECTED 2026-09-06). |
-| R-2 | Substantive research record per successor | **Accepted.** The in-body table has dispositions but no solution-class labels, no per-class precedent, no preserved disagreement, no `is_this_a_graph` answer. `scripts/research.sh` per successor. |
-| R-3 | Human decision on first-invocation policy | **Open — operator input required.** Must a line-shift-only commit pass pre-commit on attempt 1, or is one fix-and-restage cycle acceptable? Under `fail_fast: true` an autofix hook that rewrites an unstaged ledger cannot deliver attempt-1 success; the AC and the hook design contradict each other until this is answered. |
+| R-1 | Refile as three single-responsibility successors | **OVERRULED by the operator**, 2026-09-10, verbatim: *"overruled - no split."* The three defects ship as one scope under this FR. The judge's reasoning (three rollback units) is sound in the abstract; the operator's ground is cost: three research + judge cycles for one day of tooling repair is the FR-1013 shape ("process outgrew the change", REJECTED 2026-09-06). C-1, C-2 and C-8 fall with R-1. Recorded as an override, not as agreement. |
+| R-2 | Substantive research record per successor | **Not performed.** With no successors there is nothing to research per successor, and no research route was run for FR-1044 itself. The in-body alternatives table is what exists; it lacks solution-class labels and an `is_this_a_graph` answer. Stated as a gap, not as satisfied. |
+| R-3 | Human decision on first-invocation policy | **Answered by the operator, 2026-09-10: one fix-and-restage cycle is acceptable.** The attempt-1 acceptance criterion is deleted. Rationale: under `fail_fast: true` an autofix hook that rewrites an *unstaged* ledger cannot deliver attempt-1 success without auto-staging, which C-5 forbids. The measured outcome is instead the elimination of manual line arithmetic and of repeated full-suite runs. |
 | R-4 | Drop removed-noqa detection from repair scope | **Accepted.** Correct reading of `scripts/noqa_coverage.py:172-183` — strict compares codebase → ledger only, never ledger → codebase. The original AC claimed a detection that does not exist. |
-| R-5 | Causal no-write witness, not a byte/`git status` proxy | **Accepted.** `aggregate_capabilities.py` rewrites identical bytes on a synced tree, so both proxies pass while the write still happens. The witness must fail when the write boundary is reached. |
-| R-6 | Freeze the ruff source, surface and witness | **Accepted.** Source of truth `constraints/dev-py312.txt`; `v`-prefix normalised in the equality test; the one-time reformat is its own `style:` commit. |
-| R-7 | Exact requirement IDs, not "`@pytest.mark.req` tags" | **Accepted.** |
+| R-5 | Causal no-write witness, not a byte/`git status` proxy | **Accepted.** `aggregate_capabilities.py` rewrites identical bytes on a synced tree, so both proxies pass while the write still happens. The witness fails when the write boundary is reached. |
+| R-6 | Freeze the ruff source, surface and witness | **Accepted.** Source of truth `constraints/dev-py312.txt`; `v`-prefix normalised in the equality test; the one-time reformat is its own `style:` commit (C-7 stands). |
+| R-7 | Exact requirement IDs, not "`@pytest.mark.req` tags" | **Accepted.** CAP sync purity reuses `REQ-YG-425` (CAP-160); ruff convergence and noqa line repair get new requirements on CAP-199 (gate truth). |
+
+**Conditions still in force after the override.** C-3 satisfied (R-3 answered
+above). C-4 satisfied by the operator's recorded decision plus PR review. C-5
+stands: no auto-staging of hook output, no weakening of `--strict` to a warning.
+C-6 satisfied by the base refresh. C-7 stands: the formatter diff is its own
+`style:` commit. C-1, C-2, C-8 are void with R-1.
 
 **One factual correction to the judgement (not a revision refused on preference).**
 The Consistency row and C-6 state that `ARCHITECTURE.md` still carries the
