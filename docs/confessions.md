@@ -636,49 +636,49 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Same as CONF-127.
 
 ### CONF-133
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L278)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L287)
 - **Code**: ARG001
 - **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
 - **Penance**: Same as CONF-127.
 
 ### CONF-134
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L349)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L358)
 - **Code**: ARG001
 - **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
 - **Penance**: Same as CONF-127.
 
 ### CONF-135
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L374)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L383)
 - **Code**: SLF001
 - **Sin**: Accesses `llm_mod._VERTEX_CONSTRUCT_LOCK` directly in test.
 - **Penance**: Test validates the module-level lock exists and is the correct type. No public API to verify this.
 
 ### CONF-136
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L392)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L401)
 - **Code**: SLF001
 - **Sin**: Calls `llm_mod._masked_env()` directly in test.
 - **Penance**: Tests the private context manager in isolation. No public API wrapping it.
 
 ### CONF-137
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L412)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L421)
 - **Code**: SLF001
 - **Sin**: Same as CONF-136 — calls `llm_mod._masked_env()` inside `pytest.raises`.
 - **Penance**: Same as CONF-136.
 
 ### CONF-138
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L428)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L437)
 - **Code**: ARG001
 - **Sin**: Same as CONF-127 — `capture_env(**kwargs)` ignores kwargs to capture env snapshot.
 - **Penance**: Same as CONF-127.
 
 ### CONF-139
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L460)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L469)
 - **Code**: ARG001
 - **Sin**: `capture_env(**kwargs)` ignores kwargs to capture env snapshot for FR-229 test.
 - **Penance**: Same as CONF-127 — `ChatGoogleGenerativeAI` is constructed with kwargs; the test only needs to inspect `os.environ`, not the constructor arguments.
 
 ### CONF-140
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L514)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L523)
 - **Code**: ARG001
 - **Sin**: Same as CONF-139 — `capture_env(**kwargs)` in ADC mode test ignores kwargs.
 - **Penance**: Same as CONF-139.
@@ -1913,7 +1913,7 @@ The ID ranges are:
 - **Penance**: FR-912 — literal pathspec from a module-level constant, no interpolation; same rationale as CONF-437/CONF-438.
 
 ### CONF-443
-- **File**: [examples/demos/corpus_census/tools.py](../examples/demos/corpus_census/tools.py#L50)
+- **File**: [examples/demos/corpus_census/tools.py](../examples/demos/corpus_census/tools.py#L49)
 - **Code**: E402
 - **Sin**: `import ledger_failures` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: FR-943 — demo-local taxonomy module outside the installable package; the REPO_ROOT path bootstrap must precede the import (CONF-427/430 idiom).

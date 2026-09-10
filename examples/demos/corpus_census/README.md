@@ -84,3 +84,31 @@ Defaults (unset or empty vars) fall back to the graph `defaults:`
 chain — `anthropic` / `claude-haiku-4-5` by default; the synthesis call
 accepts its own `brief_provider`/`brief_model` (FR-1034). Ledger and brief provenance
 carry the effective model.
+
+## Hook-audit session adapters (FR-1041)
+
+`adapters/audit-discover.tool.yaml` / `adapters/audit-extract.tool.yaml`
+(`adapters/audit_adapters.py`) make one agent session in
+`.github/hooks/logs/audit.jsonl` a census item. `source` is
+`<audit.jsonl path>:<since ISO date>`; sessions with ≥ 20 events since the
+date are discovered (error if none or > 200). Each item's text is a digest:
+`session`/`client` (`vscode` or `copilot-cli`), span, event/tool counts,
+denials, files written (prose vs code), terminal commands with
+verification and git/gh counts, then the file list (≤ 30) and deduplicated
+command list (≤ 60, 110 chars each). Session digests contain private
+command lines — never commit the ledger; `proofs/hook-audit-sessions/`
+holds the allowlisted evidence (run log truncated before the state dump,
+brief with 8-char session prefixes, code-computed aggregate).
+
+```bash
+yamlgraph graph run examples/demos/corpus_census/graph.yaml \
+  --tool discover=examples/demos/corpus_census/adapters/audit-discover.tool.yaml \
+  --tool extract=examples/demos/corpus_census/adapters/audit-extract.tool.yaml \
+  --var source=".github/hooks/logs/audit.jsonl:2026-08-20" \
+  --var rubric="$(cat tmp/rubric.txt)" \
+  --var labels='["code-with-tests","code-no-tests","prose-verified","prose-unverified","git-ops","inspect-only"]' \
+  --var model=mercury-2 --var provider=inception \
+  --var output_path=tmp/session-census-ledger.md \
+  --var brief_path=tmp/session-census-brief.md \
+  --var brief_rubric="Which session shapes dominate, and which are unverified?"
+```

@@ -1,5 +1,6 @@
 """Unit tests for LLM factory module."""
 
+import importlib
 import os
 from unittest.mock import patch
 
@@ -163,12 +164,20 @@ class TestCreateLLM:
             assert llm.openai_api_base == "https://api.inceptionlabs.ai/v1"
 
     @pytest.mark.req("REQ-YG-010", "REQ-YG-011")
-    def test_inception_default_model(self):
-        """Should use mercury-2 as default Inception model."""
-        from yamlgraph.config import DEFAULT_MODELS
+    def test_inception_default_model(self, monkeypatch):
+        """Should use mercury-2 as default Inception model when INCEPTION_MODEL is unset."""
+        from yamlgraph import config
 
-        assert "inception" in DEFAULT_MODELS
-        assert DEFAULT_MODELS["inception"] == "mercury-2"
+        # config re-runs load_dotenv() on reload; a developer .env with
+        # INCEPTION_MODEL set would otherwise decide this assertion.
+        monkeypatch.setattr("dotenv.load_dotenv", lambda *a, **k: False)
+        monkeypatch.delenv("INCEPTION_MODEL", raising=False)
+        importlib.reload(config)
+        try:
+            assert config.DEFAULT_MODELS["inception"] == "mercury-2"
+        finally:
+            monkeypatch.undo()
+            importlib.reload(config)
 
     @pytest.mark.req("REQ-YG-010")
     def test_create_llm_vertex(self, monkeypatch):
