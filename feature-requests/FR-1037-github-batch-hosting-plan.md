@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement — documentation only
-**Status:** In Progress — judgement human-approved 2026-09-10; R-1 and R-2 folded
+**Status:** Completed — documentation delivered in PR #650; application eligibility remains open
 **Effort:** Small documentation change
 **Requested:** 2026-09-10
 **First consumer / first event:** An operator selecting hosting for a small batch tool, before building a frontend or provisioning execution.
@@ -46,12 +46,12 @@ orchestration task; no new graph is needed.
 
 ## Acceptance Criteria
 
-- [ ] AC1: Reference records trusted-team audience with repository write access and GitHub-form handoff, explicitly distinguishing a link from direct dispatch; cites official manual-run permission requirements and leaves access grants to the operator.
-- [ ] AC2: Reference cites the inspected deviant-daily revision and distinguishes implemented behavior from the proposed dashboard.
-- [ ] AC3: Reference covers secrets, permissions, public/private results, retries, concurrency, retained output, and future phases without claiming deployment.
-- [ ] AC4: Reference front-loads the unresolved workload/hosting-policy gate and cites official terms; billing is not presented as eligibility.
-- [ ] AC5: The exact four-file diff and named pre-commit command below pass; the PR contains the posted outsider report and a comment dispositioning every finding (or explicitly recording no findings) before merge.
-- [ ] AC6: Committed diary includes trap, heuristic, and Seed.
+- [x] AC1: Reference records trusted-team audience with repository write access and GitHub-form handoff, explicitly distinguishing a link from direct dispatch; cites official manual-run permission requirements and leaves access grants to the operator.
+- [x] AC2: Reference cites the inspected deviant-daily revision and distinguishes implemented behavior from the proposed dashboard.
+- [x] AC3: Reference covers secrets, permissions, public/private results, retries, concurrency, retained output, and future phases without claiming deployment.
+- [x] AC4: Reference front-loads the unresolved workload/hosting-policy gate and cites official terms; billing is not presented as eligibility.
+- [x] AC5: The exact four-file diff and named pre-commit command below pass; the PR contains the posted outsider report and a comment dispositioning every finding (or explicitly recording no findings) before merge.
+- [x] AC6: Committed diary includes trap, heuristic, and Seed.
 
 ### Exact verification contract (R-2)
 
@@ -89,7 +89,13 @@ required because all four deliverables are prose, not executable artifacts.
 - R-2 folded: exact path containment, pre-commit command, and durable outsider
   evidence requirements recorded above.
 - 2026-09-10: Operator reviewed the judgement summary and chose “Approve and
-  proceed” for the documentation-only PR, outsider, and merge. Final verification
-  and outsider evidence pending.
+  proceed” for the documentation-only PR, outsider, and merge.
+- Verification: all four paths pass the named pre-commit command; editor diagnostics
+  and diff whitespace checks are clean. The merge-base diff contains exactly D-1
+  through D-4. Runtime tests are intentionally not applicable to this prose-only change.
+- [PR #650](https://github.com/sheikkinen/yamlgraph/pull/650) preserves the outsider
+  report (one run; derived NO, five terminology findings and four merge-evidence
+  requests) and itemized dispositions. The description defines and links the terms;
+  no rerun to obtain YES. Required CI must pass before the authorized merge.
 - The application eligibility gate remains open and owned by its operator before
   any future implementation. Merging this documentation does not satisfy it.
