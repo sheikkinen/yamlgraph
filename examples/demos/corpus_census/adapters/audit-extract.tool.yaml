@@ -1,0 +1,6 @@
+name: audit-extract
+description: "Hook-audit session census: one session as a counts+commands digest"
+runtime:
+  type: python
+  path: audit_adapters.py
+  function: audit_extract

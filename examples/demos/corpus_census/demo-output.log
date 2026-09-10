@@ -1,54 +1,51 @@
-2026-09-09 07:37:57,313 [INFO] yamlgraph.compile.graph_loader: Parsed 6 Python tools: discover, extract, reduce_ledger, prepare_brief_input, resolve_brief_llm, render_brief
-2026-09-09 07:37:57,316 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
-2026-09-09 07:37:57,318 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
-2026-09-09 07:37:57,322 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
-2026-09-09 07:37:57,326 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
-2026-09-09 07:37:57,330 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_brief_input (type=python)
-2026-09-09 07:37:57,332 [INFO] yamlgraph.compile.node_compiler: Added node: resolve_brief_llm (type=python)
-2026-09-09 07:37:57,336 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
-2026-09-09 07:37:57,340 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
-2026-09-09 07:37:57,385 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a08475-55f0-78c4-85ce-e448d2597f44", "artifact_hash": "sha256:773a594379d8ca59ae2afe0470976739fc110c3d74f5dc5ad6ce1a757c25b262", "graph": "C:/src/yamlgraph/tmp/worktrees/featfr-1034-brief-model/examples/demos/corpus_census/graph.yaml", "yamlgraph_version": "0.5.23", "thread_id": null, "started_at": "2026-09-09T04:37:57Z"}
-2026-09-09 07:37:57,614 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
-2026-09-09 07:37:57,628 [INFO] yamlgraph.utils.llm_factory: Creating LLM: inception/mercury-2.5 (temp=0.0)
-2026-09-09 07:38:04,142 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-09 07:38:04,160 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-09 07:38:04,942 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-09 07:38:04,945 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-09 07:38:05,402 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
-2026-09-09 07:38:05,405 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
-2026-09-09 07:38:05,406 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
-2026-09-09 07:38:05,409 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
-2026-09-09 07:38:05,419 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: resolve_brief_llm -> resolve_brief_llm
-2026-09-09 07:38:05,424 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
-2026-09-09 07:38:06,824 [INFO] httpx2: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
-2026-09-09 07:38:06,848 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
-2026-09-09 07:38:06,849 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
-2026-09-09 07:38:07,025 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a08475-55f0-78c4-85ce-e448d2597f44", "ended_at": "2026-09-09T04:38:07Z", "dropped_events": 0}
+2026-09-10 16:45:25,691 [INFO] yamlgraph.compile.graph_loader: Parsed 6 Python tools: discover, extract, reduce_ledger, prepare_brief_input, resolve_brief_llm, render_brief
+2026-09-10 16:45:25,692 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
+2026-09-10 16:45:25,693 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
+2026-09-10 16:45:25,697 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
+2026-09-10 16:45:25,700 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
+2026-09-10 16:45:25,703 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_brief_input (type=python)
+2026-09-10 16:45:25,704 [INFO] yamlgraph.compile.node_compiler: Added node: resolve_brief_llm (type=python)
+2026-09-10 16:45:25,706 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
+2026-09-10 16:45:25,708 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
+2026-09-10 16:45:25,748 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a08b90-ebde-7ec3-807b-8a1edc09b6d1", "artifact_hash": "sha256:788a272d8bfb1617e454c9efb2765eddbaffa475df9cc877e9ee8a38bca46d59", "graph": "/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/chorecensus-sessions/examples/demos/corpus_census/graph.yaml", "yamlgraph_version": "0.5.17", "thread_id": null, "started_at": "2026-09-10T13:45:25Z"}
+2026-09-10 16:45:25,827 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
+2026-09-10 16:45:25,942 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.0)
+2026-09-10 16:45:28,389 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-10 16:45:28,415 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-10 16:45:29,018 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-10 16:45:29,021 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-10 16:45:29,060 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-10 16:45:29,062 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-10 16:45:29,063 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
+2026-09-10 16:45:29,065 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
+2026-09-10 16:45:29,067 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: resolve_brief_llm -> resolve_brief_llm
+2026-09-10 16:45:30,421 [INFO] httpx: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-09-10 16:45:30,423 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-09-10 16:45:30,425 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
+2026-09-10 16:45:30,621 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a08b90-ebde-7ec3-807b-8a1edc09b6d1", "ended_at": "2026-09-10T13:45:30Z", "dropped_events": 0}
 
 🚀 Running graph: graph.yaml
-   Variables: {'source': 'examples/demos/corpus_census/fixtures/md-corpus', 'provider': 'inception', 'model': 'mercury-2.5', 'brief_provider': 'anthropic', 'brief_model': 'claude-haiku-4-5', 'labels': '["invariant-store","state-log","description"]', 'rubric': 'Classify this agent instruction file by what dominates it: invariant-store (facts that cost a failure to learn, not derivable from the code), state-log (perishable paths, checkpoints, dated status), or description (derivable by reading the code). Cite the most non-derivable line.', 'output_path': 'tmp/md-ledger.md', 'brief_path': 'tmp/md-brief.md', 'brief_rubric': 'What distinguishes these files from one another?'}
+   Variables: {'source': 'examples/demos/corpus_census/fixtures/corpus', 'rubric': "classify each document's main topic in one word", 'provider': 'anthropic', 'model': 'claude-haiku-4-5', 'brief_provider': 'anthropic', 'brief_model': 'claude-haiku-4-5', 'output_path': 'tmp/fixture-census-ledger.md', 'brief_path': 'tmp/fixture-census-brief.md', 'brief_rubric': 'What does this corpus cover overall?'}
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a08475-560c-74f1-9299-57e92db2f030?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a08b90-ebf6-7f60-a5c6-17f4fa7be029?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: render_brief
-  source: examples/demos/corpus_census/fixtures/md-corpus
-  rubric: Classify this agent instruction file by what dominates it: invariant-store (facts that cost a failure to learn, not derivable from the code), state-log (perishable paths, checkpoints, dated status), or description (derivable by reading the code). Cite the most non-derivable line.
-  model: mercury-2.5
-  provider: inception
+  source: examples/demos/corpus_census/fixtures/corpus
+  rubric: classify each document's main topic in one word
+  model: claude-haiku-4-5
+  provider: anthropic
   brief_provider: anthropic
   brief_model: claude-haiku-4-5
-  labels: ["invariant-store","state-log","description"]
-  output_path: tmp/md-ledger.md
-  items: ['{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\atomic-writes.md","sha256":"42ccf53a73857ac1440803b26f7643e57107329faa6798d77d1624375acf191d","bytes":529}', '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\project-layout.md","sha256":"b48a625bcd7df6f0da88dd550519e3b72612e1534f238be925b3d9121e79fadc","bytes":296}', '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\training-status.md","sha256":"40f2a52437cd494959ad27825671e9d44c58c56774a3e72624dad1ec3c96e700","bytes":285}']
-  contents: [{'_map_index': 0, 'value': '# Storage rules\r\n\r\n**Never call `fs.rename` directly.** Use `writeFileAtomic`. On Windows the\r\ndestination being open — by a virus scanner, the search indexer, or a sync\r\nclient — fails the rename with EPERM, so the save is lost intermittently and\r\nmore often on better-protected machines. Enforced by `fs-atomic.guard.test.ts`.\r\n\r\nAny new persisted preference must be added in three places: the struct field,\r\nthe constructor copy, and the save reconstruction. Missing one means the\r\npreference silently resets on restart.\r\n'}, {'_map_index': 1, 'value': '# Project overview\r\n\r\nThe service is a Python FastAPI application. `api/` holds the HTTP routes,\r\n`core/` the domain logic, and `db/` the SQLAlchemy models. Tests live under\r\n`tests/` and mirror the package layout.\r\n\r\nBuild with `make build`, run with `make dev`, and format with `ruff format`.\r\n'}, {'_map_index': 2, 'value': '# Current run\r\n\r\nCheckpoint: `/data/models/run-v7/checkpoints/epoch=32-step=216326.ckpt` (947MB).\r\nTraining stopped at epoch 32 on 2026-05-21. Fine-tune completed 00:07-00:58.\r\nResume from `last.ckpt` on the new GPU box; see the handoff note for the exact\r\nenvironment restore steps.\r\n'}]
-  findings: [{'_map_index': 0, 'source_index': 0, 'judgement': 'invariant-store', 'confidence': 0.95, 'evidence_span': 'Any new persisted preference must be added in three places: the struct field, the constructor copy, and the save reconstruction.', 'abstained': False, 'abstain_reason': ''}, {'_map_index': 1, 'source_index': 1, 'judgement': 'description', 'confidence': 0.95, 'evidence_span': '`api/` holds the HTTP routes, `core/` the domain logic, and `db/` the SQLAlchemy models.', 'abstained': False, 'abstain_reason': ''}, {'_map_index': 2, 'source_index': 2, 'judgement': 'state-log', 'confidence': 0.95, 'evidence_span': 'Checkpoint: `/data/models/run-v7/checkpoints/epoch=32-step=216326.ckpt` (947MB).', 'abstained': False, 'abstain_reason': ''}]
-  ledger: {'markdown_path': 'tmp\\md-ledger.md', 'jsonl_path': 'tmp\\md-ledger.jsonl', 'rows': 3}
-  brief_path: tmp/md-brief.md
-  brief_rubric: What distinguishes these files from one another?
-  brief_input: [{'confidence': 0.95, 'item_ref': '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\atomic-writes.md","sha256":"42ccf53a73857ac1440803b26f7643e57107329faa6798d77d1624375acf191d","bytes":529}', 'judgement': 'invariant-store'}, {'confidence': 0.95, 'item_ref': '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\project-layout.md","sha256":"b48a625bcd7df6f0da88dd550519e3b72612e1534f238be925b3d9121e79fadc","bytes":296}', 'judgement': 'description'}, {'confidence': 0.95, 'item_ref': '{"path":"examples\\\\demos\\\\corpus_census\\\\fixtures\\\\md-corpus\\\\training-status.md","sha256":"40f2a52437cd494959ad27825671e9d44c58c56774a3e72624dad1ec3c96e700","bytes":285}', 'judgement': 'state-log'}]
+  output_path: tmp/fixture-census-ledger.md
+  items: ['examples/demos/corpus_census/fixtures/corpus/architecture.txt', 'examples/demos/corpus_census/fixtures/corpus/observability.txt', 'examples/demos/corpus_census/fixtures/corpus/security.txt']
+  contents: [{'_map_index': 0, 'value': 'Architecture notes describe graph boundaries, deterministic reducers, and\ntool-slot adapters for reusable pipelines.\n'}, {'_map_index': 1, 'value': 'Observability notes describe trace collection, evidence logs, latency, and\noperational metrics for graph runs.\n'}, {'_map_index': 2, 'value': 'Security notes describe input validation, fail-closed reducers, shell escaping,\nand hostile manifest handling.\n'}]
+  findings: [{'_map_index': 0, 'source_index': 0, 'judgement': 'Architecture', 'confidence': 0.92, 'evidence_span': 'Architecture notes describe graph boundaries, deterministic reducers, and tool-slot adapters', 'abstained': False, 'abstain_reason': ''}, {'_map_index': 1, 'source_index': 1, 'judgement': 'Observability', 'confidence': 0.92, 'evidence_span': 'Observability notes describe trace collection, evidence logs, latency, and operational metrics', 'abstained': False, 'abstain_reason': ''}, {'_map_index': 2, 'source_index': 2, 'judgement': 'Security', 'confidence': 0.95, 'evidence_span': 'Security notes describe input validation, fail-closed reducers, shell escaping, and hostile manifest handling', 'abstained': False, 'abstain_reason': ''}]
+  ledger: {'markdown_path': 'tmp/fixture-census-ledger.md', 'jsonl_path': 'tmp/fixture-census-ledger.jsonl', 'rows': 3}
+  brief_path: tmp/fixture-census-brief.md
+  brief_rubric: What does this corpus cover overall?
+  brief_input: [{'confidence': 0.92, 'item_ref': 'examples/demos/corpus_census/fixtures/corpus/architecture.txt', 'judgement': 'architecture'}, {'confidence': 0.92, 'item_ref': 'examples/demos/corpus_census/fixtures/corpus/observability.txt', 'judgement': 'observability'}, {'confidence': 0.95, 'item_ref': 'examples/demos/corpus_census/fixtures/corpus/security.txt', 'judgement': 'security'}]
   claims: {'claims': []}
   brief_llm: {'provider': 'anthropic', 'model': 'claude-haiku-4-5'}
-  brief: {'accepted': False, 'errors': ['no claims emitted'], 'artifact': 'tmp\\md-brief.REJECTED.md'}
-
+  brief: {'accepted': False, 'errors': ['no claims emitted'], 'artifact': 'tmp/fixture-census-brief.REJECTED.md'}
