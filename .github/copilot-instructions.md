@@ -32,6 +32,7 @@ LangGraph orchestration, Pydantic v2 outputs, YAML prompts with Jinja2, Memory/S
 - **PostToolUse**: modular post-edit checks (`python-checks.sh`, `yaml-checks.sh`, `markdown-checks.sh`, `fr-checks.sh`); reasoning sentinel can arm a one-shot denial.
 - **Lockdown channel**: `.github/hooks/cmd lockdown|unlock|status`; audit trail in `.github/hooks/logs/audit.jsonl`.
 - **Full contract**: `.github/hooks/README.md`. Session lane retired by FR-927; FR-889's OS lock is the only write barrier on main.
+- **Dirty main**: "check dirty main" / "clean dirty main" routes to `.github/skills/clean-dirty-main/SKILL.md` — triage by content provenance (`scripts/dirty_main_triage.py`) before any discard; never discard on status output alone (FR-1047).
 
 ### The Knowledge Graph of the Diary
 

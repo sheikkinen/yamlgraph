@@ -585,6 +585,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 268 | CAP-268 Desktop Toast Notification Tool | `examples/shared/notify_toast.py`, `examples/shared/send_toast.tool.yaml`, `examples/demos/hello` | REQ-YG-672 |
 | 270 | CAP-270 Bounded local-Markdown census binding | `examples/demos/corpus_census/adapters/markdown_adapters.py`, `examples/demos/corpus_census/adapters/md-discover.tool.yaml`, `examples/demos/corpus_census/adapters/md-extract.tool.yaml`, `tests/unit/test_markdown_corpus_adapters.py` | REQ-YG-674 |
 | 271 | CAP-271 Pre-Commit Gate Hygiene | `scripts/noqa_coverage.py`, `.pre-commit-config.yaml` | REQ-YG-676 – 677 |
+| 272 | CAP-272 Clean Dirty Main Triage | `scripts/dirty_main_triage.py`, `.github/skills/clean-dirty-main/SKILL.md` | REQ-YG-678 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3295,6 +3296,16 @@ The gates that guard a commit must not themselves generate work. The formatter r
 |------------|-------------|-------------|
 | REQ-YG-676 | Ruff version convergence (FR-1044). The ruff-pre-commit repo rev equals the ruff pin in constraints/dev-py312.txt, normalised for the leading v of the git tag. Exactly one ruff-pre-commit repo is declared. Without this, the hook and the developer's ruff format the same file differently and each commit reverts the other. | `.pre-commit-config.yaml`, `constraints/dev-py312.txt`, `tests/unit/test_fr1044_gate_hygiene.py` |
 | REQ-YG-677 | Confession line repair (FR-1044). scripts/noqa_coverage.py --fix realigns the #L<n> reference of each confession entry when the suppressions in a file map one-to-one and in order onto the ledger entries for that file by rule code; it refuses and changes nothing when a suppression was added, removed, or its code changed, leaving those for --strict to report. The fix hook runs before the strict hook and stages nothing. | `scripts/noqa_coverage.py`, `.pre-commit-config.yaml`, `tests/unit/test_fr1044_gate_hygiene.py` |
+
+### 272. CAP-272 Clean Dirty Main Triage
+
+A dirty main checkout is triaged by content provenance before anything is discarded. The classifier is read-only and fails closed: exactly one evidence class is safe, and every ambiguous git state, unreadable path, or failed probe preserves the path and exits non-zero. The operator route reaches the classifier from the phrase that occurs in practice, so the recovery recipe is not re-derived at each incident.
+
+**Feature Request:** FR-1047
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-678 | Provenance triage for a dirty main checkout (FR-1047). scripts/dirty_main_triage.py classifies each entry of `git status --porcelain=v1 -z --untracked-files=all` as TARGET_IDENTICAL when the working bytes equal the blob at the same path in origin/main, KNOWN_BLOB when the bytes occur in another reachable commit, or UNSEEN_BLOB when they occur in no examined reachable ref. Only TARGET_IDENTICAL is safe. A non-main branch, a linked worktree, an unresolvable origin/main, a staged entry, deletion, rename, conflict, type change, symlink, submodule, or non-regular file is UNSUPPORTED; any git, filesystem, or decode failure is ERROR. The run mutates nothing and exits zero only when the tree is clean or every path is TARGET_IDENTICAL. .github/skills/clean-dirty-main/SKILL.md runs the classifier before any mutation, stops before unlocking on any non-safe result, cleans only explicit pathspecs, and restores the FR-889 lock on every exit. | `scripts/dirty_main_triage.py`, `.github/skills/clean-dirty-main/SKILL.md`, `.github/copilot-instructions.md`, `tests/unit/test_dirty_main_triage.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
