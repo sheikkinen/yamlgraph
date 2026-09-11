@@ -41,6 +41,15 @@ PRESERVE = "PRESERVE"
 #: whose index entry is clean. Everything else preserves.
 SUPPORTED_CODES = {" M", "??"}
 
+#: A status record git did not shape as `XY <path>`. Deliberately outside
+#: SUPPORTED_CODES so it can never be promoted to an untracked file.
+MALFORMED = "!!"
+
+#: Tree modes whose blob is an ordinary file. A symlink is also stored as a
+#: blob, so matching bytes do not make a symlink and a regular file the same
+#: thing — mode is part of the identity.
+REGULAR_MODES = {b"100644", b"100755"}
+
 
 class Refused(Exception):
     """A precondition failed; nothing is classified."""
@@ -115,7 +124,7 @@ def parse_status(raw: bytes) -> list[tuple[str, str]]:
         if not field:
             continue
         if len(field) < 4 or field[2:3] != b" ":
-            entries.append(("??", field.decode("utf-8", "surrogateescape")))
+            entries.append((MALFORMED, field.decode("utf-8", "surrogateescape")))
             continue
         code = field[:2].decode("ascii", "replace")
         path = field[3:].decode("utf-8", "surrogateescape")
@@ -126,22 +135,41 @@ def parse_status(raw: bytes) -> list[tuple[str, str]]:
 
 
 def origin_blob(repo: Path, origin_oid: str, path: str) -> bytes | None:
-    """Bytes of `origin/main:<path>`, or None when the path is absent."""
+    """Bytes of `origin/main:<path>`, or None when it is absent or not a file.
+
+    A non-regular target mode (symlink, gitlink) returns None rather than its
+    bytes: identical bytes do not make a symlink interchangeable with the
+    regular file sitting in the working tree.
+    """
     out = git_bytes(repo, "ls-tree", "-z", origin_oid, "--", path)
     if not out.strip(b"\0"):
         return None
     entry = out.split(b"\0")[0]
     meta = entry.split(b"\t", 1)[0].split(b" ")
-    if len(meta) < 3 or meta[1] != b"blob":
+    if len(meta) < 3 or meta[1] != b"blob" or meta[0] not in REGULAR_MODES:
         return None
     return git_bytes(repo, "cat-file", "blob", meta[2].decode("ascii"))
 
 
+def tree_contains(repo: Path, rev: str, oid: str) -> bool:
+    listing = git_out(repo, "ls-tree", "-r", rev)
+    return f"{oid}\t" in listing
+
+
 def find_source_revision(repo: Path, oid: str) -> str | None:
-    out = git_out(
-        repo, "log", "--all", "--find-object", oid, "--max-count=1", "--format=%h"
-    ).strip()
-    return out or None
+    """Short SHA of a reachable commit whose tree actually holds `oid`.
+
+    `--find-object` also reports commits that DELETED the object; naming one
+    of those as the source would be a false provenance claim, so each
+    candidate is verified against its own tree.
+    """
+    candidates = git_out(
+        repo, "log", "--all", "--find-object", oid, "--format=%H", "--max-count=20"
+    ).split()
+    for sha in candidates:
+        if tree_contains(repo, sha, oid):
+            return sha[:12]
+    return None
 
 
 def unreadable_reason(target: Path) -> tuple[str, str] | None:
@@ -160,7 +188,12 @@ def unreadable_reason(target: Path) -> tuple[str, str] | None:
 def classify(repo: Path, origin_oid: str, code: str, path: str) -> Verdict:
     """Classify one status entry. Any doubt preserves."""
     if code not in SUPPORTED_CODES:
-        return Verdict(code, path, UNSUPPORTED, PRESERVE, "unsupported status code")
+        reason = (
+            "malformed status record"
+            if code == MALFORMED
+            else "unsupported status code"
+        )
+        return Verdict(code, path, UNSUPPORTED, PRESERVE, reason)
     unreadable = unreadable_reason(repo / path)
     if unreadable:
         klass, detail = unreadable

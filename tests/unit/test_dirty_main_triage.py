@@ -279,12 +279,14 @@ def test_mixed_snapshot_exits_non_zero(repo: Path) -> None:
 def test_classifier_mutates_nothing(repo: Path) -> None:
     (repo / "novel.txt").write_text("novel\n", encoding="utf-8")
     (repo / "tracked.txt").write_text("dirty\n", encoding="utf-8")
+    index = repo / ".git" / "index"
     before = (
         git(repo, "rev-parse", "HEAD"),
         git(repo, "status", "--porcelain", "--untracked-files=all"),
         git(repo, "diff"),
         git(repo, "diff", "--cached"),
         sorted(p.name for p in repo.iterdir()),
+        index.read_bytes(),
     )
     run_triage(repo)
     after = (
@@ -293,6 +295,7 @@ def test_classifier_mutates_nothing(repo: Path) -> None:
         git(repo, "diff"),
         git(repo, "diff", "--cached"),
         sorted(p.name for p in repo.iterdir()),
+        index.read_bytes(),
     )
     assert before == after
     # the run must actually have happened, not merely failed to start
@@ -384,3 +387,67 @@ def test_instructions_route_the_literal_phrase() -> None:
     text = INSTRUCTIONS.read_text(encoding="utf-8")
     assert "check dirty main" in text
     assert ".github/skills/clean-dirty-main" in text
+
+
+# --- Review findings P1-P3 (PR #655): safety holes the first suite missed ----
+
+
+@pytest.mark.req("REQ-YG-678")
+def test_origin_symlink_target_is_never_safe(repo: Path) -> None:
+    """P1: git stores a symlink's target as a blob, so bytes can match.
+
+    A regular file whose contents equal the symlink target must not be
+    licensed safe against a symlink in origin/main — the filesystem
+    semantics differ even though the blobs are identical.
+    """
+    link = repo / "alink"
+    link.symlink_to("tracked.txt")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-qm", "add symlink")
+    git(repo, "push", "-q", "origin", "main")
+    git(repo, "fetch", "-q", "origin")
+    git(repo, "reset", "-q", "--hard", "HEAD~1")
+    (repo / "alink").write_text("tracked.txt", encoding="utf-8")
+    result = run_triage(repo)
+    assert "TARGET_IDENTICAL" not in result.stdout
+    assert counts(result.stdout)["safe"] == 0
+    assert result.returncode != 0
+
+
+@pytest.mark.req("REQ-YG-678")
+def test_malformed_status_record_is_never_untracked(repo: Path) -> None:
+    """P2: a malformed record must not be promoted to an untracked file."""
+    from importlib import util
+
+    spec = util.spec_from_file_location("dmt", TRIAGE)
+    assert spec and spec.loader
+    module = util.module_from_spec(spec)
+    sys.modules["dmt"] = module  # dataclasses resolve via sys.modules
+    try:
+        spec.loader.exec_module(module)
+        entries = module.parse_status(b"X\0")
+    finally:
+        del sys.modules["dmt"]
+    assert entries
+    for code, _ in entries:
+        assert code not in module.SUPPORTED_CODES
+
+
+@pytest.mark.req("REQ-YG-678")
+def test_known_blob_names_a_revision_that_contains_it(repo: Path) -> None:
+    """P3: a deletion commit must not be reported as a blob's source."""
+    git(repo, "checkout", "-q", "-b", "sibling")
+    (repo / "transient.txt").write_text("transient content\n", encoding="utf-8")
+    git(repo, "add", "-A")
+    git(repo, "commit", "-qm", "add transient")
+    added = git(repo, "rev-parse", "HEAD").strip()
+    (repo / "transient.txt").unlink()
+    git(repo, "add", "-A")
+    git(repo, "commit", "-qm", "delete transient")
+    removed = git(repo, "rev-parse", "HEAD").strip()
+    git(repo, "checkout", "-q", "main")
+    (repo / "resurrected.txt").write_text("transient content\n", encoding="utf-8")
+    out = run_triage(repo).stdout
+    assert "KNOWN_BLOB" in out
+    assert added[:7] in out, "must name the commit whose tree holds the blob"
+    assert removed[:7] not in out, "must not name the deletion commit"

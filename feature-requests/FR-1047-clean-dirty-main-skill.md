@@ -245,6 +245,7 @@ REVISIONS. All six revisions folded; none refused.
 | D-6 | `capabilities/CAP-272-clean-dirty-main-triage.yaml` + regenerated `ARCHITECTURE.md` |
 | D-7 | `changelog/unreleased/fr1047-clean-dirty-main-skill.md` |
 | D-8 | One FR-1047 Distill entry under `docs/diary/` with a `Seed:` |
+| D-9 | `docs/confessions.md` — added by scope amendment (review P5); the `# noqa: S603` ledger entries the confession gate requires for the two git helpers. Not foreseen at judgement time. |
 
 **Not authorized:** changes to `scripts/worktree.sh`; FR-889 lock roots,
 permissions, marker, audit or relock behaviour;
@@ -286,8 +287,34 @@ NOT SAFE TO CLEAN: every path above must be dispositioned by a human ...
 That is the asymmetry the FR was filed for, demonstrated on the incident that
 prompted it.
 
-**Deviations from the frozen scope:** none. D-1–D-8 delivered as specified;
-`CAP-272` and `REQ-YG-678` used as pinned.
+**Deviations from the frozen scope:** one. `docs/confessions.md` was not in the
+judgement's deliverable list but is required by the noqa-confession gate for the
+two `subprocess.run` git helpers (CONF-487, CONF-488). Recorded as D-9 above.
+The earlier claim of "no deviations" in this record was wrong and was corrected
+after review finding P5.
+
+## Review round 1 (PR #655, 2026-09-11)
+
+`scripts/review.sh 655` — **not approved**, five blocking findings. Three were
+real defects that the 29-test suite did not catch; all three were in the one
+class this FR exists to prevent — a path licensed SAFE that must not be.
+
+| # | Finding | Disposition |
+|---|---------|-------------|
+| P1 | A symlink in `origin/main` is stored as a blob, so a local *regular* file whose bytes equal the symlink target was classified `TARGET_IDENTICAL SAFE`. | **Fixed.** `origin_blob` now checks the tree mode against `REGULAR_MODES`; symlink (`120000`) and gitlink targets return None and fall through to preserve. Regression test `test_origin_symlink_target_is_never_safe`. |
+| P2 | `parse_status` mapped every malformed record to `??`, so a malformed entry could reach the safe class. | **Fixed.** Malformed records get the `MALFORMED` code, which is outside `SUPPORTED_CODES` by construction. Regression test `test_malformed_status_record_is_never_untracked`. |
+| P3 | `git log --find-object` also reports commits that DELETED the object; the classifier could name a deletion commit as a blob's source — a false provenance claim. | **Fixed.** Candidates are now verified with `tree_contains` before being reported. Regression test `test_known_blob_names_a_revision_that_contains_it` (add-then-delete fixture). |
+| P4 | Gate C-2 requires the RED tests to be committed before the capability surface; commit `9393f0fc` contains both. | **Refused, with witness.** C-2's ordering is unsatisfiable for a *new* requirement ID. With `capabilities/CAP-272-*.yaml` absent, `python scripts/req_coverage.py --strict` exits 1 ("REQ-YG-678 referenced by 29 test(s)" with no owning capability), so a tests-only commit is blocked by the pre-commit gate. Satisfying C-2 would require `SKIP=req-coverage-strict`, i.e. bypassing an enforced gate to satisfy an advisory condition. The capability and tests are committed together, before any production code — which is what C-2 protects. |
+| P5 | `docs/confessions.md` is outside the frozen deliverables, and the record claimed no deviations. | **Fixed.** D-9 added above; the deviation is recorded accurately. |
+
+Non-blocking note (AC-09 index guarantee) also folded: `test_classifier_mutates_nothing`
+now compares `.git/index` bytes, not just `git diff --cached`.
+
+**What this round shows.** The first suite was written by the same agent that
+wrote the implementation, and it tested the contract as that agent understood
+it. All three real defects came from git semantics the author did not think to
+question — blobs carry a mode, `--find-object` spans deletions, a malformed
+record is not an untracked file. Independent probing found them in one pass.
 
 **Decisions taken during enforcement:**
 
