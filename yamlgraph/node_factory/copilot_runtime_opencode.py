@@ -370,8 +370,11 @@ def _execute_opencode(
 
     if proc.returncode != 0:
         tail = (proc.stderr or proc.stdout or "")[:_HEAD]
+        detail = tail
+        if resume:
+            detail = f"{tail} (attempted --session {resume!r})"
         raise RuntimeError(
-            f"opencode CLI exit {proc.returncode} in node '{node_name}': {tail}"
+            f"opencode CLI exit {proc.returncode} in node '{node_name}': {detail}"
         )
 
     result_text, session_id = _parse_stream(node_name, proc.stdout or "")

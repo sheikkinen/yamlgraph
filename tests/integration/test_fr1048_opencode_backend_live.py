@@ -65,9 +65,9 @@ edges:
 
 NONCE = "NONCE-7419"
 PROMPT_FIRST = (
-    f"user: Reply with the single word pong. Also remember this nonce: {NONCE}.\n"
+    f'user: "Reply with the single word pong. Also remember this nonce: {NONCE}."\n'
 )
-PROMPT_SECOND = f"user: Reply with the single nonce I gave you earlier ({NONCE}).\n"
+PROMPT_SECOND = f'user: "Reply with the single nonce I gave you earlier ({NONCE})."\n'
 
 
 def _write_graph(root: Path) -> Path:

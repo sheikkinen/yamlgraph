@@ -2,7 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed (judged APPROVED WITH REVISIONS 2026-09-15; R-1..R-5 folded, awaiting re-judgement)
+**Status:** **Implemented 2026-09-15** on branch `feat/fr-1048-opencode-backend`
+(proposal #659; enforcement #660, squash-merged). Judged APPROVED WITH
+REVISIONS (three rounds, R-1..R-5 / R-1..R-5 / R-1..R-4 folded). Live witness
+passed on the pinned version (`feature-requests/evidence/FR-1048-opencode-backend-witness.md`).
 **Effort:** 1.5 days
 **Requested:** 2026-09-15
 **Strategic classification:** contrib/example — backend contribution, not a
