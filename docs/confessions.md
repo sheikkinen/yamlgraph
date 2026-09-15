@@ -137,7 +137,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: The `cmd` list is built entirely from hardcoded strings (`"gh"`, `"copilot"`, `"suggest"`) plus internal config flags and validated graph metadata (model name, timeout). No user input reaches the command arguments.
 
 ### CONF-303
-- **File**: [yamlgraph/node_factory/copilot_runtime.py](../yamlgraph/node_factory/copilot_runtime.py#L167)
+- **File**: [yamlgraph/node_factory/copilot_runtime.py](../yamlgraph/node_factory/copilot_runtime.py#L222)
 - **Code**: S603
 - **Sin**: `subprocess.run(cmd, ...)` in extracted copilot CLI runtime helper is flagged as untrusted input.
 - **Penance**: Command is built as a list (no shell=True), with fixed executable/flags plus validated node configuration (`model`, `resume`, `continue_session`, `timeout`). No raw user input is interpolated into shell commands.
@@ -2156,3 +2156,21 @@ The ID ranges are:
 - **Code**: S603
 - **Sin**: `subprocess.run([GIT, *args], cwd=repo, ...)` — the bytes-returning sibling of CONF-487, used where output must not be decoded (blob contents, NUL-delimited status).
 - **Penance**: As CONF-487. Separate from the text helper precisely so binary blobs and `surrogateescape` pathnames are never forced through a decode that could raise mid-classification (REQ-YG-678).
+
+### CONF-489
+- **File**: [yamlgraph/node_factory/copilot_runtime_opencode.py](../yamlgraph/node_factory/copilot_runtime_opencode.py#L182)
+- **Code**: S603
+- **Sin**: `subprocess.run(argv, ...)` — the `opencode --version` preflight probe.
+- **Penance**: FR-1048. `argv` is a fixed literal list (`["opencode", "--version"]`), no shell, `timeout=30`. The environment is the copy built by `_build_opencode_env`, never a caller-supplied mapping. The whole banner is compared against the pinned set before any agent call.
+
+### CONF-490
+- **File**: [yamlgraph/node_factory/copilot_runtime_opencode.py](../yamlgraph/node_factory/copilot_runtime_opencode.py#L357)
+- **Code**: S603
+- **Sin**: `subprocess.run(cmd, ...)` — the `opencode run` agent invocation.
+- **Penance**: FR-1048. `cmd` is a Python list (no shell); the executable and flag names are literals; the prompt is one list element and the `--model`/`--session` values come from `OpenCodeCliFlags` (strict Pydantic, extra keys forbidden) after a compile-time `provider/model` grammar check. Byte-for-byte argv tests in `tests/unit/test_fr1048_opencode_backend.py`. Environment is the copy built by `_build_opencode_env`.
+
+### CONF-491
+- **File**: [yamlgraph/node_factory/copilot_runtime_opencode.py](../yamlgraph/node_factory/copilot_runtime_opencode.py#L80)
+- **Code**: N815
+- **Sin**: `sessionID: str` — the shared base field of the private opencode JSONL event models.
+- **Penance**: FR-1048. The field mirrors the vendor's `--format json` event key verbatim; renaming would require alias plumbing for a private parse-only model (same rationale as CONF-454).

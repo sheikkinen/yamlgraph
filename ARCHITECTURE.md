@@ -360,7 +360,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 25 | CAP-25 Tavily Domain RAG Demo | `examples/demos/tavily_rag` | REQ-YG-076 |
 | 26 | CAP-26 Streaming Error Resilience | `executor_async`, `models/streaming` | REQ-YG-077 |
 | 28 | CAP-28 Graph-Level Thinking Budget | `yamlgraph/models/graph_schema.py`, `yamlgraph/utils/llm_factory.py` | REQ-YG-083 |
-| 30 | CAP-30 Copilot Node | `constants.NodeType.COPILOT`, `models/schemas`, `node_compiler`, `node_factory/copilot_node`, … | REQ-YG-087, 089, 105, 356 – 357, 639 – 641 |
+| 30 | CAP-30 Copilot Node | `constants.NodeType.COPILOT`, `models/schemas`, `node_compiler`, `node_factory/copilot_node`, … | REQ-YG-087, 089, 105, 356 – 357, 639 – 641, 679 – 681 |
 | 31 | CAP-31 Chaplain Diary Append | `examples/copilot/graph.yaml`, `examples/copilot/prompts/summarize.yaml`, `examples/shared/diary` | REQ-YG-090 |
 | 32 | CAP-32 eBook Authoring Pipeline | `examples/ebook/nodes/writing.py`, `tests/unit/test_ebook_doctrine_validation.py` | REQ-YG-091 – 092 |
 | 33 | CAP-33 Worktree Pipeline | `examples/enforce/graph.yaml`, `scripts/enforce_worktree.sh`, `utils/worktree_helpers` | REQ-YG-106 |
@@ -886,9 +886,9 @@ Graph-level and per-node thinking_budget YAML field for Anthropic extended think
 
 ### 30. CAP-30 Copilot Node
 
-New copilot node type that delegates graph processing to Copilot CLI, replacing shell-script orchestration with a first-class YAML-declarable node. FR-959 adds a fourth, closed backend value `claude` that delegates to the Claude Code CLI on the operator's subscription.
+New copilot node type that delegates graph processing to Copilot CLI, replacing shell-script orchestration with a first-class YAML-declarable node. FR-959 adds a fourth, closed backend value `claude` that delegates to the Claude Code CLI on the operator's subscription. FR-1048 adds a fifth, `opencode`, that delegates to the opencode CLI over provider keys.
 
-**Feature Request:** FR-082, FR-959
+**Feature Request:** FR-082, FR-959, FR-1048
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
@@ -900,6 +900,9 @@ New copilot node type that delegates graph processing to Copilot CLI, replacing 
 | REQ-YG-639 | Copilot node supports `backend: claude`: list argv `claude -p <prompt> --output-format json` with the frozen flag mapping (`--model`, `--resume`/`--continue`, `--tools` comma grammar with `[]` meaning no tools, `--allowedTools`, `--dangerously-skip-permissions`, `--add-dir`, `--max-turns`); stdout crosses a private typed envelope (`result: str`, `session_id: str`, `is_error: bool`) before `CopilotResult(backend="claude")`; failure on non-zero exit, `is_error`, malformed envelope, missing binary, timeout; no numeric exit subtype interpreted and no usage-limit classifier. | `node_factory/copilot_runtime_claude`, `node_factory/copilot_node`, `models/schemas` |
 | REQ-YG-640 | Copilot `backend` is a closed enum (`cli`, `api`, `sampling`, `claude`) at schema, compile, and lint; unknown, empty, or non-string values fail before any subprocess; Claude-only flags are typed (`ClaudeCliFlags`, strict, no extra keys) and malformed shapes fail at schema, compile, and lint before any probe; lint covers backend-incompatible flags, approval-vs-availability, provider-on-claude, and Copilot-only models. | `models/node_schema`, `models/schemas`, `node_factory/copilot_runtime`, `linter/patterns/copilot` |
 | REQ-YG-641 | Claude backend payer boundary, per invocation: child env stripped of the evidenced credential and routing switches (`ANTHROPIC_API_KEY`, `ANTHROPIC_AUTH_TOKEN`, `ANTHROPIC_BASE_URL`, `CLAUDE_CODE_USE_BEDROCK`, `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`); exact supported-version check then fail-closed subscription auth-status check, both pinned to the committed raw probe and both run before every `-p` call with no cache; residual settings surface enumerated in docs and accepted by a named spend owner. | `node_factory/copilot_runtime_claude` |
+| REQ-YG-679 | Copilot node supports `backend: opencode`: list argv `opencode run <prompt> --format json --model <resolved>` (plus `--session` when `resume` is set) in the frozen order; stdout crosses a typed, fail-closed JSONL state machine (recognized events `step_start`, `text`, `tool_use`, `step_finish`, `error`; `step_finish.reason` in `{stop, tool-calls}`; `stop` is the sole terminal success) before `CopilotResult(backend="opencode")`; failure on unknown/malformed events, session-ID inconsistency, a reason outside `{stop, tool-calls}`, missing or duplicate terminal, no text, any `error` event, non-zero exit, missing binary, timeout; no usage-limit classifier. | `node_factory/copilot_runtime_opencode`, `node_factory/copilot_node`, `models/schemas` |
+| REQ-YG-680 | Copilot `backend` closed enum extended to `opencode` at schema, compile, and lint; unknown or non-string values fail before any subprocess; opencode flags are typed (`OpenCodeCliFlags`, strict, only `model` and `resume`) and malformed shapes or dropped flags fail at schema, compile, and lint before any probe; an explicit empty/whitespace `model`/`resume` is invalid and a `{state.…}` `resume` resolves fail-closed before the version probe. | `models/node_schema`, `models/schemas`, `node_factory/copilot_runtime_opencode`, `linter/patterns/copilot` |
+| REQ-YG-681 | opencode backend payer boundary: the child environment is not stripped of provider credentials (they are the payer); the resolved model is a compile-time requirement (absent, empty, or non-`provider/model` values fail before any subprocess), emitted as `--model` on every run, and logged at DEBUG; there is no config-default fallback. | `node_factory/copilot_node`, `node_factory/copilot_runtime_opencode` |
 
 ### 31. CAP-31 Chaplain Diary Append
 

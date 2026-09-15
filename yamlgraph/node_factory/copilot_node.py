@@ -17,6 +17,7 @@ from yamlgraph.models.schemas import CopilotResult
 from yamlgraph.node_factory.base import GraphState, get_output_model_for_node
 from yamlgraph.node_factory.copilot_runtime import (
     _execute_cli,
+    _resolve_copilot_model,
     normalize_backend,
     unknown_backend_message,
 )
@@ -26,6 +27,10 @@ from yamlgraph.node_factory.copilot_runtime import (
 from yamlgraph.node_factory.copilot_runtime_claude import (
     _execute_claude,
     validate_claude_cli_flags,
+)
+from yamlgraph.node_factory.copilot_runtime_opencode import (
+    _execute_opencode,
+    validate_opencode_cli_flags,
 )
 from yamlgraph.utils.expressions import resolve_state_expression
 from yamlgraph.utils.guard_runtime import (
@@ -197,6 +202,15 @@ def _execute_backend_once(
             timeout=timeout,
             state=state,
         )
+    if backend == "opencode":
+        return _execute_opencode(
+            node_name=node_name,
+            prompt=rendered_prompt,
+            state_key=state_key,
+            cli_flags=cli_flags,
+            timeout=timeout,
+            state=state,
+        )
     if backend == "cli":
         return _execute_cli(
             node_name=node_name,
@@ -245,16 +259,17 @@ def create_copilot_node(
 
     cli_flags = config.get("cli_flags", {})
     validate_claude_cli_flags(node_name, cli_flags, backend)  # FR-959, before any probe
+    validate_opencode_cli_flags(
+        node_name, cli_flags, backend
+    )  # FR-1048, before any probe
     defaults = defaults or {}
 
     # FR-266: Resolve model with priority chain:
     # cli_flags.model > node-level model > defaults.model > omit
-    resolved_provider = config.get("provider") or defaults.get("provider")
-    resolved_model = config.get("model") or defaults.get("model")
-    if backend != "api":
-        resolved_model = cli_flags.get("model") or resolved_model
-    if resolved_model and backend != "api":
-        cli_flags = {**cli_flags, "model": resolved_model}
+    # FR-1048 REQ-YG-681: opencode adds a fail-closed `provider/model` requirement.
+    resolved_provider, resolved_model, cli_flags = _resolve_copilot_model(
+        backend, node_name, cli_flags, config, defaults
+    )
 
     api_prompt_name, api_prompts_dir, api_prompts_relative, api_output_model = (
         _resolve_api_backend_options(

@@ -104,9 +104,9 @@ class NodeConfig(BaseModel):
     )
 
     # Copilot node fields (REQ-YG-087)
-    backend: Literal["cli", "api", "sampling", "claude"] | None = Field(
+    backend: Literal["cli", "api", "sampling", "claude", "opencode"] | None = Field(
         default=None,
-        description="Copilot backend: 'cli', 'api', 'sampling', or 'claude' (FR-959)",
+        description="Copilot backend: 'cli', 'api', 'sampling', 'claude', or 'opencode' (FR-959/FR-1048)",
     )
     cli_flags: dict[str, Any] | None = Field(
         default=None, description="CLI flags for copilot node (allow_all_paths, etc.)"
@@ -329,6 +329,15 @@ class NodeConfig(BaseModel):
             from yamlgraph.models.schemas import ClaudeCliFlags
 
             ClaudeCliFlags.model_validate(self.cli_flags or {})
+        return self
+
+    @model_validator(mode="after")
+    def validate_opencode_cli_flags(self) -> "NodeConfig":
+        """FR-1048 REQ-YG-680: typed cli_flags when backend is 'opencode'."""
+        if self.type == NodeType.COPILOT and self.backend == "opencode":
+            from yamlgraph.models.schemas import OpenCodeCliFlags
+
+            OpenCodeCliFlags.model_validate(self.cli_flags or {})
         return self
 
     @model_validator(mode="after")

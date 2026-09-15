@@ -8,7 +8,7 @@ from datetime import datetime
 from enum import StrEnum
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # =============================================================================
 # Error Types
@@ -170,12 +170,37 @@ class CopilotResult(BaseModel):
     )
 
 
-# Closed copilot backend set (FR-959 REQ-YG-640). Order is the order named in
-# error messages; anything outside it fails before any subprocess.
-COPILOT_BACKENDS: tuple[str, ...] = ("cli", "api", "sampling", "claude")
+# Closed copilot backend set (FR-959 REQ-YG-640; FR-1048 REQ-YG-680). Order is
+# the order named in error messages; anything outside it fails before any
+# subprocess.
+COPILOT_BACKENDS: tuple[str, ...] = ("cli", "api", "sampling", "claude", "opencode")
 
 # Keys that only the claude backend understands; an error on cli/api backends.
 CLAUDE_ONLY_CLI_FLAGS: tuple[str, ...] = ("tools", "allowed_tools", "max_turns")
+
+
+class OpenCodeCliFlags(BaseModel):
+    """Typed ``cli_flags`` for ``backend: opencode`` (FR-1048 REQ-YG-680).
+
+    Strict, ``extra="forbid"``: the five dropped convenience flags
+    (``agent``, ``dir``, ``variant``, ``thinking``, ``auto``) and
+    ``continue_session`` are rejected as extras, never silently dropped.
+    ``model``/``resume`` accept omitted/``None`` or strict strings only; an
+    explicitly empty/whitespace string is invalid (the compile boundary and
+    lint reject it before any subprocess).
+    """
+
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+    model: str | None = None
+    resume: str | None = None
+
+    @field_validator("model", "resume")
+    @classmethod
+    def _reject_blank(cls, v: str | None) -> str | None:
+        if v is not None and not v.strip():
+            raise ValueError("must not be empty or whitespace-only")
+        return v
 
 
 class ClaudeCliFlags(BaseModel):

@@ -87,6 +87,61 @@ def unknown_backend_message(node_name: str, value: Any) -> str:
     )
 
 
+# FR-1048 REQ-YG-681: a non-empty `provider/model` identifier, no whitespace.
+_PROVIDER_MODEL_RE = re.compile(r"^[^/\s]+/[^/\s]+$")
+
+
+def _first_non_none(*values: Any) -> Any:
+    """First non-None value (not first truthy — an explicit blank is invalid)."""
+    for value in values:
+        if value is not None:
+            return value
+    return None
+
+
+def _resolve_opencode_model(
+    node_name: str,
+    cli_flags: dict[str, Any],
+    config: dict[str, Any],
+    defaults: dict[str, Any],
+) -> dict[str, Any]:
+    """FR-1048 REQ-YG-681: fail-closed `provider/model` resolution for opencode.
+
+    First non-None source wins (cli_flags.model > node.model > defaults.model);
+    the resolved value must be a non-empty `provider/model` identifier, else a
+    ValueError before any subprocess.
+    """
+    resolved = _first_non_none(
+        cli_flags.get("model"), config.get("model"), defaults.get("model")
+    )
+    if resolved is None or not _PROVIDER_MODEL_RE.fullmatch(str(resolved).strip()):
+        raise ValueError(
+            f"Copilot node '{node_name}' with backend='opencode' requires a "
+            f"resolved model in 'provider/model' form; got {resolved!r}"
+        )
+    return {**cli_flags, "model": str(resolved).strip()}
+
+
+def _resolve_copilot_model(
+    backend: str,
+    node_name: str,
+    cli_flags: dict[str, Any],
+    config: dict[str, Any],
+    defaults: dict[str, Any],
+) -> tuple[str | None, str | None, dict[str, Any]]:
+    """Resolve provider/model for a copilot node (FR-266 + FR-1048 REQ-YG-681)."""
+    resolved_provider = config.get("provider") or defaults.get("provider")
+    if backend == "opencode":
+        cli_flags = _resolve_opencode_model(node_name, cli_flags, config, defaults)
+        return resolved_provider, cli_flags.get("model"), cli_flags
+    resolved_model = config.get("model") or defaults.get("model")
+    if backend != "api":
+        resolved_model = cli_flags.get("model") or resolved_model
+    if resolved_model and backend != "api":
+        cli_flags = {**cli_flags, "model": resolved_model}
+    return resolved_provider, resolved_model, cli_flags
+
+
 def normalize_backend(node_name: str, value: Any) -> str:
     """Closed backend set (FR-959 REQ-YG-640): None → cli; anything else exact.
 
