@@ -2,6 +2,10 @@
 
 This document showcases common patterns for building pipelines with the YAML-based graph system.
 
+These are node-level building blocks. For the eight system-level ownership
+patterns (corpus map-reduce, coded classification, FSM-as-conductor, …) see the
+[Pattern Catalogue](patterns/README.md).
+
 ---
 
 ## Pattern 1: Linear Pipeline
