@@ -18,10 +18,14 @@ from yamlgraph.models.schemas import (
     CLAUDE_ONLY_CLI_FLAGS,
     COPILOT_BACKENDS,
     ClaudeCliFlags,
+    OpenCodeCliFlags,
 )
 
 # Models that only exist behind Copilot CLI (gpt-*, the *-sol variants).
 _COPILOT_ONLY_MODEL = re.compile(r"^gpt-|-sol$")
+
+# FR-1048 REQ-YG-681: a non-empty `provider/model` identifier.
+_PROVIDER_MODEL_RE = re.compile(r"^[^/\s]+/[^/\s]+$")
 
 
 def _issue(severity: str, code: str, message: str, fix: str) -> LintIssue:
@@ -148,6 +152,56 @@ def _check_claude_backend(
     return issues
 
 
+def _check_opencode_backend(
+    node_name: str,
+    node_config: dict[str, Any],
+    cli_flags: dict[str, Any],
+    graph_defaults: dict[str, Any],
+) -> list[LintIssue]:
+    """FR-1048 REQ-YG-680/681 rules for backend='opencode'."""
+    issues: list[LintIssue] = []
+    try:
+        OpenCodeCliFlags.model_validate(cli_flags)
+    except ValidationError as e:
+        issues.append(
+            _issue(
+                "error",
+                "E-COPILOT-OPENCODE-FLAG-SHAPE",
+                f"Copilot node '{node_name}' has malformed cli_flags for "
+                f"backend='opencode': {e.error_count()} error(s): "
+                + "; ".join(
+                    f"{'.'.join(str(p) for p in err['loc'])}: {err['msg']}"
+                    for err in e.errors()
+                ),
+                "model/resume are non-empty strings (or omitted); "
+                "agent/dir/variant/thinking/auto and continue_session are not supported",
+            )
+        )
+        return issues
+
+    # First non-None source: cli_flags.model > node.model > defaults.model.
+    model = None
+    for source in (
+        cli_flags.get("model"),
+        node_config.get("model"),
+        graph_defaults.get("model"),
+    ):
+        if source is not None:
+            model = source
+            break
+    if model is None or not _PROVIDER_MODEL_RE.fullmatch(str(model).strip()):
+        issues.append(
+            _issue(
+                "error",
+                "E-COPILOT-OPENCODE-MODEL",
+                f"Copilot node '{node_name}' uses backend='opencode' without a "
+                f"resolved 'provider/model' model (got {model!r})",
+                "Set cli_flags.model, node.model, or defaults.model to 'provider/model'",
+            )
+        )
+    return issues
+
+
 def _check_session_flags(node_name: str, cli_flags: dict[str, Any]) -> list[LintIssue]:
     issues: list[LintIssue] = []
     has_resume = cli_flags.get("resume") is not None
@@ -229,6 +283,10 @@ def check_copilot_node_structure(
     if backend == "claude":
         issues.extend(
             _check_claude_backend(node_name, node_config, cli_flags, graph_defaults)
+        )
+    elif backend == "opencode":
+        issues.extend(
+            _check_opencode_backend(node_name, node_config, cli_flags, graph_defaults)
         )
     elif backend == "cli":
         claude_keys = [k for k in CLAUDE_ONLY_CLI_FLAGS if k in cli_flags]

@@ -4,13 +4,15 @@ description: >
   New copilot node type that delegates graph processing to Copilot CLI,
   replacing shell-script orchestration with a first-class YAML-declarable node.
   FR-959 adds a fourth, closed backend value `claude` that delegates to the
-  Claude Code CLI on the operator's subscription.
+  Claude Code CLI on the operator's subscription. FR-1048 adds a fifth,
+  `opencode`, that delegates to the opencode CLI over provider keys.
 modules:
   - constants.NodeType.COPILOT
   - models/schemas
   - node_compiler
   - node_factory/copilot_node
   - node_factory/copilot_runtime_claude
+  - node_factory/copilot_runtime_opencode
 requirements:
   - id: REQ-YG-087
     description: >
@@ -93,4 +95,44 @@ requirements:
       accepted by a named spend owner.
     modules:
       - node_factory/copilot_runtime_claude
-fr: FR-082, FR-959
+  - id: REQ-YG-679
+    description: >
+      Copilot node supports `backend: opencode`: list argv
+      `opencode run <prompt> --format json --model <resolved>` (plus `--session`
+      when `resume` is set) in the frozen order; stdout crosses a typed,
+      fail-closed JSONL state machine (recognized events `step_start`, `text`,
+      `tool_use`, `step_finish`, `error`; `step_finish.reason` in
+      `{stop, tool-calls}`; `stop` is the sole terminal success) before
+      `CopilotResult(backend="opencode")`; failure on unknown/malformed events,
+      session-ID inconsistency, a reason outside `{stop, tool-calls}`, missing
+      or duplicate terminal, no text, any `error` event, non-zero exit, missing
+      binary, timeout; no usage-limit classifier.
+    modules:
+      - node_factory/copilot_runtime_opencode
+      - node_factory/copilot_node
+      - models/schemas
+  - id: REQ-YG-680
+    description: >
+      Copilot `backend` closed enum extended to `opencode` at schema, compile,
+      and lint; unknown or non-string values fail before any subprocess;
+      opencode flags are typed (`OpenCodeCliFlags`, strict, only `model` and
+      `resume`) and malformed shapes or dropped flags fail at schema, compile,
+      and lint before any probe; an explicit empty/whitespace `model`/`resume`
+      is invalid and a `{state.…}` `resume` resolves fail-closed before the
+      version probe.
+    modules:
+      - models/node_schema
+      - models/schemas
+      - node_factory/copilot_runtime_opencode
+      - linter/patterns/copilot
+  - id: REQ-YG-681
+    description: >
+      opencode backend payer boundary: the child environment is not stripped of
+      provider credentials (they are the payer); the resolved model is a
+      compile-time requirement (absent, empty, or non-`provider/model` values
+      fail before any subprocess), emitted as `--model` on every run, and
+      logged at DEBUG; there is no config-default fallback.
+    modules:
+      - node_factory/copilot_node
+      - node_factory/copilot_runtime_opencode
+fr: FR-082, FR-959, FR-1048

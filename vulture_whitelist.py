@@ -143,6 +143,7 @@ ObservabilityConfig.validate_regulated_profile
 from yamlgraph.models.schemas import (  # noqa: F401 (CONF-126)
     CopilotResult,
     GenericReport,
+    OpenCodeCliFlags,
     PipelineError,
     VerificationViolation,
 )
@@ -155,6 +156,7 @@ CopilotResult.backend
 VerificationViolation.prediction
 VerificationViolation.actual
 VerificationViolation.check_type
+OpenCodeCliFlags._reject_blank  # Pydantic @field_validator; invoked by framework (FR-1048)
 
 # --- storage: LangGraph BaseCheckpointSaver interface methods ---
 from yamlgraph.storage.checkpointer_factory import (  # noqa: F401 (CONF-126)
@@ -223,6 +225,7 @@ _extract_interrupt_payload
 # (discover_graphs is re-imported by mcp_server and a2a_server)
 # --- a2a_commands: CLI dispatch registered in cli/__init__.py ---
 from yamlgraph.cli.a2a_commands import cmd_a2a_dispatch  # noqa: F401 (CONF-126)
+
 from yamlgraph.discovery import (  # noqa: F401 (CONF-126)
     DEFAULT_GRAPH_PATTERNS,
     discover_graphs,
