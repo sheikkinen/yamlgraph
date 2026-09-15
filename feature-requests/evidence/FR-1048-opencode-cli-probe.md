@@ -95,22 +95,48 @@ Observations: opencode authenticates via per-provider **API keys** stored in
 `list`/`login`/`logout`). The payer is the provider key the child resolves,
 not a single subscription — the inverse of the Claude backend's boundary.
 
-## §7 CLI flags (from `opencode run --help`, v1.18.31)
+## §7 Raw `opencode run --help` (v1.18.31)
 
-Relevant to the frozen argv contract:
+```
+$ opencode run --help
+opencode run [message..]
 
-- `--format json` (default `default`) — JSONL event stream.
-- `--model <provider/model>` — model selection; no `--format`-independent default.
-- `--session <id>` / `--continue` — resume a named session / continue the last.
-- `--agent <name>` — a named opencode agent.
-- `--dir <path>` — working directory.
-- `--variant <v>` — reasoning effort (e.g. `high`, `max`).
-- `--thinking` — show thinking blocks.
-- `--auto` — auto-approve permissions not explicitly denied (the CLI labels it
-  dangerous).
+run opencode with a message
 
-No `--allow-all-paths` exists; `--dir` is the closest primitive and is a
-positive directory choice, not a blanket grant.
+Positionals:
+  message  message to send                                                     [array] [default: []]
+
+Options:
+  -h, --help         show help                                                             [boolean]
+  -v, --version      show version number                                                   [boolean]
+      --print-logs   print logs to stderr                                                  [boolean]
+      --log-level    log level                  [string] [choices: "DEBUG", "INFO", "WARN", "ERROR"]
+      --pure         run without external plugins                                          [boolean]
+      --command      the command to run, use message for args                               [string]
+  -c, --continue     continue the last session                                             [boolean]
+  -s, --session      session id to continue                                                 [string]
+      --fork         fork the session before continuing (requires --continue or --session) [boolean]
+      --share        share the session                                                     [boolean]
+  -m, --model        model to use in the format of provider/model                           [string]
+      --agent        agent to use                                                           [string]
+      --format       format: default (formatted) or json (raw JSON events)
+                                          [string] [choices: "default", "json"] [default: "default"]
+  -f, --file         file(s) to attach to message                                            [array]
+      --title        title for the session (uses truncated prompt if no value provided)     [string]
+      --attach       attach to a running opencode server (e.g., http://localhost:4096)      [string]
+  -p, --password     basic auth password (defaults to OPENCODE_SERVER_PASSWORD)             [string]
+  -u, --username     basic auth username (defaults to OPENCODE_SERVER_USERNAME or 'opencode')
+                                                                                            [string]
+      --dir          directory to run in, path on remote server if attaching                [string]
+      --port         port for the local server (defaults to random port if no value provided)
+                                                                                            [number]
+      --variant      model variant (provider-specific reasoning effort, e.g., high, max, minimal)
+                                                                                            [string]
+      --thinking     show thinking blocks                                                  [boolean]
+  -i, --interactive  run in direct interactive split-footer mode          [boolean] [default: false]
+      --auto         auto-approve permissions that are not explicitly denied (dangerous!)
+                                                                          [boolean] [default: false]
+```
 
 ## §8 Models (provider-scoped)
 
@@ -129,3 +155,85 @@ Model ids are `provider/model`. The resolved model is what the child bills;
 there is no server-reported model id in the JSONL events (§2/§3), so the
 selected model is witnessed by the `--model` argv the node passes, not by
 reading the stream back.
+
+## §9 Successful `--session <id>` resume (with nonce recall)
+
+First invocation, one-word-ish prompt carrying a nonce:
+
+```
+$ opencode run --format json --model inception/mercury-2.5 "my name is probe; remember this: NONCE-7419"
+{"type":"step_start",...,"sessionID":"ses_f59fbb04effetBRETURmQKxx8H",...}
+{"type":"text",...,"part":{"type":"text","text":"\n\nHello probe. I've noted NONCE-7419. How can I help you today?","time":{...}}}
+{"type":"step_finish",...,"part":{"reason":"stop","type":"step-finish","tokens":{...},"cost":0.0004144}}
+```
+
+Second invocation resumes that exact session id:
+
+```
+$ opencode run --format json --model inception/mercury-2.5 --session ses_f59fbb04effetBRETURmQKxx8H "what is my name and what NONCE did I give you? reply in one line"
+{"type":"step_start",...,"sessionID":"ses_f59fbb04effetBRETURmQKxx8H",...}
+{"type":"text",...,"part":{"type":"text","text":"\n\nYour name is probe and you provided NONCE-7419.","time":{...}}}
+{"type":"step_finish",...,"part":{"reason":"stop","type":"step-finish","tokens":{...},"cost":0.00040509}}
+```
+
+Observations: `--session <id>` resumes deterministically — the second stream
+carries the **same** `sessionID`, and the model recalls the prior-session
+nonce. This is the resumption contract the FR's `resume` flag maps to. A
+missing id fails loudly (§4); an explicit id is the only safe resumption.
+
+## §10 `--continue` is directory-scoped and silently non-deterministic
+
+In a fresh disposable directory with **no prior session**, `--continue` did
+**not** fail and did **not** resume the nonce session from §9 — it silently
+started a brand-new session:
+
+```
+$ cd tmp/oc-disposable && opencode run --format json --model inception/mercury-2.5 --continue "what was the nonce I gave you earlier? reply one line"
+{"type":"step_start",...,"sessionID":"ses_f59fb1da3ffeAtEst2sP1Cm2xC",...}   # NEW id, not the §9 id
+{"type":"text",...,"part":{"type":"text","text":"\n\nI don't have any record of a nonce you provided earlier in this session.","time":{...}}}
+{"type":"step_finish",...,"part":{"reason":"stop",...}}
+```
+
+Observations: `--continue` resolves "the last session" against opencode's
+session store scoped to the working directory; with no prior session there it
+starts a **new** session with no error and no prior context. That is the
+opposite of `--session <id>`'s fail-loud behaviour (§4). A node's `--continue`
+would resume whatever interactive session a human last ran in that directory —
+a non-deterministic, unsafe default. **The FR therefore drops
+`continue_session` and keeps only the explicit `resume` → `--session`.**
+
+## §11 Tool-bearing run — full event vocabulary
+
+In a disposable directory with a known file, a prompt that requires a tool:
+
+```
+$ cd tmp/oc-disposable && echo "hello tool world" > hello.txt
+$ opencode run --format json --model inception/mercury-2.5 "read the file hello.txt in this directory and tell me its exact contents in one line"
+{"type":"step_start",...,"sessionID":"ses_...",...}
+{"type":"tool_use",...,"part":{"type":"tool","tool":"read","callID":"call_...","state":{"status":"completed","input":{"filePath":".../hello.txt"},"output":"<path>.../hello.txt</path>\n<type>file</type>..."}}}
+{"type":"step_finish",...,"part":{"reason":"tool-calls","type":"step-finish",...}}
+{"type":"step_start",...,"sessionID":"ses_...",...}
+{"type":"text",...,"part":{"type":"text","text":"\n\nhello tool world","time":{...}}}
+{"type":"step_finish",...,"part":{"reason":"stop","type":"step-finish",...}}
+```
+
+Observations — the event vocabulary is richer than §2's one-word run:
+
+- **`step_start` / `step_finish` repeat per agent step.** A tool-using run
+  emits multiple step cycles.
+- **`step_finish.reason` has two observed values:** `tool-calls` (intermediate —
+  the step ended because the agent wants to call a tool) and `stop` (terminal).
+  `stop` is the **only** terminal success signal; `tool-calls` is a neutral
+  intermediate.
+- **`tool_use`** (`part.type == "tool"`) is a neutral tool event carrying
+  `tool` (name), `callID`, and `state.status`/`state.input`/`state.output`. It
+  contributes nothing to the result text; it is ignored for result assembly.
+- **`text`** events carry `part.text`; the answer is the ordered concatenation
+  of `text` events (across steps, if any step emits text).
+- **`error`** (§3) is the terminal failure event.
+
+Frozen event vocabulary (only these may be recognized): `step_start`, `text`,
+`tool_use`, `step_finish`, `error`. Frozen `step_finish.reason` set:
+`{stop, tool-calls}`. Any other event `type`, `part.type`, or `reason` is a
+failure (unknown-event policy), not silently ignored. Widening either set
+requires a new committed capture on the widened version.

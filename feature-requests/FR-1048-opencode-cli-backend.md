@@ -1,47 +1,46 @@
-# Feature Request: FR-1048 `backend: opencode` — opencode CLI as a copilot-node backend (primitive)
+# Feature Request: FR-1048 `backend: opencode` — opencode CLI as a copilot-node backend (contrib/example backend contribution)
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Proposed (judged APPROVED WITH REVISIONS 2026-09-15; R-1..R-5 folded, awaiting re-judgement)
 **Effort:** 1.5 days
 **Requested:** 2026-09-15
+**Strategic classification:** contrib/example — backend contribution, not a
+framework primitive (one named consumer; no three-distinct-use-case evidence).
 **First consumer / first event:** an operator who runs opencode (provider
 keys in `~/.local/share/opencode/auth.json`, no Copilot seat, no Claude
-subscription) runs the disposable two-node integration witness (§AC-12) with
-`backend: opencode`, and gets a `CopilotResult` whose real `session_id` the
-second node resumes byte-for-byte via `--session`. Second consumer, same
-week: any graph that wants a provider-agnostic agent backend without a
-vendor seat.
+subscription) runs the disposable two-node integration witness (§AC-14) with
+`backend: opencode`, and the second node recalls a nonce from the first
+node's session — proving byte-for-byte `--session` resumption of a real
+`session_id`. Second consumer, same week: any graph that wants a
+provider-agnostic agent backend without a vendor seat.
 **Research:** [FR-1048.research.md](FR-1048.research.md) — the FR-890 sole
 route (`scripts/research.sh`), brief
 `feature-requests/research-briefs/fr-1048-opencode-backend-brief.md`, run
 2026-09-15, five personas executed. Four of five converge on "fifth closed
 enum value + JSONL stream reader"; the subtractionist dissents ("retire the
-requirement / new node type"). Retrieval hit **FR-546** (same territory,
-server/SDK route) — dispositioned in `**Prior art:**` below and in the
-research record. Raw CLI probe captures are recorded inline in §Summary/§3/§5;
-promotion to a committed `evidence/FR-1048-opencode-cli-probe.md` is §AC-01.
+requirement / new node type"), which is FR-546's argument.
 **Evidence:** [evidence/FR-1048-opencode-cli-probe.md](evidence/FR-1048-opencode-cli-probe.md)
 — committed raw captures on the pinned version `1.18.31`: `opencode --version`,
-the full `--format json` event stream for a one-word prompt, exit-code
-behaviour on success and error, `--session` with a nonexistent id,
-`opencode providers list`, and `opencode models`.
+the full `--format json` event stream for a one-word prompt, `--session`
+resume with nonce recall, `--continue` non-determinism, a tool-bearing run's
+full event vocabulary, exit-code behaviour on success and error, and
+`opencode providers list`.
 **Prior art:**
 - [FR-546-opencode-copilot-backend.md](FR-546-opencode-copilot-backend.md)
   [Judged 2026-06-20, scope frozen, authority granted, never enforced] — the
   same "opencode as a copilot-node backend" territory via the **server/SDK
   route**: `opencode serve` HTTP surface, an `httpx` optional dependency,
   server lifecycle, `json_schema` structured output, agent-markdown permission
-  sandbox, and a new `CopilotResult.structured_output` field. FR-546 predates
-  FR-959; it was written before the CLI-subprocess backend pattern existed.
-  This FR is the **CLI route**: `opencode run <prompt> --format json` as a
-  subprocess, mirroring FR-959's `claude -p` seam exactly — no new dependency,
-  no server lifecycle, no `CopilotResult` field change. Distinguished, not a
-  duplicate: the server route buys structured output + sandbox at the cost of a
-  second runtime surface; the CLI route buys a provider-agnostic agent backend
-  at the cost of structured output. The Judge decides which route to enforce
-  now; if FR-546's granted authority is the better precedent, this FR dies by
-  it (FR-737). The subtractionist dissent below is FR-546's argument.
+  sandbox, and a new `CopilotResult.structured_output` field. **FR-1048
+  supersedes FR-546 for the `opencode` backend name.** The FR-546 server/SDK
+  route, its structured output, server lifecycle, permission sandbox, `httpx`
+  dependency, and `CopilotResult.structured_output` are not concurrently
+  authorized; reviving any of them is a new FR with a distinct contract.
+  FR-546 predates FR-959; it was written before the CLI-subprocess backend
+  pattern existed. FR-1048 is the **CLI route**: `opencode run <prompt>
+  --format json` as a subprocess, mirroring FR-959's `claude -p` seam exactly —
+  no new dependency, no server lifecycle, no `CopilotResult` field change.
 - [FR-959-claude-cli-backend-primitive.md](FR-959-claude-cli-backend-primitive.md)
   [Implemented] — the structural template, followed exactly: closed backend
   enum, one `_execute_*` per backend, typed backend-only flags, a private
@@ -55,8 +54,7 @@ behaviour on success and error, `--session` with a nonexistent id,
   [Implemented] — `CopilotResult.backend` stamped; backend-aware lint
   (REQ-YG-356/357). Same discipline.
 - [FR-105-copilot-session-continuations.md](FR-105-copilot-session-continuations.md)
-  / CAP-30 REQ-YG-105 — `resume`/`continue_session` reused 1:1, mapped to
-  opencode's `--session`/`--continue`.
+  / CAP-30 REQ-YG-105 — `resume` reused 1:1, mapped to opencode's `--session`.
 - [FR-363-per-node-otel-scoping-in-copilot-node.md](FR-363-per-node-otel-scoping-in-copilot-node.md)
   — `YAMLGRAPH_OTEL_DIR` layering preserved.
 
@@ -64,23 +62,22 @@ behaviour on success and error, `--session` with a nonexistent id,
 
 Add a fifth, closed value `opencode` to the copilot node's `backend` enum.
 It spawns opencode in print mode (`opencode run <prompt> --format json`),
-parses the **JSONL event stream** (not a single envelope) through a private
-accumulator into the existing `CopilotResult`, maps the shared `cli_flags`
-keys plus four opencode-only, **typed** keys (`agent`, `dir`, `variant`,
-`thinking`), and treats failure as: non-zero exit, a terminal `error` event,
-or a `step_finish` with `reason != "stop"`. There is no subscription to
-protect: the payer is the provider key the child opencode resolves, so the
-boundary is *make the model explicit and witness it*, not *strip ambient
-keys*. Unknown backend values and malformed opencode flags fail before any
-subprocess, including the version probe. The linter learns the new value,
-its flags, and their shapes.
+parses the **JSONL event stream** through a typed, fail-closed state machine
+into the existing `CopilotResult`, and maps the shared `cli_flags` keys to
+two typed flags: `model` (`provider/model`, compile-time fail-closed) and
+`resume` (`--session <id>`). There is no subscription to protect: the payer
+is the provider key the child opencode resolves, so the boundary is *make the
+model explicit at compile time and witness it*. Unknown backend values,
+malformed flags, and a missing or malformed `provider/model` fail before any
+subprocess, including the version probe. The linter learns the new value, its
+flags, and their shapes.
 
 ## Value Statement
 
 Graph authors who already run opencode get an agent backend that bills the
 provider key they already configured, needs no vendor seat and no
-subscription, selects its model through one `provider/model` value, and
-fails loudly on a non-`stop` finish instead of silently returning whatever
+subscription, selects its model through one required `provider/model` value,
+and fails loudly on a non-`stop` finish instead of silently returning whatever
 the process printed before dying.
 
 ## Problem
@@ -95,33 +92,36 @@ the process printed before dying.
    discipline; a naive `else: _execute_cli` would regress the closed enum.
 3. **Output is a stream, not an envelope.** Claude's `--output-format json`
    returns one object (`result`/`session_id`/`is_error`). opencode's
-   `--format json` emits a JSONL stream of `step_start` / `text` /
-   `step_finish` / `error` events. A single `json.loads(stdout)` (the Claude
-   path) would parse only the first line and silently drop the rest — a
-   plausible-wrong-answer failure.
-4. **Exit code is not the only signal** (mirrors FR-959 evidence §5). An
-   error run can still carry exit 1, but the durable signal is the terminal
-   `error` event; a run that hits a tool-permission refusal mid-stream must
-   not be reported as success because the final line happened to parse.
+   `--format json` emits a JSONL stream of `step_start` / `text` / `tool_use`
+   / `step_finish` / `error` events, with multiple step cycles per run
+   (evidence §11). A single `json.loads(stdout)` (the Claude path) would parse
+   only the first line and silently drop the rest — a plausible-wrong-answer
+   failure.
+4. **Exit code is not the only signal** (mirrors FR-959 evidence §5). A
+   failed run exits 1 *and* emits a terminal `error` event; the durable signal
+   is the event, not the code. A run that hits a tool-permission refusal
+   mid-stream must not be reported as success because its last line happened
+   to parse.
 5. **Payer is provider-key, not subscription.** There is no `claude auth
    status` equivalent whose `authMethod` proves who pays. The equivalent
-   question is *which provider/model is the child going to bill*, and the
-   only honest answers are: the `--model` we pass, or a config default we
-   did not choose.
+   question is *which provider/model is the child going to bill*, and the only
+   honest answer is: the `--model` we pass. So it must be required, at compile
+   time, before any subprocess.
 
 ## Ideal Result
 
 A graph author writes `backend: opencode` on any `type: copilot` node and
 nothing else changes: same `prompt`, `variables`, `state_key`, `timeout`,
-`cli_flags.model/resume/continue_session`; same `CopilotResult`, now with
-`backend="opencode"` and a real `session_id`. A misspelled backend or a
-malformed opencode flag is an error at lint and at compile, never an opencode
-run and never a subprocess. Every opencode invocation first proves the CLI is
-the supported version, and the model it will bill is either the explicitly
-passed `--model` or a documented-and-linted default — never a silent surprise.
-The result text is the concatenation of every `text` event in order, and any
-run whose terminal event is an `error` or whose `step_finish.reason` is not
-`stop` is a typed failure, not an empty or partial success.
+`cli_flags.model/resume`; same `CopilotResult`, now with `backend="opencode"`
+and a real `session_id`. A misspelled backend, a malformed flag, or a missing
+or malformed `provider/model` is an error at lint and at compile, never an
+opencode run and never a subprocess. Every opencode invocation first proves the
+CLI is the supported version, and the model it will bill is always the
+resolved `--model` the node computed — there is no config-default fallback.
+The result text is the ordered concatenation of every `text` event, and any
+run whose terminal event is an `error`, whose terminal `step_finish.reason` is
+not `stop`, or that fails the typed state machine is a typed failure, not an
+empty or partial success.
 
 ## Proposed Solution
 
@@ -135,82 +135,83 @@ run whose terminal event is an `error` or whose `step_finish.reason` is not
 - Lint: `E-COPILOT-BACKEND-UNKNOWN` covers the new set automatically (it
   reads the same tuple; verify one new test).
 
-### 2. Typed opencode flags
+### 2. Typed opencode flags (model + resume only)
 
 A private Pydantic model `OpenCodeCliFlags` (`extra="forbid"`, `strict=True`)
 validates `cli_flags` **only when `backend == "opencode"`**; every other
-backend keeps its current behaviour unchanged. Shared keys reuse the existing
-`resume`/`continue_session` contract (FR-105) and map as:
+backend keeps its current behaviour unchanged:
 
 | key | type | opencode flag | notes |
 |---|---|---|---|
-| `model` | `str` | `--model <provider/model>` | required to bill an explicit payer (§5) |
+| `model` | `str \| None` | `--model <provider/model>` | shape-validated only; the *resolved* model is a compile-time requirement (§5) |
 | `resume` | `str` | `--session <id>` | may be a `{state.…}` expression; resolves to the prior `CopilotResult.session_id` |
-| `continue_session` | `bool` | `--continue` | exclusive with `resume` (existing rule) |
-| `agent` | `str` | `--agent <name>` | opencode named agent |
-| `dir` | `str` | `--dir <path>` | working directory for the run |
-| `variant` | `str` | `--variant <v>` | reasoning effort (`high`, `max`, …); not validated against a fixed list (vendor-owned, changing) |
-| `thinking` | `bool` | `--thinking` | show thinking blocks |
-| `auto` | `bool` | `--auto` | auto-approve permissions not explicitly denied |
 
-`allow_all_tools` → `--auto` is **deliberately not** mapped automatically:
-opencode's permission model differs from Copilot's `--allow-all-tools`, and
-auto-approving is a dangerous default (the CLI itself labels it so). A node
-author opts in with the typed `auto: true`. `allow_all_paths` is **not
-mapped**: opencode has no `--allow-all-paths`; `--dir` is the closest
-primitive and is a positive directory choice, not a blanket grant. Both
-non-mappings are recorded in `reference/graph-yaml.md`, not silently dropped.
+`continue_session` is **deliberately absent**: evidence §10 shows opencode's
+`--continue` resolves "the last session" against a directory-scoped session
+store and, with no prior session, **silently starts a new session** — the
+opposite of `--session <id>`'s fail-loud behaviour (§4). A node's `--continue`
+would resume whatever interactive session a human last ran in that directory.
+The explicit `resume` → `--session` is the only safe resumption.
+
+`agent`, `dir`, `variant`, `thinking`, and `auto` are **not mapped** (no
+named consumer needs them; permission auto-approval and agent/sandbox
+selection must not re-enter FR-546's territory through CLI flags). They are
+rejected as extras by `extra="forbid"`, never silently dropped.
 
 Validation runs at schema load, again in `create_copilot_node` for the
 linter-free dict path, and in lint as `E-COPILOT-OPENCODE-FLAG-SHAPE`. All
 fire before the version probe and the agent subprocess.
 
-### 3. `_execute_opencode` — argv frozen, stream accumulated
+### 3. `_execute_opencode` — argv frozen, stream state machine
 
 Lives in a new `yamlgraph/node_factory/copilot_runtime_opencode.py`
-(`copilot_runtime.py` is 229 lines; the stream accumulator plus preflight
-would push it past the 400 target). Same signature and return as
-`_execute_cli` / `_execute_claude`. Argv frozen and tested byte-for-byte, in
-this order:
+(`copilot_runtime.py` is 229 lines; the state machine plus preflight would
+push it past the 400 target). Same signature and return as `_execute_cli` /
+`_execute_claude`. Argv frozen and tested byte-for-byte, in this order:
 
 ```python
-cmd = ["opencode", "run", prompt, "--format", "json"]
-if flags.model:      cmd += ["--model", flags.model]
-if resume:           cmd += ["--session", str(resume)]  # resolved via resolve_state_expression, as _execute_cli
-elif flags.continue_session: cmd += ["--continue"]
-if flags.agent:      cmd += ["--agent", flags.agent]
-if flags.dir:        cmd += ["--dir", flags.dir]
-if flags.variant:    cmd += ["--variant", flags.variant]
-if flags.thinking:   cmd += ["--thinking"]
-if flags.auto:       cmd += ["--auto"]
+cmd = ["opencode", "run", prompt, "--format", "json", "--model", resolved_model]
+if resume: cmd += ["--session", str(resume)]  # resolved via resolve_state_expression, as _execute_cli
 ```
 
 The prompt is one list element (REQ-YG-087; FR-948 R-1); no shell. The
-message form (`opencode run <message>`) is used, not `--command` — the
-positional message is the prompt.
+message form (`opencode run <message>`) is used, not `--command`. `--model` is
+always emitted from the resolved model (§5).
 
-#### Stream envelope (the one real difference from Claude)
+#### Typed, fail-closed JSONL state machine (R-4)
 
-stdout is JSONL. A private `_OpenCodeEvent` reader consumes it line by line
-(`strict` Pydantic, `extra="ignore"` per event, since event shapes carry
-extra `part.*`/`timestamp`/`tokens` fields):
+stdout is JSONL. Every non-empty line must parse as one JSON object and
+validate against one of these strict private models (each requires a non-empty
+`type` and a non-empty `sessionID`; `extra="ignore"`):
 
-- `sessionID` is captured from the first event that carries it (all events
-  do; `ses_<…>`, not a UUID).
-- `type == "text"` → append `part.text` in order to the result buffer.
-- `type == "error"` → typed failure, regardless of exit code.
-- `type == "step_finish"` → terminal; accept only if `reason == "stop"`.
-  Any other `reason` (e.g. an aborted/max-turns finish) is a failure, not a
-  partial success. (`reason` vocabulary is vendor-owned; the contract is
-  "only `stop` is success", not an allow-list of failure strings.)
-- A stream that ends with **no** `step_finish` (or no `text` events and no
-  `error`) is a failure — never an empty substitute (Commandment 6).
-- Non-zero exit with a parseable `error` event → `RuntimeError` naming the
-  `error.name` and `error.data.message`; non-zero exit without one → name the
-  exit code and the first 200 chars of the tail.
+- `_StepStartEvent` — `type == "step_start"`, `part.type == "step-start"`.
+- `_TextEvent` — `type == "text"`, `part.type == "text"`, `part.text: str`.
+- `_ToolUseEvent` — `type == "tool_use"`, `part.type == "tool"`. **Neutral**:
+  ignored for result assembly (evidence §11).
+- `_StepFinishEvent` — `type == "step_finish"`, `part.type == "step-finish"`,
+  `part.reason: str` in the frozen set `{stop, tool-calls}` (evidence §11).
+- `_ErrorEvent` — `type == "error"`, `error.name: str`,
+  `error.data.message: str`. Terminal failure.
 
-Success maps the concatenated text to `CopilotResult(output=…,
-session_id=…, exit_code=0, backend="opencode", model=flags.model)`.
+The state machine enforces:
+
+- a single consistent, non-empty `sessionID` across every event;
+- `step_finish(reason="tool-calls")` is an intermediate boundary (the agent
+  will call a tool), **not** a terminal and not a failure;
+- `step_finish(reason="stop")` is the **only** terminal success signal;
+- at most one terminal event, no event after it;
+- at least one `text` event whose ordered concatenation is the result.
+
+Each of the following is a typed failure with **no** `CopilotResult` and no
+state update: an unknown event `type` or `part.type`; a malformed recognized
+event; a non-JSON line; a missing/empty/conflicting `sessionID`; a
+`step_finish.reason` outside `{stop, tool-calls}`; a duplicate terminal event;
+an event after the terminal; a stream with no terminal `step_finish(stop)`;
+no `text` events; any `error` event; or non-zero process exit.
+
+Success maps the ordered `text` concatenation to
+`CopilotResult(output=…, session_id=<consistent sessionID>, exit_code=0,
+backend="opencode", model=resolved_model)`.
 
 ### 4. Per-invocation preflight: version only
 
@@ -225,10 +226,10 @@ same environment as the agent call, before the run:
 
 There is **no auth preflight** (unlike Claude). opencode has no single
 subscription to witness; it fans out across configured providers. The
-equivalent boundary is §5's model-explicit rule plus the documented residual,
-not a `claude auth status` analogue.
+equivalent boundary is §5's compile-time model requirement, not a
+`claude auth status` analogue.
 
-### 5. Payer boundary — make the model explicit, witness what is chosen
+### 5. Payer boundary — model is resolved and fail-closed at compile time (R-2)
 
 The Claude backend's job was to stop a silent API-key reroute *away* from a
 subscription. opencode's job is the inverse: the provider key **is** the
@@ -239,47 +240,46 @@ payer, and the only variable is *which one*. So:
   provider env vars. Stripping them (as the Claude backend strips Anthropic
   keys) would *break* auth, not protect a payer. `YAMLGRAPH_OTEL_DIR` layering
   (FR-363) is applied on top, unchanged.
-- **Explicit model.** A `backend: opencode` node **must** set
-  `cli_flags.model` (or a node/graph-level `model`) as `provider/model`; an
-  omitted model means the child's `opencode.json` default decides the payer.
-  Lint: `E-COPILOT-OPENCODE-MODEL` (error) when no model signal is present —
-  the strict analogue of REQ-YG-357's API-backend warning, promoted to error
-  because the payer is a real provider key, not a session default.
-- **Witness what was chosen** at DEBUG: log the resolved `--model` string.
-  This is not a preflight; it is an honest record of what the child was told
-  to bill. It cannot detect a config default we did not choose — that is
-  exactly what the lint error prevents.
-- **Residual (enumerated in `reference/graph-yaml.md`):** a config default in
-  `opencode.json`/`~/.config/opencode/` can still be selected if the lint
-  error is bypassed; `opencode providers login` (OAuth) vs a plain API key
-  are both "provider key" to this boundary and are treated identically. The
-  residual is documented, not hidden.
+- **Compile-time fail-closed model.** The model is resolved through the
+  established priority chain — `cli_flags.model` > node `model` >
+  `defaults.model` (ARCHITECTURE.md:1682-1690; `copilot_node.py:250-257`) —
+  then `create_copilot_node` **rejects** an opencode node whose resolved model
+  is absent **or** not a non-empty `provider/model` identifier, before the
+  version probe or any subprocess. Substance, not only presence: `""`,
+  `"model-only"`, `"/model"`, and `"provider/"` are rejected at compile and
+  lint. The runtime receives the one resolved model and always emits
+  `--model <resolved>`.
+- **No config-default fallback.** The runtime never runs opencode without an
+  explicit `--model`. There is no authorized path that lets an opencode
+  configuration default choose the payer.
 
 ### 6. Result contract — no usage-limit classifier, frozen field set
 
 `CopilotResult` field set is frozen (REQ-YG-087). No `total_cost_usd`,
 `tokens`, or `reason` is added — `step_finish.tokens`/`cost` are logged at
 DEBUG, not stored. `FileNotFoundError` → "opencode binary not found, on
-PATH?"; `TimeoutExpired` → the shared mapping.
+PATH?"; `TimeoutExpired` → the shared mapping. An `error` event failure names
+`error.name` and `error.data.message`; a non-event failure names the exit code
+and a bounded stderr/stdout tail — never environment or credential contents.
 
 ### 7. Linter (`linter/patterns/copilot.py`)
 
 | Code | Condition | Severity |
 |---|---|---|
-| `E-COPILOT-BACKEND-UNKNOWN` | `backend` not in the closed set (already covers `opencode` once the tuple grows; one test) | error |
-| `E-COPILOT-OPENCODE-FLAG-SHAPE` | any `OpenCodeCliFlags` validation failure (non-string `model`/`agent`/`dir`/`variant`, non-bool `thinking`/`auto`, unknown key) | error |
-| `E-COPILOT-OPENCODE-MODEL` | `backend: opencode` with no `model` signal (node `model`, `defaults.model`, or `cli_flags.model`) | error |
-| `E-COPILOT-CLI-FLAGS` | opencode-only keys (`agent`, `dir`, `variant`, `thinking`, `auto`) on `cli` backend (joins the existing claude-only-key rule) | error |
-| `E-COPILOT-API-FLAGS` | the same keys on `api` backend | error |
-| `W-COPILOT-OPENCODE-AUTO` | `auto: true` (dangerous approval default; author opts in, linter still calls it out) | warning |
+| `E-COPILOT-BACKEND-UNKNOWN` | `backend` not in the closed set (covers `opencode` once the tuple grows; one test) | error |
+| `E-COPILOT-OPENCODE-FLAG-SHAPE` | any `OpenCodeCliFlags` validation failure (non-string `model`/`resume`, unknown key incl. the five dropped flags) | error |
+| `E-COPILOT-OPENCODE-MODEL` | `backend: opencode` whose resolved model is absent or not a non-empty `provider/model` (`""`, `model-only`, `/model`, `provider/`) | error |
+| `E-COPILOT-CLI-FLAGS` | opencode-only keys (`resume` on the `api` backend is already covered; the opencode set is shared with the `cli` backend so no new exclusivity) | error |
 
-Existing `resume`/`continue_session` mutual exclusion applies unchanged.
+There is no `continue_session` for opencode (evidence §10), so the
+`resume`/`continue_session` mutual-exclusion rule does not apply to this
+backend.
 
 ### 8. Documentation and traceability
 
-- `reference/graph-yaml.md` copilot section: the fifth enum value, the flag
-  table with types and the `--auto`/`--dir` non-mappings, the stream envelope,
-  the model-explicit payer rule and the residual.
+- `reference/graph-yaml.md` copilot section: the fifth enum value, the two
+  typed flags, the stream state machine, the compile-time model rule and the
+  absence of `continue_session`.
   `reference/getting-started.md:101`: "Copilot CLI, Claude Code CLI, or
   opencode CLI".
 - `capabilities/CAP-30-copilot-node.yaml`: `fr: FR-082, FR-959, FR-1048`, plus
@@ -291,86 +291,90 @@ Existing `resume`/`continue_session` mutual exclusion applies unchanged.
 ### Requirements (ADR-001; ids `max+1` at authoring = 679..681, re-derived at enforce)
 
 - **REQ-YG-679** — Copilot node supports `backend: opencode`: list argv
-  `opencode run <prompt> --format json` with the frozen flag mapping
-  (`--model`, `--session`/`--continue`, `--agent`, `--dir`, `--variant`,
-  `--thinking`, `--auto`); stdout crosses a JSONL stream reader
-  (`sessionID`, ordered `text` accumulation, `error`, `step_finish`) before
-  `CopilotResult(backend="opencode")`; failure on non-zero exit, `error`
-  event, non-`stop` `reason`, stream with no terminal `step_finish`, missing
-  binary, timeout; no usage-limit classifier.
+  `opencode run <prompt> --format json --model <resolved>` (plus `--session`
+  when `resume` is set) in the frozen order; stdout crosses a typed, fail-closed
+  JSONL state machine (recognized events `step_start`/`text`/`tool_use`/
+  `step_finish`/`error`; `step_finish.reason ∈ {stop, tool-calls}`; `stop` is
+  the only terminal success) before `CopilotResult(backend="opencode")`;
+  failure on unknown/malformed events, session-ID inconsistency, missing or
+  duplicate terminal, non-`stop` reason, no text, any `error` event, non-zero
+  exit, missing binary, timeout; no usage-limit classifier.
 - **REQ-YG-680** — Copilot `backend` closed enum extended to `opencode` at
   schema, compile, and lint; unknown or non-string values fail before any
-  subprocess; opencode-only flags are typed (`OpenCodeCliFlags`) and malformed
-  shapes fail at schema, compile, and lint before any probe; lint covers
-  backend-incompatible flags and the model-explicit rule.
+  subprocess; opencode flags are typed (`OpenCodeCliFlags`, strict, only
+  `model`/`resume`) and malformed shapes or dropped flags fail at schema,
+  compile, and lint before any probe; lint covers backend-incompatible flags
+  and the compile-time model rule.
 - **REQ-YG-681** — opencode backend payer boundary: the child environment is
-  **not** stripped of provider credentials (they are the payer); a
-  `backend: opencode` node must carry an explicit `provider/model` model
-  signal (lint error otherwise) so the billed provider is chosen by the graph,
-  not a config default; the resolved `--model` is logged at DEBUG; the
-  config-default residual is enumerated in docs.
+  **not** stripped of provider credentials (they are the payer); the resolved
+  model is a compile-time requirement (absent, empty, or non-`provider/model`
+  values fail before any subprocess), emitted as `--model` on every run, and
+  logged at DEBUG; there is no config-default fallback.
 
 ## Acceptance Criteria
 
-Offline (mocked `subprocess.run`; no binary, no network):
-
-- [ ] AC-01: `evidence/FR-1048-opencode-cli-probe.md` is committed (complete
-  as of this FR) and freezes one argv contract with no conditional fallback;
-  any widening of the supported version set adds a new capture to that file.
-- [ ] AC-02: `backend: opencode`, `backend: opnecode`, `backend: 3`,
-  `backend: ""` behave exactly as the closed set demands — the misspellings
-  and non-strings fail schema/compile/lint naming the five accepted values,
-  before any subprocess; `None` defaults to `cli`; `cli`, `api`, `sampling`
-  (`NotImplementedError`), `claude`, `opencode` keep their behaviour.
-- [ ] AC-03: exact argv tests (list equality) cover prompt + `--format json`,
-  `model` → `--model provider/model`, resolved `resume` → `--session`,
-  `continue_session` → `--continue`, `agent` → `--agent`, `dir` → `--dir`,
-  `variant` → `--variant`, `thinking` → `--thinking`, `auto` → `--auto`; order
-  as §3.
-- [ ] AC-04: stream reader tests — `step_start`+`text`+`step_finish(stop)`
-  maps text and `sessionID`; two `text` events concatenate in order; an
-  `error` event raises naming `name`/`message` regardless of exit 0; a
-  `step_finish` with `reason != "stop"` raises; a stream with no terminal
-  `step_finish` raises; non-JSON stdout raises; an empty `result` with no
-  `error` raises (Commandment 6).
-- [ ] AC-05: every invalid shape in §2 (non-string member, non-bool switch,
-  unknown key) fails at schema and lint before version or agent subprocess,
-  one direct test each.
-- [ ] AC-06: two node executions → two version probes, two agent calls, in
-  that order each time; no module-level cache.
-- [ ] AC-07: with `ANTHROPIC_API_KEY`, `OPENAI_API_KEY`, `DEEPSEEK_API_KEY`
-  set in the parent, the `env` kwarg of the opencode subprocess **keeps**
-  them all (they are the payer, not a reroute), keeps `PATH`, and carries the
-  FR-363 OTel path when `YAMLGRAPH_OTEL_DIR` is set.
-- [ ] AC-08: `E-COPILOT-OPENCODE-MODEL` fires when no `model` signal exists;
-  it is silent when `cli_flags.model`, node `model`, or `defaults.model`
-  carries a `provider/model` value.
-- [ ] AC-09: exit 1 and exit 0-with-error-event are typed failures; no
-  `OpenCodeUsageLimitError`, reset-time parser, or refusal regex exists in the
-  package (grep-checked).
-- [ ] AC-10: every lint code in §7 has one direct test.
-- [ ] AC-11: every existing test in `tests/unit/test_copilot_node*.py` and
-  `test_linter_patterns_copilot.py` passes unmodified; default dispatch,
-  Copilot argv, API path, Claude path, session, provider, OTel and lint
-  behaviour unchanged.
-
-Live (each recorded in `evidence/FR-1048-opencode-backend-witness.md`):
-
-- [ ] AC-12: a disposable two-node integration harness
-  (`tests/integration/test_fr1048_opencode_backend_live.py`, gated by
-  `YAMLGRAPH_LIVE_OPENCODE=1`) writes a temporary graph in `tmp_path` with two
-  `type: copilot` / `backend: opencode` nodes, one-word prompts, the second
-  node's `resume` bound to the first result's `session_id`. It passes when the
-  second argv carries `--session` with the first node's real `session_id`
-  byte-for-byte. The committed `examples/demos/session-continuation/**` is
-  **not** modified. The witness records command, temp-graph digest,
-  `opencode --version`, the resolved model, both argv lists (redacted), both
-  session IDs, result heads, limitations.
-- [ ] AC-13: the same harness with a nonexistent `--session` id refuses
-  before producing a result and the error names what it saw.
-- [ ] AC-14: CAP-30 carries REQ-YG-679..681, `ARCHITECTURE.md` regenerated,
-  references document the fifth value, the stream envelope, and the
-  model-explicit payer contract, changelog fragment cites REQ-YG-679, and
+- [ ] AC-01: the FR supersedes FR-546 for the `opencode` backend name,
+  identifies as contrib/example "backend contribution", and carries only the
+  `model` and `resume` flags.
+- [ ] AC-02: `evidence/FR-1048-opencode-cli-probe.md` contains raw
+  version/help, successful `--session` with nonce recall, `--continue`
+  non-determinism, a tool-bearing stream, an error-event capture, and a
+  no-stream session-failure capture for opencode 1.18.31; widening the banner
+  or event set requires a new capture.
+- [ ] AC-03: `backend: opencode` is the fifth accepted value at schema,
+  compile, dispatch, and lint; misspelled, empty, and non-string values fail
+  naming the five-value set before every subprocess, while `None` still
+  selects `cli`.
+- [ ] AC-04: `OpenCodeCliFlags` is strict and forbids extras; `resume` and
+  `model` accept only strings (or `None` for `model`); the five dropped flags
+  (`agent`, `dir`, `variant`, `thinking`, `auto`) and `continue_session` are
+  rejected as extras; every invalid shape has direct schema, compile, and lint
+  coverage before a probe.
+- [ ] AC-05: model resolution follows `cli_flags.model` > node `model` >
+  `defaults.model`; the resolved value must be a non-empty `provider/model`;
+  `""`, `"model-only"`, `"/model"`, `"provider/"`, and absent all fail compile
+  and lint before a probe; every accepted source produces the same
+  `--model <resolved>` argv and `CopilotResult.model`.
+- [ ] AC-06: exact argv equality covers
+  `["opencode", "run", <one prompt element>, "--format", "json", "--model", <resolved>]`
+  and `resume` → `--session` in the frozen order, with no shell.
+- [ ] AC-07: every recognized stdout line crosses the typed state machine;
+  ordered text, one consistent non-empty session ID, exactly one terminal
+  `step_finish(reason="stop")`, and exit zero map to
+  `CopilotResult(backend="opencode")`; `tool_use` and intermediate
+  `step_finish(reason="tool-calls")` events are neutral and ignored for result
+  assembly.
+- [ ] AC-08: unknown/malformed events, malformed JSON lines, conflicting or
+  missing session IDs, duplicate/missing terminal events, post-terminal
+  events, no text, any `error` event, non-`stop` reason (outside
+  `{stop, tool-calls}`), non-zero exit, missing binary, and timeout all raise
+  without constructing a result or updating state.
+- [ ] AC-09: error-event failures name `error.name` and `error.data.message`;
+  non-event failures name the exit code and a bounded stderr/stdout tail,
+  without logging environment or credential contents.
+- [ ] AC-10: every opencode execution performs one exact-banner version probe
+  immediately before one agent call with no cache; two node executions yield
+  probe/call/probe/call ordering.
+- [ ] AC-11: the version probe and agent call receive the same child
+  environment; provider credential variables and `PATH` are retained, FR-363
+  OTel scoping is retained when configured, and neither environment nor
+  auth-file contents are logged.
+- [ ] AC-12: direct lint tests cover unknown backend, missing/malformed model,
+  malformed opencode flags, and dropped flags rejected as extras.
+- [ ] AC-13: existing Copilot CLI, API, sampling, Claude, model-precedence,
+  session, provider, OTel, and copilot-linter assertions still pass, except
+  exact closed-set expectations updated from four values to five.
+- [ ] AC-14: the gated disposable two-node witness proves the second argv uses
+  the first real `session_id`, both streams report the same session ID, and
+  the second output recalls a nonce supplied by the first node; the committed
+  session-continuation demo remains untouched.
+- [ ] AC-15: the invalid-session witness raises an error containing
+  `Session not found` and the attempted id, returns no `CopilotResult`, and
+  performs no state update.
+- [ ] AC-16: CAP-30 carries the final re-derived requirement IDs,
+  `ARCHITECTURE.md` is regenerated, references document the exact
+  banner/event/model/payer contract, the confession covers the new subprocess
+  site, the changelog cites the backend requirement, and
   `python scripts/req_coverage.py --strict` passes.
 
 ## Alternatives Considered (with dissent preserved)
@@ -378,9 +382,9 @@ Live (each recorded in `evidence/FR-1048-opencode-backend-witness.md`):
 | Alternative | Probe (2026-09-15) | Disposition | Dissent (strongest case against the disposition) |
 |---|---|---|---|
 | New node type `type: opencode` | 15 node types; `backend` exists to select the agent runtime (FR-383) | REJECTED — duplicates rendering, variables, guards, `CopilotResult` | Same naming lie as the Claude case: a `copilot` node running opencode. The honest fix is renaming the node `agent_cli`, a wider refactor this FR declines. |
+| opencode server/SDK route (FR-546's design) | FR-546 [Judged, never enforced]: `opencode serve` + `httpx` + `json_schema` + agent sandbox | REJECTED for v1 and **superseded** for the backend name — a long-lived server is a second lifecycle plus an `httpx` dependency and a `CopilotResult` field change; the CLI reuses the `_execute_cli` seam with zero new deps | The server route buys schema-validated verdicts and a real permission sandbox — the two gaps `_execute_cli` cannot close. If structured output or sandboxing is the actual need, that is a *new* FR (FR-546's route is not concurrently authorized), not this one. |
 | Route opencode via `backend: api` + `provider:` | `execute_prompt()` has no tools, no filesystem, `session_id=None` | REJECTED — loses the agent harness (tools, files, sessions) | For reasoning-only nodes it is strictly simpler and already exists. This FR does not replace it. |
-| Add opencode as a `claude`-style alias with a subscription auth check | `opencode providers list` shows API-key creds only; no `auth status` command exists | REJECTED — there is no subscription to witness; the payer is per-provider | If opencode later ships a single-subscription login (a "zen" seat), the Claude auth-preflight pattern would transfer 1:1. Until then §5's model-explicit rule is the honest boundary. |
-| opencode server/SDK route (FR-546's design) | FR-546 [Judged, never enforced]: `opencode serve` + `httpx` + `json_schema` structured output + agent-markdown sandbox | REJECTED for v1 — a long-lived server is a second lifecycle (port, auth, teardown) plus an `httpx` dependency and a `CopilotResult` field change; the CLI reuses the `_execute_cli` seam with zero new deps | The server route buys schema-validated verdicts and a real permission sandbox — the two gaps `_execute_cli` cannot close. If structured output or sandboxing is the actual need, FR-546's granted authority is the precedent and this FR dies by it (FR-737). This FR only wins if the need is "a second CLI harness and payer", which is exactly FR-959's proof. |
+| Keep `continue_session` (→ `--continue`) | evidence §10: `--continue` silently starts a new session in a dir with no prior session | REJECTED — non-deterministic, directory-scoped "last session" that can resume a human's interactive session; `--session <id>` fails loudly instead | `--continue` is what the `cli`/`claude` backends already do; dropping it is an inconsistency. But those backends bill a single session store; opencode's is shared with a human's interactive TUI. |
 | Parse only the **last** JSON line instead of the full stream | the stream's first line is `step_start`, not the answer | REJECTED — drops ordered multi-`text` output and cannot see an early `error` | Stream parse is slightly more code, but it is the only way to satisfy Commandment 6 and not report a truncated answer as success. |
 
 Is this a graph? No. It is a node backend; the witness graph is a disposable
@@ -389,30 +393,37 @@ untouched under this FR (FR-959 R-6 analogue).
 
 ## Kill criterion
 
-If AC-12 cannot be witnessed on this host within one working session because
+If AC-14 cannot be witnessed on this host within one working session because
 the pinned `--format json` stream cannot be parsed into a stable result and a
-resumable `session_id`, REJECT this FR with the log attached. No API-key
-injection, Copilot/claude-backend fallback, or weakened model-explicit claim
-rescues the witness.
+real `--session` continuation, REJECT this FR with the log attached. No
+API-key injection, Copilot/claude-backend fallback, or weakened model-explicit
+claim rescues the witness.
 
 ## Constraints
 
 - Argv is a list, prompt is one element (REQ-YG-087; FR-948 R-1).
 - Never log `os.environ`, the child env, or `auth.json` contents.
 - `CopilotResult` shape frozen; fifth `backend` value only.
-- Copilot, API, and Claude behaviour byte-identical (AC-11).
+- Copilot, API, and Claude behaviour byte-identical (AC-13).
 - New module `copilot_runtime_opencode.py` stays under 400 lines.
-- Not authorized: edits to `.github/skills/**` adapters, `scripts/*.sh`,
-  `backend: sampling`, streaming, remote delegation, `CopilotResult` fields,
-  renaming `type: copilot`, or any default/Copilot/API/Claude behaviour change.
+- Not authorized: FR-546's server/SDK route, `httpx`, structured output, a
+  permission sandbox, the five dropped flags or `continue_session`,
+  `allow_all_tools`/`allow_all_paths` mapping, any `CopilotResult` field
+  change, a config-default model fallback, a new node type, edits to graphs or
+  prompts, call-site adoption, enforcement infrastructure, `backend: sampling`,
+  streaming, remote delegation, or any default/Copilot/API/Claude behaviour
+  change.
 
 ## Out of Scope
 
 - Any change to enforcement infrastructure (judge/review/author adapters) —
   a separate FR if a consumer swaps onto this backend (the FR-960 analogue).
-- `backend: sampling`; streaming; remote delegation (FR-948); an opencode
-  server/SDK backend; a single-subscription auth preflight (until such a login
-  exists); renaming `type: copilot`.
+- FR-546's server/SDK route (structured output, sandbox, `httpx`, server
+  lifecycle) — superseded, not revived.
+- `backend: sampling`; streaming; remote delegation (FR-948); a
+  single-subscription auth preflight (until such a login exists); renaming
+  `type: copilot`; the `continue_session`/`agent`/`dir`/`variant`/`thinking`/
+  `auto` flags.
 
 ## Related
 
@@ -426,15 +437,23 @@ rescues the witness.
 
 ## Judgement
 
-Pending — sole route `scripts/judge.sh`. Not judged in the author's session.
+Pending re-judgement — sole route `scripts/judge.sh`. Not judged in the
+author's session. Prior round: APPROVED WITH REVISIONS (R-1..R-5 folded).
 
 ## Implementation Status
 
 - 2026-09-15: Proposed. Raw probe captures recorded inline in §Summary/§3/§5
   (version `1.18.31`, JSONL event shapes, exit-code and session behaviour);
-  promotion to the committed evidence file is §AC-01. No code written.
+  promotion to the committed evidence file is §AC-02. No code written.
 - 2026-09-15: Research sole route run (`scripts/research.sh`, five personas,
   `FR-1048.research.md` promoted). Retrieval surfaced FR-546 (same territory,
   server/SDK route) — dispositioned in `**Prior art:**` and the alternatives
-  table. Four personas pursue the CLI route; the subtractionist dissents
-  (retire / new node type), which is FR-546's argument. Awaiting judgement.
+  table. Four personas pursue the CLI route; the subtractionist dissents.
+- 2026-09-15: Judged APPROVED WITH REVISIONS (round 1). Revisions folded:
+  R-1 (supersede FR-546, reclassify contrib/example, drop five convenience
+  flags); R-2 (compile-time fail-closed model resolution, no config-default
+  fallback); R-3 (evidence extended: raw `--help`, `--session` nonce recall,
+  `--continue` non-determinism → `continue_session` dropped, tool-bearing event
+  vocabulary → `tool_use` + `step_finish.reason ∈ {stop, tool-calls}` frozen);
+  R-4 (typed fail-closed JSONL state machine); R-5 (nonce-recall witness +
+  invalid-session assertion). Awaiting re-judgement.
