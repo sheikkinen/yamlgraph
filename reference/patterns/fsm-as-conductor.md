@@ -6,32 +6,14 @@
 
 An FSM orchestrates workflow states, guards, timeouts, and retries. YAMLGraph graphs handle LLM processing as fire-and-forget actions. The canonical bridge lives in `yamlgraph.utils.fsm` (`YamlgraphAsyncAction`) — it launches a graph as a background task and sends an AF_UNIX DGRAM event back when done.
 
-```
-┌──────────────────────────────────────────────┐
-│            statemachine-engine               │
-│                                              │
-│   states ─── transitions ─── guards          │
-│      │           │              │            │
-│   timeouts    events        retries          │
-│                  │                            │
-│          "when" + "which"                    │
-└──────────────────┬───────────────────────────┘
-                   │
-       yamlgraph_async_action
-       (fire-and-forget bridge)
-                   │
-      ┌────────────┼────────────┐
-      │            │            │
-      ▼            ▼            ▼
- ┌─────────┐ ┌──────────┐ ┌──────────┐
- │ graph A │ │ graph B  │ │ graph C  │
- │  (LLM)  │ │  (LLM)  │ │  (LLM)  │
- └────┬────┘ └────┬─────┘ └────┬─────┘
-      │           │            │
-      └─────┬─────┘────────────┘
-            │
- AF_UNIX DGRAM event → FSM
- (event_map / _route / success)
+```mermaid
+flowchart LR
+  Event[External event] --> FSM{FSM transition and guard}
+  FSM -->|cognitive action| Graph([Run bounded graph])
+  Graph --> Normalize[Normalize completion event]
+  Normalize --> FSM
+  FSM -->|side effect| Action[Deterministic action]
+  FSM -->|wait| State[(Durable workflow state)]
 ```
 
 **The FSM never does cognitive work.** It sequences, guards, retries, and routes. **YAMLGraph never owns lifecycle.** It processes, returns, and lets the FSM decide what's next.

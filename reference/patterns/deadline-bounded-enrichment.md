@@ -42,30 +42,18 @@ consumer acts exactly once, after the wait, never twice.
 
 ## Topology
 
-```
-producer commits record ──► notification fan-out (existing topic/bucket event)
-                                  │
-                    ┌─────────────┼──────────────────┐
-                    ▼                                ▼
-         existing consumer(s)               enrichment consumer (new)
-         (unchanged, fast path)              own process, own credentials
-                                              own subscription + DLQ
-                                                  │
-                                    read record → decision table (below)
-                                                  │
-                                    CAS-write ONE typed, additive block
-                                                  │
-                    ┌─────────────────────────────┘
-                    ▼
-         downstream consumer (existing, now deadline-aware)
-         waits up to a deadline, then resolves:
-           block done + valid   → act on it            (source=llm)
-           block done + invalid → act on prior default  (source=default)
-           block failed         → act on prior default  (source=default)
-           absent/running,
-             before deadline    → wait (nack / retry)
-           absent/running,
-             at/after deadline  → act on prior default  (source=deadline)
+```mermaid
+flowchart LR
+  Commit[Commit primary record] --> Notify[Publish notification]
+  Notify --> Claim[Claim enrichment lease]
+  Claim --> Enrich([Compute optional enrichment])
+  Enrich --> CAS[Compare-and-set typed result]
+  Commit --> Deadline{Valid result before deadline?}
+  CAS --> Deadline
+  Deadline -->|yes| Improved[Use enriched action]
+  Deadline -->|no| Default[Use historical default]
+  Improved --> Once[Execute once]
+  Default --> Once
 ```
 
 Removing the enrichment consumer and unsetting the deadline must reproduce

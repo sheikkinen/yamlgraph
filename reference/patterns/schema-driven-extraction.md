@@ -6,17 +6,15 @@ No new framework node type, action type, or primitive is required. Compose exist
 
 ## The Loop
 
-```
-Define target shape (schema)
-  → Observe current shape (extract)
-    → Compute delta (detect_gaps)
-      → Reduce delta (probe + interrupt)
-        → Converged? ──NO──→ extract again
-                      │
-                      YES
-                      ↓
-                    Verify (recap + interrupt)
-                      → Deliver (save / send)
+```mermaid
+flowchart LR
+  Schema[Target schema] --> Extract([Extract current values])
+  Human[Human response] --> Extract
+  Extract --> Validate[Validate fields and conflicts]
+  Validate --> Gap{Required gaps remain?}
+  Gap -->|yes| Probe([Generate focused question])
+  Probe --> Human
+  Gap -->|no| Recap[Present recap for confirmation]
 ```
 
 This is the same structure as:

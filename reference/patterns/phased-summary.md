@@ -4,11 +4,16 @@ Compress each long record about one subject into a short typed **brief**, store
 the briefs durably, and build the subject's **rollup** from briefs alone. The
 brief — not the source record — is what every downstream reader consumes.
 
-The topology is:
+## Topology
 
-```text
-record -> typed brief -> brief store (entity-keyed, date-ordered)
-       -> rollup (LLM over briefs only) -> dossier
+```mermaid
+flowchart LR
+  Record[New source record] --> Brief([Create fixed-shape brief])
+  Brief --> Verify[Verify source identity and schema]
+  Verify --> Store[(Entity-keyed brief store)]
+  Store --> Order[Order subject briefs chronologically]
+  Order --> Rollup([Regenerate subject rollup])
+  Rollup --> Dossier[Durable dossier]
 ```
 
 This is an architecture pattern above the [`map` node](../map-nodes.md)

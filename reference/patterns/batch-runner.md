@@ -7,6 +7,21 @@ sweep of fixtures — and collect one result per input.
 The instinct is to reach for `data_files:` or a `map` node. Neither fits, and
 understanding *why* is the pattern.
 
+## Topology
+
+```mermaid
+flowchart LR
+    Select[Select runtime files] --> Load[Load and transform]
+    Load --> Graph([Invoke compiled graph])
+    Graph --> Result{Outcome}
+    Result -->|success| Write[Write typed result]
+    Result -->|failure| Error[Write typed error]
+    Write --> More{More files?}
+    Error --> More
+    More -->|yes| Load
+    More -->|no| Done[Batch manifest]
+```
+
 ## Why not `data_files:`
 
 The [`data_files:`](../graph-yaml.md) directive loads YAML into state, but it is
