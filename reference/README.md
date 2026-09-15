@@ -67,6 +67,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | [Implementation Agent](impl-agent.md) | 14-tool agent for codebase analysis |
 | [Web UI & API](web-ui-api.md) | Serving graphs as web applications |
 | [Intent + Questionnaire](intent-questionnaire-pattern.md) | Multi-graph routing with session registry |
+| [Pattern Catalogue](patterns/README.md) | Index of the eight system-level patterns below: selection by required proof, families, evidence vocabulary, cross-pattern laws |
 | [FSM-as-Conductor](patterns/fsm-as-conductor.md) | statemachine-engine orchestrates lifecycle; YAMLGraph handles LLM |
 | [LLM-as-Gate Pattern](patterns/llm-as-gate.md) | Semantic pass/fail gating with router edges |
 | [Coded-Classification Pattern](patterns/coded-classification.md) | Classify free text against a controlled vocabulary: cluster fan-out, claim-reconciliation reducer, junk-drawer caps, labeled crosscheck harness |
@@ -74,6 +75,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | [Corpus Map-Reduce Pattern](patterns/corpus-map-reduce.md) | Exhaustive bounded corpus analysis: freeze, typed map, deterministic reconciliation, hierarchical reduce, cited artifact |
 | [Schema-Driven Extraction Pattern](patterns/schema-driven-extraction.md) | Declarative convergence loop for collecting structured data through conversation: schema, extract, detect gaps, probe, recap |
 | [Phased Summary Pattern](patterns/phased-summary.md) | Long records about one subject reduced to durable typed briefs; the subject rollup reads briefs only, and new records cost one brief |
+| [Deadline-Bounded Enrichment Pattern](patterns/deadline-bounded-enrichment.md) | Augment a committed record out of band; the judgement can only upgrade a pending default, and every failure resolves to that default before the deadline |
 
 ### Example Architectures
 
