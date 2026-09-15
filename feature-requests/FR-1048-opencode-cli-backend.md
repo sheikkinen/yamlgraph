@@ -57,6 +57,14 @@ full event vocabulary, exit-code behaviour on success and error, and
   / CAP-30 REQ-YG-105 — `resume` reused 1:1, mapped to opencode's `--session`.
 - [FR-363-per-node-otel-scoping-in-copilot-node.md](FR-363-per-node-otel-scoping-in-copilot-node.md)
   — `YAMLGRAPH_OTEL_DIR` layering preserved.
+- FR-854-subagent-call-classification-graph.judgement.md [WITHDRAWN] —
+  vocabulary collision ("opencode"/"backend"/"brief" nouns); a withdrawn
+  subagent-call classification graph, unrelated to a copilot-node backend.
+  Dismissed.
+- FR-937-research-precedent-vocabulary-drift.md [Proposed] and
+  FR-937.research.md — the research-route "vocabulary drift" precedent doc and
+  its record; share the "opencode"/"brief" nouns only as research-route
+  vocabulary. Unrelated to this backend; dismissed.
 
 ## Summary
 
@@ -83,9 +91,10 @@ the process printed before dying.
 ## Problem
 
 1. `type: copilot` is the only agent-invoking node, and its backends are
-   `cli` (Copilot seat), `api` (no tools, no filesystem), and `claude`
-   (Claude subscription). There is no path for an operator whose agent is
-   opencode and whose only credentials are provider API keys.
+   `cli` (Copilot seat), `api` (no tools, no filesystem), `sampling`
+   (unimplemented), and `claude` (Claude subscription). There is no path for
+   an operator whose agent is opencode and whose only credentials are provider
+   API keys.
 2. **Dispatch is closed but finite** (FR-959 REQ-YG-640): adding a fifth
    value on top of `Literal["cli", "api", "sampling", "claude"]` is safe, but
    only if it rides the same exact-match, typed-flag, fail-before-subprocess
@@ -143,8 +152,22 @@ backend keeps its current behaviour unchanged:
 
 | key | type | opencode flag | notes |
 |---|---|---|---|
-| `model` | `str \| None` | `--model <provider/model>` | shape-validated only; the *resolved* model is a compile-time requirement (§5) |
-| `resume` | `str` | `--session <id>` | may be a `{state.…}` expression; resolves to the prior `CopilotResult.session_id` |
+| `model` | `str \| None` | `--model <provider/model>` | `None`/omitted = "try the next model source" (§5); an explicit empty/whitespace string is **invalid** |
+| `resume` | `str \| None` | `--session <id>` | `None`/omitted = "do not resume"; may be a `{state.…}` expression; an explicit empty/whitespace string is **invalid** |
+
+Semantics (fail-closed, no truthiness shortcuts):
+
+- `model: str | None = None` and `resume: str | None = None`. Omission and
+  `None` mean "try the next model source" and "do not resume" respectively.
+- An explicitly supplied empty or whitespace-only `model` or `resume` is
+  invalid — never silently omitted. A `False`/truthiness check must not
+  bypass an explicit empty value.
+- `resume` resolves before the version probe. A `{state.…}` expression that
+  misses its path, resolves to `None`, or yields a non-string or
+  empty/whitespace result **raises** before any subprocess. This does **not**
+  reuse the Copilot helper's warn-and-drop behaviour: dropping an invalid
+  explicit session would silently start a new opencode session and contradict
+  the fail-loud rationale (evidence §10).
 
 `continue_session` is **deliberately absent**: evidence §10 shows opencode's
 `--continue` resolves "the last session" against a directory-scoped session
@@ -193,13 +216,23 @@ validate against one of these strict private models (each requires a non-empty
 - `_ErrorEvent` — `type == "error"`, `error.name: str`,
   `error.data.message: str`. Terminal failure.
 
-The state machine enforces:
+The state machine enforces a frozen **transition grammar** (evidence §2/§11),
+not only terminal predicates:
+
+1. The first event on the success path opens a step with `step_start`.
+2. `text` and `tool_use` are accepted only while a step is open.
+3. Exactly one `step_finish` closes each open step.
+4. `step_finish(reason="tool-calls")` requires a later `step_start`;
+   `step_finish(reason="stop")` ends the stream.
+5. A nested `step_start` (a `step_start` while a step is already open), any
+   event outside an open step, an unclosed step at end-of-stream, or any event
+   after `stop` is a failure.
+6. `error` fails from any state; no result is constructed.
+
+Plus:
 
 - a single consistent, non-empty `sessionID` across every event;
-- `step_finish(reason="tool-calls")` is an intermediate boundary (the agent
-  will call a tool), **not** a terminal and not a failure;
-- `step_finish(reason="stop")` is the **only** terminal success signal;
-- at most one terminal event, no event after it;
+- at most one terminal event;
 - at least one `text` event whose ordered concatenation is the result.
 
 Each of the following is a typed failure with **no** `CopilotResult` and no
@@ -243,12 +276,14 @@ payer, and the only variable is *which one*. So:
 - **Compile-time fail-closed model.** The model is resolved through the
   established priority chain — `cli_flags.model` > node `model` >
   `defaults.model` (ARCHITECTURE.md:1682-1690; `copilot_node.py:250-257`) —
-  then `create_copilot_node` **rejects** an opencode node whose resolved model
-  is absent **or** not a non-empty `provider/model` identifier, before the
-  version probe or any subprocess. Substance, not only presence: `""`,
-  `"model-only"`, `"/model"`, and `"provider/"` are rejected at compile and
-  lint. The runtime receives the one resolved model and always emits
-  `--model <resolved>`.
+  selecting the first non-`None` value (not the first truthy value: an
+  explicitly empty higher-priority value is invalid, not skipped). The selected
+  value must match the exact grammar `^[^/\s]+/[^/\s]+$`. `create_copilot_node`
+  **rejects** an opencode node whose resolved model is absent or fails that
+  grammar, before the version probe or any subprocess. `""`, `"model-only"`,
+  `"/model"`, and `"provider/"` are rejected at compile and lint; an invalid
+  higher-priority value never falls through to a valid lower-priority one. The
+  runtime receives the one resolved model and always emits `--model <resolved>`.
 - **No config-default fallback.** The runtime never runs opencode without an
   explicit `--model`. There is no authorized path that lets an opencode
   configuration default choose the payer.
@@ -267,11 +302,15 @@ and a bounded stderr/stdout tail — never environment or credential contents.
 | Code | Condition | Severity |
 |---|---|---|
 | `E-COPILOT-BACKEND-UNKNOWN` | `backend` not in the closed set (covers `opencode` once the tuple grows; one test) | error |
-| `E-COPILOT-OPENCODE-FLAG-SHAPE` | any `OpenCodeCliFlags` validation failure (non-string `model`/`resume`, unknown key incl. the five dropped flags) | error |
-| `E-COPILOT-OPENCODE-MODEL` | `backend: opencode` whose resolved model is absent or not a non-empty `provider/model` (`""`, `model-only`, `/model`, `provider/`) | error |
-| `E-COPILOT-CLI-FLAGS` | opencode-only keys (`resume` on the `api` backend is already covered; the opencode set is shared with the `cli` backend so no new exclusivity) | error |
+| `E-COPILOT-OPENCODE-FLAG-SHAPE` | any `OpenCodeCliFlags` validation failure (non-string `model`/`resume`, explicit empty/whitespace `model`/`resume`, unknown key incl. the five dropped flags and `continue_session`) | error |
+| `E-COPILOT-OPENCODE-MODEL` | `backend: opencode` whose resolved model is absent or fails `^[^/\s]+/[^/\s]+$` (`""`, `model-only`, `/model`, `provider/`) | error |
 
-There is no `continue_session` for opencode (evidence §10), so the
+Lint ownership is reconciled with the existing rules: there are **no**
+opencode-only keys for `E-COPILOT-CLI-FLAGS` (the opencode flag set is
+`model`/`resume`, both shared with the `cli` backend). `OpenCodeCliFlags`
+owns forbidden opencode extras; the existing `api`-backend rule owns
+CLI-only `resume`; existing `cli`/`claude` behaviour is unchanged. There is no
+`continue_session` for opencode (evidence §10), so the
 `resume`/`continue_session` mutual-exclusion rule does not apply to this
 backend.
 
@@ -316,65 +355,81 @@ backend.
 - [ ] AC-01: the FR supersedes FR-546 for the `opencode` backend name,
   identifies as contrib/example "backend contribution", and carries only the
   `model` and `resume` flags.
-- [ ] AC-02: `evidence/FR-1048-opencode-cli-probe.md` contains raw
-  version/help, successful `--session` with nonce recall, `--continue`
-  non-determinism, a tool-bearing stream, an error-event capture, and a
-  no-stream session-failure capture for opencode 1.18.31; widening the banner
-  or event set requires a new capture.
-- [ ] AC-03: `backend: opencode` is the fifth accepted value at schema,
+- [ ] AC-02: `FR-1048.research.md` contains 4-6 materially distinct solution
+  classes (CLI subprocess backend, server/SDK backend, existing `api` backend,
+  dedicated node / no integration), preserves the subtractionist disagreement,
+  answers `is_this_a_graph`, and the FR's `**Prior art:**` block dispositions
+  every retrieval hit (FR-546, FR-854, FR-937, FR-937.research.md).
+- [ ] AC-03: `evidence/FR-1048-opencode-cli-probe.md` contains complete
+  command/stdout/stderr/exit captures for version, help, simple success, error,
+  invalid session, valid nonce resume, fresh-directory `--continue`, and a
+  tool-bearing run; no structural JSON field is replaced by an ellipsis.
+- [ ] AC-04: `backend: opencode` is the fifth accepted value at schema,
   compile, dispatch, and lint; misspelled, empty, and non-string values fail
   naming the five-value set before every subprocess, while `None` still
   selects `cli`.
-- [ ] AC-04: `OpenCodeCliFlags` is strict and forbids extras; `resume` and
-  `model` accept only strings (or `None` for `model`); the five dropped flags
-  (`agent`, `dir`, `variant`, `thinking`, `auto`) and `continue_session` are
-  rejected as extras; every invalid shape has direct schema, compile, and lint
-  coverage before a probe.
-- [ ] AC-05: model resolution follows `cli_flags.model` > node `model` >
-  `defaults.model`; the resolved value must be a non-empty `provider/model`;
-  `""`, `"model-only"`, `"/model"`, `"provider/"`, and absent all fail compile
-  and lint before a probe; every accepted source produces the same
-  `--model <resolved>` argv and `CopilotResult.model`.
-- [ ] AC-06: exact argv equality covers
+- [ ] AC-05: `OpenCodeCliFlags` is strict and forbids extras; `model` and
+  `resume` accept omitted/`None` or strict strings only; explicit
+  empty/whitespace strings, non-strings, the five dropped flags, and
+  `continue_session` fail at schema, compile, and lint before a probe.
+- [ ] AC-06: model selection uses the first non-`None` source in
+  `cli_flags.model`, node `model`, `defaults.model`; the selected value must
+  match `^[^/\s]+/[^/\s]+$`; an invalid higher-priority value never falls
+  through to a valid lower-priority value; every accepted source yields
+  identical `--model <resolved>` argv and `CopilotResult.model`.
+- [ ] AC-07: a `{state.…}` `resume` resolves before the version probe; a
+  missing path, `None`, a non-string, or an empty/whitespace result raises
+  without any subprocess, while a valid result maps byte-for-byte to
+  `--session <resolved>`.
+- [ ] AC-08: exact argv equality covers
   `["opencode", "run", <one prompt element>, "--format", "json", "--model", <resolved>]`
-  and `resume` → `--session` in the frozen order, with no shell.
-- [ ] AC-07: every recognized stdout line crosses the typed state machine;
-  ordered text, one consistent non-empty session ID, exactly one terminal
-  `step_finish(reason="stop")`, and exit zero map to
-  `CopilotResult(backend="opencode")`; `tool_use` and intermediate
-  `step_finish(reason="tool-calls")` events are neutral and ignored for result
-  assembly.
-- [ ] AC-08: unknown/malformed events, malformed JSON lines, conflicting or
-  missing session IDs, duplicate/missing terminal events, post-terminal
-  events, no text, any `error` event, non-`stop` reason (outside
-  `{stop, tool-calls}`), non-zero exit, missing binary, and timeout all raise
-  without constructing a result or updating state.
-- [ ] AC-09: error-event failures name `error.name` and `error.data.message`;
+  and the optional trailing `["--session", <resolved>]` in the frozen order,
+  with no shell.
+- [ ] AC-09: every recognized stdout line crosses the typed state machine and
+  the frozen transition grammar; a complete simple sequence and a complete
+  multi-step tool sequence produce ordered text, one consistent non-empty
+  session ID, exactly one terminal `step_finish(reason="stop")`, and
+  `CopilotResult(backend="opencode", exit_code=0)`; `tool_use` and intermediate
+  `step_finish(reason="tool-calls")` are neutral for result assembly.
+- [ ] AC-10: each invalid transition (nested `step_start`, event outside an
+  open step, unclosed step, event after `stop`, `tool-calls` with no later
+  `step_start`) plus unknown/malformed events, malformed JSON lines, missing/
+  conflicting session IDs, duplicate/missing terminal, no text, any `error`
+  event, non-`stop` reason, non-zero exit, missing binary, and timeout all
+  raise without constructing a result or updating state.
+- [ ] AC-11: error-event failures name `error.name` and `error.data.message`;
   non-event failures name the exit code and a bounded stderr/stdout tail,
   without logging environment or credential contents.
-- [ ] AC-10: every opencode execution performs one exact-banner version probe
+- [ ] AC-12: every opencode execution performs one exact-banner version probe
   immediately before one agent call with no cache; two node executions yield
   probe/call/probe/call ordering.
-- [ ] AC-11: the version probe and agent call receive the same child
+- [ ] AC-13: the version probe and agent call receive the same child
   environment; provider credential variables and `PATH` are retained, FR-363
   OTel scoping is retained when configured, and neither environment nor
   auth-file contents are logged.
-- [ ] AC-12: direct lint tests cover unknown backend, missing/malformed model,
-  malformed opencode flags, and dropped flags rejected as extras.
-- [ ] AC-13: existing Copilot CLI, API, sampling, Claude, model-precedence,
+- [ ] AC-14: direct lint tests cover unknown backend, every invalid model
+  class, malformed opencode flags, forbidden extras, and the reconciled lint
+  ownership of §7.
+- [ ] AC-15: existing Copilot CLI, API, sampling, Claude, model-precedence,
   session, provider, OTel, and copilot-linter assertions still pass, except
   exact closed-set expectations updated from four values to five.
-- [ ] AC-14: the gated disposable two-node witness proves the second argv uses
-  the first real `session_id`, both streams report the same session ID, and
-  the second output recalls a nonce supplied by the first node; the committed
+- [ ] AC-16: `tests/integration/test_fr1048_opencode_backend_live.py`, gated
+  by `YAMLGRAPH_LIVE_OPENCODE=1`, builds its graph and prompt fixtures under
+  `tmp_path`, uses the explicit pinned provider/model, and proves the second
+  argv uses the first real `session_id`, both streams report that id, and the
+  second output recalls the first node's nonce; the accepted run is recorded
+  in `evidence/FR-1048-opencode-backend-witness.md` with the invocation
+  command, temporary-fixture digest, working directory, opencode banner,
+  model, timestamps, redacted argv lists, both reported session IDs,
+  nonce-bearing output excerpts, and limitations; the committed
   session-continuation demo remains untouched.
-- [ ] AC-15: the invalid-session witness raises an error containing
-  `Session not found` and the attempted id, returns no `CopilotResult`, and
-  performs no state update.
-- [ ] AC-16: CAP-30 carries the final re-derived requirement IDs,
+- [ ] AC-17: the same live harness proves an invalid session raises an error
+  containing `Session not found` and the attempted id, returns no
+  `CopilotResult`, and performs no state update.
+- [ ] AC-18: CAP-30 carries the final re-derived requirement IDs,
   `ARCHITECTURE.md` is regenerated, references document the exact
-  banner/event/model/payer contract, the confession covers the new subprocess
-  site, the changelog cites the backend requirement, and
+  banner/event-transition/model/payer contract, the confession covers the new
+  subprocess site, the changelog cites the backend requirement, and
   `python scripts/req_coverage.py --strict` passes.
 
 ## Alternatives Considered (with dissent preserved)
@@ -438,13 +493,14 @@ claim rescues the witness.
 ## Judgement
 
 Pending re-judgement — sole route `scripts/judge.sh`. Not judged in the
-author's session. Prior round: APPROVED WITH REVISIONS (R-1..R-5 folded).
+author's session. Prior rounds: APPROVED WITH REVISIONS (round 1 R-1..R-5,
+round 2 R-1..R-5 folded).
 
 ## Implementation Status
 
 - 2026-09-15: Proposed. Raw probe captures recorded inline in §Summary/§3/§5
   (version `1.18.31`, JSONL event shapes, exit-code and session behaviour);
-  promotion to the committed evidence file is §AC-02. No code written.
+  promotion to the committed evidence file is §AC-03. No code written.
 - 2026-09-15: Research sole route run (`scripts/research.sh`, five personas,
   `FR-1048.research.md` promoted). Retrieval surfaced FR-546 (same territory,
   server/SDK route) — dispositioned in `**Prior art:**` and the alternatives
@@ -456,4 +512,15 @@ author's session. Prior round: APPROVED WITH REVISIONS (R-1..R-5 folded).
   `--continue` non-determinism → `continue_session` dropped, tool-bearing event
   vocabulary → `tool_use` + `step_finish.reason ∈ {stop, tool-calls}` frozen);
   R-4 (typed fail-closed JSONL state machine); R-5 (nonce-recall witness +
-  invalid-session assertion). Awaiting re-judgement.
+  invalid-session assertion).
+- 2026-09-15: Judged APPROVED WITH REVISIONS (round 2). Revisions folded:
+  R-1 (evidence §9-§11 rewritten with complete raw captures, no ellipses,
+  working directories recorded); R-2 (flag semantics: `model`/`resume` both
+  `str | None`, explicit empty/whitespace invalid, fail-closed resume
+  resolution before the probe, lint ownership reconciled, `sampling` named as
+  the fourth existing value); R-3 (explicit JSONL transition grammar — steps
+  open/close, `tool-calls` requires a later `step_start`, `stop` terminates);
+  R-4 (research record carries four distinct solution classes and dispositions
+  every retrieval hit, incl. FR-854 and FR-937); R-5 (witness made
+  reproducible — harness path, `YAMLGRAPH_LIVE_OPENCODE=1` gate, and the full
+  witness-artifact field list). Awaiting re-judgement.

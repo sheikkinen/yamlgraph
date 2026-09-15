@@ -158,78 +158,87 @@ reading the stream back.
 
 ## §9 Successful `--session <id>` resume (with nonce recall)
 
-First invocation, one-word-ish prompt carrying a nonce:
+Working directory: the worktree root. Command, complete stdout, and exit
+status, unedited (no ellipses):
 
 ```
 $ opencode run --format json --model inception/mercury-2.5 "my name is probe; remember this: NONCE-7419"
-{"type":"step_start",...,"sessionID":"ses_f59fbb04effetBRETURmQKxx8H",...}
-{"type":"text",...,"part":{"type":"text","text":"\n\nHello probe. I've noted NONCE-7419. How can I help you today?","time":{...}}}
-{"type":"step_finish",...,"part":{"reason":"stop","type":"step-finish","tokens":{...},"cost":0.0004144}}
+{"type":"step_start","timestamp":1789491699364,"sessionID":"ses_f59fbb04effetBRETURmQKxx8H","part":{"id":"prt_0a6045e9800168m2LDw6AgzPIN","messageID":"msg_0a6045210001rVyN0AEufjnwK6","sessionID":"ses_f59fbb04effetBRETURmQKxx8H","snapshot":"423d329d4732dd85190b1cf72d4a1c1a23d99c24","type":"step-start"}}
+{"type":"text","timestamp":1789491699364,"sessionID":"ses_f59fbb04effetBRETURmQKxx8H","part":{"id":"prt_0a6045e9c001avYFZ1ttrMvi8q","messageID":"msg_0a6045210001rVyN0AEufjnwK6","sessionID":"ses_f59fbb04effetBRETURmQKxx8H","type":"text","text":"\n\nHello probe. I've noted NONCE-7419. How can I help you today?","time":{"start":1789491699356,"end":1789491699360}}}
+{"type":"step_finish","timestamp":1789491699528,"sessionID":"ses_f59fbb04effetBRETURmQKxx8H","part":{"id":"prt_0a6045f43001qn7iNPXUWBV6Fi","reason":"stop","snapshot":"423d329d4732dd85190b1cf72d4a1c1a23d99c24","messageID":"msg_0a6045210001rVyN0AEufjnwK6","sessionID":"ses_f59fbb04effetBRETURmQKxx8H","type":"step-finish","tokens":{"total":9150,"input":8710,"output":27,"reasoning":413,"cache":{"write":0,"read":0}},"cost":0.0004144}}
+exit=0
 ```
 
-Second invocation resumes that exact session id:
+Second invocation resumes that exact session id (complete stdout, exit 0):
 
 ```
 $ opencode run --format json --model inception/mercury-2.5 --session ses_f59fbb04effetBRETURmQKxx8H "what is my name and what NONCE did I give you? reply in one line"
-{"type":"step_start",...,"sessionID":"ses_f59fbb04effetBRETURmQKxx8H",...}
-{"type":"text",...,"part":{"type":"text","text":"\n\nYour name is probe and you provided NONCE-7419.","time":{...}}}
-{"type":"step_finish",...,"part":{"reason":"stop","type":"step-finish","tokens":{...},"cost":0.00040509}}
+{"type":"step_start","timestamp":1789491704762,"sessionID":"ses_f59fbb04effetBRETURmQKxx8H","part":{"id":"prt_0a60473aa001LtCavv7rT6Qxps","messageID":"msg_0a60468ce001xxA9BhTasV5JVq","sessionID":"ses_f59fbb04effetBRETURmQKxx8H","snapshot":"423d329d4732dd85190b1cf72d4a1c1a23d99c24","type":"step-start"}}
+{"type":"text","timestamp":1789491704762,"sessionID":"ses_f59fbb04effetBRETURmQKxx8H","part":{"id":"prt_0a60473ae001JEzT314sUUT3gr","messageID":"msg_0a60468ce001xxA9BhTasV5JVq","sessionID":"ses_f59fbb04effetBRETURmQKxx8H","type":"text","text":"\n\nYour name is probe and you provided NONCE-7419.","time":{"start":1789491704750,"end":1789491704756}}}
+{"type":"step_finish","timestamp":1789491704928,"sessionID":"ses_f59fbb04effetBRETURmQKxx8H","part":{"id":"prt_0a604745b001r14XNYEfdwRRFJ","reason":"stop","snapshot":"423d329d4732dd85190b1cf72d4a1c1a23d99c24","messageID":"msg_0a60468ce001xxA9BhTasV5JVq","sessionID":"ses_f59fbb04effetBRETURmQKxx8H","type":"step-finish","tokens":{"total":9316,"input":9021,"output":22,"reasoning":273,"cache":{"write":0,"read":0}},"cost":0.00040509}}
+exit=0
 ```
 
 Observations: `--session <id>` resumes deterministically — the second stream
 carries the **same** `sessionID`, and the model recalls the prior-session
-nonce. This is the resumption contract the FR's `resume` flag maps to. A
-missing id fails loudly (§4); an explicit id is the only safe resumption.
+nonce. Every event carries `sessionID` at the top level **and** inside `part`.
+This is the resumption contract the FR's `resume` flag maps to. A missing id
+fails loudly (§4); an explicit id is the only safe resumption.
 
 ## §10 `--continue` is directory-scoped and silently non-deterministic
 
-In a fresh disposable directory with **no prior session**, `--continue` did
-**not** fail and did **not** resume the nonce session from §9 — it silently
-started a brand-new session:
+Working directory: `tmp/oc-disposable` (fresh, no prior session). Command,
+complete stdout, and exit status:
 
 ```
-$ cd tmp/oc-disposable && opencode run --format json --model inception/mercury-2.5 --continue "what was the nonce I gave you earlier? reply one line"
-{"type":"step_start",...,"sessionID":"ses_f59fb1da3ffeAtEst2sP1Cm2xC",...}   # NEW id, not the §9 id
-{"type":"text",...,"part":{"type":"text","text":"\n\nI don't have any record of a nonce you provided earlier in this session.","time":{...}}}
-{"type":"step_finish",...,"part":{"reason":"stop",...}}
+$ opencode run --format json --model inception/mercury-2.5 --continue "what was the nonce I gave you earlier? reply one line"
+{"type":"step_start","timestamp":1789492130411,"sessionID":"ses_f59faea28ffe1I9uKQvZLizXs7","part":{"id":"prt_0a60af24f001rsGCe1HC6DqatA","messageID":"msg_0a60ae4700011LFJERuHbe1HuX","sessionID":"ses_f59faea28ffe1I9uKQvZLizXs7","snapshot":"423d329d4732dd85190b1cf72d4a1c1a23d99c24","type":"step-start"}}
+{"type":"text","timestamp":1789492130411,"sessionID":"ses_f59faea28ffe1I9uKQvZLizXs7","part":{"id":"prt_0a60af253001t6VCnDsA7DBVJE","messageID":"msg_0a60ae4700011LFJERuHbe1HuX","sessionID":"ses_f59faea28ffe1I9uKQvZLizXs7","type":"text","text":"\n\nYou haven't provided a nonce earlier in this conversation.","time":{"start":1789492130387,"end":1789492130403}}}
+{"type":"step_finish","timestamp":1789492130536,"sessionID":"ses_f59faea28ffe1I9uKQvZLizXs7","part":{"id":"prt_0a60af2e2001gxeUaPp29SuG30","reason":"stop","snapshot":"423d329d4732dd85190b1cf72d4a1c1a23d99c24","messageID":"msg_0a60ae4700011LFJERuHbe1HuX","sessionID":"ses_f59faea28ffe1I9uKQvZLizXs7","type":"step-finish","tokens":{"total":9137,"input":8849,"output":12,"reasoning":276,"cache":{"write":0,"read":0}},"cost":0.00039716}}
+exit=0
 ```
 
 Observations: `--continue` resolves "the last session" against opencode's
 session store scoped to the working directory; with no prior session there it
-starts a **new** session with no error and no prior context. That is the
-opposite of `--session <id>`'s fail-loud behaviour (§4). A node's `--continue`
-would resume whatever interactive session a human last ran in that directory —
-a non-deterministic, unsafe default. **The FR therefore drops
-`continue_session` and keeps only the explicit `resume` → `--session`.**
+starts a **new** session (`ses_f59faea28ffe1I9uKQvZLizXs7`, not the §9 id) with
+no error and no prior context. That is the opposite of `--session <id>`'s
+fail-loud behaviour (§4). A node's `--continue` would resume whatever
+interactive session a human last ran in that directory — a non-deterministic,
+unsafe default. **The FR therefore drops `continue_session` and keeps only the
+explicit `resume` → `--session`.**
 
 ## §11 Tool-bearing run — full event vocabulary
 
-In a disposable directory with a known file, a prompt that requires a tool:
+Working directory: `tmp/oc-disposable` containing `hello.txt` = `hello tool
+world`. Command, complete stdout, and exit status:
 
 ```
-$ cd tmp/oc-disposable && echo "hello tool world" > hello.txt
 $ opencode run --format json --model inception/mercury-2.5 "read the file hello.txt in this directory and tell me its exact contents in one line"
-{"type":"step_start",...,"sessionID":"ses_...",...}
-{"type":"tool_use",...,"part":{"type":"tool","tool":"read","callID":"call_...","state":{"status":"completed","input":{"filePath":".../hello.txt"},"output":"<path>.../hello.txt</path>\n<type>file</type>..."}}}
-{"type":"step_finish",...,"part":{"reason":"tool-calls","type":"step-finish",...}}
-{"type":"step_start",...,"sessionID":"ses_...",...}
-{"type":"text",...,"part":{"type":"text","text":"\n\nhello tool world","time":{...}}}
-{"type":"step_finish",...,"part":{"reason":"stop","type":"step-finish",...}}
+{"type":"step_start","timestamp":1789492152602,"sessionID":"ses_f59f4c2d5ffeLWm4Iqk9TBRR6k","part":{"id":"prt_0a60b4911001JlUHR24K82ay26","messageID":"msg_0a60b3f44001In1auH1jhK3NUK","sessionID":"ses_f59f4c2d5ffeLWm4Iqk9TBRR6k","snapshot":"423d329d4732dd85190b1cf72d4a1c1a23d99c24","type":"step-start"}}
+{"type":"tool_use","timestamp":1789492152646,"sessionID":"ses_f59f4c2d5ffeLWm4Iqk9TBRR6k","part":{"type":"tool","tool":"read","callID":"call_237fad6b865f4a9bb7d81809","state":{"status":"completed","input":{"filePath":"/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/feat/fr-1048-opencode-backend/tmp/oc-disposable/hello.txt"},"output":"<path>/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/feat/fr-1048-opencode-backend/tmp/oc-disposable/hello.txt</path>\n<type>file</type>\n<content>\n1: hello tool world\n\n(End of file - total 1 lines)\n</content>","metadata":{"preview":"hello tool world","truncated":false,"loaded":[],"display":{"type":"file","path":"/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/feat/fr-1048-opencode-backend/tmp/oc-disposable/hello.txt","text":"hello tool world","lineStart":1,"lineEnd":1,"totalLines":1,"truncated":false}},"title":"tmp/oc-disposable/hello.txt","time":{"start":1789492152621,"end":1789492152642}},"id":"prt_0a60b4915001yZuDHyEWMVYmOL","sessionID":"ses_f59f4c2d5ffeLWm4Iqk9TBRR6k","messageID":"msg_0a60b3f44001In1auH1jhK3NUK"}}
+{"type":"step_finish","timestamp":1789492152746,"sessionID":"ses_f59f4c2d5ffeLWm4Iqk9TBRR6k","part":{"id":"prt_0a60b49a5001K82sHdvEGSdg2P","reason":"tool-calls","snapshot":"423d329d4732dd85190b1cf72d4a1c1a23d99c24","messageID":"msg_0a60b3f44001In1auH1jhK3NUK","sessionID":"ses_f59f4c2d5ffeLWm4Iqk9TBRR6k","type":"step-finish","tokens":{"total":8945,"input":8854,"output":19,"reasoning":72,"cache":{"write":0,"read":0}},"cost":0.00036781}}
+{"type":"step_start","timestamp":1789492153806,"sessionID":"ses_f59f4c2d5ffeLWm4Iqk9TBRR6k","part":{"id":"prt_0a60b4dc9001ThL2eabf1zGCqJ","messageID":"msg_0a60b4a01001yeucPr0pMNKr47","sessionID":"ses_f59f4c2d5ffeLWm4Iqk9TBRR6k","snapshot":"423d329d4732dd85190b1cf72d4a1c1a23d99c24","type":"step-start"}}
+{"type":"text","timestamp":1789492154027,"sessionID":"ses_f59f4c2d5ffeLWm4Iqk9TBRR6k","part":{"id":"prt_0a60b4dcb001bMdCOhndgF7SGV","messageID":"msg_0a60b4a01001yeucPr0pMNKr47","sessionID":"ses_f59f4c2d5ffeLWm4Iqk9TBRR6k","type":"text","text":"\n\nhello tool world","time":{"start":1789492153803,"end":1789492154024}}}
+{"type":"step_finish","timestamp":1789492154120,"sessionID":"ses_f59f4c2d5ffeLWm4Iqk9TBRR6k","part":{"id":"prt_0a60b4f040017veuG2tT4uqPRy","reason":"stop","snapshot":"423d329d4732dd85190b1cf72d4a1c1a23d99c24","messageID":"msg_0a60b4a01001yeucPr0pMNKr47","sessionID":"ses_f59f4c2d5ffeLWm4Iqk9TBRR6k","type":"step-finish","tokens":{"total":9189,"input":9155,"output":11,"reasoning":23,"cache":{"write":0,"read":0}},"cost":0.0003713}}
+exit=0
 ```
 
 Observations — the event vocabulary is richer than §2's one-word run:
 
 - **`step_start` / `step_finish` repeat per agent step.** A tool-using run
-  emits multiple step cycles.
+  emits multiple step cycles: `step_start → tool_use → step_finish(tool-calls)
+  → step_start → text → step_finish(stop)`.
 - **`step_finish.reason` has two observed values:** `tool-calls` (intermediate —
   the step ended because the agent wants to call a tool) and `stop` (terminal).
-  `stop` is the **only** terminal success signal; `tool-calls` is a neutral
-  intermediate.
-- **`tool_use`** (`part.type == "tool"`) is a neutral tool event carrying
-  `tool` (name), `callID`, and `state.status`/`state.input`/`state.output`. It
-  contributes nothing to the result text; it is ignored for result assembly.
+  `stop` is the **only** terminal success signal; `tool-calls` is an
+  intermediate that must be followed by another `step_start`.
+- **`tool_use`** (`type == "tool_use"`, `part.type == "tool"`) is a neutral
+  tool event carrying `part.tool` (name), `part.callID`, and `part.state`
+  (`status`/`input`/`output`/`metadata`/`title`/`time`). It contributes nothing
+  to the result text; it is ignored for result assembly. Note `tool_use` also
+  carries `sessionID` and `messageID` at the top level.
 - **`text`** events carry `part.text`; the answer is the ordered concatenation
-  of `text` events (across steps, if any step emits text).
+  of `text` events across steps.
 - **`error`** (§3) is the terminal failure event.
 
 Frozen event vocabulary (only these may be recognized): `step_start`, `text`,
