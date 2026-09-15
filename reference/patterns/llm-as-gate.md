@@ -8,6 +8,19 @@ Use this pattern when deterministic checks can verify shape/status, but you also
 
 No new framework node type, action type, or primitive is required. Compose existing YAMLGraph primitives (`llm` + `router` + edges).
 
+## Topology
+
+```mermaid
+flowchart LR
+  Artifact[Artifact and policy] --> Mechanical{Mechanical checks pass?}
+  Mechanical -->|no| Reject[Reject]
+  Mechanical -->|yes| Judge([Structured semantic judgement])
+  Judge --> Route{Pass, fail, or review?}
+  Route -->|pass| Continue[Continue]
+  Route -->|fail| Reject
+  Route -->|review| Human[Human review]
+```
+
 ## Prompt schema (semantic verdict)
 
 ```yaml

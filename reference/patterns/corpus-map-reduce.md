@@ -4,10 +4,17 @@ Analyze every item in a finite corpus with bounded LLM calls, preserve one
 primary finding per input unit, and prove mechanically that nothing was
 silently omitted.
 
-The topology is:
+## Topology
 
-```text
-freeze corpus -> partition -> typed map -> reconcile -> optional reduce -> render
+```mermaid
+flowchart LR
+  Freeze[Freeze corpus identities] --> Partition[Partition with provenance]
+  Partition --> Map([Bounded semantic map])
+  Map --> Reconcile[Reconcile IDs and coverage]
+  Reconcile --> Canary{Canary and invariants pass?}
+  Canary -->|yes| Reduce([Optional semantic reduction])
+  Canary -->|no| Fail[Fail visibly]
+  Reduce --> Render[Render dossier and ledger]
 ```
 
 This is an architecture pattern above the [`map` node](../map-nodes.md)

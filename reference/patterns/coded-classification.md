@@ -33,11 +33,15 @@ taxonomies, chart-of-accounts assignment.
 
 ## The pipeline
 
-```
-input text ──► catalog loader (python) ──► map: one LLM judgement per cluster
-                                       ──► deterministic reducer (all rules in code)
-                                       ──► classification + coverage meta
-                                       ──► LLM-free crosscheck harness (labeled fixtures)
+```mermaid
+flowchart LR
+  Source[Verified vocabulary source] --> Catalog[Build versioned catalog]
+  Catalog --> Cluster[Select bounded candidate cluster]
+  Input[Input text] --> Judge([Classify with quoted evidence])
+  Cluster --> Judge
+  Judge --> Check[Resolve codes and evidence spans]
+  Check --> Rules[Apply taxonomy rules]
+  Rules --> Result[Ranked classifications]
 ```
 
 No new framework primitives: `python` tool + `map` node + `python`
