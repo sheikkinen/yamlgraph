@@ -18,15 +18,21 @@ freezes (§3/§5); widening the supported version set requires a new capture.
 ```
 $ opencode --version
 1.18.31
+exit=0
+stderr=<empty>
 ```
 
 ## §2 Headless JSONL event stream (one-word prompt)
+
+Working directory: worktree root.
 
 ```
 $ opencode run --format json --model inception/mercury-2.5 "reply with the single word: ok"
 {"type":"step_start","timestamp":1789491050580,"sessionID":"ses_f5a05a0faffe3TbMvYHe3wGo2f","part":{"id":"prt_0a5fa7848001IMrWctxigSyXQ7","messageID":"msg_0a5fa61ad0011zCUwDaNJ7fT7g","sessionID":"ses_f5a05a0faffe3TbMvYHe3wGo2f","snapshot":"2353182d8f0c55f51d7bc39f4c2f92d04d38e38e","type":"step-start"}}
 {"type":"text","timestamp":1789491050580,"sessionID":"ses_f5a05a0faffe3TbMvYHe3wGo2f","part":{"id":"prt_0a5fa784c001fz8AYJ4CvJeQK4","messageID":"msg_0a5fa61ad0011zCUwDaNJ7fT7g","sessionID":"ses_f5a05a0faffe3TbMvYHe3wGo2f","type":"text","text":"\n\nok","time":{"start":1789491050572,"end":1789491050576}}}
 {"type":"step_finish","timestamp":1789491050735,"sessionID":"ses_f5a05a0faffe3TbMvYHe3wGo2f","part":{"id":"prt_0a5fa78e9001euO88QQIeWifGO","reason":"stop","snapshot":"2353182d8f0c55f51d7bc39f4c2f92d04d38e38e","messageID":"msg_0a5fa61ad0011zCUwDaNJ7fT7g","sessionID":"ses_f5a05a0faffe3TbMvYHe3wGo2f","type":"step-finish","tokens":{"total":8877,"input":8694,"output":4,"reasoning":179,"cache":{"write":0,"read":0}},"cost":0.00037521}}
+exit=0
+stderr=<empty>
 ```
 
 Observations:
@@ -37,7 +43,7 @@ Observations:
   This run emitted one `text` event; multi-`text` streams are expected and
   must be ordered.
 - `step_finish` is terminal and carries `reason` (`"stop"`), `tokens`, `cost`.
-- Exit code 0.
+- Exit code 0, empty stderr.
 
 ## §3 Error run — the failure signal is the `error` event
 
@@ -71,6 +77,8 @@ $ opencode run --model inception/mercury-2.5 "reply with the single word: ok"
 > build · mercury-2.5
 
 ok
+exit=0
+stderr=<empty>
 ```
 
 Observations: the default formatter emits a header line (the model/title)
@@ -136,6 +144,8 @@ Options:
   -i, --interactive  run in direct interactive split-footer mode          [boolean] [default: false]
       --auto         auto-approve permissions that are not explicitly denied (dangerous!)
                                                                           [boolean] [default: false]
+exit=0
+stderr=<empty>
 ```
 
 ## §8 Models (provider-scoped)
@@ -246,3 +256,24 @@ Frozen event vocabulary (only these may be recognized): `step_start`, `text`,
 `{stop, tool-calls}`. Any other event `type`, `part.type`, or `reason` is a
 failure (unknown-event policy), not silently ignored. Widening either set
 requires a new committed capture on the widened version.
+
+## §12 Frozen argv order (prompt-first)
+
+The FR freezes `["opencode", "run", <prompt>, "--format", "json", "--model",
+<resolved>, "--session", <resolved>?]` — the prompt first, then flags. This
+exact order (without `--session`) was captured live:
+
+```
+$ opencode run "reply with the single word: ok" --format json --model inception/mercury-2.5
+{"type":"step_start","timestamp":1789492661443,"sessionID":"ses_f59ed0110ffee8H0aRgtAlSVRw","part":{"id":"prt_0a6130cb7001FLHiC6IvMBUdcs","messageID":"msg_0a613013b001k7eLknAou4PMAw","sessionID":"ses_f59ed0110ffee8H0aRgtAlSVRw","snapshot":"2a09ce3eba6a6a8aab7e3331416ae3419f16e74c","type":"step-start"}}
+{"type":"text","timestamp":1789492661443,"sessionID":"ses_f59ed0110ffee8H0aRgtAlSVRw","part":{"id":"prt_0a6130cba001WiZtv06Gp4QGRS","messageID":"msg_0a613013b001k7eLknAou4PMAw","sessionID":"ses_f59ed0110ffee8H0aRgtAlSVRw","type":"text","text":"\n\nok","time":{"start":1789492661434,"end":1789492661439}}}
+{"type":"step_finish","timestamp":1789492661629,"sessionID":"ses_f59ed0110ffee8H0aRgtAlSVRw","part":{"id":"prt_0a6130d74001tRr7IGlcrJYSWt","reason":"stop","snapshot":"2a09ce3eba6a6a8aab7e3331416ae3419f16e74c","messageID":"msg_0a613013b001k7eLknAou4PMAw","sessionID":"ses_f59ed0110ffee8H0aRgtAlSVRw","type":"step-finish","tokens":{"total":8881,"input":8721,"output":7,"reasoning":153,"cache":{"write":0,"read":0}},"cost":0.00037284}}
+exit=0
+stderr=<empty>
+```
+
+Observations: opencode's yargs accepts the positional prompt before the
+`--format`/`--model` flags (this capture) and after them (§2). The FR freezes
+the prompt-first order shown here; the evidence, Proposed Solution §3,
+REQ-YG-679, AC-08, and the unit argv-equality tests must all use this same
+order.

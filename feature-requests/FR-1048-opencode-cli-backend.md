@@ -9,7 +9,7 @@
 framework primitive (one named consumer; no three-distinct-use-case evidence).
 **First consumer / first event:** an operator who runs opencode (provider
 keys in `~/.local/share/opencode/auth.json`, no Copilot seat, no Claude
-subscription) runs the disposable two-node integration witness (§AC-14) with
+subscription) runs the disposable two-node integration witness (§AC-16) with
 `backend: opencode`, and the second node recalls a nonce from the first
 node's session — proving byte-for-byte `--session` resumption of a real
 `session_id`. Second consumer, same week: any graph that wants a
@@ -85,8 +85,8 @@ flags, and their shapes.
 Graph authors who already run opencode get an agent backend that bills the
 provider key they already configured, needs no vendor seat and no
 subscription, selects its model through one required `provider/model` value,
-and fails loudly on a non-`stop` finish instead of silently returning whatever
-the process printed before dying.
+and fails loudly on a non-`stop` terminal finish instead of silently returning
+whatever the process printed before dying.
 
 ## Problem
 
@@ -108,9 +108,9 @@ the process printed before dying.
    failure.
 4. **Exit code is not the only signal** (mirrors FR-959 evidence §5). A
    failed run exits 1 *and* emits a terminal `error` event; the durable signal
-   is the event, not the code. A run that hits a tool-permission refusal
-   mid-stream must not be reported as success because its last line happened
-   to parse.
+   is the event, not the code. A run whose stream ends without a terminal
+   `step_finish(stop)` must not be reported as success because its last line
+   happened to parse.
 5. **Payer is provider-key, not subscription.** There is no `claude auth
    status` equivalent whose `authMethod` proves who pays. The equivalent
    question is *which provider/model is the child going to bill*, and the only
@@ -333,11 +333,13 @@ backend.
   `opencode run <prompt> --format json --model <resolved>` (plus `--session`
   when `resume` is set) in the frozen order; stdout crosses a typed, fail-closed
   JSONL state machine (recognized events `step_start`/`text`/`tool_use`/
-  `step_finish`/`error`; `step_finish.reason ∈ {stop, tool-calls}`; `stop` is
-  the only terminal success) before `CopilotResult(backend="opencode")`;
-  failure on unknown/malformed events, session-ID inconsistency, missing or
-  duplicate terminal, non-`stop` reason, no text, any `error` event, non-zero
-  exit, missing binary, timeout; no usage-limit classifier.
+  `step_finish`/`error`; `step_finish.reason ∈ {stop, tool-calls}`; `tool-calls`
+  closes the current step and requires a later `step_start`, `stop` closes the
+  current step and is the sole terminal success) before
+  `CopilotResult(backend="opencode")`; failure on unknown/malformed events,
+  session-ID inconsistency, a `step_finish.reason` outside `{stop, tool-calls}`,
+  missing or duplicate terminal, no text, any `error` event, non-zero exit,
+  missing binary, timeout; no usage-limit classifier.
 - **REQ-YG-680** — Copilot `backend` closed enum extended to `opencode` at
   schema, compile, and lint; unknown or non-string values fail before any
   subprocess; opencode flags are typed (`OpenCodeCliFlags`, strict, only
@@ -395,8 +397,9 @@ backend.
   open step, unclosed step, event after `stop`, `tool-calls` with no later
   `step_start`) plus unknown/malformed events, malformed JSON lines, missing/
   conflicting session IDs, duplicate/missing terminal, no text, any `error`
-  event, non-`stop` reason, non-zero exit, missing binary, and timeout all
-  raise without constructing a result or updating state.
+  event, a `step_finish.reason` outside `{stop, tool-calls}`, non-zero exit,
+  missing binary, and timeout all raise without constructing a result or
+  updating state.
 - [ ] AC-11: error-event failures name `error.name` and `error.data.message`;
   non-event failures name the exit code and a bounded stderr/stdout tail,
   without logging environment or credential contents.
@@ -426,11 +429,12 @@ backend.
 - [ ] AC-17: the same live harness proves an invalid session raises an error
   containing `Session not found` and the attempted id, returns no
   `CopilotResult`, and performs no state update.
-- [ ] AC-18: CAP-30 carries the final re-derived requirement IDs,
-  `ARCHITECTURE.md` is regenerated, references document the exact
-  banner/event-transition/model/payer contract, the confession covers the new
-  subprocess site, the changelog cites the backend requirement, and
-  `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-18: `copilot_runtime_opencode.py` is below 400 physical lines; CAP-30
+  carries the final re-derived requirement IDs, `ARCHITECTURE.md` is
+  regenerated, references document the exact banner/event-transition/model/
+  payer contract, the confession covers the new subprocess site, the changelog
+  cites the backend requirement, and `python scripts/req_coverage.py --strict`
+  passes.
 
 ## Alternatives Considered (with dissent preserved)
 
@@ -448,7 +452,7 @@ untouched under this FR (FR-959 R-6 analogue).
 
 ## Kill criterion
 
-If AC-14 cannot be witnessed on this host within one working session because
+If AC-16 cannot be witnessed on this host within one working session because
 the pinned `--format json` stream cannot be parsed into a stable result and a
 real `--session` continuation, REJECT this FR with the log attached. No
 API-key injection, Copilot/claude-backend fallback, or weakened model-explicit
@@ -459,7 +463,9 @@ claim rescues the witness.
 - Argv is a list, prompt is one element (REQ-YG-087; FR-948 R-1).
 - Never log `os.environ`, the child env, or `auth.json` contents.
 - `CopilotResult` shape frozen; fifth `backend` value only.
-- Copilot, API, and Claude behaviour byte-identical (AC-13).
+- Copilot, API, and Claude behaviour unchanged except the enumerated
+  four-to-five closed-set expectation update, demonstrated by the named
+  existing suites (AC-15).
 - New module `copilot_runtime_opencode.py` stays under 400 lines.
 - Not authorized: FR-546's server/SDK route, `httpx`, structured output, a
   permission sandbox, the five dropped flags or `continue_session`,
@@ -494,7 +500,7 @@ claim rescues the witness.
 
 Pending re-judgement — sole route `scripts/judge.sh`. Not judged in the
 author's session. Prior rounds: APPROVED WITH REVISIONS (round 1 R-1..R-5,
-round 2 R-1..R-5 folded).
+round 2 R-1..R-5, round 3 R-1..R-4 folded).
 
 ## Implementation Status
 
@@ -523,4 +529,14 @@ round 2 R-1..R-5 folded).
   R-4 (research record carries four distinct solution classes and dispositions
   every retrieval hit, incl. FR-854 and FR-937); R-5 (witness made
   reproducible — harness path, `YAMLGRAPH_LIVE_OPENCODE=1` gate, and the full
-  witness-artifact field list). Awaiting re-judgement.
+  witness-artifact field list).
+- 2026-09-15: Judged APPROVED WITH REVISIONS (round 3). Revisions folded:
+  R-1 (evidence §1/§2/§5/§7 carry exit status + `stderr=<empty>` markers;
+  §12 captures the exact frozen prompt-first argv order so evidence and the
+  Proposed Solution use the same order); R-2 (`step_finish` semantics made
+  consistent — `tool-calls` closes the step and requires a later `step_start`,
+  `stop` closes and terminates, reasons outside `{stop, tool-calls}` fail,
+  in REQ-YG-679, AC-10, and §3); R-3 (dropped the unevidenced tool-permission
+  refusal claim; the neutral-tool contract stands); R-4 (stale AC references
+  fixed — first-consumer and kill criterion point to AC-16, Constraints to
+  AC-15; AC-18 asserts the <400-line module bound). Awaiting re-judgement.
