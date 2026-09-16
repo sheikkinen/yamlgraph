@@ -67,23 +67,26 @@ Both artifacts coexist with distinct hashes. Two live judge runs total (AC-12).
 
 ## 3. Dual-run claim inventory (AC-13)
 
-Stable IDs: `CP-n` (Copilot draft), `OC-n` (opencode draft).
+Stable IDs: `CP-n` (Copilot draft, `evidence/FR-1049-run-copilot-draft.md`),
+`OC-n` (opencode draft, `evidence/FR-1049-run-opencode-draft.md`). The two raw
+drafts are committed alongside this witness (review P1) so every row is
+independently auditable.
 
-| ID | Claim | Disposition |
-|---|---|---|
-| OC-1 / CP-1 | Verdict APPROVED (no required revisions) | matched |
-| OC-2 / CP-2 | Strategic classification contrib/example (one named consumer, existing abstractions) | matched |
-| OC-3 / CP-3 | H-1 folded: `deepseek/deepseek-v4-pro`, Sami Heikkinen, 2026-09-16, used consistently | matched |
-| OC-4 / CP-4 | Routing correction required: first-match router + former `!= "claude"` catch-all = third-value misroute | matched |
-| OC-5 / CP-5 | Permission boundary precise: `--auto` exists but unmapped; workspace-local `write` under probed default; deny → artifact contract | matched |
-| OC-6 / CP-6 | Frozen scope D-1..D-8 and the not-authorized list (no runtime/flag/permission/`--auto`/server-route/4th-backend changes) | matched |
-| OC-7 / CP-7 | Revised AC-01..AC-16 and conditions C-1..C-10 (model frozen, kill criterion literal, two human approvals) | matched |
-| OC-8 | "Reviewed against" cites `tests/unit/test_fr1049_opencode_judge_variant.py`, `tests/unit/test_fr960_claude_judge_variant.py`, `tests/unit/test_fr758_judge_review_wrappers.py`, `capabilities/CAP-211-…`, `ramp/manifest.yaml`, `ramp/…/SKILL.md`, `yamlgraph/models/node_schema.py`, `yamlgraph/node_factory/copilot_node.py`, `yamlgraph/node_factory/copilot_runtime_opencode.py` | backend-only (input-closure set is wider on the code surface) |
-| CP-8 | "Reviewed against" cites `FR-1049-opencode-judge-variant.judgement.md` "round-history evidence only, not inherited authority" | backend-only (the Copilot judge read the prior judgement and flagged it; the opencode judge did not cite it) |
+| ID | Claim | Source location | Evidence citation | Disposition |
+|---|---|---|---|---|
+| OC-1 / CP-1 | Verdict APPROVED, no required revisions | `run-opencode-draft.md` "**Verdict:**" line + "Required revisions: None"; `run-copilot-draft.md` "**Verdict:**" line + "Required revisions: None" | same two draft files | matched |
+| OC-2 / CP-2 | Strategic classification contrib/example | `run-opencode-draft.md` "Strategic classification" row; `run-copilot-draft.md` "Strategic classification" row | both cite `FR-1049:8-17` and `FR-1048`/`FR-960` | matched |
+| OC-3 / CP-3 | H-1 folded: `deepseek/deepseek-v4-pro`, Sami Heikkinen 2026-09-16 | `run-opencode-draft.md` "Required revisions" §; `run-copilot-draft.md` "Required revisions" § | both cite `FR-1049:425-439,454-461` | matched |
+| OC-4 / CP-4 | Routing correction required (first-match router, catch-all misroute) | `run-opencode-draft.md` "What is sound" §20; `run-copilot-draft.md` "Architecture alignment" row | both cite `yamlgraph/routing.py:91-108/115` | matched |
+| OC-5 / CP-5 | Permission boundary precise (`--auto` unmapped, workspace-local write under probed default, deny → artifact contract) | `run-opencode-draft.md` "Required revisions" §24; `run-copilot-draft.md` "What is sound" §20 | both cite the write-probe and `FR-1049:60-74` | matched |
+| OC-6 / CP-6 | Frozen scope D-1..D-8 + not-authorized list | `run-opencode-draft.md` "Scope is frozen" table; `run-copilot-draft.md` "Scope is frozen" table | both tables, verbatim-identical surface | matched |
+| OC-7 / CP-7 | Revised AC-01..AC-16 and conditions C-1..C-10 | `run-opencode-draft.md` "Revised acceptance criteria"/"Conditions"; `run-copilot-draft.md` same sections | both sections, verbatim-identical surface | matched |
+| OC-8 | "Reviewed against" cites `tests/unit/test_fr1049_*`, `test_fr960_*`, `test_fr758_*`, `capabilities/CAP-211-…`, `ramp/manifest.yaml`, `ramp/…/SKILL.md`, `yamlgraph/models/node_schema.py`, `copilot_node.py`, `copilot_runtime_opencode.py` | `run-opencode-draft.md` "Reviewed against" line | that line | backend-only (wider code-surface input closure) |
+| CP-8 | "Reviewed against" cites `FR-1049-opencode-judge-variant.judgement.md` "round-history evidence only, not inherited authority" | `run-copilot-draft.md` "Reviewed against" line | that line | backend-only (the Copilot judge read the prior judgement; the opencode judge did not cite it) |
 
 No substantive claim is `contradicted`. The two `backend-only` rows are input-
-closure/citation-granularity variance, not disagreements on the verdict,
-scope, or gates.
+closure/citation-granularity variance, not disagreements on the verdict, scope,
+or gates.
 
 ## 4. Human approvals (AC-14)
 
@@ -104,7 +107,8 @@ before the opencode route is operational or this FR is marked Implemented:
   configuration; a configuration that denies `write` was not exercised (the
   write-probe and this run both succeeded on the default). That denial path is
   the kill criterion's surface, covered by AC-16, not by this witness.
-- The dual-run inventory is over the two draft judgements; the raw drafts are
-  `tmp/draft-judgement-{opencode,copilot}-FR-1049-opencode-judge-variant.md`
-  (local, advisory), not committed.
+- The dual-run inventory is over the two committed raw drafts
+  (`evidence/FR-1049-run-opencode-draft.md`, `evidence/FR-1049-run-copilot-draft.md`),
+  advisory like every draft; the witness records their hashes in §2 and maps
+  every inventory row to a source location in them.
 - The `deepseek` provider bills two live turns (the opencode judge run).
