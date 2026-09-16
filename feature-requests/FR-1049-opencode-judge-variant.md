@@ -2,7 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged APPROVED 2026-09-16 (three rounds; sole route
+`scripts/judge.sh`). R-1..R-4 folded; H-1 human spend decision recorded
+(`deepseek/deepseek-v4-pro`, Sami Heikkinen, 2026-09-16). Authority granted;
+scope frozen; enforcement pending.
 **Effort:** 0.5 day + two live judge runs (R-4)
 **Requested:** 2026-09-16
 **First consumer / first event:** an operator whose only agent is opencode
@@ -427,6 +430,10 @@ remaining revision R-1 (round 2): the human spend owner must record a named,
 dated acceptance of `deepseek/deepseek-v4-pro` (or one replacement exact
 `provider/model`), and the FR must not claim R-1 is folded until that decision
 exists.
+
+Round 3 (2026-09-16, same route): **APPROVED** — no required revisions.
+Full verdict and frozen scope in
+[FR-1049-opencode-judge-variant.judgement.md](FR-1049-opencode-judge-variant.judgement.md).
 
 ### Human decisions (R-1 — FOLDED 2026-09-16)
 
