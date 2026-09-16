@@ -91,9 +91,9 @@ Two separate dated approvals by humans other than the enforcer, required
 before the opencode route is operational or this FR is marked Implemented:
 
 1. **Enforcement-infrastructure diff and route invariants** accepted by
-   `<name>`, `<date>`: *PENDING.*
+   Sami Heikkinen, 2026-09-16.
 2. **Residual opencode provider-key payer boundary (FR-1048 §5)** accepted for
-   judge execution by `<name>` (spend owner), `<date>`: *PENDING.*
+   judge execution by Sami Heikkinen (spend owner), 2026-09-16.
 
 ## 5. Limitations
 

@@ -5,7 +5,7 @@
 **Status:** **Implemented 2026-09-16** on branch `feat/fr-1049-opencode-judge-variant`
 (judged APPROVED, three rounds). Enforcement complete: graph node, wrapper
 closed-set, docs/ramp mirror, tests, CAP-211 REQ-YG-682, live dual-run witness.
-Operational use gated by the two human approvals in the witness §4 (C-7/C-8).
+Both human approvals given (witness §4).
 **Effort:** 0.5 day + two live judge runs (R-4)
 **Requested:** 2026-09-16
 **First consumer / first event:** an operator whose only agent is opencode
@@ -484,5 +484,7 @@ Full verdict and frozen scope in
 - 2026-09-16: Live witness (D-7) recorded — opencode run (1.18.31,
   `deepseek/deepseek-v4-pro`) and default Copilot run on the same FR, both
   APPROVED drafts; dual-run claim inventory in
-  `evidence/FR-1049-opencode-judge-witness.md`. The two human approvals (§4)
-  remain **pending** before operational use.
+  `evidence/FR-1049-opencode-judge-witness.md`.
+- 2026-09-16: **Both human approvals given** (witness §4): enforcement-
+  infrastructure diff/route invariants and the provider-key payer boundary,
+  accepted by Sami Heikkinen 2026-09-16. Status → Implemented.
