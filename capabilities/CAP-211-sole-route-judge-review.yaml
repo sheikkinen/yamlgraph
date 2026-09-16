@@ -49,14 +49,16 @@ requirements:
       - tests/unit/test_fr758_judge_review_wrappers.py
   - id: REQ-YG-642
     description: >
-      Judge adapter backend selection (FR-960). The judge graph holds two
-      copilot nodes sharing one prompt — `judge` (Copilot CLI, the
-      default) and `judge_claude` (`backend: claude`, FR-959) — routed by
-      a state-conditioned edge on `backend`; the Claude node restricts
+      Judge adapter backend selection (FR-960; closed set extended by
+      FR-1049/REQ-YG-682). The judge graph holds three copilot nodes
+      sharing one prompt — `judge` (Copilot CLI, the default),
+      `judge_claude` (`backend: claude`, FR-959), and `judge_opencode`
+      (`backend: opencode`, FR-1048) — routed by mutually exclusive
+      state-conditioned edges on `backend`; the Claude node restricts
       tool availability and approval to exactly Read, Glob, Grep, Write
       with no bypass flag. scripts/judge.sh reads JUDGE_BACKEND
-      (copilot | claude), exits 64 on any other value before taking the
-      lock, derives a per-backend-per-FR artifact path
+      (copilot | claude | opencode), exits 64 on any other value before
+      taking the lock, derives a per-backend-per-FR artifact path
       tmp/draft-judgement-<backend>-<fr-slug>.md (a same-backend rerun
       replaces only its own draft; other backends' and other FRs' drafts
       survive), and passes backend and artifact_path as graph vars. Each
