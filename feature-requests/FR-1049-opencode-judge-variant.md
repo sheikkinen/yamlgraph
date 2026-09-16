@@ -2,10 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged APPROVED 2026-09-16 (three rounds; sole route
-`scripts/judge.sh`). R-1..R-4 folded; H-1 human spend decision recorded
-(`deepseek/deepseek-v4-pro`, Sami Heikkinen, 2026-09-16). Authority granted;
-scope frozen; enforcement pending.
+**Status:** **Implemented 2026-09-16** on branch `feat/fr-1049-opencode-judge-variant`
+(judged APPROVED, three rounds). Enforcement complete: graph node, wrapper
+closed-set, docs/ramp mirror, tests, CAP-211 REQ-YG-682, live dual-run witness.
+Operational use gated by the two human approvals in the witness §4 (C-7/C-8).
 **Effort:** 0.5 day + two live judge runs (R-4)
 **Requested:** 2026-09-16
 **First consumer / first event:** an operator whose only agent is opencode
@@ -467,3 +467,22 @@ Full verdict and frozen scope in
   `deepseek/deepseek-v4-pro` on 2026-09-16; the value is used consistently in
   §1 (graph target), §5 (argv), §6, Constraints, AC-06/AC-07/AC-11, and H-1.
   Awaiting re-judgement.
+- 2026-09-16: Judged APPROVED (round 3); judgement promoted to
+  `feature-requests/FR-1049-opencode-judge-variant.judgement.md`.
+- 2026-09-16: Enforced. RED (`tests/unit/test_fr1049_opencode_judge_variant.py`
+  + brief + CAP-211 REQ-YG-682 + ARCHITECTURE regen) then GREEN (graph authored
+  via `scripts/author.sh`; `scripts/judge.sh` closed set; README/SKILL/ramp
+  mirror; FR-960 three-node assertion update; changelog). Verification:
+  27 FR-1049+FR-960+FR-931 tests pass, 27 FR-758 wrapper tests pass,
+  `graph lint` 0 issues, `graph validate` 4 nodes/7 edges,
+  `req_coverage --strict` 417/417, `validate_capabilities --strict` clean.
+- 2026-09-16: **Deviation recorded** — the FR-960 routing test's
+  `test_graph_has_two_copilot_nodes_sharing_the_judge_prompt` assertion was
+  updated to three nodes (`{"judge", "judge_claude", "judge_opencode"}`), the
+  same closed-set-count update FR-1048 made (four→five values). No Copilot or
+  Claude node definition changed.
+- 2026-09-16: Live witness (D-7) recorded — opencode run (1.18.31,
+  `deepseek/deepseek-v4-pro`) and default Copilot run on the same FR, both
+  APPROVED drafts; dual-run claim inventory in
+  `evidence/FR-1049-opencode-judge-witness.md`. The two human approvals (§4)
+  remain **pending** before operational use.
