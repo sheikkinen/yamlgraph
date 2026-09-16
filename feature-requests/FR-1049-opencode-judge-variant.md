@@ -373,8 +373,10 @@ rescues the witness.
   the new node, the three explicit edges, and the Copilot edge condition.
 - The opencode node's `model` must match `^[^/\s]+/[^/\s]+$` (FR-1048 §5) —
   a bare model name like `gpt-5.6-sol` is invalid for this backend. The pin is
-  the H-1 value: `inception/mercury-2.5`, chosen and recorded by a human spend
-  owner (R-1); enforcement never substitutes a model.
+  the H-1 value: `inception/mercury-2.5`, **proposed** by the author and
+  **awaiting the human spend owner's named, dated acceptance** (R-1); the
+  author does not choose the billed model, and enforcement never substitutes
+  one.
 - Copilot, Claude, and the review route are unchanged; `backend: sampling` and
   streaming are untouched.
 - New module under 400 lines (a test file); graph edits via `scripts/author.sh`
@@ -415,14 +417,22 @@ R-2 (precise permission boundary: `--auto` exists but is unmapped; workspace-
 local `write` succeeded under the probed default configuration), R-3 (two
 separate human signatures: enforcement-infrastructure + provider-key payer),
 R-4 (effort is two live runs; comparison witness host needs both the opencode
-provider key and a Copilot entitlement). All four folded below and in §2–§4/AC.
+provider key and a Copilot entitlement). R-2/R-3/R-4 folded; **R-1 is not
+folded — H-1 is a human spend decision and remains pending.**
 
-### Human decisions (R-1)
+Round 2 (2026-09-16, same route): **APPROVED WITH REVISIONS** — single
+remaining revision R-1 (round 2): the human spend owner must record a named,
+dated acceptance of `inception/mercury-2.5` (or one replacement exact
+`provider/model`), and the FR must not claim R-1 is folded until that decision
+exists.
+
+### Human decisions (R-1 — NOT folded, awaiting the spend owner)
 
 - **H-1 (spend/provider): which `provider/model` does the opencode judge pin?**
-  - **Chosen: `inception/mercury-2.5`** — the FR-1048 witness model, already
-    proven on this host (recommended option).
-  - **Chooser / date:** *PENDING human spend owner — must be filled before
+  - **Proposed by author: `inception/mercury-2.5`** — the FR-1048 witness
+    model, already proven on this host (recommended option).
+  - **Chooser / date:** *PENDING — a named human spend owner must accept this
+    value (or select one different exact `provider/model`) with a date before
     enforcement.*
   - Evidence: `opencode models` (FR-1048 probe §8); the provider-key payer is
     the operator's `~/.local/share/opencode/auth.json`. This is a spend
@@ -435,11 +445,15 @@ provider key and a Copilot entitlement). All four folded below and in §2–§4/
   `write` auto-completes under the probed default configuration) and promoted
   to `evidence/FR-1049-opencode-judge-write-probe.md`. No code written.
 - 2026-09-16: Judged APPROVED WITH REVISIONS (round 1). Revisions folded:
-  R-1 (H-1 model/spend decision recorded as `inception/mercury-2.5`, chooser
-  + date pending the human spend owner; used consistently in §1/§5/§6/AC);
   R-2 (precise permission boundary — `--auto` exists but is unmapped;
   workspace-local `write` succeeded under the probed default configuration;
   denying config fails through the artifact contract); R-3 (two separate human
   signatures — enforcement-infrastructure and provider-key payer); R-4 (effort
   is two live runs; comparison witness host needs both the opencode provider
-  key and a Copilot entitlement). Awaiting re-judgement.
+  key and a Copilot entitlement). R-1 (H-1 model/spend decision) is a human
+  decision and remains **pending** — not folded.
+- 2026-09-16: Judged APPROVED WITH REVISIONS (round 2). Single remaining
+  revision R-1 (round 2): the human spend owner must record a named, dated
+  acceptance of `inception/mercury-2.5` (or one replacement exact
+  `provider/model`), and the FR must not claim R-1 is folded until that
+  decision exists. Awaiting the human decision, then re-judgement.
