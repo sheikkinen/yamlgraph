@@ -5,6 +5,8 @@
 # FR-960: backend selection (JUDGE_BACKEND=copilot|claude) and a
 # per-backend-per-FR artifact path so two backends, or two FRs judged back
 # to back, never delete each other's drafts (2026-09-02 clobber).
+# FR-1049: the closed set grows to copilot|claude|opencode; the artifact path
+# is already per-backend-per-FR, so the third backend slots in unchanged.
 set -u
 
 FR_PATH="${1:-}"
@@ -15,15 +17,15 @@ STALE_MIN=10  # 600s = graph timeout
 
 fail() { echo "judge.sh: $1" >&2; exit "$2"; }
 
-[ -n "$FR_PATH" ] || fail "usage: [JUDGE_BACKEND=copilot|claude] scripts/judge.sh <fr-path>" 64
+[ -n "$FR_PATH" ] || fail "usage: [JUDGE_BACKEND=copilot|claude|opencode] scripts/judge.sh <fr-path>" 64
 [ -f "$FR_PATH" ] || fail "FR not found: $FR_PATH" 66
 
 # FR-960: closed backend set, validated before the lock is taken so a typo
-# can never select the default silently.
+# can never select the default silently. FR-1049: +opencode.
 BACKEND="${JUDGE_BACKEND:-copilot}"
 case "$BACKEND" in
-  copilot|claude) ;;
-  *) fail "unknown JUDGE_BACKEND '$BACKEND' (expected copilot or claude)" 64 ;;
+  copilot|claude|opencode) ;;
+  *) fail "unknown JUDGE_BACKEND '$BACKEND' (expected copilot, claude, or opencode)" 64 ;;
 esac
 
 # FR-960: per-backend-per-FR artifact. Deterministic and human-readable; a

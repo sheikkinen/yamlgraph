@@ -33,8 +33,9 @@ until human-reviewed (NC-412 C-6).
 **One judge to rule them all:** the YAMLGraph adapter is the ONLY
 permitted execution route. Since FR-960 the adapter graph carries two
 backend nodes — Copilot CLI (default) and Claude Code
-(`JUDGE_BACKEND=claude`) — selected inside the one graph by a
-state-conditioned edge; two brains, still one route.
+(`JUDGE_BACKEND=claude`) — and since FR-1049 a third, opencode
+(`JUDGE_BACKEND=opencode`), selected inside the one graph by
+state-conditioned edges; three brains, still one route.
 
 1. **YAMLGraph adapter (SOLE ROUTE)** — invoke via the operator
    wrapper `scripts/judge.sh <fr-path>` (csap NC-415: OS lock +

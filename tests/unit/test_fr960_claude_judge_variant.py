@@ -241,14 +241,14 @@ def _agent_calls(mock_run) -> list[list[str]]:
 
 @pytest.mark.req("REQ-YG-642")
 class TestGraphRouting:
-    def test_graph_has_two_copilot_nodes_sharing_the_judge_prompt(self):
+    def test_graph_has_three_copilot_nodes_sharing_the_judge_prompt(self):
         import yaml
 
         cfg = yaml.safe_load(ADAPTER.read_text(encoding="utf-8"))
         copilot_nodes = {
             k: v for k, v in cfg["nodes"].items() if v.get("type") == "copilot"
         }
-        assert set(copilot_nodes) == {"judge", "judge_claude"}
+        assert set(copilot_nodes) == {"judge", "judge_claude", "judge_opencode"}
         assert all(v["prompt"] == "judge" for v in copilot_nodes.values())
         judge = copilot_nodes["judge"]
         assert judge["backend"] == "cli"

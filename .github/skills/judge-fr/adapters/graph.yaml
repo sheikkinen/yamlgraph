@@ -13,7 +13,7 @@ prompts_dir: prompts
 
 state:
   fr_path: str
-  backend: str            # "copilot" | "claude"; scripts/judge.sh always sets it (FR-960)
+  backend: str            # "copilot" | "claude" | "opencode"; scripts/judge.sh always sets it (FR-960/FR-1049)
   artifact_path: str      # per-backend-per-FR path computed by scripts/judge.sh (FR-960)
   judge_result: dict
 
@@ -50,17 +50,33 @@ nodes:
       artifact_path: "{state.artifact_path}"
     state_key: judge_result
     timeout: 600
+  judge_opencode:
+    type: copilot
+    backend: opencode         # FR-1048 backend; bills the operator's provider key
+    cli_flags:
+      model: deepseek/deepseek-v4-pro   # provider/model; compile-time fail-closed (FR-1048 §5); H-1 human spend decision
+    prompt: judge             # SAME prompt file (NC-412 zero duplication)
+    variables:
+      fr_path: "{state.fr_path}"
+      artifact_path: "{state.artifact_path}"
+    state_key: judge_result
+    timeout: 600
 
 edges:
   - from: START
     to: select
   - from: select
     to: judge
-    condition: backend != "claude"
+    condition: backend == "copilot"
   - from: select
     to: judge_claude
     condition: backend == "claude"
+  - from: select
+    to: judge_opencode
+    condition: backend == "opencode"
   - from: judge
     to: END
   - from: judge_claude
+    to: END
+  - from: judge_opencode
     to: END
