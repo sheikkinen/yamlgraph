@@ -1,11 +1,4 @@
-# FR-1049 run — copilot judge draft (raw, advisory)
-
-**Prior art:** `FR-1049-opencode-judge-witness.md` — the witness that cites this
-raw draft; this file is the draft itself, committed so the witness's claim
-inventory is independently auditable (review P1). `FR-960-run-A-copilot-draft-FR-961.md`
-— the Copilot-judge raw-draft analogue (same role, prior FR). None is a
-duplicate: this is the raw Copilot judge output on FR-1049, which no other file
-contains.
+# Judgement: FR-1049 opencode judge variant — third backend in the sole-route judge adapter
 
 **Verdict:** APPROVED — the request names a real provider-key-only consumer, reuses the implemented FR-1048 backend through the existing sole-route pattern, freezes an exact human-selected model and fail-loud permission boundary, and supplies mechanically checkable offline and live gates; this draft becomes implementation authority only after human review and promotion.
 

@@ -1,12 +1,4 @@
-# FR-1049 run — opencode judge draft (raw, advisory)
-
-**Prior art:** `FR-1049-opencode-judge-witness.md` — the witness that cites this
-raw draft; this file is the draft itself, committed so the witness's claim
-inventory is independently auditable (review P1). `FR-960-run-B-claude-draft-FR-961.md`
-— the Claude-judge raw-draft analogue (same role, different backend).
-`FR-1048-opencode-backend-witness.md` / `FR-1048-opencode-cli-probe.md` — the
-backend's witness/probe this judge run consumes. None is a duplicate: this is
-the raw opencode judge output on FR-1049, which no other file contains.
+# Judgement: FR-1049 opencode judge variant — third backend in the sole-route judge adapter
 
 **Verdict:** APPROVED — a named provider-key-only consumer, an already-Implemented FR-1048 backend, a minimal third-node route with an exact human-selected `provider/model` pin, a fail-loud permission boundary, and mechanically witnessed enforcement gates form a clear, minimal, internally consistent contrib/example change; scope is frozen and authority is granted subject to the gates below.
 

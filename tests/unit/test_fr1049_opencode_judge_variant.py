@@ -256,6 +256,28 @@ def _opencode_cli(responses: list[MagicMock]):
     return run
 
 
+CLAUDE_VERSION_OK = "2.1.255 (Claude Code)\n"
+CLAUDE_AUTH_OK = json.dumps(
+    {"loggedIn": True, "authMethod": "claude.ai", "apiProvider": "firstParty"}
+)
+CLAUDE_ENVELOPE_OK = json.dumps(
+    {"is_error": False, "result": "**Verdict:** stub", "session_id": "s-1"}
+)
+
+
+def _claude_cli(responses: list[MagicMock]):
+    queue = list(responses)
+
+    def run(argv, *args, **kwargs):
+        if argv and argv[0] == "claude":
+            return queue.pop(0)
+        m = MagicMock()
+        m.stdout, m.returncode, m.stderr = b"", 0, b""
+        return m
+
+    return run
+
+
 def _compile():
     from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
@@ -365,3 +387,34 @@ class TestGraphRouting:
         assert len(calls) == 1
         assert calls[0][0] == "copilot"
         assert final["judge_result"].backend == "cli"
+
+    def test_claude_backend_visits_only_judge_claude(self):
+        app = _compile()
+        with patch(
+            "subprocess.run",
+            side_effect=_claude_cli(
+                [
+                    _proc(CLAUDE_VERSION_OK),
+                    _proc(CLAUDE_AUTH_OK),
+                    _proc(CLAUDE_ENVELOPE_OK),
+                ]
+            ),
+        ) as m:
+            final = app.invoke(
+                {
+                    "fr_path": "feature-requests/X.md",
+                    "backend": "claude",
+                    "artifact_path": "tmp/b.md",
+                }
+            )
+        calls = _agent_calls(m)
+        assert [c[:2] for c in calls] == [
+            ["claude", "--version"],
+            ["claude", "auth", "status"][:2],
+            ["claude", "-p"],
+        ]
+        agent = calls[2]
+        assert "feature-requests/X.md" in agent[2] and "tmp/b.md" in agent[2]
+        assert agent[agent.index("--tools") + 1] == FOUR_TOOLS
+        assert not any(c[0] == "copilot" or c[0] == "opencode" for c in calls)
+        assert final["judge_result"].backend == "claude"
