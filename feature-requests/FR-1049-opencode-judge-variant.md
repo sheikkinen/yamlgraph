@@ -3,7 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Enhancement
 **Status:** Proposed
-**Effort:** 0.5 day + one live judge run
+**Effort:** 0.5 day + two live judge runs (R-4)
 **Requested:** 2026-09-16
 **First consumer / first event:** an operator whose only agent is opencode
 (provider keys in `~/.local/share/opencode/auth.json`, no Copilot seat, no
@@ -55,8 +55,13 @@ state variable through conditional edges, so the graph stays the one route.
 `scripts/judge.sh` grows its closed backend set from `copilot|claude` to
 `copilot|claude|opencode`; the per-backend-per-FR artifact path already handles
 the third backend with no change. The opencode node's `cli_flags` is a single
-`model` pin — **no tool or permission flags exist for this backend and none are
-needed**: the write-probe proves headless `write` auto-completes. The
+`model` pin — **no tool or permission flag is mapped by FR-1048 and none is
+added here** (R-2): opencode 1.18.31 *does* expose the broad `--auto`
+permission flag, but FR-1048 deliberately leaves it unmapped, and the committed
+write-probe proves a **workspace-local** `write` auto-completes under the
+**probed default configuration** — not a universal permission contract. An
+operator configuration that denies `write` fails loudly through the wrapper's
+artifact contract (a supported outcome, not a silent fallback). The
 admission cost is one routing-condition change: the Copilot edge's catch-all
 `backend != "claude"` must become explicit `backend == "copilot"`, because a
 third value would otherwise match the catch-all and silently misroute to the
@@ -87,16 +92,18 @@ examinable against the Copilot and Claude drafts.
 3. **The tool-permission question is already answered, and the answer is
    cheaper than the Claude case.** Copilot needed `allow_all_tools` (NC-414:
    denial is silent and exits 0); Claude needed `--tools`/`--allowedTools`
-   (FR-960). opencode needs neither — its headless `write` auto-completes
-   (write-probe §1/§2). This FR must not invent a permission flag that
-   FR-1048 deliberately never mapped.
+   (FR-960). opencode needs no *mapped* flag: its workspace-local `write`
+   auto-completes under the probed default configuration (write-probe §1/§2).
+   The broad `--auto` flag exists in the CLI (`--help` §7) but is deliberately
+   unmapped by FR-1048 and is not added here (R-2). This FR must not invent a
+   permission flag that FR-1048 deliberately never mapped.
 
 ## Ideal Result
 
 `scripts/judge.sh <fr>` behaves exactly as today.
 `JUDGE_BACKEND=opencode scripts/judge.sh <fr>` renders the same doctrine
-through opencode, with the write-probe's auto-approved file tools, on the
-provider key, into `tmp/draft-judgement-opencode-<fr-slug>.md`. Running it
+through opencode, with the write-probe's workspace-local auto-approved file
+tools (under the probed default configuration — R-2), on the provider key, into `tmp/draft-judgement-opencode-<fr-slug>.md`. Running it
 alongside the default backend on one FR and inventorying the drafts is the
 same documented ritual FR-960 established, now three-way. No permission flag,
 no backend change to FR-1048, no `CopilotResult` change — the node is a `model`
@@ -152,7 +159,7 @@ nodes:
     type: copilot
     backend: opencode
     cli_flags:
-      model: inception/mercury-2.5   # provider/model; compile-time fail-closed (FR-1048 §5); see human Q1
+      model: inception/mercury-2.5   # provider/model; compile-time fail-closed (FR-1048 §5); H-1 value (R-1)
     prompt: judge                     # SAME prompt file (NC-412 zero duplication)
     variables: { fr_path: "{state.fr_path}", artifact_path: "{state.artifact_path}" }
     state_key: judge_result
@@ -198,10 +205,13 @@ opencode backend rejects those keys as extras (`OpenCodeCliFlags`, `extra=
 ### 3. README, SKILL, ramp mirror (the FR-960 §3 + the CI trap it hit)
 
 - `adapters/README.md` gains: the third backend and its closed set; that the
-  opencode node has **no** tool/permission flags and why (write-probe §2.3);
-  that it bills the operator's provider key through FR-1048's compile-time
-  model requirement (link FR-1048's payer boundary, do not restate it); the
-  routing-condition note.
+  opencode node has **no** tool/permission flag and why (write-probe §2.3),
+  stated precisely (R-2) — `--auto` exists in the CLI but is deliberately
+  unmapped, a workspace-local `write` succeeded under the probed default
+  configuration, and an operator configuration denying `write` fails through
+  the artifact contract; that it bills the operator's provider key through
+  FR-1048's compile-time model requirement (link FR-1048's payer boundary, do
+  not restate it); the routing-condition note.
 - `SKILL.md`'s "one judge to rule them all" paragraph ("Since FR-960 the
   adapter graph carries two backend nodes …") becomes three backend nodes.
 - **Ramp mirror (FR-960's CI failure):** `ramp/assets/tier2/github/skills/judge-fr/SKILL.md`
@@ -218,9 +228,9 @@ Committed, one section per live run, mirroring FR-960 §4:
 | Field | Content |
 |---|---|
 | Authoring proof | `scripts/author.sh` command and brief path, digest of the local `tmp/draft-authoring-report.md` (not committed), quoted required sections, lint/smoke results, graph commit SHA, limitations |
-| Run | target FR path and commit SHA, backend `opencode`, `opencode --version` (the FR-1048 version-only preflight), resolved model as the `--model` argv (the only payer signal — FR-1048 §8), `JUDGE_BACKEND`, start/end timestamps, artifact path and sha256, verdict header line |
+| Run | target FR path and commit SHA, backend `opencode`, `opencode --version` (the FR-1048 version-only preflight), resolved model as the `--model` argv (the only payer signal — FR-1048 §8), `JUDGE_BACKEND`, start/end timestamps, artifact path and sha256, verdict header line, and the effective permission/config limitation (R-2) |
 | Dual-run inventory | `CP-n` (Copilot draft) vs `OC-n` (opencode draft) IDs with `matched` / `contradicted` / `backend-only` dispositions, or the literal convergence sentinel `no backend-only or contradicted items` |
-| Signature | one dated line by a human other than the enforcer: "Residual opencode provider-key payer boundary (FR-1048 §5) accepted for judge execution by <name>, <date>" |
+| Signature | two separate dated lines by humans other than the enforcer (R-3): (1) "Enforcement-infrastructure diff and route invariants accepted by <name>, <date>"; (2) "Residual opencode provider-key payer boundary (FR-1048 §5) accepted for judge execution by <name>, <date>" — the second signed by the spend owner |
 | Limitations | anything not exercised |
 
 ### 5. Tests — `tests/unit/test_fr1049_opencode_judge_variant.py`, marked `process`, every test `@pytest.mark.req("REQ-YG-682")`
@@ -268,6 +278,11 @@ Offline:
 - [ ] AC-01 (C-2): FR-1048 is Implemented on main, its evidence and live
   witness exist, and its kill criterion has not fired, before any graph /
   wrapper / test / doc work begins.
+- [ ] AC-01b (R-1, H-1): a named human spend owner has selected the exact
+  `provider/model` (recorded as H-1 with chooser + date in the FR); the graph
+  target, argv test, REQ-YG-682, docs, and witness all use that one value, and
+  no implementation default or unpinned option remains. Enforcement never
+  substitutes a model.
 - [ ] AC-02 (C-3): `feature-requests/authoring-briefs/fr-1049-opencode-judge-variant-brief.md`
   is committed, cited here, and names the artifact boundary, precedent,
   expected edits, lint, narrow smoke, and report contract.
@@ -283,7 +298,8 @@ Offline:
   unchanged except the Copilot edge condition `!= "claude"` → `== "copilot"`.
 - [ ] AC-06: the opencode node's captured argv is
   `["opencode", "run", <one prompt element>, "--format", "json", "--model", "inception/mercury-2.5"]`
-  with no permission/tool flag and no shell.
+  with no `--tools`, `--allowedTools`, `--auto`, `--agent`, permission flag,
+  resume flag, or shell.
 - [ ] AC-07: stubbed wrapper tests prove unset and `copilot` select the Copilot
   branch, `claude` the Claude branch, `opencode` the opencode branch, any other
   value exits 64 before lock creation, and the exact `--var backend=…` /
@@ -299,22 +315,29 @@ Offline:
   `@pytest.mark.req("REQ-YG-682")`; changelog fragment carries `req: REQ-YG-682`;
   `python scripts/req_coverage.py --strict` passes.
 
-Live (each recorded in the witness; pytest and CI never launch a judge):
+Live (each recorded in the witness; pytest and CI never launch a judge;
+R-4 — AC-11 and AC-12 together are **two** live judge runs on the **same
+comparison witness host**, which must hold **both** the H-1 opencode provider
+key **and** a working Copilot entitlement; the named provider-key-only consumer
+needs only the opencode route once it is operational):
 
-- [ ] AC-11 (C-8): `JUDGE_BACKEND=opencode scripts/judge.sh <FR>` on a host
-  with opencode and provider keys writes
+- [ ] AC-11 (C-8): `JUDGE_BACKEND=opencode scripts/judge.sh <FR>` on the
+  comparison witness host (opencode 1.18.31 + the H-1 provider key) writes
   `tmp/draft-judgement-opencode-<slug>.md` with a `**Verdict:**` line; the
   witness records target FR path/commit, backend, `opencode --version`, the
-  resolved `--model` argv, timestamps, artifact path/hash, verdict.
-- [ ] AC-12: the default backend run on the same FR, same host, writes
-  `tmp/draft-judgement-copilot-<slug>.md`; both files exist afterwards with
-  distinct hashes or an explicitly recorded equality.
+  resolved `--model` argv, timestamps, artifact path/hash, verdict, and the
+  effective permission/config limitation (R-2).
+- [ ] AC-12: the default backend run on the same FR, same host, with a working
+  Copilot entitlement, writes `tmp/draft-judgement-copilot-<slug>.md`; both
+  files exist afterwards with distinct hashes or an explicitly recorded
+  equality.
 - [ ] AC-13: the witness inventories both drafts per §4; every item has a
   source location, evidence citation, and disposition; convergence uses the
   literal sentinel, never an empty table.
-- [ ] AC-14 (C-8): the provider-key payer-boundary signature (§4) is given by a
-  human other than the enforcer before the opencode route is operational or
-  this FR is marked Implemented.
+- [ ] AC-14 (C-7/C-8): **two** separate dated approvals by humans other than the
+  enforcer (§4, R-3) — the enforcement-infrastructure diff/route invariants,
+  and the provider-key payer boundary (signed by the spend owner) — are given
+  before the opencode route is operational or this FR is marked Implemented.
 - [ ] AC-15: the diary entry exists with a Seed; all REQ-YG-682 tests and the
   existing judge-wrapper/model-pin tests pass without launching a real judge.
 
@@ -349,7 +372,9 @@ rescues the witness.
 - The `judge` prompt and `doctrine.md` are untouched; the only graph edit is
   the new node, the three explicit edges, and the Copilot edge condition.
 - The opencode node's `model` must match `^[^/\s]+/[^/\s]+$` (FR-1048 §5) —
-  a bare model name like `gpt-5.6-sol` is invalid for this backend.
+  a bare model name like `gpt-5.6-sol` is invalid for this backend. The pin is
+  the H-1 value: `inception/mercury-2.5`, chosen and recorded by a human spend
+  owner (R-1); enforcement never substitutes a model.
 - Copilot, Claude, and the review route are unchanged; `backend: sampling` and
   streaming are untouched.
 - New module under 400 lines (a test file); graph edits via `scripts/author.sh`
@@ -384,23 +409,37 @@ rescues the witness.
 
 ## Judgement
 
-Pending — sole route `scripts/judge.sh`. Not judged in the author's session.
+Round 1 (2026-09-16, sole route `scripts/judge.sh`, Copilot CLI `gpt-5.6-sol`):
+**APPROVED WITH REVISIONS** — R-1 (fold the human model/spend decision H-1),
+R-2 (precise permission boundary: `--auto` exists but is unmapped; workspace-
+local `write` succeeded under the probed default configuration), R-3 (two
+separate human signatures: enforcement-infrastructure + provider-key payer),
+R-4 (effort is two live runs; comparison witness host needs both the opencode
+provider key and a Copilot entitlement). All four folded below and in §2–§4/AC.
 
-### Questions for the human (as options, or 'none')
+### Human decisions (R-1)
 
-- **Q1 (spend/provider): which `provider/model` does the opencode judge pin?**
-  - **A. `inception/mercury-2.5`** (recommended) — the FR-1048 witness model,
-    already proven on this host; cheapest continuity.
-  - **B. `deepseek/deepseek-v4-pro`** — the model this repo's authoring session
-    itself runs on; strongest reasoning, higher cost.
-  - **C. `none`** — let the operator decide at enforce; the FR records the
-    grammar, not the value.
+- **H-1 (spend/provider): which `provider/model` does the opencode judge pin?**
+  - **Chosen: `inception/mercury-2.5`** — the FR-1048 witness model, already
+    proven on this host (recommended option).
+  - **Chooser / date:** *PENDING human spend owner — must be filled before
+    enforcement.*
   - Evidence: `opencode models` (FR-1048 probe §8); the provider-key payer is
     the operator's `~/.local/share/opencode/auth.json`. This is a spend
-    decision and must not be absorbed by the author.
+    decision and must not be absorbed by the author; enforcement never
+    substitutes a model (R-1).
 
 ## Implementation Status
 
-- 2026-09-16: Proposed. Raw write-probe captured (headless `write`
-  auto-completes, no permission flag) and promoted to
-  `evidence/FR-1049-opencode-judge-write-probe.md`. No code written.
+- 2026-09-16: Proposed. Raw write-probe captured (headless workspace-local
+  `write` auto-completes under the probed default configuration) and promoted
+  to `evidence/FR-1049-opencode-judge-write-probe.md`. No code written.
+- 2026-09-16: Judged APPROVED WITH REVISIONS (round 1). Revisions folded:
+  R-1 (H-1 model/spend decision recorded as `inception/mercury-2.5`, chooser
+  + date pending the human spend owner; used consistently in §1/§5/§6/AC);
+  R-2 (precise permission boundary — `--auto` exists but is unmapped;
+  workspace-local `write` succeeded under the probed default configuration;
+  denying config fails through the artifact contract); R-3 (two separate human
+  signatures — enforcement-infrastructure and provider-key payer); R-4 (effort
+  is two live runs; comparison witness host needs both the opencode provider
+  key and a Copilot entitlement). Awaiting re-judgement.
