@@ -18,7 +18,10 @@ column (FR-960 / FR-889 in-body-precedent).
 — committed raw capture on the pinned `1.18.31` proving the one load-bearing
 fact this FR depends on: opencode headless `write` auto-completes with no
 permission flag, so the judge can write its own draft through the existing
-FR-1048 backend with a bare `model` pin.
+FR-1048 backend with a bare `model` pin. (The write-probe was captured on
+`inception/mercury-2.5`; the H-1 model is `deepseek/deepseek-v4-pro`. The
+`write` auto-approval is a CLI-level permission default, independent of the
+LLM model — the probe evidences the mechanism, not a model-specific behavior.)
 **Prior art:**
 - [FR-960](FR-960-claude-judge-variant.md) [Implemented] — the structural
   template this FR follows 1:1: second-backend node inside the one graph,
@@ -159,7 +162,7 @@ nodes:
     type: copilot
     backend: opencode
     cli_flags:
-      model: inception/mercury-2.5   # provider/model; compile-time fail-closed (FR-1048 §5); H-1 value (R-1)
+      model: deepseek/deepseek-v4-pro   # provider/model; compile-time fail-closed (FR-1048 §5); H-1 value (R-1)
     prompt: judge                     # SAME prompt file (NC-412 zero duplication)
     variables: { fr_path: "{state.fr_path}", artifact_path: "{state.artifact_path}" }
     state_key: judge_result
@@ -245,7 +248,7 @@ Committed, one section per live run, mirroring FR-960 §4:
 - Graph routing, mocked `subprocess.run`: `backend=opencode` visits only
   `judge_opencode`; `copilot` only `judge`; `claude` only `judge_claude`;
   the opencode node's captured argv is `opencode run <prompt> --format json
-  --model inception/mercury-2.5` with **no** `--tools`, `--allowedTools`,
+  --model deepseek/deepseek-v4-pro` with **no** `--tools`, `--allowedTools`,
   `--auto`, `--agent`, or permission flag; and the pre-existing FR-960 routing
   assertions still hold.
 
@@ -297,7 +300,7 @@ Offline:
 - [ ] AC-05: the Copilot and Claude nodes and the `judge` prompt are byte-
   unchanged except the Copilot edge condition `!= "claude"` → `== "copilot"`.
 - [ ] AC-06: the opencode node's captured argv is
-  `["opencode", "run", <one prompt element>, "--format", "json", "--model", "inception/mercury-2.5"]`
+  `["opencode", "run", <one prompt element>, "--format", "json", "--model", "deepseek/deepseek-v4-pro"]`
   with no `--tools`, `--allowedTools`, `--auto`, `--agent`, permission flag,
   resume flag, or shell.
 - [ ] AC-07: stubbed wrapper tests prove unset and `copilot` select the Copilot
@@ -373,10 +376,8 @@ rescues the witness.
   the new node, the three explicit edges, and the Copilot edge condition.
 - The opencode node's `model` must match `^[^/\s]+/[^/\s]+$` (FR-1048 §5) —
   a bare model name like `gpt-5.6-sol` is invalid for this backend. The pin is
-  the H-1 value: `inception/mercury-2.5`, **proposed** by the author and
-  **awaiting the human spend owner's named, dated acceptance** (R-1); the
-  author does not choose the billed model, and enforcement never substitutes
-  one.
+  the H-1 value `deepseek/deepseek-v4-pro`, selected and dated by the human
+  spend owner (R-1); enforcement never substitutes a model.
 - Copilot, Claude, and the review route are unchanged; `backend: sampling` and
   streaming are untouched.
 - New module under 400 lines (a test file); graph edits via `scripts/author.sh`
@@ -417,27 +418,25 @@ R-2 (precise permission boundary: `--auto` exists but is unmapped; workspace-
 local `write` succeeded under the probed default configuration), R-3 (two
 separate human signatures: enforcement-infrastructure + provider-key payer),
 R-4 (effort is two live runs; comparison witness host needs both the opencode
-provider key and a Copilot entitlement). R-2/R-3/R-4 folded; **R-1 is not
-folded — H-1 is a human spend decision and remains pending.**
+provider key and a Copilot entitlement). R-2/R-3/R-4 folded; at round 1, R-1
+was **not** folded — H-1 is a human spend decision and remained pending until
+the spend owner answered it (folded 2026-09-16, below).
 
 Round 2 (2026-09-16, same route): **APPROVED WITH REVISIONS** — single
 remaining revision R-1 (round 2): the human spend owner must record a named,
-dated acceptance of `inception/mercury-2.5` (or one replacement exact
+dated acceptance of `deepseek/deepseek-v4-pro` (or one replacement exact
 `provider/model`), and the FR must not claim R-1 is folded until that decision
 exists.
 
-### Human decisions (R-1 — NOT folded, awaiting the spend owner)
+### Human decisions (R-1 — FOLDED 2026-09-16)
 
 - **H-1 (spend/provider): which `provider/model` does the opencode judge pin?**
-  - **Proposed by author: `inception/mercury-2.5`** — the FR-1048 witness
-    model, already proven on this host (recommended option).
-  - **Chooser / date:** *PENDING — a named human spend owner must accept this
-    value (or select one different exact `provider/model`) with a date before
-    enforcement.*
-  - Evidence: `opencode models` (FR-1048 probe §8); the provider-key payer is
-    the operator's `~/.local/share/opencode/auth.json`. This is a spend
-    decision and must not be absorbed by the author; enforcement never
-    substitutes a model (R-1).
+  - **Decision: `deepseek/deepseek-v4-pro`.**
+  - **Chooser / date:** Sami Heikkinen (spend owner), 2026-09-16.
+  - Evidence: `opencode models` (FR-1048 probe §8) lists
+    `deepseek/deepseek-v4-pro`; the provider-key payer is the operator's
+    `~/.local/share/opencode/auth.json`. The author proposed the value; the
+    spend owner selected it; enforcement never substitutes a model (R-1).
 
 ## Implementation Status
 
@@ -450,10 +449,14 @@ exists.
   denying config fails through the artifact contract); R-3 (two separate human
   signatures — enforcement-infrastructure and provider-key payer); R-4 (effort
   is two live runs; comparison witness host needs both the opencode provider
-  key and a Copilot entitlement). R-1 (H-1 model/spend decision) is a human
-  decision and remains **pending** — not folded.
+  key and a Copilot entitlement). R-1 (H-1 model/spend decision) was a human
+  decision and remained pending at round 1 (folded 2026-09-16, below).
 - 2026-09-16: Judged APPROVED WITH REVISIONS (round 2). Single remaining
   revision R-1 (round 2): the human spend owner must record a named, dated
-  acceptance of `inception/mercury-2.5` (or one replacement exact
+  acceptance of `deepseek/deepseek-v4-pro` (or one replacement exact
   `provider/model`), and the FR must not claim R-1 is folded until that
-  decision exists. Awaiting the human decision, then re-judgement.
+  decision exists.
+- 2026-09-16: R-1 folded — the human spend owner (Sami Heikkinen) selected
+  `deepseek/deepseek-v4-pro` on 2026-09-16; the value is used consistently in
+  §1 (graph target), §5 (argv), §6, Constraints, AC-06/AC-07/AC-11, and H-1.
+  Awaiting re-judgement.
