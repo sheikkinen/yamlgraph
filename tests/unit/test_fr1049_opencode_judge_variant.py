@@ -1,13 +1,13 @@
-"""FR-960 RED: Claude judge variant inside the sole-route judge adapter.
+"""FR-1049 RED: opencode judge variant inside the sole-route judge adapter.
 
-Judgement: feature-requests/FR-960-claude-judge-variant.judgement.md (R-5).
+Judgement: feature-requests/FR-1049-opencode-judge-variant.judgement.md.
 Two surfaces, no real judge launched anywhere (C-6):
 
 * wrapper — ``scripts/judge.sh`` with a stubbed ``YAMLGRAPH_BIN`` that records
   its argv and writes the artifact the wrapper asked for;
 * graph routing — the adapter graph compiled with ``subprocess.run`` mocked,
-  proving ``backend=copilot`` visits only ``judge`` and ``backend=claude`` only
-  ``judge_claude``, with the frozen four-tool argv.
+  proving ``backend=opencode`` visits only ``judge_opencode`` with a bare
+  ``--model`` argv (no tool/permission/`--auto`/`--agent`/resume flag).
 """
 
 from __future__ import annotations
@@ -26,16 +26,8 @@ pytestmark = pytest.mark.process
 REPO_ROOT = Path(__file__).resolve().parents[2]
 JUDGE = REPO_ROOT / "scripts" / "judge.sh"
 ADAPTER = REPO_ROOT / ".github" / "skills" / "judge-fr" / "adapters" / "graph.yaml"
-PROMPT = (
-    REPO_ROOT
-    / ".github"
-    / "skills"
-    / "judge-fr"
-    / "adapters"
-    / "prompts"
-    / "judge.yaml"
-)
 FOUR_TOOLS = "Read,Glob,Grep,Write"
+OPENCODE_MODEL = "deepseek/deepseek-v4-pro"
 
 # --- wrapper ------------------------------------------------------------------
 
@@ -96,7 +88,7 @@ def stub(tmp_path: Path) -> Path:
     return _write_stub(tmp_path / "yg-stub")
 
 
-@pytest.mark.req("REQ-YG-642")
+@pytest.mark.req("REQ-YG-682")
 class TestWrapperBackendSelection:
     def test_unset_backend_selects_copilot_and_derives_artifact(
         self, tmp_path, fr_file, stub
@@ -112,10 +104,6 @@ class TestWrapperBackendSelection:
         assert (
             tmp_path / "tmp" / "draft-judgement-copilot-FR-000-fixture.md"
         ).is_file()
-        assert (
-            "backend=copilot" in r.stdout
-            and "draft-judgement-copilot-FR-000-fixture.md" in r.stdout
-        )
 
     def test_copilot_explicit(self, tmp_path, fr_file, stub):
         r = _run([str(fr_file)], tmp_path, stub, {"JUDGE_BACKEND": "copilot"})
@@ -131,17 +119,33 @@ class TestWrapperBackendSelection:
             f"artifact_path={tmp_path}/tmp/draft-judgement-claude-FR-000-fixture.md"
             in argv
         )
-        assert (tmp_path / "tmp" / "draft-judgement-claude-FR-000-fixture.md").is_file()
+
+    def test_opencode_selects_opencode_branch(self, tmp_path, fr_file, stub):
+        r = _run([str(fr_file)], tmp_path, stub, {"JUDGE_BACKEND": "opencode"})
+        assert r.returncode == 0, r.stderr
+        argv = _argv(tmp_path)
+        assert "backend=opencode" in argv
+        assert (
+            f"artifact_path={tmp_path}/tmp/draft-judgement-opencode-FR-000-fixture.md"
+            in argv
+        )
+        assert (
+            tmp_path / "tmp" / "draft-judgement-opencode-FR-000-fixture.md"
+        ).is_file()
+        assert (
+            "backend=opencode" in r.stdout
+            and "draft-judgement-opencode-FR-000-fixture.md" in r.stdout
+        )
 
     def test_unknown_backend_exits_64_before_lock(self, tmp_path, fr_file, stub):
-        r = _run([str(fr_file)], tmp_path, stub, {"JUDGE_BACKEND": "cluade"})
+        r = _run([str(fr_file)], tmp_path, stub, {"JUDGE_BACKEND": "opncode"})
         assert r.returncode == 64
-        assert "cluade" in r.stderr
+        assert "opncode" in r.stderr
         assert not (tmp_path / "tmp" / ".judge.lock").exists()
         assert not (tmp_path / "tmp" / "argv.txt").exists()  # no graph launch
 
     def test_var_arguments_are_exact(self, tmp_path, fr_file, stub):
-        _run([str(fr_file)], tmp_path, stub, {"JUDGE_BACKEND": "claude"})
+        _run([str(fr_file)], tmp_path, stub, {"JUDGE_BACKEND": "opencode"})
         argv = _argv(tmp_path)
         assert argv[:3] == [
             "graph",
@@ -152,52 +156,71 @@ class TestWrapperBackendSelection:
         assert f"fr_path={fr_file}" in argv
 
 
-@pytest.mark.req("REQ-YG-642")
+@pytest.mark.req("REQ-YG-682")
 class TestWrapperArtifactIsolation:
-    def test_other_backend_and_other_fr_artifacts_survive(
+    def test_opencode_run_preserves_other_backends_and_frs(
         self, tmp_path, fr_file, stub
     ):
         tmpdir = tmp_path / "tmp"
         tmpdir.mkdir()
-        other_fr = tmpdir / "draft-judgement-copilot-other.md"
-        same_fr_copilot = tmpdir / "draft-judgement-copilot-FR-000-fixture.md"
-        legacy = tmpdir / "draft-judgement.md"
-        for f in (other_fr, same_fr_copilot, legacy):
+        copilot = tmpdir / "draft-judgement-copilot-FR-000-fixture.md"
+        claude = tmpdir / "draft-judgement-claude-FR-000-fixture.md"
+        other_fr = tmpdir / "draft-judgement-opencode-other.md"
+        for f in (copilot, claude, other_fr):
             f.write_text("keep\n", encoding="utf-8")
-        r = _run([str(fr_file)], tmp_path, stub, {"JUDGE_BACKEND": "claude"})
+        r = _run([str(fr_file)], tmp_path, stub, {"JUDGE_BACKEND": "opencode"})
         assert r.returncode == 0, r.stderr
-        for f in (other_fr, same_fr_copilot, legacy):
+        for f in (copilot, claude, other_fr):
             assert f.read_text(encoding="utf-8") == "keep\n", f.name
 
     def test_same_backend_same_fr_rerun_replaces_its_own_artifact(
         self, tmp_path, fr_file, stub
     ):
-        art = tmp_path / "tmp" / "draft-judgement-copilot-FR-000-fixture.md"
-        assert _run([str(fr_file)], tmp_path, stub).returncode == 0
+        art = tmp_path / "tmp" / "draft-judgement-opencode-FR-000-fixture.md"
+        assert (
+            _run(
+                [str(fr_file)], tmp_path, stub, {"JUDGE_BACKEND": "opencode"}
+            ).returncode
+            == 0
+        )
         first = art.read_text(encoding="utf-8")
-        assert _run([str(fr_file)], tmp_path, stub).returncode == 0
+        assert (
+            _run(
+                [str(fr_file)], tmp_path, stub, {"JUDGE_BACKEND": "opencode"}
+            ).returncode
+            == 0
+        )
         second = art.read_text(encoding="utf-8")
         assert first != second  # replaced, not appended or preserved
-
-    def test_missing_verdict_line_still_exits_65(self, tmp_path, fr_file):
-        stub = _write_stub(
-            tmp_path / "yg-noverdict",
-            STUB_BODY.replace("**Verdict:** APPROVED", "no verdict here"),
-        )
-        r = _run([str(fr_file)], tmp_path, stub)
-        assert r.returncode == 65
-        assert "draft-judgement-copilot-FR-000-fixture.md" in r.stderr
 
 
 # --- graph routing -------------------------------------------------------------
 
-VERSION_OK = "2.1.255 (Claude Code)\n"
-AUTH_OK = json.dumps(
-    {"loggedIn": True, "authMethod": "claude.ai", "apiProvider": "firstParty"}
-)
-ENVELOPE_OK = json.dumps(
-    {"is_error": False, "result": "**Verdict:** stub", "session_id": "s-1"}
-)
+VERSION_OK = "1.18.31\n"
+
+
+def _opencode_stream(text: str = "**Verdict:** stub", sid: str = "ses_x") -> str:
+    return "\n".join(
+        [
+            json.dumps(
+                {"type": "step_start", "sessionID": sid, "part": {"type": "step-start"}}
+            ),
+            json.dumps(
+                {
+                    "type": "text",
+                    "sessionID": sid,
+                    "part": {"type": "text", "text": text},
+                }
+            ),
+            json.dumps(
+                {
+                    "type": "step_finish",
+                    "sessionID": sid,
+                    "part": {"type": "step-finish", "reason": "stop"},
+                }
+            ),
+        ]
+    )
 
 
 def _proc(stdout: str, rc: int = 0) -> MagicMock:
@@ -206,16 +229,16 @@ def _proc(stdout: str, rc: int = 0) -> MagicMock:
     return m
 
 
-def _claude_cli(responses: list[MagicMock]):
-    """subprocess.run stand-in: hand `responses` to `claude` calls in order.
+def _cli(binary: str, responses: list[MagicMock]):
+    """subprocess.run stand-in: hand `responses` to `<binary>` calls in order.
 
-    Anything else (platform probes shelled out by other layers, FR-982) gets
-    an empty bytes success so the scripted responses are never consumed.
+    Anything else gets an empty bytes success so the scripted responses are
+    never consumed.
     """
     queue = list(responses)
 
     def run(argv, *args, **kwargs):
-        if argv and argv[0] == "claude":
+        if argv and argv[0] == binary:
             return queue.pop(0)
         m = MagicMock()
         m.stdout, m.returncode, m.stderr = b"", 0, b""
@@ -231,15 +254,15 @@ def _compile():
 
 
 def _agent_calls(mock_run) -> list[list[str]]:
-    """Only copilot/claude argvs — yamlgraph's own `git describe` is not a judge."""
+    """Only copilot/claude/opencode argvs — yamlgraph's own `git describe` is not a judge."""
     return [
         list(c[0][0])
         for c in mock_run.call_args_list
-        if c[0][0] and c[0][0][0] in ("copilot", "claude")
+        if c[0][0] and c[0][0][0] in ("copilot", "claude", "opencode")
     ]
 
 
-@pytest.mark.req("REQ-YG-642")
+@pytest.mark.req("REQ-YG-682")
 class TestGraphRouting:
     def test_graph_has_three_copilot_nodes_sharing_the_judge_prompt(self):
         import yaml
@@ -253,16 +276,12 @@ class TestGraphRouting:
         judge = copilot_nodes["judge"]
         assert judge["backend"] == "cli"
         assert judge["cli_flags"]["model"] == "gpt-5.6-sol"
-        assert judge["cli_flags"]["allow_all_paths"] is True
-        assert judge["cli_flags"]["allow_all_tools"] is True
         claude = copilot_nodes["judge_claude"]
         assert claude["backend"] == "claude"
-        # PR #577 review P3: an exact id, never an alias (REQ-YG-632 spirit).
         assert claude["cli_flags"]["model"] == "claude-opus-5"
-        assert claude["cli_flags"]["tools"] == FOUR_TOOLS.split(",")
-        assert claude["cli_flags"]["allowed_tools"] == FOUR_TOOLS.split(",")
-        assert claude["cli_flags"]["max_turns"] == 40
-        assert "allow_all_tools" not in claude["cli_flags"]
+        opencode = copilot_nodes["judge_opencode"]
+        assert opencode["backend"] == "opencode"
+        assert opencode["cli_flags"] == {"model": OPENCODE_MODEL}
         assert set(cfg["state"]) >= {
             "fr_path",
             "backend",
@@ -270,12 +289,61 @@ class TestGraphRouting:
             "judge_result",
         }
 
-    def test_prompt_uses_artifact_path_variable(self):
-        text = PROMPT.read_text(encoding="utf-8")
-        assert "{{ artifact_path }}" in text
-        assert "tmp/draft-judgement.md" not in text
+    def test_edges_are_mutually_exclusive(self):
+        import yaml
 
-    def test_copilot_backend_visits_only_judge(self):
+        cfg = yaml.safe_load(ADAPTER.read_text(encoding="utf-8"))
+        from_select = [
+            (e["condition"], e["to"]) for e in cfg["edges"] if e["from"] == "select"
+        ]
+        assert from_select == [
+            ('backend == "copilot"', "judge"),
+            ('backend == "claude"', "judge_claude"),
+            ('backend == "opencode"', "judge_opencode"),
+        ]
+
+    def test_opencode_backend_visits_only_judge_opencode(self):
+        app = _compile()
+        with patch(
+            "subprocess.run",
+            side_effect=_cli(
+                "opencode",
+                [_proc(VERSION_OK), _proc(_opencode_stream("**Verdict:** ok"))],
+            ),
+        ) as m:
+            final = app.invoke(
+                {
+                    "fr_path": "feature-requests/X.md",
+                    "backend": "opencode",
+                    "artifact_path": "tmp/c.md",
+                }
+            )
+        calls = _agent_calls(m)
+        assert [c[:2] for c in calls] == [
+            ["opencode", "--version"],
+            ["opencode", "run"],
+        ]
+        agent = calls[1]
+        assert agent == [
+            "opencode",
+            "run",
+            agent[2],
+            "--format",
+            "json",
+            "--model",
+            OPENCODE_MODEL,
+        ]
+        assert "feature-requests/X.md" in agent[2] and "tmp/c.md" in agent[2]
+        assert "--tools" not in agent
+        assert "--allowedTools" not in agent
+        assert "--auto" not in agent
+        assert "--agent" not in agent
+        assert "--session" not in agent
+        assert not any(c[0] == "copilot" or c[0] == "claude" for c in calls)
+        assert final["judge_result"].backend == "opencode"
+        assert final["judge_result"].model == OPENCODE_MODEL
+
+    def test_copilot_backend_still_visits_only_judge(self):
         app = _compile()
         with patch("subprocess.run", return_value=_proc("**Verdict:** ok")) as m:
             final = app.invoke(
@@ -287,19 +355,26 @@ class TestGraphRouting:
             )
         calls = _agent_calls(m)
         assert len(calls) == 1
-        argv = calls[0]
-        assert argv[0] == "copilot"
-        assert "--model" in argv and argv[argv.index("--model") + 1] == "gpt-5.6-sol"
-        prompt = argv[argv.index("-p") + 1]
-        assert "feature-requests/X.md" in prompt and "tmp/a.md" in prompt
+        assert calls[0][0] == "copilot"
         assert final["judge_result"].backend == "cli"
 
-    def test_claude_backend_visits_only_judge_claude_with_four_tools(self):
+    def test_claude_backend_visits_only_judge_claude(self):
         app = _compile()
+        auth = json.dumps(
+            {"loggedIn": True, "authMethod": "claude.ai", "apiProvider": "firstParty"}
+        )
+        envelope = json.dumps(
+            {"is_error": False, "result": "**Verdict:** stub", "session_id": "s-1"}
+        )
         with patch(
             "subprocess.run",
-            side_effect=_claude_cli(
-                [_proc(VERSION_OK), _proc(AUTH_OK), _proc(ENVELOPE_OK)]
+            side_effect=_cli(
+                "claude",
+                [
+                    _proc("2.1.255 (Claude Code)\n"),
+                    _proc(auth),
+                    _proc(envelope),
+                ],
             ),
         ) as m:
             final = app.invoke(
@@ -316,14 +391,7 @@ class TestGraphRouting:
             ["claude", "-p"],
         ]
         agent = calls[2]
-        assert agent[:2] == ["claude", "-p"]
         assert "feature-requests/X.md" in agent[2] and "tmp/b.md" in agent[2]
         assert agent[agent.index("--tools") + 1] == FOUR_TOOLS
-        assert agent[agent.index("--allowedTools") + 1] == FOUR_TOOLS
-        assert agent[agent.index("--max-turns") + 1] == "40"
-        assert "--dangerously-skip-permissions" not in agent
-        assert not any(
-            tok == "Bash" or tok == "Edit" or tok.startswith("mcp__") for tok in agent
-        )
-        assert not any(c[0] == "copilot" for c in calls)
+        assert not any(c[0] == "copilot" or c[0] == "opencode" for c in calls)
         assert final["judge_result"].backend == "claude"

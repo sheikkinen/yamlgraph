@@ -1,7 +1,7 @@
 name: Sole-Route Judge and Review Wrappers
 id: CAP-211
 status: active
-fr: FR-758, FR-960, FR-1022
+fr: FR-758, FR-960, FR-1022, FR-1049
 feature_request: FR-758
 description: >
   The judge and review governance pipelines execute through exactly one
@@ -49,14 +49,16 @@ requirements:
       - tests/unit/test_fr758_judge_review_wrappers.py
   - id: REQ-YG-642
     description: >
-      Judge adapter backend selection (FR-960). The judge graph holds two
-      copilot nodes sharing one prompt — `judge` (Copilot CLI, the
-      default) and `judge_claude` (`backend: claude`, FR-959) — routed by
-      a state-conditioned edge on `backend`; the Claude node restricts
+      Judge adapter backend selection (FR-960; closed set extended by
+      FR-1049/REQ-YG-682). The judge graph holds three copilot nodes
+      sharing one prompt — `judge` (Copilot CLI, the default),
+      `judge_claude` (`backend: claude`, FR-959), and `judge_opencode`
+      (`backend: opencode`, FR-1048) — routed by mutually exclusive
+      state-conditioned edges on `backend`; the Claude node restricts
       tool availability and approval to exactly Read, Glob, Grep, Write
       with no bypass flag. scripts/judge.sh reads JUDGE_BACKEND
-      (copilot | claude), exits 64 on any other value before taking the
-      lock, derives a per-backend-per-FR artifact path
+      (copilot | claude | opencode), exits 64 on any other value before
+      taking the lock, derives a per-backend-per-FR artifact path
       tmp/draft-judgement-<backend>-<fr-slug>.md (a same-backend rerun
       replaces only its own draft; other backends' and other FRs' drafts
       survive), and passes backend and artifact_path as graph vars. Each
@@ -71,6 +73,31 @@ requirements:
       - .github/skills/judge-fr/adapters/graph.yaml
       - .github/skills/judge-fr/adapters/prompts/judge.yaml
       - tests/unit/test_fr960_claude_judge_variant.py
+      - tests/unit/test_fr758_judge_review_wrappers.py
+  - id: REQ-YG-682
+    description: >
+      Third judge adapter backend (FR-1049). The judge graph holds three
+      copilot nodes sharing one prompt — `judge` (Copilot CLI, default),
+      `judge_claude` (`backend: claude`, FR-959), and `judge_opencode`
+      (`backend: opencode`, FR-1048) — routed by three mutually
+      exclusive state-conditioned edges (`backend == "copilot"` / `==
+      "claude"` / `== "opencode"`; the former `backend != "claude"`
+      catch-all is replaced so a third value can never silently misroute
+      to the Copilot seat). The opencode node's cli_flags is a single
+      compile-time-fail-closed `provider/model` pin (the H-1 human spend
+      decision) and carries no tool, approval, `--auto`, `--agent`,
+      resume, or permission flag. scripts/judge.sh admits `opencode` in
+      the closed set (still exit 64 before the lock on any other value)
+      and derives the same per-backend-per-FR artifact path. Each live
+      run is recorded in a committed witness with a dual-backend claim
+      inventory and two separate human signatures (enforcement
+      infrastructure and provider-key payer). Witnessed by stubbed
+      wrapper tests and mocked graph-routing tests; pytest and CI never
+      launch a judge.
+    modules:
+      - scripts/judge.sh
+      - .github/skills/judge-fr/adapters/graph.yaml
+      - tests/unit/test_fr1049_opencode_judge_variant.py
       - tests/unit/test_fr758_judge_review_wrappers.py
   - id: REQ-YG-569
     description: >

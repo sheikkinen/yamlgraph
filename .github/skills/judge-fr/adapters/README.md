@@ -8,6 +8,7 @@ lineage sentinel; the graph remains the judge execution route):
 ```bash
 scripts/judge.sh feature-requests/NC-XXX-slug.md                      # default backend: copilot
 JUDGE_BACKEND=claude scripts/judge.sh feature-requests/NC-XXX-slug.md # FR-960: Claude Code backend
+JUDGE_BACKEND=opencode scripts/judge.sh feature-requests/NC-XXX-slug.md # FR-1049: opencode backend
 ```
 
 **Round sentinel (FR-1022, REQ-YG-668).** If the adjacent
@@ -27,18 +28,31 @@ uv run yamlgraph graph run .github/skills/judge-fr/adapters/graph.yaml \
   --var artifact_path=tmp/draft-judgement-copilot-NC-XXX-slug.md --full
 ```
 
-**Backend selection (FR-960, REQ-YG-642).** One graph, one prompt, one
-wrapper — still one route. The graph holds two `type: copilot` nodes that
-share `prompts/judge.yaml`: `judge` (Copilot CLI, `gpt-5.6-sol`, the
-default) and `judge_claude` (`backend: claude`, FR-959). `scripts/judge.sh`
-reads `JUDGE_BACKEND` (`copilot` | `claude`; anything else exits 64 before
-the lock is taken) and routes with a state-conditioned edge. The Claude node
-has exactly four tools available **and** approved — `Read, Glob, Grep,
-Write` via `--tools` and `--allowedTools` — with no `allow_all_tools`, no
-Bash, no Edit, no MCP: a judge that can run the judge is not a judge. It
-bills the operator's Claude subscription through FR-959's per-invocation
-preflight; the residual payer boundary is FR-959's (see
-`reference/graph-yaml.md` § Claude Code backend), not restated here.
+**Backend selection (FR-960, REQ-YG-642; FR-1049, REQ-YG-682).** One graph, one
+prompt, one wrapper — still one route. The graph holds three `type: copilot`
+nodes that share `prompts/judge.yaml`: `judge` (Copilot CLI, `gpt-5.6-sol`, the
+default), `judge_claude` (`backend: claude`, FR-959), and `judge_opencode`
+(`backend: opencode`, FR-1048). `scripts/judge.sh` reads `JUDGE_BACKEND`
+(`copilot` | `claude` | `opencode`; anything else exits 64 before the lock is
+taken) and routes with three mutually exclusive state-conditioned edges. The
+Claude node has exactly four tools available **and** approved — `Read, Glob,
+Grep, Write` via `--tools` and `--allowedTools` — with no `allow_all_tools`, no
+Bash, no Edit, no MCP: a judge that can run the judge is not a judge. It bills
+the operator's Claude subscription through FR-959's per-invocation preflight;
+the residual payer boundary is FR-959's (see `reference/graph-yaml.md` § Claude
+Code backend), not restated here.
+
+The opencode node carries **only** a `model` pin — no tool, approval,
+`--auto`, `--agent`, or permission flag. opencode 1.18.31 *does* expose the
+broad `--auto` permission flag, but FR-1048 deliberately leaves it unmapped and
+this FR does not add it; the committed write-probe proves a workspace-local
+`write` succeeds under the probed default configuration, so the judge writes
+its own draft with no permission flag. An operator configuration that denies
+`write` fails loudly through the wrapper's artifact contract (exit 65) — a
+supported outcome, not a silent fallback, and it fires FR-1049's kill
+criterion. The opencode node bills the operator's provider key through
+FR-1048's compile-time `provider/model` requirement (`reference/graph-yaml.md`
+§ opencode backend), not restated here.
 
 **Artifact path (FR-960).** The draft is written to
 `tmp/draft-judgement-<backend>-<fr-slug>.md` — **per backend, per FR**, not
