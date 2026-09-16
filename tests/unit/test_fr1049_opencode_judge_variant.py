@@ -26,15 +26,6 @@ pytestmark = pytest.mark.process
 REPO_ROOT = Path(__file__).resolve().parents[2]
 JUDGE = REPO_ROOT / "scripts" / "judge.sh"
 ADAPTER = REPO_ROOT / ".github" / "skills" / "judge-fr" / "adapters" / "graph.yaml"
-PROMPT = (
-    REPO_ROOT
-    / ".github"
-    / "skills"
-    / "judge-fr"
-    / "adapters"
-    / "prompts"
-    / "judge.yaml"
-)
 FOUR_TOOLS = "Read,Glob,Grep,Write"
 OPENCODE_MODEL = "deepseek/deepseek-v4-pro"
 
@@ -238,8 +229,8 @@ def _proc(stdout: str, rc: int = 0) -> MagicMock:
     return m
 
 
-def _opencode_cli(responses: list[MagicMock]):
-    """subprocess.run stand-in: hand `responses` to `opencode` calls in order.
+def _cli(binary: str, responses: list[MagicMock]):
+    """subprocess.run stand-in: hand `responses` to `<binary>` calls in order.
 
     Anything else gets an empty bytes success so the scripted responses are
     never consumed.
@@ -247,29 +238,7 @@ def _opencode_cli(responses: list[MagicMock]):
     queue = list(responses)
 
     def run(argv, *args, **kwargs):
-        if argv and argv[0] == "opencode":
-            return queue.pop(0)
-        m = MagicMock()
-        m.stdout, m.returncode, m.stderr = b"", 0, b""
-        return m
-
-    return run
-
-
-CLAUDE_VERSION_OK = "2.1.255 (Claude Code)\n"
-CLAUDE_AUTH_OK = json.dumps(
-    {"loggedIn": True, "authMethod": "claude.ai", "apiProvider": "firstParty"}
-)
-CLAUDE_ENVELOPE_OK = json.dumps(
-    {"is_error": False, "result": "**Verdict:** stub", "session_id": "s-1"}
-)
-
-
-def _claude_cli(responses: list[MagicMock]):
-    queue = list(responses)
-
-    def run(argv, *args, **kwargs):
-        if argv and argv[0] == "claude":
+        if argv and argv[0] == binary:
             return queue.pop(0)
         m = MagicMock()
         m.stdout, m.returncode, m.stderr = b"", 0, b""
@@ -337,8 +306,9 @@ class TestGraphRouting:
         app = _compile()
         with patch(
             "subprocess.run",
-            side_effect=_opencode_cli(
-                [_proc(VERSION_OK), _proc(_opencode_stream("**Verdict:** ok"))]
+            side_effect=_cli(
+                "opencode",
+                [_proc(VERSION_OK), _proc(_opencode_stream("**Verdict:** ok"))],
             ),
         ) as m:
             final = app.invoke(
@@ -390,14 +360,21 @@ class TestGraphRouting:
 
     def test_claude_backend_visits_only_judge_claude(self):
         app = _compile()
+        auth = json.dumps(
+            {"loggedIn": True, "authMethod": "claude.ai", "apiProvider": "firstParty"}
+        )
+        envelope = json.dumps(
+            {"is_error": False, "result": "**Verdict:** stub", "session_id": "s-1"}
+        )
         with patch(
             "subprocess.run",
-            side_effect=_claude_cli(
+            side_effect=_cli(
+                "claude",
                 [
-                    _proc(CLAUDE_VERSION_OK),
-                    _proc(CLAUDE_AUTH_OK),
-                    _proc(CLAUDE_ENVELOPE_OK),
-                ]
+                    _proc("2.1.255 (Claude Code)\n"),
+                    _proc(auth),
+                    _proc(envelope),
+                ],
             ),
         ) as m:
             final = app.invoke(
