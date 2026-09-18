@@ -293,6 +293,33 @@ R-4 (changelog fragment, CAP-17 requirement, `reference/graph-yaml.md`,
 authoring route for the demo migrations, Distill entry) are folded in above.
 Gates C-1 to C-6 of the judgement bind enforcement.
 
+## Implementation Status
+
+**ENFORCED 2026-09-18** on `feat/fr-1050-enforce`. REQ-YG-683 (CAP-17).
+
+| Decision | Landed as |
+|----------|-----------|
+| D-1 | `yamlgraph/compile/loop_limits.py` — `LOOP_LIMIT_SUPPORTED_TYPES` / `LOOP_LIMIT_UNSUPPORTED_TYPES` + `validate_loop_limits()`, called from `load_graph_config` after `apply_loop_node_defaults` and before the `interactive_tool` / `pipeline` expansions (R-1: the expansions erase the authored nodes, so validation must precede them). |
+| D-2 | `yamlgraph/node_factory/race_node.py` — `check_loop_limit` consulted before any candidate is fired, matching the llm-node contract. |
+| D-3 | `yamlgraph/node_factory/router_race_node.py` unchanged (R-2); a test asserts `check_loop_limit` stays absent from its source. |
+| D-4 | `examples/demos/multi-turn/graph.yaml` (`wait_for_user`) and `examples/demos/book-summary/graph.yaml` (`fetch_batch`, `render_pages`, `transcribe_pages`, `summarize_pages`) migrated via `scripts/author.sh`; report at `tmp/draft-authoring-report.md`, blocked validation: none. `tests/fixtures/interrupt_loop_end.yaml` lost its inert `ask` (interrupt) and `plan` (map) entries. |
+| D-5 | CAP-17 REQ-YG-683 + `ARCHITECTURE.md` regenerated, `reference/graph-yaml.md` supported/rejected table, `changelog/unreleased/fr-1050-loop-limits-bind-or-fail.md`, refreshed `demo-output.log` for both demos, Distill entry in `docs/diary/`. |
+
+Witness: `tests/unit/test_fr1050_loop_limits_bind_or_fail.py`, 33 tests, all
+`@pytest.mark.req("REQ-YG-683")`. RED commit `d82a868e` (17 failed / 16 passed)
+precedes the GREEN.
+
+**Deviations:** none from frozen scope. AC-12 was executed as a load-time sweep
+over every `*.yaml` under `graphs/` and `examples/` containing a `loop_limits`
+block — 18 graphs, 0 rejections (a 19th text match,
+`examples/demos/pipeline_audit/prompts/analyze.yaml`, is a prompt that merely
+mentions the key and is not a graph). `projects/` does not exist in this
+checkout.
+`tests/unit/test_ramp_installer.py::test_wrapper_delegates` fails identically on
+the untouched main checkout (`No module named 'yaml'` inside the `scripts/ramp.sh`
+subprocess, an interpreter-selection fault in the local environment); it is
+independent of this change and is not repaired here.
+
 ## Related
 
 - `yamlgraph/compile/node_compiler.py:329` — limit injection

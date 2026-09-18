@@ -11,12 +11,14 @@ modules:
   - graph_loader
   - linter/checks_semantic
   - linter/graph_linter
+  - compile/loop_limits
   - linter/patterns/map
   - llm_factory
   - map_compiler
   - models/graph_schema
   - node_factory/control_nodes
   - node_factory/llm_nodes
+  - node_factory/race_node
   - tools/agent
   - tools/nodes
   - tools/python_tool
@@ -95,4 +97,14 @@ requirements:
     modules:
       - linter/checks_semantic
       - linter/graph_linter
+  - id: REQ-YG-683
+    description: >
+      `loop_limits` binds or fails compilation: an entry naming no node, or
+      naming a node whose type never consults `check_loop_limit`, raises
+      `GraphConfigError` at load time; standalone `race` nodes enforce their
+      limit before firing candidates
+    modules:
+      - compile/loop_limits
+      - graph_loader
+      - node_factory/race_node
 fr: legacy

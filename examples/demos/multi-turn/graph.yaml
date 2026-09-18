@@ -64,7 +64,6 @@ edges:
   - from: respond
     to: wait_for_user
 
-# Loop guards for multi-turn cycle
+# FR-1050: removed inert entries here were never enforced.
 loop_limits:
   respond: 50
-  wait_for_user: 50
