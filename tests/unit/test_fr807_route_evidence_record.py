@@ -125,6 +125,76 @@ def test_artifact_hash_includes_graph_tool_transitively(tmp_path):
     assert route_log.compute_artifact_hash(parent) != first
 
 
+def _write_prompt_settings_graph(
+    tmp_path, *, top_level: bool | None, defaults_relative: bool | None
+):
+    """Graph whose only prompt copy lives in <graph dir>/prompts (FR-1051)."""
+    prompts = tmp_path / "prompts"
+    prompts.mkdir()
+    (prompts / "fr1051_probe.yaml").write_text(
+        "system: probe\nuser: hi\n", encoding="utf-8"
+    )
+    lines = ["name: evidence"]
+    if top_level is not None:
+        lines.append(f"prompts_relative: {str(top_level).lower()}")
+    lines.append("defaults:")
+    lines.append("  prompts_dir: prompts")
+    if defaults_relative is not None:
+        lines.append(f"  prompts_relative: {str(defaults_relative).lower()}")
+    lines += [
+        "nodes:",
+        "  step:",
+        "    type: llm",
+        "    prompt: fr1051_probe",
+        "    state_key: out",
+        "edges:",
+        "  - from: START",
+        "    to: step",
+        "  - from: step",
+        "    to: END",
+    ]
+    graph = tmp_path / "graph.yaml"
+    graph.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    return graph, prompts / "fr1051_probe.yaml"
+
+
+@pytest.mark.req("REQ-YG-552")
+def test_artifact_hash_honours_defaults_prompts_relative(tmp_path):
+    graph, prompt = _write_prompt_settings_graph(
+        tmp_path, top_level=None, defaults_relative=True
+    )
+
+    first = route_log.compute_artifact_hash(graph)
+    prompt.write_text("system: changed\nuser: hi\n", encoding="utf-8")
+    assert route_log.compute_artifact_hash(graph) != first
+    prompt.unlink()
+    with pytest.raises(ValueError, match="prompt|artifact"):
+        route_log.compute_artifact_hash(graph)
+
+
+@pytest.mark.req("REQ-YG-552")
+@pytest.mark.parametrize(
+    ("top_level", "defaults_relative"),
+    [(None, None), (None, True), (True, None), (False, True)],
+)
+def test_artifact_hash_prompts_relative_matches_loader(
+    tmp_path, top_level, defaults_relative
+):
+    from yamlgraph.compile.graph_loader import load_graph_config
+
+    graph, _ = _write_prompt_settings_graph(
+        tmp_path, top_level=top_level, defaults_relative=defaults_relative
+    )
+    expected = bool(load_graph_config(graph).prompts_relative)
+
+    try:
+        route_log.compute_artifact_hash(graph)
+        hashed_relative = True
+    except ValueError:
+        hashed_relative = False
+    assert hashed_relative is expected
+
+
 @pytest.mark.asyncio
 @pytest.mark.req("REQ-YG-552")
 async def test_async_entrypoint_emits_run_envelope(tmp_path, monkeypatch):
