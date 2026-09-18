@@ -162,7 +162,7 @@ The second call is what `compute_artifact_hash` makes for such a graph.
 | Commit | Content |
 |---|---|
 | `3b9159ed` | RED — two REQ-YG-552 witnesses in `tests/unit/test_fr807_route_evidence_record.py`: the defaults-only fixture raised `ValueError: Cannot hash executable artifact: unresolved prompt 'fr1051_probe'`, and the parameterized loader-parity case `[None-True]` asserted `False is True`. The other three precedence states passed on the baseline, as expected. |
-| GREEN | `yamlgraph/utils/artifact_hash.py` — presence-based fallback; both witnesses pass unmodified. |
+| `61c064ea` | GREEN — `yamlgraph/utils/artifact_hash.py` presence-based fallback; both witnesses pass unmodified. |
 
 **Decisions.**
 - The parity witness (AC-04) observes the hasher's effective `prompts_relative`
