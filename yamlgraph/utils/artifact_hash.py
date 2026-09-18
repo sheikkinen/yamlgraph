@@ -40,7 +40,11 @@ def _collect_graph_artifacts(graph_path: Path, artifacts: set[Path]) -> None:
     prompts_dir = config.get("prompts_dir") or (config.get("defaults") or {}).get(
         "prompts_dir"
     )
-    prompts_relative = config.get("prompts_relative", False)
+    # Presence-based, matching GraphConfig: an explicit top-level false wins.
+    prompts_relative = config.get(
+        "prompts_relative",
+        (config.get("defaults") or {}).get("prompts_relative", False),
+    )
 
     _collect_node_artifacts(
         config.get("nodes") or {},

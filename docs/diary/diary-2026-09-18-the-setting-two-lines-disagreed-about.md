@@ -1,0 +1,52 @@
+# The setting that two lines disagreed about
+
+**Date:** 2026-09-18
+**Arc:** FR-1051 — `artifact_hash` ignores `defaults.prompts_relative`
+
+## The trap
+
+`prompts_dir` and `prompts_relative` are read two lines apart in
+`artifact_hash.py`. One falls back to `defaults:`; the other does not. Every
+cheap gate passed: the graph compiles, it lints, 6853 unit tests are green.
+The defect needs an *executed* call to appear, so the consumer met it only in a
+full end-to-end suite — 0 of 62 conversations — after everything cheaper had
+already said yes.
+
+This is `boundary_inventory` applied to a setting rather than a filesystem.
+`prompts_relative` is read in eight places. Seven agree. The newest one — added
+long after the convention settled — does not. Nobody enumerated the readers
+when adding the eighth, because the two lines being written looked symmetric
+and the asymmetry was in what they *omitted*.
+
+## The heuristic
+
+**When a module re-reads raw YAML that a parser already interprets, the module
+is a second parser, and it will drift.** The fix here is one line; the class of
+defect is "config interpreted twice." The FR's deferred A3 (pass the parsed
+`GraphConfig` in) removes the class, not the instance — and the reason it is
+deferred rather than done is that an execution-blocking fix and a refactor
+should not share a commit.
+
+The witness form that made this mechanical: don't assert a hard-coded expected
+value, assert *agreement with the oracle*. The parity test reads
+`GraphConfig.prompts_relative` and requires the hasher to match it in all four
+declaration states. If the loader's precedence ever changes, the test changes
+with it — the contract is the seam, not a constant.
+
+## A smaller one, recorded because it cost a diagnosis
+
+The first full-suite run showed a failure in a completely unrelated file
+(`test_ramp_installer.py`), `ModuleNotFoundError: No module named 'yaml'`. The
+code was innocent; `.venv/bin/python -m pytest` leaves the venv off `PATH`, and
+the test shells out to a script that resolves `python3` from `PATH`. Doctrine
+forbids me from calling anything "pre-existing," which is exactly the rule that
+made me reproduce it instead of shrugging — and the reproduction found my own
+invocation, not someone else's bug. The ban on that phrase paid for itself in
+one run.
+
+## Seed
+
+Seed: `compute_artifact_hash` is one of several modules that re-read graph YAML
+directly rather than consuming `GraphConfig` — how many are there, and could a
+test (or an import-linter contract) assert that `yaml.safe_load` on a graph path
+happens in exactly one place?

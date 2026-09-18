@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** XS
 **Requested:** 2026-09-18
 **First consumer / first event:** the csap voicebot, at the moment it upgrades
@@ -132,28 +132,61 @@ The second call is what `compute_artifact_hash` makes for such a graph.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 RED first, and it **condemns** rather than records the defect: a
+- [x] AC-01 RED first, and it **condemns** rather than records the defect: a
   fixture graph with `defaults.prompts_dir`, `defaults.prompts_relative: true`
   and a referenced local prompt **hashes successfully, and its hash changes
   when that prompt file changes**. On the baseline this fails, because
   `compute_artifact_hash` raises the unresolved-prompt `ValueError`; after the
   fix the same test passes unmodified. RED commit ID recorded.
-- [ ] AC-02 Top-level `prompts_relative` still wins over `defaults:`,
+- [x] AC-02 Top-level `prompts_relative` still wins over `defaults:`,
   **including an explicit top-level `false` against `defaults: true`** — the
   case an `or` fallback gets wrong.
-- [ ] AC-03 A graph declaring neither resolves `False`, unchanged.
-- [ ] AC-04 For one fixture graph in each of the four states (absent, top-level
+- [x] AC-03 A graph declaring neither resolves `False`, unchanged.
+- [x] AC-04 For one fixture graph in each of the four states (absent, top-level
   `true`, top-level `false`, `defaults` only), `compute_artifact_hash` uses the
   same `prompts_relative` the loader's `GraphConfig` computes. This is the
   governed seam, and no claim is made about other readers (R-2).
-- [ ] AC-05 Every new test carries `@pytest.mark.req("REQ-YG-552")`, matching
+- [x] AC-05 Every new test carries `@pytest.mark.req("REQ-YG-552")`, matching
   the existing artifact-hash witnesses in
   `tests/unit/test_fr807_route_evidence_record.py`, and
   `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-06 `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` and
+- [x] AC-06 `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` and
   `ruff check yamlgraph/` pass. RED and GREEN are separate commits, both IDs
   recorded, plus the changelog fragment, the FR implementation record, and a
   diary entry with `Seed:`.
+
+## Implementation record
+
+**Status:** Enforced 2026-09-18 on `feat/fr-1051-enforce`.
+
+| Commit | Content |
+|---|---|
+| `3b9159ed` | RED — two REQ-YG-552 witnesses in `tests/unit/test_fr807_route_evidence_record.py`: the defaults-only fixture raised `ValueError: Cannot hash executable artifact: unresolved prompt 'fr1051_probe'`, and the parameterized loader-parity case `[None-True]` asserted `False is True`. The other three precedence states passed on the baseline, as expected. |
+| GREEN | `yamlgraph/utils/artifact_hash.py` — presence-based fallback; both witnesses pass unmodified. |
+
+**Decisions.**
+- The parity witness (AC-04) observes the hasher's effective `prompts_relative`
+  through resolution outcome: the fixture's only prompt copy lives in
+  `<graph dir>/prompts/`, so hashing succeeds exactly when the setting is
+  `true`. The assertion is `hash_succeeded is GraphConfig.prompts_relative` —
+  the loader is the oracle, not a hard-coded expectation.
+- `ruff format` split the new expression across lines; the `dict.get(key,
+  default)` form and its precedence are unchanged (C-2 held, no `or`).
+
+**Deviations.** None. Production scope stayed at
+`yamlgraph/utils/artifact_hash.py` (C-4); `prompts_dir` `or` latency and the
+linter's falsey fallback (R-2) remain parked and untouched.
+
+**Validation.** `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` →
+6853 passed, 61 skipped, 1 xfailed. `ruff check yamlgraph/` and
+`python scripts/req_coverage.py --strict` pass.
+
+One validation misstep worth recording: the first full-suite run reported
+`test_ramp_installer.py::test_wrapper_delegates` failing with
+`ModuleNotFoundError: No module named 'yaml'`. The cause was the invocation,
+not the code — `.venv/bin/python -m pytest` leaves the venv off `PATH`, so the
+test's `subprocess` call to `scripts/ramp.sh` got the system interpreter. With
+the venv activated the file passes 45/45.
 
 ## Research record
 
