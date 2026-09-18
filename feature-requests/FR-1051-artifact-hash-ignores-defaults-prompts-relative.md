@@ -86,9 +86,15 @@ had gone green.
 
 ## Ideal Result
 
-A graph's prompt settings mean the same thing to every part of the engine that
-reads them, wherever the author declared them. No module is the one that
-disagrees.
+For one graph, `compute_artifact_hash` resolves `prompts_relative` to the same
+value the loader's `GraphConfig` does — whether the key is absent, top-level
+`true`, top-level `false`, or present only under `defaults:`.
+
+**Deliberately narrower than "every reader agrees."** `linter/checks.py:94-98`
+uses a falsey `or` fallback, so an explicit top-level `false` against
+`defaults: true` will still disagree with the loader after this FR. That is a
+real second defect and it is **parked for its own FR** (judgement R-2) — this
+one fixes the seam that breaks execution.
 
 ## Proposed Solution
 
@@ -126,29 +132,44 @@ The second call is what `compute_artifact_hash` makes for such a graph.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 RED first: a graph declaring `prompts_dir` and `prompts_relative`
-  under `defaults:` and referencing a prompt fails `compute_artifact_hash` with
-  the unresolved-prompt `ValueError`. Fixture committed; RED commit recorded.
-- [ ] AC-02 After the fix that graph hashes successfully, and the hash covers
-  the resolved prompt file.
-- [ ] AC-03 Top-level declaration still works and still wins over `defaults`,
-  **including an explicit top-level `false` against a `defaults: true`** — the
-  case an `or` fallback would get wrong.
-- [ ] AC-04 A graph with neither declaration is unchanged (`False`, no
-  fallback surprise).
-- [ ] AC-05 A witness pins the agreement itself: every module reading
-  `prompts_relative` resolves the same value for one fixture graph declaring it
-  under `defaults:`. This is what would have caught the defect.
-- [ ] AC-06 Full unit suite green; RED and GREEN as separate commits, both IDs
-  recorded; changelog fragment and a diary entry with `Seed:`.
+- [ ] AC-01 RED first, and it **condemns** rather than records the defect: a
+  fixture graph with `defaults.prompts_dir`, `defaults.prompts_relative: true`
+  and a referenced local prompt **hashes successfully, and its hash changes
+  when that prompt file changes**. On the baseline this fails, because
+  `compute_artifact_hash` raises the unresolved-prompt `ValueError`; after the
+  fix the same test passes unmodified. RED commit ID recorded.
+- [ ] AC-02 Top-level `prompts_relative` still wins over `defaults:`,
+  **including an explicit top-level `false` against `defaults: true`** — the
+  case an `or` fallback gets wrong.
+- [ ] AC-03 A graph declaring neither resolves `False`, unchanged.
+- [ ] AC-04 For one fixture graph in each of the four states (absent, top-level
+  `true`, top-level `false`, `defaults` only), `compute_artifact_hash` uses the
+  same `prompts_relative` the loader's `GraphConfig` computes. This is the
+  governed seam, and no claim is made about other readers (R-2).
+- [ ] AC-05 Every new test carries `@pytest.mark.req("REQ-YG-552")`, matching
+  the existing artifact-hash witnesses in
+  `tests/unit/test_fr807_route_evidence_record.py`, and
+  `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-06 `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` and
+  `ruff check yamlgraph/` pass. RED and GREEN are separate commits, both IDs
+  recorded, plus the changelog fragment, the FR implementation record, and a
+  diary entry with `Seed:`.
 
-## Alternatives Considered
+## Research record
 
-| # | Alternative | Disposition |
+**Is this a graph?** No. This is deterministic configuration resolution — one
+dict lookup with a fallback. There is no per-item model evaluation and no
+multi-stage pipeline, so no research or authoring graph in this repository
+fits; the solution classes below were enumerated by source read.
+
+| # | Solution class | Disposition |
 |---|---|---|
-| A1 | Fix it in the consumer — hoist `prompts_relative` out of `defaults:` | **Rejected.** A one-line workaround in one graph for an engine defect that hits the next graph to declare it the documented way. The consumer explicitly declined it. |
-| A2 | Make `artifact_hash` take the already-parsed `GraphConfig` instead of re-reading the YAML | Deferred, and the better long-term shape — the config object already resolves this correctly. Larger change, and the one-line fix is what unblocks the consumer today. Worth its own FR. |
-| A3 | Normalise prompt settings at load and forbid the top-level form | Rejected here: a breaking change to graph syntax to fix a one-line asymmetry. |
+| A1 | **The one-line presence-based fallback** (proposed) | **Adopted.** Smallest change that makes the hash agree with the loader; unblocks the first consumer today. |
+| A2 | Fix it in the consumer — hoist `prompts_relative` out of `defaults:` | Rejected. A workaround in one graph for an engine defect that hits the next graph declaring it the documented way. The consumer explicitly declined it. |
+| A3 | Pass the parsed `GraphConfig` into `artifact_hash` instead of re-reading the YAML | **Deferred, and the better long-term shape** — the config object already resolves this correctly, and doing so removes the whole class rather than one instance. Larger surface (callers, signature); worth its own FR once this is unblocked. |
+| A4 | Extract a shared presence-based resolver and migrate all eight readers to it | Deferred. Strictly better than A3 for the class, and strictly worse as a first move: it changes linter precedence semantics (R-2's parked defect) in the same commit as an execution-blocking fix, so a regression could not be attributed. Sequence it after A1 and A3. |
+| A5 | Normalise prompt settings at load time and forbid the top-level form | Rejected. A breaking change to graph syntax to fix a one-line asymmetry. |
+| A6 | Make `artifact_hash` tolerate an unresolved prompt (warn, skip the file) | Rejected. It would hash an artifact while silently omitting part of it, which defeats the point of an artifact hash — a worse failure than the loud one. |
 
 ## Related
 
