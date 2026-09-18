@@ -349,7 +349,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 14 | CAP-14 Graph-Level Streaming | `executor_async` | REQ-YG-048 – 049, 065, 480 |
 | 15 | CAP-15 Expression Language | `utils/conditions`, `utils/expressions`, `utils/parsing` | REQ-YG-051 – 052 |
 | 16 | CAP-16 Linter Cross-Reference | `linter/checks`, `linter/checks_contracts`, `linter/checks_semantic`, `linter/graph_linter`, … | REQ-YG-053 – 054, 069, 114, 408 |
-| 17 | CAP-17 Execution Safety Guards | `cli/__init__`, `cli/graph_commands`, `config`, `executor`, … | REQ-YG-055 – 062, 064, 113 |
+| 17 | CAP-17 Execution Safety Guards | `cli/__init__`, `cli/graph_commands`, `config`, `executor`, … | REQ-YG-055 – 062, 064, 113, 683 |
 | 18 | CAP-18 Testing & Quality | `tests/conftest`, `tests/unit/test_requirement_enforcement` | REQ-YG-063 |
 | 19 | CAP-19 MCP Server Interface | `mcp_server` | REQ-YG-066 – 068 |
 | 20 | CAP-20 Contrib Utilities | `contrib/progress`, `contrib/utils` | REQ-YG-070 – 071 |
@@ -798,6 +798,7 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-062 | Linter W013: warn when map node `over:` is a dynamic expression without `max_items` or `config.max_map_items` | `linter/checks_semantic`, `linter/patterns/map` |
 | REQ-YG-064 | Token usage tracking via `TokenUsageCallbackHandler` callback injected at graph-level; accumulates `input_tokens`, `output_tokens`, `total_calls` across all LLM invocations; CLI `--token-usage` flag prints summary | `utils/token_tracker`, `cli/graph_commands`, `cli/__init__` |
 | REQ-YG-113 | Linter W015: warn when cycle node has explicit `skip_if_exists: true` | `linter/checks_semantic`, `linter/graph_linter` |
+| REQ-YG-683 | `loop_limits` binds or fails compilation: an entry naming no node, or naming a node whose type never consults `check_loop_limit`, raises `GraphConfigError` at load time; standalone `race` nodes enforce their limit before firing candidates | `compile/loop_limits`, `graph_loader`, `node_factory/race_node` |
 
 ### 18. CAP-18 Testing & Quality
 

@@ -22,6 +22,7 @@ from typing import Any
 from uuid import UUID, uuid4
 
 from yamlgraph.constants import ErrorHandler
+from yamlgraph.error_handlers import check_loop_limit
 from yamlgraph.executor_base import build_schema_hint, prepare_messages
 from yamlgraph.models import PipelineError
 from yamlgraph.models.schemas import ErrorType
@@ -345,6 +346,7 @@ def create_race_node(
     on_error = node_config.get("on_error")
     variable_templates = node_config.get("variables", {})
     parse_json = node_config.get("parse_json", False)
+    loop_limit = node_config.get("loop_limit")
 
     # Resolve prompt path config
     prompts_relative = defaults.get("prompts_relative", False)
@@ -367,6 +369,11 @@ def create_race_node(
         """Race node: fire prompt to all candidates, return first success."""
         loop_counts = dict(state.get("_loop_counts") or {})
         current_count = loop_counts.get(node_name, 0)
+
+        # FR-1050: bound before firing N candidates, the llm-node contract.
+        if check_loop_limit(node_name, loop_limit, current_count):
+            return {"_loop_limit_reached": True, "current_step": node_name}
+
         loop_counts[node_name] = current_count + 1
 
         variables = resolve_node_variables(variable_templates, state)

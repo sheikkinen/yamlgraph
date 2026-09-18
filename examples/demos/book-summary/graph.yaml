@@ -9,16 +9,13 @@ recursion_limit: 5000
 config:
   recursion_limit: 5000
 
+# FR-1050: removed inert entries here were never enforced.
 loop_limits:
   prepare_batch: 100
-  fetch_batch: 100
   gate_fetch: 100
   partition: 100
-  render_pages: 100
   gate_render: 100
-  transcribe_pages: 100
   merge_vision: 100
-  summarize_pages: 100
   accumulate: 100
   advance: 100
 loop_exits:

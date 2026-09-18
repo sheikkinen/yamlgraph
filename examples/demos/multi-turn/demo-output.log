@@ -1,0 +1,19 @@
+=== FR-1050 demo proof — 2026-09-18 ===
+
+Re-run after removing the inert loop_limits entry (wait_for_user — an interrupt
+node, a type that never consults check_loop_limit, so the bound was never in
+effect). The multi-turn demo cannot be driven by 'yamlgraph graph run': it is
+checkpointed and requires a thread config plus a Command(resume=...) turn, so
+this proof is the checkpoint/resume driver from README.md.
+
+2026-09-18 15:19:57,368 [INFO] yamlgraph.compile.node_compiler: Added node: wait_for_user (type=interrupt)
+2026-09-18 15:19:57,369 [INFO] yamlgraph.compile.node_compiler: Added node: respond (type=llm)
+2026-09-18 15:19:57,481 [INFO] yamlgraph.utils.llm_factory: Creating LLM: openai/gpt-4o (temp=0.7)
+2026-09-18 15:20:01,286 [INFO] httpx: HTTP Request: POST https://api.openai.com/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-18 15:20:01,295 [INFO] yamlgraph.node_factory.llm_nodes: Node respond completed successfully
+first_interrupt= True
+second_interrupt= True
+has_response= True
+
+✅ Graph execution completed successfully — reached the first interrupt,
+resumed with a user turn, produced a response, reached the next interrupt.

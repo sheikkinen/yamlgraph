@@ -1708,6 +1708,26 @@ loop_limits:
 
 **Note:** Use with `skip_if_exists: false` on loop nodes.
 
+### A limit must bind or the graph fails to compile (FR-1050)
+
+A `loop_limits` entry is only honoured by node types that consult
+`check_loop_limit()`. Declaring one on any other type used to be silently
+inert — the loop ran unbounded while the YAML claimed otherwise. Such an entry
+is now a load-time `GraphConfigError`.
+
+| Enforced | Rejected |
+|----------|----------|
+| `llm`, `router`, `python`, `tool`, `passthrough`, `race` | `agent`, `map`, `tool_call`, `interrupt`, `subgraph`, `copilot`, `verify`, `interactive_tool`, `pipeline` |
+
+An entry naming a node that does not exist in the graph is also rejected.
+Validation runs on the authored nodes, before `interactive_tool` and `pipeline`
+macro nodes are expanded away.
+
+To fix a rejected graph, remove the entry (the bound it claimed was never in
+effect) or change the node to an enforcing type. For a cycle that can only be
+bounded by an unsupported node, bound it at an enforcing node in the same cycle,
+or use `config.recursion_limit`.
+
 ## Loop Exits (FR-172)
 
 By default, when a node hits its `loop_limit`, the expression router terminates the graph (`END`). Use `loop_exits` to route to a specific post-loop node instead:

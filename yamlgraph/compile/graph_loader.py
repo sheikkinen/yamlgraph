@@ -15,6 +15,7 @@ from langgraph.graph import StateGraph
 
 from yamlgraph.compile.default_overrides import apply_default_overrides
 from yamlgraph.compile.edge_compiler import _add_conditional_edges, _process_edge
+from yamlgraph.compile.loop_limits import validate_loop_limits
 from yamlgraph.compile.node_compiler import compile_nodes
 from yamlgraph.data_loader import load_data_files
 from yamlgraph.loop_detector import apply_loop_node_defaults
@@ -159,6 +160,10 @@ def load_graph_config(
 
     # FR-010: Auto-apply skip_if_exists=false to loop nodes
     config = apply_loop_node_defaults(config)
+
+    # FR-1050: a declared loop bound must bind or fail. Validated here, on the
+    # authored nodes, because the expansions below erase their source nodes.
+    validate_loop_limits(config)
 
     # FR-049: Expand interactive_tool nodes before compilation
     from yamlgraph.interactive_tool import expand_interactive_tools

@@ -19,9 +19,7 @@ checkpointer:
   path: ":memory:"
 
 loop_limits:
-  ask: 50
   parse: 50
-  plan: 50
 
 state:
   reply: str

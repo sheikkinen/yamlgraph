@@ -28,8 +28,6 @@ from yamlgraph.compile.loop_limits import (
 from yamlgraph.compile.node_compiler import GraphConfigError
 from yamlgraph.constants import NodeType
 
-REQ = "REQ-YG-683"
-
 RACE_CONFIG = {
     "type": "race",
     "prompt": "irrelevant",
@@ -52,7 +50,7 @@ def _write_graph(tmp_path, body: str):
 
 
 class TestStandaloneRaceEnforces:
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
     def test_race_at_limit_fires_no_candidate(self, mock_prepare, mock_create_llm):
@@ -69,7 +67,7 @@ class TestStandaloneRaceEnforces:
         mock_prepare.assert_not_called()
         mock_create_llm.assert_not_called()
 
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
     def test_race_below_limit_still_races(self, mock_prepare, mock_create_llm):
@@ -117,7 +115,7 @@ class TestRouterWithCandidatesUnchanged:
         "candidates": [{"provider": "anthropic", "model": "m1"}],
     }
 
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.router_race_node.prepare_messages")
     def test_router_race_at_limit_fires_no_candidate(self, mock_prepare, mock_llm):
@@ -133,7 +131,7 @@ class TestRouterWithCandidatesUnchanged:
         mock_prepare.assert_not_called()
         mock_llm.assert_not_called()
 
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.router_race_node.prepare_messages")
     def test_router_race_nth_permitted_execution_still_fires(
@@ -154,7 +152,7 @@ class TestRouterWithCandidatesUnchanged:
         assert "_loop_limit_reached" not in result
         assert mock_llm.called
 
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     def test_router_race_node_has_no_loop_limit_check(self):
         """R-2 is a source-level contract: the check lives in the caller."""
         import inspect
@@ -168,7 +166,7 @@ class TestRouterWithCandidatesUnchanged:
 
 
 class TestCompileTimeValidation:
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     def test_dangling_key_raises(self, tmp_path):
         path = _write_graph(
             tmp_path,
@@ -192,7 +190,7 @@ class TestCompileTimeValidation:
         with pytest.raises(GraphConfigError, match="ghost"):
             load_graph_config(path)
 
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     def test_unsupported_type_names_node_type_and_supported_set(self, tmp_path):
         path = _write_graph(
             tmp_path,
@@ -220,7 +218,7 @@ class TestCompileTimeValidation:
         assert "interrupt" in message
         assert "passthrough" in message and "race" in message
 
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     @pytest.mark.parametrize("node_type", sorted(LOOP_LIMIT_UNSUPPORTED_TYPES))
     def test_every_unsupported_type_is_rejected(self, tmp_path, node_type):
         """AC-05: including the expansion-only macros."""
@@ -244,7 +242,7 @@ class TestCompileTimeValidation:
         with pytest.raises(GraphConfigError, match="target"):
             load_graph_config(path)
 
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     def test_macro_node_is_rejected_before_expansion_erases_it(self, tmp_path):
         """interactive_tool is gone by the time compile_node runs."""
         path = _write_graph(
@@ -272,7 +270,7 @@ class TestCompileTimeValidation:
         with pytest.raises(GraphConfigError, match="interactive_tool"):
             load_graph_config(path)
 
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     def test_cycle_bounded_only_by_unsupported_entry_fails_compilation(self, tmp_path):
         """AC-09: W012 can no longer report such a graph clean."""
         path = _write_graph(
@@ -308,11 +306,11 @@ class TestCompileTimeValidation:
 
 
 class TestClassificationCannotDrift:
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     def test_classifications_are_disjoint(self):
         assert not (LOOP_LIMIT_SUPPORTED_TYPES & LOOP_LIMIT_UNSUPPORTED_TYPES)
 
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     def test_classifications_cover_every_node_type(self):
         """A new NodeType must be classified before it can be shipped."""
         classified = LOOP_LIMIT_SUPPORTED_TYPES | LOOP_LIMIT_UNSUPPORTED_TYPES
@@ -404,7 +402,7 @@ _SUPPORTED_NODE_BODIES = {
     NodeType.ROUTER: (
         "    type: router\n    prompt: irrelevant\n    state_key: out\n"
         "    route_field: out\n"
-        "    routes:\n      go: END\n    default_route: END"
+        "    routes:\n      go: sink\n    default_route: sink"
     ),
     NodeType.RACE: (
         "    type: race\n    prompt: irrelevant\n    state_key: out\n"
@@ -431,14 +429,16 @@ def _supported_graph_yaml(node_type: str) -> str:
         "    function: _python_work\n"
         "nodes:\n  target:\n"
         f"{_SUPPORTED_NODE_BODIES[node_type]}\n"
+        '  sink:\n    type: passthrough\n    output:\n      out: "done"\n'
         "edges:\n  - from: START\n    to: target\n"
-        "  - from: target\n    to: END\n"
+        "  - from: target\n    to: sink\n"
+        "  - from: sink\n    to: END\n"
         "loop_limits:\n  target: 2\n"
     )
 
 
 class TestEverySupportedTypeEnforces:
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     @pytest.mark.parametrize("node_type", sorted(LOOP_LIMIT_SUPPORTED_TYPES))
     def test_supported_type_stops_at_limit(self, node_type):
         """AC-07: flag set, counter unchanged, zero work calls."""
@@ -452,7 +452,7 @@ class TestEverySupportedTypeEnforces:
             calls = probe.calls if probe is _python_work else probe.call_count
             assert calls == 0
 
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     @pytest.mark.parametrize("node_type", sorted(LOOP_LIMIT_SUPPORTED_TYPES))
     def test_supported_type_compiles_with_a_loop_limit(self, tmp_path, node_type):
         path = tmp_path / "graph.yaml"
@@ -465,7 +465,7 @@ class TestEverySupportedTypeEnforces:
 
 
 class TestLoopExitsSeamUnchanged:
-    @pytest.mark.req(REQ)
+    @pytest.mark.req("REQ-YG-683")
     @patch("yamlgraph.node_factory.race_node.create_llm")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
     def test_exhausted_race_routes_to_loop_exit_target(
