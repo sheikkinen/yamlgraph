@@ -311,7 +311,10 @@ precedes the GREEN.
 
 **Deviations:** none from frozen scope. AC-12 was executed as a load-time sweep
 over every `*.yaml` under `graphs/` and `examples/` containing a `loop_limits`
-block (19 graphs, 0 rejections) — `projects/` does not exist in this checkout.
+block — 18 graphs, 0 rejections (a 19th text match,
+`examples/demos/pipeline_audit/prompts/analyze.yaml`, is a prompt that merely
+mentions the key and is not a graph). `projects/` does not exist in this
+checkout.
 `tests/unit/test_ramp_installer.py::test_wrapper_delegates` fails identically on
 the untouched main checkout (`No module named 'yaml'` inside the `scripts/ramp.sh`
 subprocess, an interpreter-selection fault in the local environment); it is
