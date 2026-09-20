@@ -321,3 +321,63 @@ supported subset declared above. The measured tree has maximum depth two.
 - `yamlgraph/schema_loader.py` — `build_pydantic_model_from_json_schema`
 - `reference/prompt-yaml.md:239` — documents nested objects as supported
 - Downstream witness: `yamlgraph-yt-summarizer` FR-002, FR-003
+
+## Implementation Status
+
+**Enforced (2026-09-20).**
+
+| Commit | Role |
+|---|---|
+| `99f81864` | RED — five failing witnesses plus the 14-site inventory |
+| `d58a63dd` | GREEN — `_nested_type` recursion, docs, changelog fragment |
+
+**Result.** All 14 inventoried sites keep their declared nested keys; the
+inventory witness reports zero losses. The change is one helper called
+from the array-item branch and the scalar branch; `JSON_SCHEMA_TYPE_MAP`
+and the `schema:`/`fields:` dialect are untouched.
+
+**Acceptance criteria.** AC-01..AC-08 and AC-10 verified by the exact
+commands in this FR. AC-09 landed in `reference/prompt-yaml.md` (the
+type table row corrected, a Nested Objects section added naming the
+unsupported constructs). AC-12 green: `ruff`, `lint-imports` (3 kept, 0
+broken), `req_coverage --strict`, full `pytest` at 6835 passed.
+
+**AC-11 live witness.** `feature-requests/evidence/FR-1054-book-reviewer-live.log`
+— exit 0, four `criteria` items each with non-empty `name`, integer
+`score` and non-empty `justification`, no empty `criteria` object. The
+log sits under `feature-requests/evidence/` rather than beside the graph
+because `.gitignore` un-ignores `demo-output.log` only for
+`examples/demos/*`, and `book_reviewer` is not a demo.
+
+**Unplanned finding — the example was already failing.** The first AC-11
+attempt resolved `yamlgraph` through the venv's editable install, which
+points at the main checkout rather than this worktree, so it exercised
+the unfixed loader. It did not merely produce hollow items: it aborted
+with `2 validation errors for ChapterReview / criteria.0.name /
+criteria.0.score / input_value={}`. `examples/book_reviewer` is broken
+on `main` today. The example's hand-written `CriterionScore` requires
+`name` and `score`, so the hollow items the loader produced were
+rejected the moment they met a strict model. This is the defect failing
+loudly at the one site that happened to re-validate against a model
+written by hand; the other 13 sites have no such model and absorbed the
+hollow items in silence. The fix repairs the example as a side effect.
+
+**Deviations.**
+
+1. The changelog fragment carries no `req:` field. REQ-YG-044 is already
+   claimed by FR-342's released fragment, and a second fragment claim
+   trips `test_no_req_collision_across_unrelated_frs` because neither FR
+   maps to a capability owning that req. Traceability rides on the
+   `@pytest.mark.req("REQ-YG-044")` markers, which `req_coverage
+   --strict` validates.
+2. The inventory witness unwraps `anyOf` before reading an item shape.
+   Optional fields are emitted as `anyOf: [<shape>, null]`, so the first
+   GREEN run still reported five losses — all optional fields whose
+   properties were in fact present. The witness was reading the schema
+   wrongly, not the loader writing it wrongly.
+3. Seven optional test dependencies were missing from the venv
+   (`fastapi`, `uvicorn`, `starlette`, `feedparser`, `bs4`, `pyarrow`,
+   `litellm`, plus `z3-solver` and `unified-planning`). They produced 19
+   failures and one collection error that blocked the commit hook. The
+   environment was completed rather than the failures excluded; the suite
+   is green.
