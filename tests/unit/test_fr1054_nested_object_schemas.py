@@ -46,9 +46,15 @@ def _resolve(schema, ref):
 
 
 def _item_properties(model, field):
-    """Declared item properties as the provider would see them."""
+    """Declared item properties as the provider would see them.
+
+    Optional fields arrive as `anyOf: [<shape>, null]`, so the non-null
+    branch is unwrapped before the item shape is read.
+    """
     schema = model.model_json_schema()
     spec = schema["properties"][field]
+    if "anyOf" in spec:
+        spec = next(b for b in spec["anyOf"] if b.get("type") != "null")
     items = spec.get("items", spec)
     if "$ref" in items:
         items = _resolve(schema, items["$ref"])
