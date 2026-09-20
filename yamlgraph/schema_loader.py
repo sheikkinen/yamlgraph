@@ -174,6 +174,19 @@ JSON_SCHEMA_TYPE_MAP: dict[str, type] = {
 }
 
 
+def _nested_type(spec: dict, model_name: str, field_name: str) -> type:
+    """Resolve a field or array-item spec, recursing into declared properties.
+
+    FR-1054: an object that declares `properties` becomes its own model, so the
+    declared shape survives into the schema sent to the provider. An object
+    without `properties` stays `dict` — that is a real unconstrained-object
+    declaration, not an omission.
+    """
+    if spec.get("type") == "object" and spec.get("properties"):
+        return build_pydantic_model_from_json_schema(spec, f"{model_name}_{field_name}")
+    return JSON_SCHEMA_TYPE_MAP.get(spec.get("type", "string"), str)
+
+
 def build_pydantic_model_from_json_schema(
     schema: dict, model_name: str = "DynamicOutput"
 ) -> type:
@@ -204,13 +217,12 @@ def build_pydantic_model_from_json_schema(
         # Handle array types
         if json_type == "array":
             items = field_def.get("items", {})
-            item_type = JSON_SCHEMA_TYPE_MAP.get(items.get("type", "string"), str)
-            field_type = list[item_type]
+            field_type = list[_nested_type(items, model_name, field_name)]
         # Handle enum types
         elif "enum" in field_def:
             field_type = str  # Enums become str in Pydantic
         else:
-            field_type = JSON_SCHEMA_TYPE_MAP.get(json_type, str)
+            field_type = _nested_type(field_def, model_name, field_name)
 
         # Check if required
         is_optional = field_name not in required

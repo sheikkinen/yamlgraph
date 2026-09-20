@@ -236,7 +236,40 @@ output_schema:
 | `number` | `float` | Decimal numbers |
 | `boolean` | `bool` | True/false |
 | `array` | `list` | Use `items` for element type |
-| `object` | `dict` | Nested objects |
+| `object` | nested model, or `dict` | A nested model when `properties` is declared; `dict` when it is not |
+
+### Nested Objects
+
+An `object` that declares `properties` becomes its own model, and the declared
+shape is sent to the provider. This works for array items and for bare object
+fields, to any depth:
+
+```yaml
+output_schema:
+  type: object
+  properties:
+    criteria:
+      type: array
+      items:
+        type: object
+        properties:
+          name: {type: string}
+          score: {type: integer}
+          justification: {type: string}
+        required: [name, score]
+  required: [criteria]
+```
+
+The provider is asked for `name`, `score` and `justification` on every element.
+Nested `required` is enforced — a missing `name` or `score` fails validation,
+while `justification` may be omitted and arrives as `None`.
+
+An object declared **without** `properties` is an unconstrained object and stays
+a plain `dict`. That is a real declaration, not an omission — use it when the
+keys are genuinely unknown ahead of time.
+
+The supported subset is inline and finite: `$ref`, recursive definitions,
+combinators (`anyOf`/`oneOf`/`allOf`) and arrays of arrays are not resolved.
 
 ### Array Types
 
