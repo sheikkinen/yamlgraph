@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (revisions folded 2026-09-23)
 **Effort:** 0.5 days
 **Requested:** 2026-09-23
 **First consumer / first event:** `yamlgraph-visual-novel` FR-008, Pass C —
@@ -11,6 +11,14 @@ book prefix. That FR was written around prompt caching (~$2.94 -> ~$0.53 per
 run) and cannot be built on `system_segments` until this is fixed.
 **Research:** in-body dispositioned alternatives table (FR-889 style), below.
 Every row is a probe that was executed, not a position argued.
+
+**`is_this_a_graph`?** **No.** This is one deterministic provider-boundary
+assignment plus focused Python tests. There is no per-item model operation, no
+multi-stage LLM pipeline, and no subagent fan-out; `yamlgraph graph list` holds
+no graph that is a better execution vehicle for a one-line message-construction
+fix. (The paid verification in R-4 *runs* a graph —
+`examples/demos/prompt-caching` — but as the witness, not as the implementation
+route.)
 **Prior art:**
 - [FR-276.md](FR-276.md) — implemented `system_segments` + `cache: true`. This
   FR fixes the defect in that implementation; it does not re-litigate the
@@ -197,29 +205,70 @@ Note the existing Anthropic assertions in `test_prompt_caching_fr276.py`
 (lines ~198, ~230, ~345) **encode the bug** — they assert `additional_kwargs`.
 They must be rewritten against `.content`, not merely kept green.
 
+## Operator decision (R-4)
+
+**Question:** Approve one paid Anthropic verification run, with the raw second-
+call usage record committed to `examples/demos/prompt-caching/demo-output.log`
+and copied into this FR?
+
+**Answer (2026-09-23, operator):** **Approved.** The run must show the second
+call's exact non-zero cache-read field and value. The existing log's prose
+`Cache hit!` (`demo-output.log:13-14`) is a claim, not a measurement, and does
+not satisfy AC-10. A success-shaped log must never be synthesized.
+
 ## Acceptance Criteria
 
-- [ ] `_build_system_message_from_segments` returns blocks in
-      `SystemMessage.content` for `provider == "anthropic"`
-- [ ] A test composes `_build_system_message_from_segments` with
-      `langchain_anthropic._format_messages` and asserts both that the system
-      prompt is non-empty and that `cache_control` survives
-- [ ] The existing Anthropic tests asserting `additional_kwargs` are rewritten
-      to assert `.content`
-- [ ] Non-Anthropic providers still flatten to a single string (unchanged);
-      scalar `system:` behaviour unchanged
-- [ ] One live Anthropic run records non-zero `cache_read_input_tokens` on a
-      second call sharing the prefix — the measurement FR-219 deferred. The
-      number is pasted into this FR; "cache hints are present" is not evidence
-      of a cache hit
-- [ ] `examples/demos/prompt-caching` re-run after the fix; its regenerated
-      `demo-output.log` replaces the log produced under the empty-system-prompt
-      defect
-- [ ] `langchain-anthropic` gains an upper bound, or the seam test is
-      explicitly accepted as the drift guard in its place
-- [ ] FR-382's chaplain prompts re-verified to have non-empty system prompts
-- [ ] Documentation updated
-- [ ] Released so `yamlgraph-visual-novel` FR-008 can pin it
+Superseded by the judgement's revised criteria; reproduced here as the working
+list (`FR-1055-....judgement.md`).
+
+- [ ] AC-01: A RED test tagged `@pytest.mark.req("REQ-YG-289")` demonstrates
+      that `_build_system_message_from_segments([{"content": "STABLE",
+      "cache": True}], {}, None, "anthropic")` does not deliver a non-empty
+      system block through `langchain_anthropic._format_messages`
+- [ ] AC-02: After the production change, the Anthropic `SystemMessage.content`
+      equals a list containing the rendered text block and
+      `{"cache_control": {"type": "ephemeral"}}`; `additional_kwargs` does not
+      carry a duplicate `content` payload
+- [ ] AC-03: The seam test composes `_build_system_message_from_segments` with
+      `langchain_anthropic._format_messages` and asserts the exact rendered
+      text `"STABLE"` plus the exact ephemeral cache-control object, not mere
+      truthiness
+- [ ] AC-04: The Anthropic producer assertions at
+      `tests/unit/test_prompt_caching_fr276.py:199`, `:230`, `:345` read
+      `.content`; the non-Anthropic assertion at `:277` remains valid and
+      non-Anthropic providers still receive one flattened string
+- [ ] AC-05: Existing scalar `system:` tests remain green, demonstrating the
+      branch at `executor_base.py:266-270` is unchanged
+- [ ] AC-06: `pytest tests/unit/test_prompt_caching_fr276.py -q --no-cov` passes
+- [ ] AC-07: `python scripts/req_coverage.py --strict` passes and the seam test
+      is linked to REQ-YG-289
+- [ ] AC-08: The FR records that the public prompt contract needs no edit, or
+      names and verifies the exact documentation correction
+- [ ] AC-09: A valid FR-1055 fix fragment exists under `changelog/unreleased/`,
+      and a Distill entry with a `Seed:` exists under `docs/diary/`
+- [ ] AC-10: The second call's raw non-zero cache-read field and value appear
+      in both `examples/demos/prompt-caching/demo-output.log` and this FR
+      (operator approved the paid run in R-4)
+
+### Documentation (AC-08)
+
+**No public contract change.** `reference/prompt-yaml.md:67-97` already states
+the intended behaviour verbatim — "**Anthropic**: `cache: true` segments get
+cache_control metadata for cost reduction" and "**Other providers**: Cache
+flags are ignored; segments are flattened to single system message". Both
+sentences become *true* after this fix; neither is inaccurate as a statement of
+the contract. Nothing to correct.
+
+### Descoped by the judgement
+
+- FR-382 chaplain prompt re-verification — historical downstream evidence, not
+  a named current witness; belongs to its own FR
+- Release / version bump / tag so the consumer can pin — a later lifecycle
+  action, not this repair
+- A `langchain-anthropic` upper bound — **resolved in favour of the seam test**
+  (R-3). The declared floor 1.5.1 reproduces the bug, so a pin is not the cure;
+  the seam test is the selected dependency-drift guard. Any upper-bound policy
+  needs a separate FR naming a version.
 
 ## Alternatives Considered
 
