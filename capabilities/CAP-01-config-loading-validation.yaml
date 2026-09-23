@@ -51,4 +51,17 @@ requirements:
       graph running correctly in production.
     modules:
       - models/node_schema
+  - id: REQ-YG-685
+    description: >
+      Subgraph node mode is validated at the graph-schema boundary (FR-1060):
+      GraphConfigSchema re-validates every type: subgraph node through
+      SubgraphNodeConfig, so the mode Literal (invoke | direct) and the
+      direct-mode mapping prohibition reach real graphs instead of only
+      tests that construct the model directly. An unsupported mode fails
+      validation rather than silently degrading to the invoke path, and the
+      linter stops recommending the mappings that direct mode rejects.
+    modules:
+      - models/graph_schema
+      - models/node_schema
+      - linter/patterns/*
 fr: legacy

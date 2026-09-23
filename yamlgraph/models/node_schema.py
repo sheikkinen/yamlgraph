@@ -53,8 +53,20 @@ class SubgraphNodeConfig(BaseModel):
         """Validate subgraph configuration."""
         if not self.graph.endswith((".yaml", ".yml")):
             raise ValueError(f"Subgraph must be a YAML file: {self.graph}")
-        if self.mode == "direct" and (self.input_mapping or self.output_mapping):
-            raise ValueError("mode=direct does not support input/output mappings")
+        if self.mode == "direct":
+            # Presence, not truthiness: `input_mapping: {}` is a declaration
+            # that direct mode has no boundary to map across, and accepting
+            # it would contradict the reference and the diagnostic.
+            present = [
+                name
+                for name in ("input_mapping", "output_mapping")
+                if name in self.model_fields_set
+            ]
+            if present:
+                raise ValueError(
+                    f"mode=direct shares the parent state schema and does not "
+                    f"support {', '.join(present)}"
+                )
         return self
 
 

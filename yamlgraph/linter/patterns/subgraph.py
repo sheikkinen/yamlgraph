@@ -62,6 +62,11 @@ def check_subgraph_node_requirements(
             )
         )
 
+    # FR-1060: direct mode shares the parent's state schema and the schema
+    # rejects mappings there, so advising them contradicts validation.
+    if node_config.get("mode") == "direct":
+        return issues
+
     # W501: Subgraph node missing input_mapping
     if "input_mapping" not in node_config:
         issues.append(

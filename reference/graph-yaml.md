@@ -876,9 +876,17 @@ nodes:
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
 | `graph` | `string` | Yes | Path to child graph YAML |
-| `mode` | `string` | No | `invoke` (default) or `stream` |
-| `input_mapping` | `dict` | No | Map parent state keys to child state keys |
-| `output_mapping` | `dict` | No | Map child state keys to parent state keys |
+| `mode` | `string` | No | `invoke` (default) or `direct` |
+| `input_mapping` | `dict` | No | Map parent state keys to child state keys (`invoke` only) |
+| `output_mapping` | `dict` | No | Map child state keys to parent state keys (`invoke` only) |
+
+`invoke` is the default: the child keeps its own state schema, and
+`input_mapping` / `output_mapping` move keys across the boundary.
+
+`direct` shares the parent's state schema with the child — there is no
+boundary to map across, so `input_mapping` and `output_mapping` are rejected
+by validation. Any other value fails validation rather than silently running
+as `invoke`.
 
 See [Subgraph Nodes Reference](subgraph-nodes.md) for state mapping patterns and nesting.
 
