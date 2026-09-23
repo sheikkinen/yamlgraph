@@ -2,7 +2,9 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — Authority GRANTED WITH REVISIONS (2026-09-23), not yet
+activated: C-1 gates enforcement on FR-1057 being committed in the parent tree.
+Judgement: [FR-1059-attribute-fields-in-simple-format.judgement.md](FR-1059-attribute-fields-in-simple-format.judgement.md)
 **Effort:** 0.5 day
 **Requested:** 2026-09-23
 **First consumer / first event:** `examples/codegen/impl-agent.yaml`, at its
@@ -232,9 +234,24 @@ Notes that belong in the change, not left implicit:
   a mechanical substitution, not a different design.
 - A missing key raises `KeyError`, matching the existing behaviour for a missing
   root variable. Nothing becomes silent. Commandment 6.
-- The changed behaviour is strictly a subset of today's: every template that
-  renders today renders identically; only templates that raise `AttributeError`
-  today change outcome.
+- **Mapping-key precedence (judgement R-2).** While traversing a `Mapping`, a
+  dotted component is **always** a key lookup — even when the name collides
+  with a mapping method (`items`, `keys`, `values`, `get`, `copy`). `getattr`
+  is used only when the current value is not a `Mapping`. The earlier draft
+  claimed "every template that renders today renders identically"; that claim
+  was **false and is withdrawn**. `{a.items}` with `a` a dict renders the bound
+  method's repr today; after this change it resolves the key `"items"` or
+  raises `KeyError`. This is the intended semantics — a prompt rendering
+  `<built-in method items of dict...>` is a defect, not a contract — but it is
+  a behaviour change and is covered by AC-03.
+- **Terminal list presentation (judgement R-3).** `format_prompt`'s simple
+  branch deliberately comma-joins top-level lists before formatting
+  (`yamlgraph/executor_base.py:127-132`, verified: `", ".join(map(str, v)) if
+  isinstance(v, list) else v`). A list reached *through* a path bypasses that
+  normalisation — the probe above emitted `['a']`, not `a`. Two of the three
+  live sites (`key_terms`, `file_patterns`) are lists, so this is not
+  hypothetical. A path-terminal list must receive the same comma-joined
+  presentation. Covered by AC-07.
 
 No new lint code. E002's root check already covers the root identifier after
 FR-1057 (`scan_simple_fields().bare_roots` sees `parsed_request` in
@@ -242,25 +259,53 @@ FR-1057 (`scan_simple_fields().bare_roots` sees `parsed_request` in
 
 ## Acceptance Criteria
 
-All tests tagged `@pytest.mark.req("REQ-YG-686")` (id provisional — reallocate
-at enforce time by scanning `capabilities/`, not `.chaplain/id-registry.yaml`;
-`cap-req-id-allocation-race`).
+Superseded by the judgement's revised set (R-1..R-5 folded). The capability and
+requirement IDs are **not** fixed here: per R-4 they are allocated after the
+rebase onto the committed FR-1057 parent, by scanning `capabilities/` — not
+`.chaplain/id-registry.yaml`, which is stale (`cap-req-id-allocation-race`).
+`CAP-275` / `REQ-YG-686` appear nowhere below; the FR is updated with the final
+pair before RED begins.
 
-- [ ] **AC-1 (RED first)** A test asserts `format_prompt("{a.b}", {"a": {"b": "v"}}) == "v"` and fails with `AttributeError` on the parent commit. Committed as a separate RED commit before the fix.
-- [ ] **AC-2** `format_prompt` resolves an attribute tail through a `Mapping`.
-- [ ] **AC-3** `format_prompt` still resolves an attribute tail through a plain object (`getattr` route unbroken).
-- [ ] **AC-4** A nested tail (`{a.b.c}`) resolves through two mappings.
-- [ ] **AC-5** A mixed tail (`{a.b[0].c}`) resolves; index tails unchanged.
-- [ ] **AC-6** A missing tail key raises `KeyError`, not a silent empty string. No `on_error` change.
-- [ ] **AC-7** `extract_variables` still reports the **root** only (`{"a"}` for `{a.b}`) — no regression of FR-1057's `bare_roots` contract.
-- [ ] **AC-8 (live witness, not a fixture)** `prepare_messages("examples/codegen/plan_discovery", {...}, prompts_dir=...)` returns rendered messages containing `feat`. The exact call that produced the `AttributeError` above, with the same inputs, now green. Transcript pasted into the Implementation Record.
-- [ ] **AC-9 (corpus)** `yamlgraph graph lint` over every tracked graph-shaped YAML: **0 crashes, 0 new findings** vs. the pre-change baseline, captured to a log and cited by path.
-- [ ] **AC-10 (census closed)** The §Problem census re-run after the change reports the same 3 sites, and each renders. The residual count is stated, not assumed zero.
-- [ ] **AC-11** Full unit suite green; `ruff check yamlgraph/` clean; `python scripts/req_coverage.py --strict` exits 0.
-- [ ] **AC-12** `capabilities/CAP-275-prompt-attribute-path-resolution.yaml` added with `REQ-YG-686`; `ARCHITECTURE.md` **regenerated** via `python scripts/aggregate_capabilities.py` (never hand-edited).
-- [ ] **AC-13** `reference/prompt-yaml.md` §"Template Dialect (per message)" (added by FR-1057) gains one paragraph: `.` walks dicts and objects alike in both dialects and at both layers.
-- [ ] **AC-14** Changelog fragment `changelog/unreleased/fr-1059-attribute-fields-in-simple-format.md`, `type: fix`, `scope: prompts`, `req: REQ-YG-686`.
-- [ ] **AC-15** Diary Distill entry in `docs/diary/` naming the trap and planting a **Seed:**.
+- [ ] **AC-01** On the committed rebased parent, a separately committed RED test proves `format_prompt("{a.b}", {"a": {"b": "v"}})` raises `AttributeError`; the GREEN implementation returns `"v"`.
+- [ ] **AC-02** Dotted traversal uses mapping keys for every `Mapping` and `getattr` only for non-mapping objects.
+- [ ] **AC-03** A mapping key named `items` resolves that key; an absent `items` key raises `KeyError` rather than exposing `dict.items`.
+- [ ] **AC-04** Plain-object attribute traversal remains functional.
+- [ ] **AC-05** `{a.b.c}` traverses two mappings, and `{a.b[0].c}` traverses mixed mapping/index components.
+- [ ] **AC-06** A missing mapping tail raises `KeyError`; no silent value, no `on_error` change.
+- [ ] **AC-07** Terminal lists reached through paths retain comma-joined simple-format presentation; tests assert non-empty and empty lists exactly.
+- [ ] **AC-08** On the rebased FR-1057 parent, `extract_variables("{a.b}") == {"a"}`.
+- [ ] **AC-09** The live witness asserts all three rendered lines of `prepare_messages("examples/codegen/plan_discovery", ...)` — scalar `change_type`, comma-joined `key_terms`, comma-joined `file_patterns` — not merely that the output contains `feat`. Transcript recorded in the Implementation Record.
+- [ ] **AC-10** The corpus lint command below is executed before and after; the post-change run has zero crashes and no findings absent from the recorded baseline, with both log paths cited.
+- [ ] **AC-11** The census command below is executed and reports the same three surviving sites in `plan_discovery.yaml`. Rendering correctness is proven by AC-09, never inferred from this count.
+- [ ] **AC-12** Full unit suite, `ruff check yamlgraph/`, and `python scripts/req_coverage.py --strict` all exit zero.
+- [ ] **AC-13** A final free capability/requirement pair is allocated after rebase; the capability file is added and `ARCHITECTURE.md` is **regenerated** via `python scripts/aggregate_capabilities.py` (never hand-edited).
+- [ ] **AC-14** `reference/prompt-yaml.md` documents mapping-key precedence, object fallback, missing-key failure, and path-terminal list presentation for the simple dialect, preserving FR-1057's per-message dialect contract.
+- [ ] **AC-15** `changelog/unreleased/fr-1059-attribute-fields-in-simple-format.md` records a `fix` in `prompts` using the final requirement ID.
+- [ ] **AC-16** The Implementation Record identifies the parent SHA, RED SHA, GREEN SHA, final IDs, commands, logs, results, and any deviation.
+- [ ] **AC-17** A Distill entry in `docs/diary/` names the trap, extracts a heuristic, and includes a **Seed:**.
+
+### Exact corpus commands (R-5)
+
+Graph-shaped file selection and lint baseline — `tmp/fr1059-lint-before.log` on
+the rebased parent, `tmp/fr1059-lint-after.log` after the change, compared with
+`diff`:
+
+```bash
+for f in $(git ls-files '*.yaml' '*.yml'); do
+  python - "$f" <<'PY' || continue
+import sys, yaml, pathlib
+d = yaml.safe_load(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))
+sys.exit(0 if isinstance(d, dict) and "nodes" in d else 1)
+PY
+  echo "== $f"; yamlgraph graph lint "$f" 2>&1 || true
+done > tmp/fr1059-lint-{before,after}.log
+```
+
+Attribute-tail census — the exact classifier from §Problem, using FR-1057's
+`is_jinja` and `string.Formatter().parse`, filtered on `spec == "" and conv is
+None`, over `system` / `user` / `template` / list-item `content` /
+`system_segments[i].content`; written to `tmp/fr1059-census-after.log` and
+asserted to contain exactly the three `plan_discovery.yaml` sites.
 
 ## Alternatives Considered
 
@@ -293,3 +338,37 @@ per-item LLM pass, multi-stage pipeline, or fan-out. The one corpus-wide step
 - `yamlgraph/node_factory/llm_nodes.py:292` — `result.model_dump()`, the dict boundary
 - `examples/codegen/impl-agent.yaml`, `examples/codegen/prompts/plan_discovery.yaml` — the live instance
 - No LangSmith trace: the failure is pre-invocation, in message preparation. No LLM call is made.
+
+## Judgement (2026-09-23)
+
+**Verdict:** APPROVED WITH REVISIONS. Full artifact:
+[FR-1059-attribute-fields-in-simple-format.judgement.md](FR-1059-attribute-fields-in-simple-format.judgement.md)
+(backend `copilot` / `gpt-5.6-sol`, run in this worktree at `d6faf6b5`).
+
+| # | Finding | Resolution (binding) — folded |
+|---|---------|-------------------------------|
+| R-1 | FR-1057 is not in the committed parent tree; the judge could not consume it as evidence. Every `scan_simple_fields` / `bare_roots` / E013 / E014 / `reference/prompt-yaml.md §Template Dialect` reference is a forward claim. | **Accepted, gating.** Status downgraded to "authority not yet activated". Enforcement starts only after FR-1057 is merged; the FR is then rebased onto that SHA and the failure probe, census, and lint baseline are re-run on that tree. |
+| R-2 | The claim "every template that renders today renders identically" is false: `{a.items}` on a dict currently resolves `dict.items`. | **Accepted.** Claim deleted and replaced by an explicit mapping-key-precedence rule in §Proposed Solution; AC-03 tests present and absent colliding keys. |
+| R-3 | `format_prompt` comma-joins **top-level** lists (`executor_base.py:127-132`); a list reached through a path bypasses that and renders `['a']`. Two of the three live fields are lists. | **Accepted — the strongest finding.** Verified independently at `executor_base.py:127-132`. Path-terminal lists must inherit the comma-joined presentation; AC-07 asserts non-empty and empty lists exactly. AC-09 now asserts all three rendered lines, not "contains `feat`". |
+| R-4 | AC-12 prescribed `CAP-275`/`REQ-YG-686` while the preamble called them provisional. | **Accepted.** Both IDs removed from the FR body; allocated after rebase by scanning `capabilities/`. |
+| R-5 | AC-9/AC-10 named outcomes but no reproducible commands, and "each renders" is not established by a field-name census. | **Accepted.** Exact graph-shaped-selection + lint commands and census classifier added under §Exact corpus commands; rendering correctness moved entirely to the AC-09 witness. |
+
+**Scope frozen:** D-1..D-7 of the judgement. Not authorised: graph-layer
+expression resolution, Pydantic/state normalisation, checkpointers, Jinja
+semantics, any linter code, rewriting the three `plan_discovery` placeholders,
+retiring the simple dialect, or any CI/hook/judge/review infrastructure.
+
+**Conditions:** C-1..C-6 of the judgement, all GATE. C-1 (FR-1057 committed in
+the parent) is the blocking one and is **not yet satisfied**.
+
+### Questions for the human
+
+The judgement records none. One is raised by R-1 and needs a decision before
+enforce:
+
+- **Should FR-1059 wait for FR-1057 to merge, or rebase onto the FR-1057
+  branch and stack the PRs?** Evidence: FR-1057 is committed at `4ef3b7ac` but
+  unpushed and unreviewed; FR-1059's AC-08 depends on its `bare_roots`
+  contract. **Recommended default: wait.** Stacking makes FR-1057's review
+  diff and FR-1059's blast radius harder to read, for a 0.5-day change with no
+  deadline.
