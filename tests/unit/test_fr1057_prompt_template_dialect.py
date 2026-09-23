@@ -19,6 +19,7 @@ from yamlgraph.utils.template import (
     extract_variables,
     is_jinja,
     scan_simple_fields,
+    validate_variables,
 )
 
 REQ = "REQ-YG-685"
@@ -83,8 +84,35 @@ def test_scan_separates_documentation_shapes_from_substitutions() -> None:
     required variable would break that graph.
     """
     scan = scan_simple_fields("Shape: {pred: alive, args: []} and {topic}")
-    assert scan.bare_roots == {"topic"}
+    assert scan.substitution_roots == {"topic"}
     assert "pred" in scan.roots
+
+
+@pytest.mark.req("REQ-YG-685")
+def test_format_spec_fields_are_substitutions_not_documentation() -> None:
+    """A valid format spec or conversion marks a real field (review P2).
+
+    The first cure keyed on "has a tail" and swallowed `{score:.2f}` with the
+    prose braces: lint stayed silent, validation required nothing, and the
+    render then raised KeyError. The discriminator is whether the tail is a
+    format spec, not whether a tail exists.
+    """
+    for template, expected in [
+        ("Score: {score:.2f}", {"score"}),
+        ("Name: {name!r}", {"name"}),
+        ("Padded: {label:>10}", {"label"}),
+        ("Grouped: {total:,}", {"total"}),
+        ("Nested: {value:{width}}", {"value", "width"}),
+    ]:
+        assert scan_simple_fields(template).substitution_roots == expected
+        assert extract_variables(template) == expected
+
+
+@pytest.mark.req("REQ-YG-685")
+def test_format_spec_field_is_validated_before_render() -> None:
+    """Validation must fail where the render would (review P2, C-3)."""
+    with pytest.raises(ValueError, match="score"):
+        validate_variables("Score: {score:.2f}", {}, "p")
 
 
 @pytest.mark.req("REQ-YG-685")

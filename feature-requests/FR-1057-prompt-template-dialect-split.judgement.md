@@ -112,6 +112,16 @@ Not authorized: rendering every prompt through Jinja; automatic brace rewriting;
 | C-5 | Do not claim or test an absent prompt path; all incident-based acceptance evidence must resolve to committed artifacts. | GATE |
 | C-6 | Do not broaden this FR into Jinja-only migration, shell formatting, unrelated prompt cleanup, or graph/provider changes. | GATE |
 
+**C-6 amended by the operator, 2026-09-23 (post-review).** The review of PR #674
+raised the deletion of `examples/demos/novel_generator/` (14 files) and
+`tests/integration/test_novel_generator.py` as blocking finding P1, on the
+grounds that C-6 forbids it and that an operator decision recorded after
+judgement does not enlarge granted authority. That reading is correct. The
+operator was re-asked with the objection stated and elected to keep the
+retirement, amending C-6 to permit **exactly these 15 paths and no others**.
+Recorded here so the amendment is visible at the gate it modifies, rather than
+only in the FR's implementation record.
+
 Authority granted: after the revisions are folded, implement the shared per-message prompt dialect primitive, formatter-grounded E013/E014 gates, the verified committed incident repair, and the frozen supporting tests, documentation, traceability, and release records.
 
 ---

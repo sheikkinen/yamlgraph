@@ -469,9 +469,49 @@ retirement is self-contained. AC-09's witness is therefore the
 dungeon_master D1 crash — a stronger witness than the evolve prompt, since it
 was a real runtime failure rather than a silently dropped variable.
 
+**Scope amendment to C-6 (2026-09-23, post-review).** PR #674's review raised
+this retirement as blocking finding P1 — correctly by doctrine: an operator
+decision recorded after judgement does not enlarge granted authority, and C-6
+is a GATE against broadening this FR into unrelated prompt cleanup. The
+operator was asked again, with the reviewer's objection stated, and chose to
+**keep the retirement and amend the scope explicitly**. C-6 is therefore
+amended here and in the judgement to permit exactly this one retirement, named
+by path, and nothing else. The amendment is recorded rather than the finding
+silently dismissed: the reviewer's reading of the frozen scope was right, and
+the override is a human decision on the record, not an agent's.
+
+### Correction 3 — the D4 cure was too broad (review P2)
+
+The first `bare_roots` cure keyed on *"the field has a tail"*. That swallowed
+the prose braces it was aimed at — and every real field carrying a format spec
+or conversion with them. Reproduced by the reviewer and independently:
+
+```
+'Score: {score:.2f}'  extract_variables -> set()   render with {} -> KeyError 'score'
+'Name: {name!r}'      extract_variables -> set()   render with {} -> KeyError 'name'
+```
+
+Lint stayed silent, validation required nothing, and the render then crashed —
+re-creating at a new address exactly the validation/render disagreement that is
+defect D1 and that C-3 requires to fail loudly. Corpus incidence was **0** (no
+tracked non-Jinja message carries a spec-bearing field), so no test and no
+corpus lint could have caught it; it was latent, and two independent
+instruments — the outsider read of the PR body and the reviewer — named it
+within minutes of each other.
+
+Cure: `SimpleFieldScan.bare_roots` is replaced by `substitution_roots`, and the
+discriminator is no longer "has a tail" but *"is the tail a format spec?"* —
+`_FORMAT_SPEC`, transcribed from the mini-language's own definition, plus the
+closed conversion set `r/s/a`. `{score:.2f}`, `{name!r}`, `{label:>10}`,
+`{total:,}` and `{value:{width}}` are substitutions; `{pred: alive, args: []}`
+is not. Nested specs are scanned recursively, because `{value:{width}}` cannot
+render without `width`. The lesson is the general one: a cure aimed at a false
+positive must be no wider than the false positive, or it buys silence with a
+new blind spot.
+
 ### Witnesses
 
-- `tests/unit/test_fr1057_prompt_template_dialect.py` — 18 tests
+- `tests/unit/test_fr1057_prompt_template_dialect.py` — 20 tests
 - `tests/unit/test_fr1057_prompt_repairs.py` — the dungeon_master D1 crash,
   rendering correctly after repair
 - Full unit suite green; `python scripts/req_coverage.py --strict` exits 0

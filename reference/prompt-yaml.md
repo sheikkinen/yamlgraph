@@ -357,9 +357,13 @@ In a **simple-format** (non-Jinja) message every brace is significant:
 
 - `{name}`, `{obj.field}`, and `{items[0]}` are substitutions; the required
   variable is the **root** (`name`, `obj`, `items`).
-- A field carrying a format spec or conversion — `{pred: alive, args: []}` —
-  documents an output shape rather than requesting a substitution, and is left
-  alone.
+- A format spec or conversion does not change that: `{score:.2f}`, `{name!r}`,
+  `{label:>10}` and `{value:{width}}` are substitutions too, and both `value`
+  and `width` are required.
+- A field whose tail is **not** a valid format spec — `{pred: alive, args: []}`
+  — documents an output shape rather than requesting a substitution, and is
+  left alone. The discriminator is the format-spec grammar, not the presence
+  of a `:`.
 - Anything else (an unmatched brace, a non-identifier field root such as
   `{"chapters": []}`) cannot be rendered. Lint reports **E013** before the call.
 

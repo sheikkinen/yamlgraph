@@ -21,6 +21,27 @@ logger = logging.getLogger(__name__)
 # Injected by the framework or supplied by Jinja itself, never by the caller.
 _EXCLUDED_VARIABLES = {"state", "loop", "range", "true", "false", "none", "self"}
 
+# The format-spec mini-language, transcribed from its own definition:
+# [[fill]align][sign][z][#][0][width][grouping][.precision][type]
+_FORMAT_SPEC = re.compile(
+    r"^(?:.?[<>=^])?[-+ ]?z?#?0?\d*[,_]?(?:\.\d+)?[bcdeEfFgGnosxX%]?$"
+)
+_CONVERSIONS = frozenset("rsa")
+
+
+def _is_substitution(spec: str | None, conversion: str | None) -> bool:
+    """Is this field a substitution, or prose that merely looks like one?
+
+    `{score:.2f}` and `{name!r}` are substitutions. `{pred: alive, args: []}`
+    is an author documenting an output shape; its tail is not a format spec,
+    and that — not the mere presence of a `:` — is what says so.
+    """
+    if conversion is not None and conversion not in _CONVERSIONS:
+        return False
+    if not spec or "{" in spec:  # nested field width/precision
+        return True
+    return _FORMAT_SPEC.match(spec) is not None
+
 
 def is_jinja(text: str) -> bool:
     """Decide which engine renders one message (FR-1057).
@@ -37,10 +58,13 @@ class SimpleFieldScan:
 
     Attributes:
         roots: Root identifiers of every well-formed field.
-        bare_roots: Roots of fields carrying no format spec and no conversion
-            — the shape an author writes when they mean a substitution.
-            `{pred: alive, args: []}` is documentation of an output shape, not
-            a variable, and its `: ...` tail is what says so.
+        substitution_roots: Roots of fields that will actually be substituted
+            at render time — every field whose conversion and format spec are
+            valid, including `{score:.2f}` and `{name!r}`. Excluded are fields
+            whose tail is not a format spec at all, such as the
+            `{pred: alive, args: []}` an author writes to document an output
+            shape. This is the set validation and E014 must use: anything
+            narrower lets a real field pass unvalidated and crash at render.
         invalid_fields: Fields whose root is not an identifier, such as the
             `"chapters"` that `{"chapters": []}` parses into.
         brace_error: The formatter's own complaint about unbalanced braces,
@@ -48,7 +72,7 @@ class SimpleFieldScan:
     """
 
     roots: set[str]
-    bare_roots: set[str]
+    substitution_roots: set[str]
     invalid_fields: tuple[str, ...]
     brace_error: str | None
 
@@ -86,7 +110,7 @@ def scan_simple_fields(text: str) -> SimpleFieldScan:
     """
     formatter = string.Formatter()
     roots: set[str] = set()
-    bare_roots: set[str] = set()
+    substitution_roots: set[str] = set()
     invalid: set[str] = set()
     brace_error: str | None = None
     remaining = text
@@ -101,8 +125,14 @@ def scan_simple_fields(text: str) -> SimpleFieldScan:
                     invalid.add(field_name)
                     continue
                 roots.add(root)
-                if not spec and not conversion:
-                    bare_roots.add(root)
+                if _is_substitution(spec, conversion):
+                    substitution_roots.add(root)
+                if spec and "{" in spec:
+                    # A nested width/precision is a required variable too:
+                    # `{value:{width}}` cannot render without `width`.
+                    nested = scan_simple_fields(spec)
+                    roots |= nested.roots
+                    substitution_roots |= nested.substitution_roots
             break
         except ValueError as exc:
             if brace_error is None:
@@ -119,7 +149,7 @@ def scan_simple_fields(text: str) -> SimpleFieldScan:
 
     return SimpleFieldScan(
         roots=roots,
-        bare_roots=bare_roots,
+        substitution_roots=substitution_roots,
         invalid_fields=tuple(sorted(invalid)),
         brace_error=brace_error,
     )
@@ -164,10 +194,10 @@ def extract_variables(template: str) -> set[str]:
         # Simple {var} fields survive Jinja rendering untouched; they are still
         # declared inputs until E014 removes them. Raw blocks are literal.
         variables.update(
-            scan_simple_fields(strip_jinja_raw_blocks(template)).bare_roots
+            scan_simple_fields(strip_jinja_raw_blocks(template)).substitution_roots
         )
     else:
-        variables = scan_simple_fields(template).bare_roots
+        variables = scan_simple_fields(template).substitution_roots
 
     return variables - _EXCLUDED_VARIABLES
 
