@@ -351,6 +351,82 @@ graph-authoring doctrine, not hand-written.
 **Recommendation:** S-1 and S-2 as a small follow-up FR. Folding them into
 FR-1058 would require re-judgement, since both cross frozen scope (C-6, D-5).
 
+## Operator override (2026-09-23)
+
+The operator explicitly overrode **both** C-6 and the sole-authoring-route
+doctrine and directed that S-2's graph be hand-authored. Recorded here so the
+artifact's provenance is legible rather than inferred.
+
+**What was produced:** `tests/fixtures/subgraph_direct_fr1058/`, containing
+`child.yaml` and `fr-1058-test.yaml`.
+
+**What was and was not bypassed:**
+
+| Control | Status | Note |
+|---|---|---|
+| Judgement C-6 (process) | **Waived by operator** | No mechanism behind it; the operator owns the gate |
+| Sole authoring route (`scripts/author.sh`) | **Bypassed by operator instruction** | Artifact is hand-authored |
+| PreToolUse governed-path guard | **Not circumvented** | It denied `graph.yaml` and I stopped. The operator then specified `fr-1058-test.yaml`, which lies outside the guard's `examples/**/graph.yaml` pattern |
+| Authoring sentinel | **NOT armed** | Declined. Arming it by hand would forge adapter provenance — a false claim, distinct from an operator override. The artifact asserts nothing about its origin |
+| `demo-proof-check` gate | **Obeyed, not waived** | It refused the artifact under `examples/demos/`; the artifact was moved rather than the gate bypassed (see below) |
+| Lint + smoke validation | **Performed anyway** | Route was waived; validation was not |
+
+**The demo-proof gate corrected a category error.** The artifact was first
+placed at `examples/demos/subgraph-direct-FR-1058/`. `scripts/check_demo_proof.sh`
+rejected it: any changed demo must stage a `demo-output.log` showing a
+**successful** run. This witness fails by design until D-2 lands, so it can
+never satisfy that gate.
+
+The gate is right, and it enforces a distinction this FR had already written
+but not acted on: demos prove an abstraction is worth having; a deliberately
+failing witness is a test. It was therefore moved to
+`tests/fixtures/subgraph_direct_fr1058/`, alongside existing fixtures such as
+`tests/fixtures/linter/loop_limits_fail.yaml`. No gate was bypassed — the
+artifact was in the wrong place, and the gate said so.
+
+**Consequence to accept:** as a fixture rather than a demo, this artifact is
+not wired into `demo.sh` and will not be exercised by demo runs. It closes G-1
+only for the test suite. **S-2 remains fully open** as the properly-routed,
+green-after-fix demo.
+
+**Validation record (honest):**
+
+```text
+$ yamlgraph graph lint .../fr-1058-test.yaml
+   ⚠ [W501] Subgraph node 'child' missing input_mapping
+   ⚠ [W502] Subgraph node 'child' missing output_mapping
+   Found 0 error(s) and 2 warning(s)
+
+$ yamlgraph graph run tests/fixtures/subgraph_direct_fr1058/fr-1058-test.yaml --full
+   ❌ Error: 'CompiledStateGraph' object is not callable
+```
+
+The smoke failure **is** the witness: it reproduces Defect 1 through the
+shipping CLI entry point rather than a hand-rolled script. It must turn green
+when D-2 lands, and this is the artifact AC-02 should be run against.
+
+### G-4 — the linter advises dead fields for `mode: direct`
+
+The two warnings above are false positives, and they are a fourth gap rather
+than noise. `check_subgraph_node()` raises W501/W502 whenever `input_mapping`
+or `output_mapping` is absent, with no `mode` check
+(`yamlgraph/linter/patterns/subgraph.py:65-84`). But direct mode returns the
+compiled child at `yamlgraph/node_factory/subgraph_nodes.py:191` and never
+reads either mapping — they are provably dead there.
+
+So the only machine-readable guidance a direct-mode author receives tells them
+to add two fields that do nothing. Combined with G-2, where the reference doc
+omits `direct` entirely and advertises a `stream` mode the schema rejects,
+every guidance surface for this mode is wrong: the docs, the linter, and the
+runtime. The mappings were deliberately **not** added to the witness; silencing
+a warning by following incorrect advice would bury the finding.
+
+**S-5 (proposed, not adopted):** gate W501/W502 on `mode != "direct"`, and add
+a rule flagging `input_mapping`/`output_mapping` *present* on a direct-mode
+node as ignored configuration. Out of scope here — the judgement authorizes no
+linter changes.
+
+
 ## Judgement (2026-09-23)
 
 **Verdict:** APPROVED WITH REVISIONS — full text in
