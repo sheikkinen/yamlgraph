@@ -43,27 +43,6 @@ requires_otel_sdk = pytest.mark.skipif(
     otel_sdk is None, reason="requires the 'otel' extra (opentelemetry-sdk)"
 )
 
-_SHARED_EXPORTER = None
-
-
-def _install_shared_provider_once():
-    """The global TracerProvider can only be set once per process."""
-    from opentelemetry import trace
-    from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import SimpleSpanProcessor
-    from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
-        InMemorySpanExporter,
-    )
-
-    global _SHARED_EXPORTER
-    if _SHARED_EXPORTER is None:
-        _SHARED_EXPORTER = InMemorySpanExporter()
-    if not isinstance(trace.get_tracer_provider(), TracerProvider):
-        provider = TracerProvider()
-        provider.add_span_processor(SimpleSpanProcessor(_SHARED_EXPORTER))
-        trace.set_tracer_provider(provider)
-    return _SHARED_EXPORTER
-
 
 @pytest.fixture(autouse=True)
 def _reset_otel_env(monkeypatch):
@@ -73,14 +52,10 @@ def _reset_otel_env(monkeypatch):
     otel._provider_configured = False
 
 
-@pytest.fixture
-def otel_spans(monkeypatch):
-    """Enable OTEL export and yield the cleared in-memory exporter."""
-    exporter = _install_shared_provider_once()
-    exporter.clear()
-    monkeypatch.setenv(otel.ENV_VAR, otel.ENABLED_VALUE)
-    otel._provider_configured = True
-    return exporter
+# The provider/exporter fixture (`in_memory_exporter`) lives in
+# tests/unit/conftest.py: the global TracerProvider can only be set once
+# per process, so a private copy here silently observed zero spans
+# whenever test_otel_observability.py installed the provider first.
 
 
 def _node_spans(exporter):
@@ -110,7 +85,7 @@ class TestDirectModeRuns:
         assert app.invoke({})["phase"] == "complete"
 
     @requires_otel_sdk
-    def test_direct_subgraph_runs_with_otel_enabled(self, otel_spans):
+    def test_direct_subgraph_runs_with_otel_enabled(self, in_memory_exporter):
         _, app = _compile_fixture("fr-1058-test.yaml")
         assert app.invoke({})["phase"] == "complete"
 
@@ -128,18 +103,18 @@ class TestDirectModeSpans:
     """AC-03: no synthetic outer span; child nodes stay instrumented."""
 
     @requires_otel_sdk
-    def test_direct_subgraph_emits_no_outer_subgraph_span(self, otel_spans):
+    def test_direct_subgraph_emits_no_outer_subgraph_span(self, in_memory_exporter):
         _, app = _compile_fixture("fr-1058-test.yaml")
         app.invoke({})
-        spans = _node_spans(otel_spans)
+        spans = _node_spans(in_memory_exporter)
         assert ("child", "subgraph") not in spans
         assert not [n for n, t in spans if t == "subgraph"]
 
     @requires_otel_sdk
-    def test_direct_subgraph_child_nodes_remain_instrumented(self, otel_spans):
+    def test_direct_subgraph_child_nodes_remain_instrumented(self, in_memory_exporter):
         _, app = _compile_fixture("fr-1058-test.yaml")
         app.invoke({})
-        assert "prepare" in [n for n, _ in _node_spans(otel_spans)]
+        assert "prepare" in [n for n, _ in _node_spans(in_memory_exporter)]
 
 
 class _S(TypedDict, total=False):
@@ -183,12 +158,14 @@ class TestOtelWrapperConfigTransparency:
         assert seen["config"]["configurable"]["thread_id"] == "T"
 
     @requires_otel_sdk
-    def test_b_config_aware_otel_on_receives_config_and_emits_span(self, otel_spans):
+    def test_b_config_aware_otel_on_receives_config_and_emits_span(
+        self, in_memory_exporter
+    ):
         seen = {}
         _run_wrapped(self._config_aware(seen))
         assert seen["config"] is not None
         assert seen["config"]["configurable"]["thread_id"] == "T"
-        assert ("n", "python") in _node_spans(otel_spans)
+        assert ("n", "python") in _node_spans(in_memory_exporter)
 
     def test_c_state_only_otel_off_called_with_state_only(self):
         """FR-759's disabled no-op contract: no config= leak."""
@@ -197,11 +174,11 @@ class TestOtelWrapperConfigTransparency:
         assert seen.get("called") is True
 
     @requires_otel_sdk
-    def test_d_state_only_otel_on_called_with_state_only(self, otel_spans):
+    def test_d_state_only_otel_on_called_with_state_only(self, in_memory_exporter):
         seen = {}
         _run_wrapped(self._state_only(seen))
         assert seen.get("called") is True
-        assert ("n", "python") in _node_spans(otel_spans)
+        assert ("n", "python") in _node_spans(in_memory_exporter)
 
 
 @pytest.mark.req("REQ-YG-042")
