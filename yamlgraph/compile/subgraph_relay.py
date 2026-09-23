@@ -10,6 +10,7 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 from langgraph.graph import END, StateGraph
+from langgraph.pregel import Pregel
 
 from yamlgraph.compile.node_otel import _maybe_wrap_otel
 from yamlgraph.models.graph_schema import NodeType
@@ -35,6 +36,14 @@ def compile_subgraph_node(ctx: "NodeCompileContext") -> tuple[str, Any] | None:
     )
     if isinstance(node_fn, tuple):
         return _register_relay_pair(ctx, *node_fn)
+    if isinstance(node_fn, Pregel):
+        # mode: direct returns the compiled child. Register it as-is so the
+        # engine owns its checkpoint namespace; wrapping it in any callable
+        # adapter would restore invocability but forfeit that inheritance,
+        # which is the whole point of direct mode (FR-1058 C-2). Its own
+        # nodes are instrumented at their compile, so no span is lost.
+        ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
+        return None
     node_fn = _maybe_wrap_otel(node_fn, ctx.node_name, NodeType.SUBGRAPH)
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
     return None

@@ -68,6 +68,9 @@ def _map_output_state(
         }
 
 
+_PARENT_ROUTING_KEYS = frozenset({"checkpoint_id", "checkpoint_ns", "checkpoint_map"})
+
+
 def _build_child_config(
     parent_config: dict[str, Any],
     node_name: str,
@@ -88,13 +91,17 @@ def _build_child_config(
         f"{parent_thread_id}:{node_name}" if parent_thread_id else node_name
     )
 
-    return {
-        **parent_config,
-        "configurable": {
-            **configurable,
-            "thread_id": child_thread_id,
-        },
+    # The child is a separate run: forwarding the parent's checkpoint
+    # coordinates would make it resume into the parent's checkpoint instead
+    # of its own. User keys are kept (FR-1058).
+    child_configurable = {
+        key: value
+        for key, value in configurable.items()
+        if key not in _PARENT_ROUTING_KEYS and not key.startswith("__pregel_")
     }
+    child_configurable["thread_id"] = child_thread_id
+
+    return {**parent_config, "configurable": child_configurable}
 
 
 def _guard_unrelayed_interrupt(
