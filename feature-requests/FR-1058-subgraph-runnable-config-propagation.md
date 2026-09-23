@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS; R-1..R-5 folded; authority active
+**Status:** Enforced — 2026-09-23; all AC met; see Implementation record
 **Effort:** 1 day
 **Requested:** 2026-09-23
 **First consumer / first event:** the next author who writes `type: subgraph`
@@ -196,17 +196,17 @@ only).
 
 ## Acceptance Criteria
 
-- [ ] AC-01: R-1..R-5 folded before enforcement (this revision).
-- [ ] AC-02: A parent with a `mode: direct` child compiles and invokes without
+- [x] AC-01: R-1..R-5 folded before enforcement (this revision).
+- [x] AC-02: A parent with a `mode: direct` child compiles and invokes without
       `TypeError`, with `YAMLGRAPH_OTEL_EXPORT` unset **and** with
       `YAMLGRAPH_OTEL_EXPORT=otlp`; registration preserves the native compiled
       graph rather than wrapping it in a callable adapter.
-- [ ] AC-03: With OTel enabled, a direct subgraph emits no synthetic outer
+- [x] AC-03: With OTel enabled, a direct subgraph emits no synthetic outer
       subgraph-node span while its executed child nodes remain instrumented.
-- [ ] AC-04: A direct child that interrupts is resumable through a
+- [x] AC-04: A direct child that interrupts is resumable through a
       `SqliteSaver` after the parent's connection is closed and reopened. An
       in-memory saver is not an equivalent witness for this persistence claim.
-- [ ] AC-05: All four wrapper cases, exercised through a compiled LangGraph
+- [x] AC-05: All four wrapper cases, exercised through a compiled LangGraph
       and asserted on the **received payload**, never on `inspect.signature`:
       (a) config-aware node, OTel off → non-`None` config;
       (b) config-aware node, OTel on → same config, span emitted;
@@ -214,24 +214,24 @@ only).
       (d) state-only node, OTel on → state only, span emitted.
       Case (c)/(d) protect FR-759's disabled no-op contract against a `config=`
       leak into state-only callables.
-- [ ] AC-06: Two parent threads through one `mode: invoke` parent produce
+- [x] AC-06: Two parent threads through one `mode: invoke` parent produce
       `parent-a:child` and `parent-b:child` and resume independently without
       reading or corrupting the other's checkpoint.
-- [ ] AC-07: One table-driven `_build_child_config` witness proves all of:
+- [x] AC-07: One table-driven `_build_child_config` witness proves all of:
       outer keys (`tags`, `metadata`, callbacks) retained; ordinary user
       `configurable` keys retained; thread id derived as
       `{parent_thread}:{node_name}`; every `__pregel_*` key plus
       `checkpoint_id`/`checkpoint_ns`/`checkpoint_map` absent from the child;
       and **the parent config is not mutated**.
-- [ ] AC-08: `reference/otel-observability.md`, CAP-212, and the REQ-YG-570
+- [x] AC-08: `reference/otel-observability.md`, CAP-212, and the REQ-YG-570
       text in `ARCHITECTURE.md` all distinguish invoke/relay outer spans from
       direct-subgraph child-node-only instrumentation.
-- [ ] AC-09: `yamlgraph/node_timeout.py` and `_maybe_wrap_timeout()` are
+- [x] AC-09: `yamlgraph/node_timeout.py` and `_maybe_wrap_timeout()` are
       unchanged; no hand-composed timeout-plus-OTel test is introduced (F-1).
-- [ ] AC-10: Every new test carries `REQ-YG-042` (subgraph behaviour/config)
+- [x] AC-10: Every new test carries `REQ-YG-042` (subgraph behaviour/config)
       and/or `REQ-YG-570` (wrapper/observability); a cross-boundary end-to-end
       witness may carry both. `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-11: RED commit precedes GREEN; `changelog/unreleased/` carries a
+- [x] AC-11: RED commit precedes GREEN; `changelog/unreleased/` carries a
       `type: fix` fragment naming FR-1058 and the governing requirements.
 
 ## Alternatives Considered
@@ -462,3 +462,120 @@ preference.
 ### Questions for the human
 
 None blocking.
+
+## Implementation record (2026-09-23)
+
+**Status: Enforced.** All eleven acceptance criteria met.
+
+### Commits
+
+| Commit | Phase |
+| --- | --- |
+| `2d3f323b` | hand-authored direct-subgraph witness graph (operator override of C-6) |
+| `a930ecd3` | RED — 16 failed / 8 passed, condemning all three defects |
+| `469cc645` | GREEN — D-1/D-2/D-3 plus the changelog fragment |
+
+The RED failure taxonomy, verified before any fix was written:
+
+| Failure | Count | Defect |
+| --- | --- | --- |
+| `TypeError: 'CompiledStateGraph' object is not callable` | 5 | D-1 direct mode |
+| `assert None is not None` (config suppressed) | 2 | D-2 wrapper |
+| `['child','child'] != ['parent-a:child','parent-b:child']` | 1 | D-3 collision |
+| checkpoint / `__pregel_*` keys reach the child | 7 | D-3 leakage |
+| child registered as `RunnableCallable`, not `Pregel` | 1 | C-2 guard |
+
+### A fourth root cause, not in the plan
+
+Widening the wrapper signature to `(state, config)` was **not sufficient**.
+Three tests stayed red, with only a `UserWarning` to show for it:
+
+> The 'config' parameter should be typed as 'RunnableConfig' or
+> 'RunnableConfig | None', not 'RunnableConfig | None'.
+
+The self-contradicting message is the tell. LangGraph decides config
+injection from **both** the callable's arity **and** its annotation *type*.
+`node_otel.py` carried `from __future__ import annotations`, which
+stringifies annotations — so LangGraph compared a `str` against a type,
+failed to match, and silently skipped injection. The FR's diagnosis (arity)
+was correct but incomplete; the future import is now removed with a comment
+recording why it must not return, and the constraint is written into CAP-212
+and `reference/otel-observability.md` so the next editor cannot restore it
+by habit.
+
+This is the `downstream_fix` trap avoided by accident: had the witnesses
+asserted on `inspect.signature` (as AC-05 explicitly forbids) they would
+have gone green on the widened signature while config injection stayed
+broken in production.
+
+### C-2 honoured
+
+`mode: direct` registers the compiled `Pregel` child as-is. It is **not**
+wrapped in `RunnableLambda` or any adapter. Wrapping would have restored
+invocability in one line, but would have forfeited the checkpoint-namespace
+inheritance that is the entire purpose of direct mode — and AC-04's
+close-and-reopen `SqliteSaver` witness is what proves the inheritance is
+real rather than assumed. A test asserts the registered object is a
+`Pregel`, so a future adapter cannot be reintroduced silently.
+
+### AC-06 strengthened during enforcement
+
+The first version of the AC-06 witness asserted only that the two child
+thread ids differed. Distinct ids are the *mechanism*; the *claim* is that
+neither child can resume into the parent's checkpoint. An attempt to witness
+independence via checkpoint lineages failed and surfaced an unrelated fact
+worth recording (below), so the witness now asserts end-to-end, on a live
+two-thread run, that no `checkpoint_id`/`checkpoint_ns`/`checkpoint_map` or
+`__pregel_*` key reaches the child. The forbidden set is spelled out in the
+test rather than imported from `subgraph_nodes.py`, so the assertion states
+the contract instead of comparing the implementation to itself.
+
+### Observation, out of scope: invoke-mode children get no checkpointer here
+
+While strengthening AC-06 the child threads were found to hold **no
+checkpoints at all**. Cause: `compile_graph(config)` builds subgraph nodes
+before any checkpointer exists, and the parent's checkpointer is attached
+later at `builder.compile(checkpointer=...)`. So `parent_checkpointer` is
+`None` at child-build time and the child compiles unpersisted. This behaviour
+predates the three defects and is unrelated to them, it does not affect any
+AC, and it is **not** fixed here. Filed as S-4 below.
+
+### Verification
+
+| Check | Result |
+| --- | --- |
+| FR-1058 witnesses | 24 passed |
+| Full unit suite | 6935 passed, 48 skipped, 1 xfailed |
+| `req_coverage.py --strict` | exit 0 |
+| `lint-imports` | 3 contracts kept, 0 broken |
+| CLI e2e on the witness graph | `phase: complete` |
+
+Two environment traps hit during enforcement, recorded so the next session
+does not re-pay them:
+
+1. The `otel` extra was **not installed**, so 14 witnesses reported as
+   skipped rather than run. In `-q` output a skip and a pass are nearly
+   indistinguishable — AC-03 and AC-05(b)/(d) would have been declared green
+   without ever executing. Installing the wheels turned 101-passed/13-skipped
+   into 114 passed. This false-green risk is precisely the class of defect
+   this FR exists to close, which makes it worth naming here.
+2. `pip install -e .` against the project root does not finish: setuptools
+   scans `tmp/worktrees/`, which holds 10 nested `yamlgraph` package copies
+   across ~76k files. Install the wheels directly instead.
+
+### Follow-ups (all outside frozen scope — each needs its own FR)
+
+- **S-1** (cheapest; defect is live on main): `reference/graph-yaml.md:879`
+  documents `mode:` as `` `invoke` (default) or `stream` ``. `stream` is
+  schema-rejected and `direct` is undocumented — the reference advertises a
+  mode that cannot work and hides the one this FR just fixed.
+- **S-2**: a properly routed `examples/demos/subgraph-direct/` demo via
+  `scripts/author.sh` (this FR shipped only a hand-authored test fixture,
+  under an explicit operator override of C-6).
+- **S-3**: a direct-mode interrupt demo.
+- **S-4**: invoke-mode children compile without a checkpointer because the
+  parent's is attached after subgraph-node construction (see above).
+- **S-5**: linter W501/W502 fire on `mode: direct`, advising authors to add
+  `input_mapping`/`output_mapping` that direct mode never reads
+  (`subgraph_nodes.py:191` returns before reading them). Gate them on
+  `mode != "direct"`.

@@ -216,7 +216,7 @@ class TestInvokeModeThreadIdentity:
 
         def spy(parent_config, node_name):
             child = real(parent_config, node_name)
-            seen.append(child["configurable"]["thread_id"])
+            seen.append(child["configurable"])
             return child
 
         monkeypatch.setattr(sn, "_build_child_config", spy)
@@ -225,7 +225,21 @@ class TestInvokeModeThreadIdentity:
         for thread in ("parent-a", "parent-b"):
             app.invoke({"phase": "start"}, {"configurable": {"thread_id": thread}})
 
-        assert seen == ["parent-a:child", "parent-b:child"]
+        assert [c["thread_id"] for c in seen] == ["parent-a:child", "parent-b:child"]
+
+        # Distinct ids are only half the claim. The defect was the child
+        # RESUMING INTO the parent's checkpoint, so assert end-to-end that
+        # no parent checkpoint coordinate reaches the child on a live run.
+        # The forbidden set is spelled out here rather than imported from
+        # the implementation, so the test states the contract on its own.
+        forbidden = {"checkpoint_id", "checkpoint_ns", "checkpoint_map"}
+        for child_configurable in seen:
+            leaked = [
+                key
+                for key in child_configurable
+                if key in forbidden or key.startswith("__pregel_")
+            ]
+            assert not leaked, f"parent routing keys reached the child: {leaked}"
 
 
 @pytest.mark.req("REQ-YG-042")
