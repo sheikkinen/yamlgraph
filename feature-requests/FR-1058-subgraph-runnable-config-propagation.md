@@ -241,7 +241,7 @@ only).
 | 1 | Skip OTel wrapping for direct mode only; leave `otel_wrapped(state)` alone | *Deduction from PROBE A* (not separately executed): the wrapper signature is unchanged, so `wrapped: None` still holds | **Rejected** — fixes Defect 1, leaves the silent cross-thread corruption, which is the worse of the two |
 | 2 | Preserve the wrapped function's signature via `functools.wraps` instead of `call_func_with_variable_args` | Built it and invoked through a compiled graph: signatures report `(state)` and `(state, config=None)` correctly, but the run dies `TypeError: cfg_fn() got an unexpected keyword argument 'config'` | **Rejected** — see note below; the probe falsified the reason I first wrote down |
 | 3 | Wrap the `CompiledStateGraph` in a `RunnableLambda` to keep the outer span | `isinstance(compiled, Pregel)` → `True`; `isinstance(RunnableLambda(compiled.invoke), Pregel)` → `False` | **Rejected** — LangGraph detects native subgraphs by `Pregel` instance, so this loses exactly the checkpoint-namespace inheritance `mode: direct` exists to provide |
-| 4 | Do nothing; document `mode: direct` as unsupported | *Deduction from cited record*: the mode shipped and is referenced in reference docs | **Rejected** — a shipped, documented mode that raises `TypeError` on every invoke is a defect, not a documentation gap |
+| 4 | Do nothing; document `mode: direct` as unsupported | *Probed post-judgement and **falsified my own row**:* the mode is shipped and schema-valid but documented **nowhere** — see §Documentation and example gap | **Rejected** — and for a stronger reason than first written: the reference doc actively names a *different*, non-existent mode in its place |
 | 5 | Adopt the reporter's patch verbatim, all four changes | PROBE D/E/F: the only config-aware node fns are the two subgraph ones; the subgraph compile path calls `_maybe_wrap_timeout` zero times | **Rejected** — change 4 has no reachable caller; it perturbs five live node types to serve a composition the compiler cannot emit |
 | 6 | Adopt changes 1–3, drop change 4 | PROBE A, PROBE C, PROBE D/E/F, and the reproduction above | **Accepted** |
 
@@ -263,6 +263,93 @@ wrong reason would have survived review.
 - `yamlgraph/compile/node_otel.py`, `yamlgraph/compile/subgraph_relay.py`,
   `yamlgraph/node_factory/subgraph_nodes.py`
 - REQ-YG-042 (CAP-11), REQ-YG-570 (CAP-212)
+
+## Documentation and example gap (found post-judgement, 2026-09-23)
+
+Surveying committed artifacts for witnesses to this mechanism turned up the
+reason the defect survived from #465 to now: **nothing exercises or describes
+`mode: direct`.**
+
+### G-1 — zero examples
+
+Seven committed YAML files declare `type: subgraph`. Every one that names a
+mode names `mode: invoke`; the rest default to it. `mode: direct` appears in no
+committed graph, no demo, and no snippet.
+
+```text
+PROBE G  git ls-files '*.yaml' | xargs grep -l "type: subgraph"
+  examples/demos/interrupt/interrupt-parent-redis.yaml
+  examples/demos/interrupt/interrupt-parent-with-checkpointer-child.yaml
+  examples/demos/interrupt/interrupt-parent.yaml
+  examples/demos/subgraph/graph.yaml                  -> mode: invoke
+  examples/image_pipeline/graph.yaml                  -> mode: invoke
+  examples/plot_modeller/graphs/perspective_l5.yaml   -> mode: invoke
+  examples/yamlgraph_gen/snippets/nodes/subgraph-basic.yaml
+  (occurrences of `mode: direct`: 0)
+```
+
+A mode that no example invokes is a mode no CI run invokes. `mode: direct` has
+been raising `TypeError` on every possible use since #465, and the suite stayed
+green because nothing ever called it.
+
+### G-2 — the reference doc documents a mode that does not exist
+
+`reference/graph-yaml.md:879` describes the subgraph `mode` field as:
+
+> `invoke` (default) or `stream`
+
+The schema is `Literal["invoke", "direct"]`
+(`yamlgraph/models/node_schema.py:28`). Probed against the model rather than
+read off the docs:
+
+```text
+PROBE H  SubgraphNodeConfig(type=subgraph, graph=c.yaml, mode=...)
+    mode=invoke   -> OK
+    mode=direct   -> OK
+    mode=stream   -> REJECTED (ValidationError)
+```
+
+The doc is wrong in both directions at once: it advertises `stream`, which
+fails validation, and omits `direct`, which is the only other accepted value.
+A user following the reference cannot reach `mode: direct` at all, and a user
+who guesses it correctly hits the `TypeError`.
+
+This also **corrects this FR's own alternative 4**, which asserted the mode is
+"referenced in reference docs". It is not. I had labelled that cell a deduction
+from the cited record; the cell was wrong, and only the probe caught it.
+
+### G-3 — no witness for the parent-thread identity contract
+
+`tests/unit/test_subgraph.py::TestThreadIdPropagation` exercises
+`_build_child_config` as a unit, but no committed test or example drives two
+parent threads through one compiled parent. That is the defect-2 seam, and it
+is precisely the shape a unit test cannot condemn: the helper is correct in
+isolation and never receives real input.
+
+### Proposed samples — REQUIRES SEPARATE AUTHORITY
+
+Condition **C-6** of the judgement forbids creating or modifying graph/prompt
+artifacts under this FR's authority, and D-5 freezes the doc surface to the
+three OTel span-narrowing files. The `mode` field documentation at
+`reference/graph-yaml.md:879` is **not** in that set. So the following are
+recorded as a proposal, not adopted here:
+
+| # | Proposal | Rationale |
+|---|---|---|
+| S-1 | Correct `reference/graph-yaml.md:879` to `invoke` (default) or `direct`, and state what each means: `invoke` calls the child separately and maps state; `direct` registers it natively so the engine owns its checkpoint namespace | The doc is factually false today, independent of this FR's code fix |
+| S-2 | `examples/demos/subgraph-direct/` — a parent with a `mode: direct` child, modelled on `examples/demos/subgraph/`, wired into `demo.sh` as `demo_subgraph_direct` | Gives `mode: direct` its first executable witness; a demo that crashes is a defect nobody can miss |
+| S-3 | Extend `examples/demos/interrupt/` with a direct-mode parent whose child interrupts, resumed through a checkpointer | Demonstrates the actual reason to prefer `direct` over `invoke` — native interrupt and checkpoint-namespace inheritance — which no current artifact shows |
+| S-4 | Keep the two-thread invoke-mode witness (test, not example) as a permanent regression test: one compiled parent, `parent-a`/`parent-b`, distinct child identities | Closes G-3. AC-06 covers it for this FR; S-4 proposes it outlive the fix |
+
+S-1 is the cheapest and highest-value: the doc defect is live on `main` now and
+misroutes every reader of the subgraph section. S-2 is what would have caught
+this bug at authoring time.
+
+Any S-2/S-3 artifact must be authored through `scripts/author.sh` per the
+graph-authoring doctrine, not hand-written.
+
+**Recommendation:** S-1 and S-2 as a small follow-up FR. Folding them into
+FR-1058 would require re-judgement, since both cross frozen scope (C-6, D-5).
 
 ## Judgement (2026-09-23)
 
