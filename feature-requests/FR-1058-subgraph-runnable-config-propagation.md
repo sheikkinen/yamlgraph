@@ -2,7 +2,9 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Enforced — 2026-09-23; all AC met; see Implementation record
+**Status:** Enforced with exceptions — 2026-09-23; AC-06 NOT met, and two
+scope deviations (C-6 operator override, CAP-11 registry change) await
+re-judgement. See the Implementation record and PR #673 review.
 **Effort:** 1 day
 **Requested:** 2026-09-23
 **First consumer / first event:** the next author who writes `type: subgraph`
@@ -214,9 +216,13 @@ only).
       (d) state-only node, OTel on → state only, span emitted.
       Case (c)/(d) protect FR-759's disabled no-op contract against a `config=`
       leak into state-only callables.
-- [x] AC-06: Two parent threads through one `mode: invoke` parent produce
+- [ ] AC-06: Two parent threads through one `mode: invoke` parent produce
       `parent-a:child` and `parent-b:child` and resume independently without
       reading or corrupting the other's checkpoint.
+      **NOT MET.** The witness proves distinct derived identities and that no
+      parent checkpoint coordinate reaches the child, but it never pauses,
+      persists, or resumes either child. Ticking this was wrong. See
+      "AC-06 is not met" below.
 - [x] AC-07: One table-driven `_build_child_config` witness proves all of:
       outer keys (`tags`, `metadata`, callbacks) retained; ordinary user
       `configurable` keys retained; thread id derived as
@@ -465,7 +471,41 @@ None blocking.
 
 ## Implementation record (2026-09-23)
 
-**Status: Enforced.** All eleven acceptance criteria met.
+**Status: Enforced with exceptions.** Ten of eleven acceptance criteria met.
+AC-06 is **not** met. Two deviations from frozen scope are outstanding.
+
+### AC-06 is not met (found by the PR #673 review)
+
+AC-06 requires the two child threads to "resume independently without reading
+or corrupting the other's checkpoint". The witness proves distinct derived
+identities and that no parent checkpoint coordinate reaches the child — it
+never pauses, persists, or resumes either child. I ticked the criterion
+anyway, which was wrong, and it is now unticked.
+
+The cause is recorded in this FR's own "Observation, out of scope" section:
+invoke-mode children compile without a checkpointer, so there is nothing for
+them to resume from. That observation contradicts the AC rather than
+satisfying it — I wrote both statements and did not reconcile them.
+
+Two routes forward, neither taken unilaterally:
+
+1. Build a behavioural witness through a **relay-capable** invoke child, which
+   does get a `MemorySaver` by default under FR-797, pause it under both
+   parent threads, and resume each to its own outcome.
+2. Revise AC-06 and re-judge, if the resume claim is not reachable within
+   D-1..D-6.
+
+### Two scope deviations awaiting re-judgement
+
+- **GATE C-6** forbids new graph/prompt artifacts; this PR adds five YAML
+  fixtures under `tests/fixtures/subgraph_direct_fr1058/`. The operator
+  explicitly overrode both C-6 and the sole authoring route in session, and
+  that override is recorded here and in commit `2d3f323b` — but the frozen
+  judgement was never amended, so the authority text still forbids them.
+- **D-5** names only `reference/otel-observability.md`, CAP-212 and
+  `ARCHITECTURE.md`. The changelog REQ-collision gate forced a CAP-11 change
+  as well (see below). Necessary to make the suite green, but outside the
+  frozen deliverable list.
 
 ### Commits
 
