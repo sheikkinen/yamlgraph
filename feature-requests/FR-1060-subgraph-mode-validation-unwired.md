@@ -141,31 +141,50 @@ nodes:
 Then, as direct consequences of that wiring:
 
 1. Correct the `mode` row in `reference/graph-yaml.md` to `invoke` (default) or
-   `direct`, and document what `direct` means (shared state schema; mappings
-   not accepted).
+   `direct`, and document what `direct` means: it shares the parent's state
+   schema, and `input_mapping` and `output_mapping` are not accepted (R-3).
+   `interrupt_output_mapping` semantics under direct mode are untouched by this
+   FR — neither validated nor documented as a new rule.
 2. Gate `W501`/`W502` in `linter/patterns/subgraph.py` on `mode != "direct"`.
+3. Register `REQ-YG-685` under
+   `capabilities/CAP-01-config-loading-validation.yaml` and add its row to
+   `ARCHITECTURE.md` (R-1), so the tests have a real owner.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 `yamlgraph graph validate` exits non-zero for a subgraph node with
-      `mode: stream` and for `mode: bogus-typo`; the message names `invoke` and
-      `direct`. **Method clause:** assert through the CLI entry point, not by
-      constructing `SubgraphNodeConfig` directly — a test that instantiates the
-      model cannot observe whether it is wired.
-- [ ] AC-02 `yamlgraph graph validate` exits non-zero for `mode: direct`
-      declared together with `input_mapping` or `output_mapping`.
-- [ ] AC-03 `mode: invoke`, `mode: direct`, and an omitted `mode` continue to
-      validate and run; the FR-1058 fixtures in
-      `tests/fixtures/subgraph_direct_fr1058/` still pass unchanged.
-- [ ] AC-04 `yamlgraph graph lint` emits no `W501`/`W502` for a `mode: direct`
-      node, and still emits both for a `mode: invoke` node missing mappings.
-- [ ] AC-05 `reference/graph-yaml.md` documents `invoke` and `direct` and no
-      longer mentions `stream`. **Method clause:** a test asserts the reference
-      table's mode values equal the schema's `Literal` members, so the two
-      cannot drift again.
-- [ ] AC-06 Tests added, tagged `@pytest.mark.req("REQ-YG-685")`, each
-      condemning its defect on unfixed code before the fix lands.
-- [ ] AC-07 `python scripts/req_coverage.py --strict` exits 0.
+Superseded by the judgement's revised set (R-1 through R-3 folded).
+
+- [ ] AC-01 Through the `yamlgraph graph validate` CLI entry point, subgraph
+      nodes with `mode: stream` and `mode: bogus-typo` each exit non-zero, and
+      each diagnostic names `invoke` and `direct` as the supported values.
+      **Method clause:** assert through the CLI, not by constructing
+      `SubgraphNodeConfig` directly — a test that instantiates the model cannot
+      observe whether it is wired.
+- [ ] AC-02 Through the same CLI boundary, `mode: direct` combined with either
+      `input_mapping` or `output_mapping` exits non-zero with a diagnostic
+      identifying the forbidden direct-mode mapping.
+- [ ] AC-03 Subgraph nodes with `mode: invoke`, `mode: direct`, and omitted
+      `mode` each validate and run successfully; the committed fixtures in
+      `tests/fixtures/subgraph_direct_fr1058/` remain unchanged and pass.
+- [ ] AC-04 `yamlgraph graph lint` emits neither `W501` nor `W502` for
+      `mode: direct`, and emits both for `mode: invoke` without
+      `input_mapping` and `output_mapping`.
+- [ ] AC-05 The `type: subgraph` property table in `reference/graph-yaml.md`
+      identifies exactly `invoke` and `direct` as accepted `mode` values,
+      identifies `invoke` as the default, does not identify `stream` as a
+      subgraph mode, and explains that direct mode shares the state schema and
+      rejects `input_mapping`/`output_mapping`. Scoped to that row: `stream`
+      legitimately appears elsewhere in the file (8 occurrences, incl. the LLM
+      node `stream: bool` field and the CLI `--stream` flag) (R-2).
+- [ ] AC-06 A test extracts the accepted values from that specific
+      reference-table row and proves equality with the `Literal` members of
+      `SubgraphNodeConfig.mode`, so the two cannot drift again.
+- [ ] AC-07 `REQ-YG-685` is declared under CAP-01 and in `ARCHITECTURE.md`;
+      every new test is tagged `@pytest.mark.req("REQ-YG-685")` (R-1).
+- [ ] AC-08 The RED commit demonstrates failures caused by the unwired
+      behaviour through the CLI/linter/reference seams, followed by a separate
+      GREEN implementation commit.
+- [ ] AC-09 `python scripts/req_coverage.py --strict` exits 0.
 
 ## Alternatives Considered
 
@@ -197,7 +216,37 @@ Each row states a probe executed at `b84a6850`, not a prediction.
   interrupt demo. Demos, not validation.
 - Any new subgraph mode. This FR makes the existing two enforceable; it does
   not propose `stream`.
+- `interrupt_output_mapping` semantics under direct mode (R-3).
+- Runtime/relay/checkpointer semantics in `subgraph_nodes.py`; general
+  `NodeConfig.mode` narrowing; JSON-schema redesign; unrelated linter cleanup.
 
-## Judgement (date)
+## Judgement (2026-09-23)
 
-**Verdict:** pending
+**Verdict:** APPROVED WITH REVISIONS — see
+[FR-1060-subgraph-mode-validation-unwired.judgement.md](FR-1060-subgraph-mode-validation-unwired.judgement.md).
+Authority activates after R-1..R-3 are folded (done, below) and the advisory
+draft is human-promoted (C-6).
+
+| # | Finding | Resolution (binding) | Probe |
+|---|---------|----------------------|-------|
+| R-1 | AC-06 assigned tests to an unregistered `REQ-YG-685`; `req_coverage.py` classifies that as a phantom and `--strict` exits 1, so AC-06 contradicted AC-07. | Register `REQ-YG-685` under CAP-01 and in `ARCHITECTURE.md` as D-5; folded into AC-07. | Confirmed: no `REQ-YG-685` in `capabilities/` or `ARCHITECTURE.md`; phantom check at `scripts/req_coverage.py:408-431`. |
+| R-2 | AC-05's "no longer mentions `stream`" was file-global and would have demanded deleting unrelated, correct streaming documentation. | Scope the assertion to the `type: subgraph` property-table row. | Confirmed: 8 `stream` hits in `reference/graph-yaml.md`, incl. L278 LLM `stream: bool` and L330 CLI `--stream`. Only L879 is the defect. |
+| R-3 | "mappings not accepted" implied a broader contract than the validator and tests establish. | Name `input_mapping` and `output_mapping` explicitly; place `interrupt_output_mapping` out of scope. | Matches the existing validator at `node_schema.py:52-58`. |
+
+**Scope frozen:** D-1 wire `SubgraphNodeConfig` at the `graph_schema.py`
+boundary · D-2 gate W501/W502 on non-direct · D-3 correct the reference row ·
+D-4 CLI/run/linter/drift tests reusing the FR-1058 fixtures unchanged · D-5
+register REQ-YG-685 · D-6 changelog fragment, FR status, diary Distill.
+
+**Conditions:** C-2 reuse `SubgraphNodeConfig`, never duplicate its rules ·
+C-3 tests must go through the CLI boundary · C-4 preserve accepted/default
+paths and the FR-1058 fixture · C-5 no runtime/checkpointer/authoring
+broadening · C-6 human promotion before enforcement.
+
+### Questions for the human
+
+1. **Promote this draft to authority?** The judgement is advisory until you say
+   so (C-6). Recommended default: **yes** — R-1..R-3 are folded and each was
+   probe-verified.
+2. **Enforce now or park?** Recommended default: **park** — you asked for file
+   + judge only. Nothing is implemented.
