@@ -558,6 +558,38 @@ comma-list form the registry already supports:
 
 `ARCHITECTURE.md` regenerated from the registry. Full suite green.
 
+### Correction found by the outsider read (advisory, PR #673)
+
+The outsider reader asked whether the changed child thread naming affects
+existing persisted checkpoints. Checking the question exposed an inaccuracy in
+how this FR and its first commit message described D-3.
+
+The `"{parent_thread}:{node_name}"` derivation is **not new** — it is present
+in the code at the RED commit (`a930ecd3:subgraph_nodes.py:87`). It simply
+never took effect, because `_maybe_wrap_otel` is applied to every node at
+compile time **regardless of whether tracing is enabled**, and the old
+one-parameter wrapper suppressed `RunnableConfig` on every run. With no config,
+`parent_thread_id` was `None` and the derivation fell through to the bare
+`node_name` — which is exactly why the RED witness observed `['child','child']`
+rather than two distinct ids.
+
+So D-3's genuinely new behaviour is the **stripping** of parent checkpoint
+coordinates and `__pregel_*` keys. The thread derivation was already correct
+and is merely reachable for the first time.
+
+**User-visible consequence, now recorded in the changelog fragment:** every
+existing deployment has been checkpointing invoke-mode children under the bare
+node name, with all parents sharing one child checkpoint. After this fix
+children run under the derived id, so previously persisted child checkpoints
+are not resumed and child threads start fresh. This is the intended repair of
+the collision defect, but it is a migration note, not a silent improvement.
+
+Separately confirmed for the same review question: removing
+`from __future__ import annotations` from `node_otel.py` is safe — the module
+contains no forward references, and every annotation in it
+(`Callable`, `str`, `Any`, `dict`, `object`, `RunnableConfig | None`) resolves
+at runtime on the supported Python 3.11+ baseline.
+
 ### Verification
 
 | Check | Result |
