@@ -1,0 +1,19 @@
+version: "1.0"
+name: subgraph-direct-child
+description: |
+  Child graph for the FR-1058 direct-subgraph demo. Deliberately LLM-free:
+  the defect is a compiler/wrapper contract bug, so an LLM call would add
+  cost and nondeterminism without exercising anything extra.
+
+state:
+  phase: str
+
+nodes:
+  prepare:
+    type: passthrough
+    output:
+      phase: complete
+
+edges:
+  - {from: START, to: prepare}
+  - {from: prepare, to: END}

@@ -345,9 +345,60 @@ Both formats produce identical Pydantic models at runtime.
 
 ---
 
+## Template Dialect (per message)
+
+A prompt YAML holds several **messages**: the scalar `system`, each element of a
+list-form `system`, each `system_segments[*].content`, and `user`. **Each message
+picks its own dialect, independently of its neighbours.** A message containing
+`{{` or `{%` is rendered by Jinja2; every other message is rendered by Python's
+`str.format`. A Jinja system message does not make the user message Jinja.
+
+**A brace is a field.** There is no category of braces that merely *look* like
+fields: nothing in the text distinguishes an example from a substitution, so
+nothing guesses. An author who wants a literal brace declares it with
+`{% raw %}` (below).
+
+- `{name}`, `{obj.field}`, and `{items[0]}` are fields; the required variable is
+  the **root** (`name`, `obj`, `items`).
+- A format spec or conversion does not make a field optional: `{score:.2f}`,
+  `{name!r}`, `{label:>10}`, `{value:{width}}` and `{when:%Y-%m-%d}` are all
+  required, and for the nested case both `value` and `width` are. Python hands
+  the spec to the value's own `__format__`, so the spec grammar is open-ended
+  and no rule can rule a field out.
+- A shape like `{pred: alive, args: []}` is therefore a field too. In a
+  simple-format message `str.format` will try to resolve `pred`; in a Jinja
+  message it renders literally but **E014** reports it, because the same text
+  would break the moment the message stopped being Jinja. Wrap it in
+  `{% raw %}` to say it is prose.
+- Anything else (an unmatched brace, a non-identifier field root such as
+  `{"chapters": []}`) cannot be rendered. Lint reports **E013** before the call.
+
+To put **literal JSON** in a message, use Jinja and one of its two escapes:
+
+```yaml
+user: |
+  Rewrite {{ synopsis }} and return exactly:
+  {% raw %}
+  {"chapters": [{"title": "...", "beats": []}]}
+  {% endraw %}
+```
+
+`{% raw %}…{% endraw %}` emits its body verbatim; `{{ "{" }}` emits a single
+brace. Either marker also makes the message Jinja, so the rest of its braces stop
+being format fields.
+
+In a **Jinja** message, a bare `{var}` is never substituted — Jinja needs
+`{{ var }}`. Lint reports **E014** for that case. Content inside `{% raw %}` is
+exempt.
+
+| Code | Severity | Fires when |
+|------|----------|-----------|
+| E013 | error | A non-Jinja message contains text `str.format` cannot render |
+| E014 | error | A Jinja message contains a bare `{var}` that Jinja will not substitute (supersedes the retired W024) |
+
 ## Jinja2 Template Features
 
-When using `template` or when `system`/`user` contain `{{` or `{%`, Jinja2 mode is activated.
+When using `template` or when a message contains `{{` or `{%`, Jinja2 mode is activated for that message.
 
 ### Variables
 

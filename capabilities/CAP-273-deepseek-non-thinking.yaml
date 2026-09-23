@@ -1,0 +1,34 @@
+name: DeepSeek Non-Thinking Mode
+id: CAP-273
+status: active
+fr: FR-1056
+feature_request: FR-1056
+description: >
+  DeepSeek enables thinking by default at `high` effort on every model it
+  serves, and exposes no token budget — only an effort enum. The one
+  `thinking_budget` value that carries an exact DeepSeek meaning is `0`, which
+  maps to `reasoning_effort: "none"`. Every other value keeps its existing
+  meaning: omission preserves the API default, an accepted sub-1024 budget
+  stays a logged no-op so graphs remain portable across providers, and a real
+  token budget still fails loudly because DeepSeek cannot honour one.
+modules:
+  - yamlgraph/utils/llm_providers.py
+  - yamlgraph/utils/llm_factory.py
+requirements:
+  - id: REQ-YG-684
+    description: >
+      DeepSeek reasoning toggle at the provider boundary (FR-1056).
+      `dispatch_provider` forwards `thinking_budget` to
+      `_create_deepseek_llm`, which sets `reasoning_effort="none"` on the
+      `ChatOpenAI` client if and only if `thinking_budget == 0`. Omission and
+      any accepted non-zero value (including -1 and sub-1024 portability
+      budgets) leave `reasoning_effort` off the request payload entirely, and
+      an ignored non-zero value emits a DEBUG record naming the provider and
+      the value. `thinking_budget >= 1024` continues to raise `ValueError`
+      from `create_llm` because `deepseek` remains outside
+      `llm_factory.THINKING_PROVIDERS`. The LLM cache key already carries
+      `thinking_budget`, so thinking-on and thinking-off clients never alias.
+    modules:
+      - yamlgraph/utils/llm_providers.py
+      - yamlgraph/utils/llm_factory.py
+      - tests/unit/test_fr1056_deepseek_thinking.py

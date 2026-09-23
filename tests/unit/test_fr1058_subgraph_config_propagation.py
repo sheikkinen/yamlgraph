@@ -1,0 +1,375 @@
+"""FR-1058: RunnableConfig propagation and native direct-mode subgraphs.
+
+Two defects reported in issue #474, both caused by the unconditional OTel
+node wrapper introduced in FR-759:
+
+1. ``mode: direct`` is dead on arrival. ``create_subgraph_node`` returns a
+   ``CompiledStateGraph``, which LangGraph knows how to register natively,
+   but the wrapper closes over it and calls it as a function —
+   ``TypeError: 'CompiledStateGraph' object is not callable``.
+2. The wrapper declares ``otel_wrapped(state)``. LangGraph decides whether to
+   inject ``RunnableConfig`` by inspecting the callable's arity, so a
+   one-parameter wrapper permanently suppresses injection. Subgraph nodes
+   then see ``config=None`` and every parent thread's child collapses onto a
+   single child thread id.
+
+These tests are the condemning witnesses. They must fail before the fix.
+"""
+
+from __future__ import annotations
+
+import sqlite3
+from pathlib import Path
+from typing import TypedDict
+
+import pytest
+from langgraph.checkpoint.memory import MemorySaver
+from langgraph.graph import END, START, StateGraph
+from langgraph.pregel import Pregel
+
+from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
+from yamlgraph.compile.node_otel import _maybe_wrap_otel
+from yamlgraph.node_factory.subgraph_nodes import _build_child_config
+from yamlgraph.observability import otel
+
+FIXTURES = Path(__file__).parent.parent / "fixtures" / "subgraph_direct_fr1058"
+
+try:
+    import opentelemetry.sdk as otel_sdk
+except ImportError:  # pragma: no cover - exercised only without the extra
+    otel_sdk = None
+
+requires_otel_sdk = pytest.mark.skipif(
+    otel_sdk is None, reason="requires the 'otel' extra (opentelemetry-sdk)"
+)
+
+
+@pytest.fixture(autouse=True)
+def _reset_otel_env(monkeypatch):
+    monkeypatch.delenv(otel.ENV_VAR, raising=False)
+    otel._provider_configured = False
+    yield
+    otel._provider_configured = False
+
+
+# The provider/exporter fixture (`in_memory_exporter`) lives in
+# tests/unit/conftest.py: the global TracerProvider can only be set once
+# per process, so a private copy here silently observed zero spans
+# whenever test_otel_observability.py installed the provider first.
+
+
+def _node_spans(exporter):
+    """(node_name, node_type) for every yamlgraph.node.execute span."""
+    return [
+        (
+            s.attributes.get("yamlgraph.node.name"),
+            s.attributes.get("yamlgraph.node.type"),
+        )
+        for s in exporter.get_finished_spans()
+        if s.name == otel.NODE_EXECUTE_SPAN
+    ]
+
+
+def _compile_fixture(name: str, checkpointer=None):
+    config = load_graph_config(FIXTURES / name)
+    builder = compile_graph(config)
+    return builder, builder.compile(checkpointer=checkpointer)
+
+
+@pytest.mark.req("REQ-YG-042")
+class TestDirectModeRuns:
+    """AC-02: a mode: direct child compiles and runs, OTEL off and on."""
+
+    def test_direct_subgraph_runs_with_otel_disabled(self):
+        _, app = _compile_fixture("fr-1058-test.yaml")
+        assert app.invoke({})["phase"] == "complete"
+
+    @requires_otel_sdk
+    def test_direct_subgraph_runs_with_otel_enabled(self, in_memory_exporter):
+        _, app = _compile_fixture("fr-1058-test.yaml")
+        assert app.invoke({})["phase"] == "complete"
+
+    def test_direct_child_registered_as_native_compiled_graph(self):
+        """C-2: the child stays a Pregel. A RunnableLambda or any other
+        callable adapter would restore invocability while destroying the
+        native checkpoint-namespace inheritance that mode: direct exists for.
+        """
+        builder, _ = _compile_fixture("fr-1058-test.yaml")
+        assert isinstance(builder.nodes["child"].runnable, Pregel)
+
+
+@pytest.mark.req("REQ-YG-570")
+class TestDirectModeSpans:
+    """AC-03: no synthetic outer span; child nodes stay instrumented."""
+
+    @requires_otel_sdk
+    def test_direct_subgraph_emits_no_outer_subgraph_span(self, in_memory_exporter):
+        _, app = _compile_fixture("fr-1058-test.yaml")
+        app.invoke({})
+        spans = _node_spans(in_memory_exporter)
+        assert ("child", "subgraph") not in spans
+        assert not [n for n, t in spans if t == "subgraph"]
+
+    @requires_otel_sdk
+    def test_direct_subgraph_child_nodes_remain_instrumented(self, in_memory_exporter):
+        _, app = _compile_fixture("fr-1058-test.yaml")
+        app.invoke({})
+        assert "prepare" in [n for n, _ in _node_spans(in_memory_exporter)]
+
+
+class _S(TypedDict, total=False):
+    x: str
+
+
+def _run_wrapped(node_fn):
+    """Compile a one-node graph around the OTel-wrapped fn and invoke it."""
+    wrapped = _maybe_wrap_otel(node_fn, "n", "python")
+    g = StateGraph(_S)
+    g.add_node("n", wrapped)
+    g.add_edge(START, "n")
+    g.add_edge("n", END)
+    app = g.compile(checkpointer=MemorySaver())
+    return app.invoke({}, {"configurable": {"thread_id": "T", "tenant": "acme"}})
+
+
+@pytest.mark.req("REQ-YG-570")
+class TestOtelWrapperConfigTransparency:
+    """AC-05: all four wrapper cases, asserted on the received payload."""
+
+    def _config_aware(self, seen):
+        def node(state, config=None):
+            seen["config"] = config
+            return {"x": "done"}
+
+        return node
+
+    def _state_only(self, seen):
+        # Strict arity: a config= leak raises TypeError rather than passing.
+        def node(state):
+            seen["called"] = True
+            return {"x": "done"}
+
+        return node
+
+    def test_a_config_aware_otel_off_receives_config(self):
+        seen = {}
+        _run_wrapped(self._config_aware(seen))
+        assert seen["config"] is not None
+        assert seen["config"]["configurable"]["thread_id"] == "T"
+
+    @requires_otel_sdk
+    def test_b_config_aware_otel_on_receives_config_and_emits_span(
+        self, in_memory_exporter
+    ):
+        seen = {}
+        _run_wrapped(self._config_aware(seen))
+        assert seen["config"] is not None
+        assert seen["config"]["configurable"]["thread_id"] == "T"
+        assert ("n", "python") in _node_spans(in_memory_exporter)
+
+    def test_c_state_only_otel_off_called_with_state_only(self):
+        """FR-759's disabled no-op contract: no config= leak."""
+        seen = {}
+        _run_wrapped(self._state_only(seen))
+        assert seen.get("called") is True
+
+    @requires_otel_sdk
+    def test_d_state_only_otel_on_called_with_state_only(self, in_memory_exporter):
+        seen = {}
+        _run_wrapped(self._state_only(seen))
+        assert seen.get("called") is True
+        assert ("n", "python") in _node_spans(in_memory_exporter)
+
+
+@pytest.mark.req("REQ-YG-042")
+class TestInvokeModeThreadIdentity:
+    """AC-06: two parent threads must not share one child identity."""
+
+    def test_two_parent_threads_get_distinct_child_threads(self, monkeypatch):
+        import yamlgraph.node_factory.subgraph_nodes as sn
+
+        seen = []
+        real = sn._build_child_config
+
+        def spy(parent_config, node_name):
+            child = real(parent_config, node_name)
+            seen.append(child["configurable"])
+            return child
+
+        monkeypatch.setattr(sn, "_build_child_config", spy)
+
+        _, app = _compile_fixture("invoke_parent.yaml", checkpointer=MemorySaver())
+        for thread in ("parent-a", "parent-b"):
+            app.invoke({"phase": "start"}, {"configurable": {"thread_id": thread}})
+
+        assert [c["thread_id"] for c in seen] == ["parent-a:child", "parent-b:child"]
+
+        # Distinct ids are only half the claim. The defect was the child
+        # RESUMING INTO the parent's checkpoint, so assert end-to-end that
+        # no parent checkpoint coordinate reaches the child on a live run.
+        # The forbidden set is spelled out here rather than imported from
+        # the implementation, so the test states the contract on its own.
+        forbidden = {"checkpoint_id", "checkpoint_ns", "checkpoint_map"}
+        for child_configurable in seen:
+            leaked = [
+                key
+                for key in child_configurable
+                if key in forbidden or key.startswith("__pregel_")
+            ]
+            assert not leaked, f"parent routing keys reached the child: {leaked}"
+
+
+@pytest.mark.req("REQ-YG-042")
+class TestInvokeModeIndependentResume:
+    """AC-06, second half: the two children must RESUME independently.
+
+    ``TestInvokeModeThreadIdentity`` proves the ids differ and that no parent
+    checkpoint coordinate reaches the child, but its child runs to completion
+    in one shot — it can never show a resume, and the criterion was wrongly
+    ticked on its strength alone.
+
+    This child declares a ``type: interrupt`` node, which makes the node
+    relay-capable under FR-797 and gives it a checkpointer. Both parent
+    threads are paused BEFORE either is resumed, so a child reading the other
+    thread's checkpoint would surface as the wrong answer coming back.
+    """
+
+    def test_both_threads_pause_then_resume_to_their_own_answer(self):
+        from langgraph.types import Command
+
+        _, app = _compile_fixture(
+            "relay_invoke_parent.yaml", checkpointer=MemorySaver()
+        )
+        cfg_a = {"configurable": {"thread_id": "parent-a"}}
+        cfg_b = {"configurable": {"thread_id": "parent-b"}}
+
+        # Pause both before resuming either: with only one thread in flight
+        # a cross-read has nothing to read.
+        paused_a = app.invoke({"phase": "start"}, cfg_a)
+        paused_b = app.invoke({"phase": "start"}, cfg_b)
+        assert "__interrupt__" in paused_a, "thread a never paused"
+        assert "__interrupt__" in paused_b, "thread b never paused"
+
+        done_a = app.invoke(Command(resume="answer-a"), cfg_a)
+        done_b = app.invoke(Command(resume="answer-b"), cfg_b)
+
+        assert "__interrupt__" not in done_a, "thread a still paused"
+        assert "__interrupt__" not in done_b, "thread b still paused"
+        assert done_a["answer"] == "answer-a"
+        assert done_b["answer"] == "answer-b", "thread b read thread a's resume"
+        assert done_a["child_phase"] == "complete"
+        assert done_b["child_phase"] == "complete"
+
+    def test_resuming_one_thread_leaves_the_other_paused(self):
+        """Corruption is the other half of AC-06: resuming a must not
+        advance b's child, and b must still be resumable afterwards."""
+        from langgraph.types import Command
+
+        _, app = _compile_fixture(
+            "relay_invoke_parent.yaml", checkpointer=MemorySaver()
+        )
+        cfg_a = {"configurable": {"thread_id": "parent-a"}}
+        cfg_b = {"configurable": {"thread_id": "parent-b"}}
+
+        app.invoke({"phase": "start"}, cfg_a)
+        app.invoke({"phase": "start"}, cfg_b)
+        app.invoke(Command(resume="answer-a"), cfg_a)
+
+        assert app.get_state(cfg_b).next, "thread b was advanced by a's resume"
+        done_b = app.invoke(Command(resume="answer-b"), cfg_b)
+        assert done_b["answer"] == "answer-b"
+
+
+@pytest.mark.req("REQ-YG-042")
+class TestBuildChildConfig:
+    """AC-07: one table-driven witness for the child-config contract."""
+
+    PARENT = {
+        "tags": ["t1"],
+        "metadata": {"m": 1},
+        "callbacks": None,
+        "configurable": {
+            "thread_id": "parent-a",
+            "tenant": "acme",
+            "checkpoint_id": "ck-1",
+            "checkpoint_ns": "ns-1",
+            "checkpoint_map": {"a": 1},
+            "__pregel_task_id": "task-1",
+            "__pregel_send": object(),
+            "__pregel_read": object(),
+            "__pregel_scratchpad": {},
+        },
+    }
+
+    @pytest.fixture
+    def child(self):
+        return _build_child_config(dict(self.PARENT), "child")
+
+    @pytest.mark.parametrize("key", ["tags", "metadata", "callbacks"])
+    def test_outer_keys_retained(self, child, key):
+        assert child[key] == self.PARENT[key]
+
+    def test_ordinary_configurable_keys_retained(self, child):
+        assert child["configurable"]["tenant"] == "acme"
+
+    def test_thread_id_derived_from_parent(self, child):
+        assert child["configurable"]["thread_id"] == "parent-a:child"
+
+    @pytest.mark.parametrize(
+        "key",
+        [
+            "checkpoint_id",
+            "checkpoint_ns",
+            "checkpoint_map",
+            "__pregel_task_id",
+            "__pregel_send",
+            "__pregel_read",
+            "__pregel_scratchpad",
+        ],
+    )
+    def test_routing_keys_removed(self, child, key):
+        """Forwarding these makes the child resume into the parent's
+        checkpoint rather than its own."""
+        assert key not in child["configurable"]
+
+    def test_parent_config_not_mutated(self):
+        parent = {"configurable": {"thread_id": "parent-a", "checkpoint_id": "ck-1"}}
+        _build_child_config(parent, "child")
+        assert parent["configurable"] == {
+            "thread_id": "parent-a",
+            "checkpoint_id": "ck-1",
+        }
+
+
+@pytest.mark.req("REQ-YG-042")
+class TestDirectModeInterruptDurability:
+    """AC-04: a direct child's pause survives a closed SqliteSaver."""
+
+    def test_direct_child_interrupt_resumes_after_reopen(self, tmp_path):
+        from langgraph.checkpoint.sqlite import SqliteSaver
+        from langgraph.types import Command
+
+        db = tmp_path / "fr1058.sqlite"
+        cfg = {"configurable": {"thread_id": "durable-1"}}
+
+        conn = sqlite3.connect(db, check_same_thread=False)
+        try:
+            _, app = _compile_fixture(
+                "direct_interrupt_parent.yaml", checkpointer=SqliteSaver(conn)
+            )
+            paused = app.invoke({}, cfg)
+            assert "__interrupt__" in paused
+        finally:
+            conn.close()
+
+        conn = sqlite3.connect(db, check_same_thread=False)
+        try:
+            _, app = _compile_fixture(
+                "direct_interrupt_parent.yaml", checkpointer=SqliteSaver(conn)
+            )
+            resumed = app.invoke(Command(resume="the answer"), cfg)
+        finally:
+            conn.close()
+
+        assert resumed["phase"] == "complete"
+        assert resumed["user_answer"] == "the answer"

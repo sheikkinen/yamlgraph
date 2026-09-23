@@ -333,7 +333,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 
 | # | Capability | Primary Modules | Requirements |
 |---|-----------|----------------|--------------|
-| 1 | CAP-1 Config Loading & Validation | `cli/helpers`, `cli/helpers.GraphLoadError`, `data_loader`, `data_loader.DataFileError`, … | REQ-YG-001 – 004, 546 |
+| 1 | CAP-1 Config Loading & Validation | `cli/helpers`, `cli/helpers.GraphLoadError`, `data_loader`, `data_loader.DataFileError`, … | REQ-YG-001 – 004, 546, 685 |
 | 2 | CAP-2 Graph Compilation | `graph_loader`, `graph_loader.apply_loop_node_defaults`, `graph_loader.compile_graph`, `graph_loader.detect_loop_nodes`, … | REQ-YG-005 – 008, 220, 239 |
 | 3 | CAP-3 Node Execution | `executor`, `executor_async`, `executor_base`, `node_factory/llm_nodes`, … | REQ-YG-009 – 011, 050, 223, 539 – 540 |
 | 4 | CAP-4 Prompt Execution | `executor.PromptExecutor`, `executor.execute_prompt`, `executor_async`, `executor_base.format_prompt`, … | REQ-YG-012 – 016, 216, 562 |
@@ -586,6 +586,8 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 270 | CAP-270 Bounded local-Markdown census binding | `examples/demos/corpus_census/adapters/markdown_adapters.py`, `examples/demos/corpus_census/adapters/md-discover.tool.yaml`, `examples/demos/corpus_census/adapters/md-extract.tool.yaml`, `tests/unit/test_markdown_corpus_adapters.py` | REQ-YG-674 |
 | 271 | CAP-271 Pre-Commit Gate Hygiene | `scripts/noqa_coverage.py`, `.pre-commit-config.yaml` | REQ-YG-676 – 677 |
 | 272 | CAP-272 Clean Dirty Main Triage | `scripts/dirty_main_triage.py`, `.github/skills/clean-dirty-main/SKILL.md` | REQ-YG-678 |
+| 273 | CAP-273 DeepSeek Non-Thinking Mode | `yamlgraph/utils/llm_providers.py`, `yamlgraph/utils/llm_factory.py` | REQ-YG-684 |
+| 274 | CAP-274 Prompt Template Dialect Per Message | `yamlgraph/utils/template.py`, `yamlgraph/executor_base.py`, `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py`, … | REQ-YG-686 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -600,6 +602,7 @@ Load YAML graph configs, validate schemas, build state models, and ensure graph 
 | REQ-YG-003 | Perform linting and pattern validation | `linter/graph_linter`, `linter/checks`, `linter/patterns/*` |
 | REQ-YG-004 | Handle errors during configuration loading | `cli/helpers.GraphLoadError`, `data_loader.DataFileError` |
 | REQ-YG-546 | Passthrough node output/outputs accept literal seeds (FR-721): the schema is dict[str, Any] matching the runtime contract — resolve_template's documented first branch passes non-string values through unchanged, and init nodes legitimately seed state with list/dict/bool literals. Template strings keep validating; literal types round-trip through model_dump unchanged (quoting "[]" would silently corrupt state seeding). Mapping fields (output_mapping, interrupt_output_mapping) remain genuinely string-to-string. Surfaced by ninchat NC-370 pin alignment: 8 ValidationErrors on a graph running correctly in production. | `models/node_schema` |
+| REQ-YG-685 | Subgraph node mode is validated at the graph-schema boundary (FR-1060): GraphConfigSchema re-validates every type: subgraph node through SubgraphNodeConfig, so the mode Literal (invoke \| direct) and the direct-mode mapping prohibition reach real graphs instead of only tests that construct the model directly. An unsupported mode fails validation rather than silently degrading to the invoke path, and the linter stops recommending the mappings that direct mode rejects. | `models/graph_schema`, `models/node_schema`, `linter/patterns/*` |
 
 ### 2. CAP-2 Graph Compilation
 
@@ -722,11 +725,13 @@ Export results/states in JSON/Markdown, handle serialization for persistence.
 
 Parallel fan-out and nested subgraph execution.
 
+**Feature Request:** legacy, FR-797, FR-1058
+
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-040 | Map node compilation | `map_compiler` |
 | REQ-YG-041 | Output wrapping for reduction | `map_compiler.wrap_for_reducer` |
-| REQ-YG-042 | Subgraph node creation | `node_factory/subgraph_nodes` |
+| REQ-YG-042 | Subgraph node creation. FR-1058: `mode: direct` registers the compiled child graph natively (no callable adapter), so the engine owns its checkpoint namespace and interrupts are durable across it; `mode: invoke` runs the child on a derived "<parent>:<node>" thread and strips the parent's checkpoint coordinates (checkpoint_id, checkpoint_ns, checkpoint_map) and internal __pregel_* keys, so a child cannot resume into its parent's checkpoint and two parents invoking the same child do not collide. User `configurable` keys are forwarded; the parent config is never mutated. | `node_factory/subgraph_nodes`, `compile/subgraph_relay`, `tests/unit/test_fr1058_subgraph_config_propagation.py` |
 
 ### 12. CAP-12 Utilities
 
@@ -2702,11 +2707,11 @@ The judge and review governance pipelines execute through exactly one operationa
 
 Opt-in, vendor-neutral OpenTelemetry span schema for graph-run and node-execution tracing. Disabled by default (no OTEL import, no spans, no behavior change). Enabled via YAMLGRAPH_OTEL_EXPORT=otlp; fails fast before any node executes when enabled but the `otel` extra is not installed. Emits one yamlgraph.graph.run span per invocation with a shared UUIDv7 run identity, sha256 variables hash (never raw values), and success|error|interrupted outcome; child yamlgraph.node.execute spans per node with node name/type, state keys-written (names only), and optional exception-class-name-only error attribute. Node spans are wrapped generically in node_compiler.py (llm, router, tool, python, agent, tool_call, race, passthrough, copilot, subgraph) via node_otel.py, mirroring the node_timeout.py wrapping pattern. LangSmith tracing is unaffected — this boundary is a parallel, vendor-neutral exporter path. FR-811 extends the root-span boundary to non-streaming programmatic calls made through run_graph_async.
 
-**Feature Request:** FR-759
+**Feature Request:** FR-759, FR-1058
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-570 | OTEL observability boundary (FR-759). is_otel_enabled() is a pure env-var check (YAMLGRAPH_OTEL_EXPORT=="otlp") that imports nothing; graph_run_span()/node_execution_span() no-op when disabled; OtelExtraMissingError raised before any node executes when enabled but opentelemetry is unavailable; enabled path emits yamlgraph.graph.run (yamlgraph.run.id, yamlgraph.graph.name, yamlgraph.thread.id optional, yamlgraph.variables.hash, yamlgraph.run.outcome) and child yamlgraph.node.execute (yamlgraph.node.name, yamlgraph.node.type, yamlgraph.state.keys_written, yamlgraph.node.error optional) spans sharing one trace id with correct parent/child linkage; variables_hash() is deterministic sha256 of canonical sorted-key JSON and never contains raw values. FR-811: load_and_compile_async attaches validated graph name/source metadata before caching; run_graph_async emits one root span per initial or resume call, shares its UUIDv7 with route evidence, records interrupt/error outcomes, and fails before invocation when enabled OTEL lacks the extra or required graph-name metadata. Direct invocation and native streaming remain outside the boundary. | `yamlgraph/observability/otel.py`, `yamlgraph/compile/node_otel.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/executor_async.py`, `tests/unit/test_otel_observability.py`, `tests/unit/test_async_executor.py` |
+| REQ-YG-570 | OTEL observability boundary (FR-759). is_otel_enabled() is a pure env-var check (YAMLGRAPH_OTEL_EXPORT=="otlp") that imports nothing; graph_run_span()/node_execution_span() no-op when disabled; OtelExtraMissingError raised before any node executes when enabled but opentelemetry is unavailable; enabled path emits yamlgraph.graph.run (yamlgraph.run.id, yamlgraph.graph.name, yamlgraph.thread.id optional, yamlgraph.variables.hash, yamlgraph.run.outcome) and child yamlgraph.node.execute (yamlgraph.node.name, yamlgraph.node.type, yamlgraph.state.keys_written, yamlgraph.node.error optional) spans sharing one trace id with correct parent/child linkage; variables_hash() is deterministic sha256 of canonical sorted-key JSON and never contains raw values. FR-811: load_and_compile_async attaches validated graph name/source metadata before caching; run_graph_async emits one root span per initial or resume call, shares its UUIDv7 with route evidence, records interrupt/error outcomes, and fails before invocation when enabled OTEL lacks the extra or required graph-name metadata. Direct invocation and native streaming remain outside the boundary. FR-1058: the node wrapper declares (state, config) and dispatches via call_func_with_variable_args, so LangGraph still injects RunnableConfig and the wrapper forwards it only to nodes that accept one — instrumentation never changes what a node receives, and the disabled path stays a true pass-through. Because LangGraph decides injection by both arity and annotation type, node_otel.py must not use `from __future__ import annotations` (a stringified annotation silently disables injection). Subgraph span coverage is mode-dependent: `mode: invoke` and FR-797 relay nodes emit an outer yamlgraph.node.execute span plus the child's node spans, while `mode: direct` emits only the child's node spans — the compiled child is registered as-is to preserve checkpoint namespace inheritance, and is deliberately not wrapped. | `yamlgraph/observability/otel.py`, `yamlgraph/compile/node_otel.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/compile/subgraph_relay.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/executor_async.py`, `tests/unit/test_otel_observability.py`, `tests/unit/test_async_executor.py`, `tests/unit/test_fr1058_subgraph_config_propagation.py` |
 
 ### 213. CAP-213 Example Dependency Taxonomy Generator
 
@@ -3311,6 +3316,26 @@ A dirty main checkout is triaged by content provenance before anything is discar
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-678 | Provenance triage for a dirty main checkout (FR-1047). scripts/dirty_main_triage.py classifies each entry of `git status --porcelain=v1 -z --untracked-files=all` as TARGET_IDENTICAL when the working bytes equal the blob at the same path in origin/main, KNOWN_BLOB when the bytes occur in another reachable commit, or UNSEEN_BLOB when they occur in no examined reachable ref. Only TARGET_IDENTICAL is safe. A non-main branch, a linked worktree, an unresolvable origin/main, a staged entry, deletion, rename, conflict, type change, symlink, submodule, or non-regular file is UNSUPPORTED; any git, filesystem, or decode failure is ERROR. The run mutates nothing and exits zero only when the tree is clean or every path is TARGET_IDENTICAL. .github/skills/clean-dirty-main/SKILL.md runs the classifier before any mutation, stops before unlocking on any non-safe result, cleans only explicit pathspecs, and restores the FR-889 lock on every exit. | `scripts/dirty_main_triage.py`, `.github/skills/clean-dirty-main/SKILL.md`, `.github/copilot-instructions.md`, `tests/unit/test_dirty_main_triage.py` |
+
+### 273. CAP-273 DeepSeek Non-Thinking Mode
+
+DeepSeek enables thinking by default at `high` effort on every model it serves, and exposes no token budget — only an effort enum. The one `thinking_budget` value that carries an exact DeepSeek meaning is `0`, which maps to `reasoning_effort: "none"`. Every other value keeps its existing meaning: omission preserves the API default, an accepted sub-1024 budget stays a logged no-op so graphs remain portable across providers, and a real token budget still fails loudly because DeepSeek cannot honour one.
+
+**Feature Request:** FR-1056
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-684 | DeepSeek reasoning toggle at the provider boundary (FR-1056). `dispatch_provider` forwards `thinking_budget` to `_create_deepseek_llm`, which sets `reasoning_effort="none"` on the `ChatOpenAI` client if and only if `thinking_budget == 0`. Omission and any accepted non-zero value (including -1 and sub-1024 portability budgets) leave `reasoning_effort` off the request payload entirely, and an ignored non-zero value emits a DEBUG record naming the provider and the value. `thinking_budget >= 1024` continues to raise `ValueError` from `create_llm` because `deepseek` remains outside `llm_factory.THINKING_PROVIDERS`. The LLM cache key already carries `thinking_budget`, so thinking-on and thinking-off clients never alias. | `yamlgraph/utils/llm_providers.py`, `yamlgraph/utils/llm_factory.py`, `tests/unit/test_fr1056_deepseek_thinking.py` |
+
+### 274. CAP-274 Prompt Template Dialect Per Message
+
+The dialect of a prompt template (Jinja2 vs `str.format`) is decided once, by `yamlgraph.utils.template.is_jinja`, and always about one message — scalar `system`, each element of a list-form `system`, each `system_segments[*].content`, and `user`. Validation traverses the same units the renderer does, so a Jinja system message can no longer vouch for a `str.format` user message the renderer will reject. Simple-format fields are read with `string.Formatter.parse` rather than a brace regex, and every well-formed field is a required variable — nothing infers that a brace is merely prose; an author declares a literal brace with `{% raw %}`. Two lint errors gate the failure classes before execution: E013 for a non-Jinja message `str.format` cannot render, E014 for a bare `{var}` inside a Jinja message that Jinja will never substitute. Supersedes W024.
+
+**Feature Request:** FR-1057
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-686 | Prompt template dialect is decided per message by the single discriminator `is_jinja` (`{{` or `{%` present), used by rendering, validation, and lint alike; `prepare_messages` validates scalar `system`, list-form `system`, every `system_segments[*].content`, and `user` independently, so a variable used in only one message is still required and a non-Jinja message carrying text `str.format` cannot render is rejected before the call. Simple-format fields are parsed with `string.Formatter.parse`, contributing root identifiers (`{a}`, `{a.b}`, `{a[0]}` all yield `a`); every well-formed field is a required variable, whatever its format spec, because Python hands the spec to the value's own `__format__` and the spec grammar is therefore open-ended. No heuristic exempts a field for resembling documentation: an author who wants a literal brace declares it with `{% raw %}`, whose spans are stripped before the scan. Lint reports E013 when a non-Jinja message has an unmatched brace or a non-identifier field root, naming both escapes in its fix, and E014 when a Jinja message contains any identifier-rooted simple field. W024 is retired, superseded by E014. | `yamlgraph/utils/template.py`, `yamlgraph/executor_base.py`, `yamlgraph/linter/checks_prompts.py`, `tests/unit/test_fr1057_prompt_template_dialect.py`, `tests/unit/test_fr1057_prompt_repairs.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

@@ -1,0 +1,36 @@
+version: "1.0"
+name: fr1058-interrupt-child
+description: |
+  FR-1058 AC-04 witness child: interrupts mid-run, then completes on resume.
+
+  Declares no checkpointer of its own — in `mode: direct` the engine owns the
+  child's checkpoint namespace, so the parent's SqliteSaver must carry the
+  pause across a connection close/reopen.
+
+state:
+  phase: str
+  question: str
+  user_answer: str
+
+nodes:
+  process:
+    type: passthrough
+    output:
+      phase: processing
+
+  ask_user:
+    type: interrupt
+    message: "FR-1058 AC-04: what is your answer?"
+    state_key: question
+    resume_key: user_answer
+
+  finalize:
+    type: passthrough
+    output:
+      phase: complete
+
+edges:
+  - {from: START, to: process}
+  - {from: process, to: ask_user}
+  - {from: ask_user, to: finalize}
+  - {from: finalize, to: END}

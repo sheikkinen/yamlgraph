@@ -90,7 +90,7 @@ defaults:
 |----------|------|---------|-------------|
 | `provider` | `string` | env-based | Default LLM provider |
 | `temperature` | `float` | `0.7` | Default temperature |
-| `thinking_budget` | `int` | `None` | Extended thinking tokens. `anthropic`: `0` or `≥1024`, forces `temperature=1` (FR-071). `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). |
+| `thinking_budget` | `int` | `None` | Extended thinking tokens. `anthropic`: `0` or `≥1024`, forces `temperature=1` (FR-071). `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). `deepseek`: only `0` is meaningful — it disables thinking; omitted keeps the API default (thinking on, effort `high`); other accepted values are ignored and `≥1024` raises (FR-1056). |
 | `prompts_relative` | `bool` | `false` | Resolve prompts relative to graph file |
 | `prompts_dir` | `string` | `prompts/` | Explicit prompts directory path |
 
@@ -272,7 +272,7 @@ Each node in the `nodes` section defines a processing step.
 | `temperature` | `float` | from defaults | LLM temperature |
 | `provider` | `string` | from defaults | LLM provider |
 | `max_tokens` | `int` | from config | Maximum output tokens for this node's LLM call |
-| `thinking_budget` | `int` | from defaults | Extended thinking tokens. `anthropic`: `0` or `≥1024`, forces `temperature=1` (FR-071). `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). |
+| `thinking_budget` | `int` | from defaults | Extended thinking tokens. `anthropic`: `0` or `≥1024`, forces `temperature=1` (FR-071). `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). `deepseek`: only `0` is meaningful — it disables thinking; omitted keeps the API default (thinking on, effort `high`); other accepted values are ignored and `≥1024` raises (FR-1056). |
 | `skip_if_exists` | `bool` | `true` | Skip if state key has truthy value (FR-050: `[]`, `""`, `None` do NOT skip) |
 | `parse_json` | `bool` | `false` | Extract JSON from LLM response |
 | `stream` | `bool` | `false` | Enable token-by-token streaming |
@@ -876,9 +876,17 @@ nodes:
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
 | `graph` | `string` | Yes | Path to child graph YAML |
-| `mode` | `string` | No | `invoke` (default) or `stream` |
-| `input_mapping` | `dict` | No | Map parent state keys to child state keys |
-| `output_mapping` | `dict` | No | Map child state keys to parent state keys |
+| `mode` | `string` | No | `invoke` (default) or `direct` |
+| `input_mapping` | `dict` | No | Map parent state keys to child state keys (`invoke` only) |
+| `output_mapping` | `dict` | No | Map child state keys to parent state keys (`invoke` only) |
+
+`invoke` is the default: the child keeps its own state schema, and
+`input_mapping` / `output_mapping` move keys across the boundary.
+
+`direct` shares the parent's state schema with the child — there is no
+boundary to map across, so `input_mapping` and `output_mapping` are rejected
+by validation. Any other value fails validation rather than silently running
+as `invoke`.
 
 See [Subgraph Nodes Reference](subgraph-nodes.md) for state mapping patterns and nesting.
 

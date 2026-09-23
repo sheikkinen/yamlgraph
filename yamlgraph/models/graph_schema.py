@@ -19,9 +19,28 @@ __all__ = [
     "GraphConfigSchema",
     "NodeConfig",
     "SubgraphNodeConfig",
+    "check_subgraph_node",
     "validate_graph_schema",
     "export_graph_json_schema",
 ]
+
+
+def check_subgraph_node(node_name: str, node: dict[str, Any]) -> None:
+    """Validate one `type: subgraph` node through SubgraphNodeConfig.
+
+    FR-1060: SubgraphNodeConfig owns the mode Literal and the direct-mode
+    mapping prohibition. This is the single route callers take to reach
+    those rules, so the graph schema and the CLI cannot drift apart.
+
+    Raises:
+        ValueError: If the node violates the subgraph contract.
+    """
+    payload = dict(node)
+    payload["type"] = "subgraph"
+    try:
+        SubgraphNodeConfig.model_validate(payload)
+    except ValueError as e:
+        raise ValueError(f"Subgraph node '{node_name}': {e}") from e
 
 
 class EdgeConfig(BaseModel):
@@ -131,6 +150,29 @@ class GraphConfigSchema(BaseModel):
                 if target not in valid_nodes:
                     raise ValueError(f"Edge 'to' node '{target}' not found")
 
+        return self
+
+    @model_validator(mode="after")
+    def validate_subgraph_nodes(self) -> "GraphConfigSchema":
+        """Re-validate `type: subgraph` nodes through SubgraphNodeConfig.
+
+        FR-1060: NodeConfig types `mode` as `str | None`, so the mode Literal
+        and the direct-mode mapping prohibition that SubgraphNodeConfig owns
+        never reached a real graph — an unknown mode validated and silently
+        took the invoke path. SubgraphNodeConfig stays the single owner of
+        those rules; this validator only routes nodes to it.
+        """
+        for node_name, node in self.nodes.items():
+            if node.type != NodeType.SUBGRAPH:
+                continue
+            # Only what the author actually wrote. `exclude_none` would erase
+            # an explicit `mode: null` (making the loader accept what the CLI
+            # rejects), and dumping unset defaults would make every node look
+            # like it declared empty mappings.
+            check_subgraph_node(
+                node_name,
+                node.model_dump(by_alias=True, include=node.model_fields_set),
+            )
         return self
 
 
