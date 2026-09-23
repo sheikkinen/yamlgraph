@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** 1 day
 **Requested:** 2026-09-23
 **First consumer / first event:** the next author who writes `mode: direct`
@@ -252,3 +252,41 @@ broadening · C-6 human promotion before enforcement.
    probe-verified.
 2. **Enforce now or park?** Recommended default: **park** — you asked for file
    + judge only. Nothing is implemented.
+
+## Implementation (2026-09-23)
+
+**Status:** Enforced. Promoted by the operator ("fold the narrowing. enforce"),
+satisfying C-6.
+
+| Deliverable | Commit | Evidence |
+|-------------|--------|----------|
+| D-4 tests (RED) | `ed22496f` | 7 failed / 5 passed — unsupported mode accepted, direct+mapping accepted, lint advising rejected mappings, reference row naming `stream`. The 5 green are the C-4 preservation witnesses. |
+| D-5 REQ registration | `ed22496f` | `req_coverage --strict` blocked the RED commit on the phantom `REQ-YG-685` exactly as R-1 predicted; registering it under CAP-01 cleared the gate. |
+| D-1, D-2, D-3 (GREEN) | `eed722b0` | 12 passed; full fast unit suite 6948 passed / 1 unrelated-to-scope vulture entry resolved by whitelisting the new validator. |
+
+**Deviation from the judgement's model of D-1.** D-1 assumed the
+`graph_schema.py` boundary was sufficient. Wiring it there fixed
+`yamlgraph graph run` but left `yamlgraph graph validate` still reporting
+VALID — the CLI `validate` command never consults the Pydantic schema at all;
+it runs its own ad-hoc field checks. AC-01 is written against the CLI, so the
+frozen scope required both. The root cause is therefore one class wider than
+filed: *two* consumers failed to reach the owning model, not one.
+
+Rather than duplicate the rules at the second site (C-2 forbids it), the fix
+introduces `check_subgraph_node(node_name, node)` in `graph_schema.py` as the
+single route into `SubgraphNodeConfig`. `GraphConfigSchema.validate_subgraph_nodes`
+and `cmd_graph_validate._validate_subgraph_nodes` both take it, so the loader
+and the CLI cannot disagree about what a subgraph node is.
+
+Two incidental edits were forced, neither a policy change: the direct-mode
+diagnostic now names the offending field (AC-02 requires the message to be
+actionable), and `scripts/hedging_check.py`'s line-keyed FB001 allowlist plus
+its `CONF-240` link were re-keyed 75 → 84 because the edit shifted the file.
+
+**Smoked through the shipped CLI**, not only pytest: `mode: stream` exits 1
+from both `validate` and `run`; the unmodified FR-1058 fixtures validate, now
+lint with zero warnings (was 2), and run to `phase: complete`.
+
+**Owed correction.** The public reply on issue #474 states that `mode: stream`
+"is rejected by the schema". That was false when written — it is the claim this
+FR falsified. A follow-up is owed on that issue once this merges.
