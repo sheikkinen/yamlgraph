@@ -137,6 +137,7 @@ VerificationConfig.validate_on_fail
 DefaultsConfig.validate_defaults_thinking_budget
 GraphConfig.validate_router_targets
 GraphConfig.validate_edge_nodes
+GraphConfig.validate_subgraph_nodes
 ObservabilityConfig.validate_regulated_profile
 
 # --- schemas.py: Pydantic fields accessed in tests ---
