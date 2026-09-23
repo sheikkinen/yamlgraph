@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** 0.5 days
 **Requested:** 2026-09-23
 **First consumer / first event:** any graph node with `provider: deepseek`
@@ -135,36 +135,36 @@ deliberate, documented choice — not an oversight.
 
 Frozen by the judgement (2026-09-23), AC-01 … AC-12:
 
-- [ ] AC-01: With the LLM cache isolated,
+- [x] AC-01: With the LLM cache isolated,
       `create_llm(provider="deepseek", model="deepseek-v4-pro", thinking_budget=0)`
       returns `ChatOpenAI` and `_get_request_payload(...)` contains
       `reasoning_effort == "none"`.
-- [ ] AC-02: With the cache isolated, the same call with `thinking_budget`
+- [x] AC-02: With the cache isolated, the same call with `thinking_budget`
       omitted produces a request payload with no `reasoning_effort` key.
-- [ ] AC-03: With the cache isolated, the same call with `thinking_budget=512`
+- [x] AC-03: With the cache isolated, the same call with `thinking_budget=512`
       does not raise, produces a payload with no `reasoning_effort` key, and
       emits the specified DEBUG record naming the ignored value and provider.
-- [ ] AC-04: `create_llm(provider="deepseek", model="deepseek-v4-pro",
+- [x] AC-04: `create_llm(provider="deepseek", model="deepseek-v4-pro",
       thinking_budget=8000)` raises `ValueError` naming the supported
       token-budget providers; no DeepSeek client is constructed.
-- [ ] AC-05: Existing Anthropic, Google, and Vertex thinking-budget tests pass
+- [x] AC-05: Existing Anthropic, Google, and Vertex thinking-budget tests pass
       unchanged in asserted behaviour.
-- [ ] AC-06: Distinct DeepSeek calls with omitted, zero, and 512 budgets do not
+- [x] AC-06: Distinct DeepSeek calls with omitted, zero, and 512 budgets do not
       alias in the client cache.
-- [ ] AC-07: Every new test carries `@pytest.mark.req("REQ-YG-684")`, and
+- [x] AC-07: Every new test carries `@pytest.mark.req("REQ-YG-684")`, and
       `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-08: `capabilities/CAP-273-deepseek-non-thinking.yaml` exists and
+- [x] AC-08: `capabilities/CAP-273-deepseek-non-thinking.yaml` exists and
       defines REQ-YG-684; `ARCHITECTURE.md` registers CAP-273 and REQ-YG-684
       with the frozen four-case contract.
-- [ ] AC-09: `reference/graph-yaml.md` and the `create_llm` `thinking_budget`
+- [x] AC-09: `reference/graph-yaml.md` and the `create_llm` `thinking_budget`
       parameter documentation state: DeepSeek zero disables thinking, omission
       preserves the API default, accepted other values are ignored, and effort
       tuning is unsupported.
-- [ ] AC-10: A `changelog/unreleased/` fragment has `type: fix`,
+- [x] AC-10: A `changelog/unreleased/` fragment has `type: fix`,
       `scope: providers`, and identifies FR-1056 / REQ-YG-684.
-- [ ] AC-11: Git history contains a failing RED test commit before the GREEN
+- [x] AC-11: Git history contains a failing RED test commit before the GREEN
       implementation commit.
-- [ ] AC-12: The FR records the explicit `is_this_a_graph` disposition and,
+- [x] AC-12: The FR records the explicit `is_this_a_graph` disposition and,
       after enforcement, records implementation status and deviations.
 
 ## Alternatives Considered
@@ -214,4 +214,20 @@ C-1 … C-5 are binding; the not-authorized list stands.
 
 ## Implementation Status
 
-_(filled during enforce)_
+**Enforced 2026-09-23** on `feat/fr-1056-deepseek-thinking-off`.
+
+| Deliverable | Landed as |
+|---|---|
+| D-1 | `yamlgraph/utils/llm_providers.py`: `deepseek` added to the dispatch-side `_THINKING_PROVIDERS`; `_create_deepseek_llm` gained `thinking_budget`; `reasoning_effort="none"` set only for `0`, other non-`None` values DEBUG-logged and dropped |
+| D-2 | `tests/unit/test_fr1056_deepseek_thinking.py` — 5 tests, keyless, asserting `_get_request_payload` output |
+| D-3 | `create_llm` docstring + two `reference/graph-yaml.md` tables |
+| D-4 | `capabilities/CAP-273-deepseek-non-thinking.yaml`; `ARCHITECTURE.md` regenerated via `scripts/aggregate_capabilities.py` |
+| D-5 | `changelog/unreleased/fr-1056-deepseek-thinking-off.md` (`type: fix`, `scope: providers`) |
+
+**Deviations:** none. The asymmetry required by C-2 is now load-bearing and
+commented at `_THINKING_PROVIDERS`: `deepseek` is inside the dispatch registry
+and deliberately outside `llm_factory.THINKING_PROVIDERS`, which is what keeps
+AC-04 (`>= 1024` raises) true while AC-01 works.
+
+**Verification:** RED `14b1e90c` (2 of 5 failing); GREEN follows. Full fast unit
+suite 6897 passed / 61 skipped; `scripts/req_coverage.py --strict` exit 0.

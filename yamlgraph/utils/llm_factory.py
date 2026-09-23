@@ -110,7 +110,11 @@ def create_llm(
         thinking_budget: Extended thinking budget tokens. Supported by anthropic, google, and
                         vertex providers (FR-071, FR-230). For Anthropic: 0 or ≥1024, forces
                         temperature=1. For Google/Vertex: any non-negative integer or -1 for
-                        automatic mode; temperature is not overridden.
+                        automatic mode; temperature is not overridden. For DeepSeek (FR-1056):
+                        only 0 is expressible — it disables thinking via reasoning_effort="none";
+                        omitting the field preserves DeepSeek's default (thinking on, effort
+                        "high"); any other accepted value is ignored (DeepSeek has no token
+                        budget and effort tuning is unsupported); ≥1024 still raises.
 
     Returns:
         Configured LLM instance.
