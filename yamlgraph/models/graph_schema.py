@@ -165,8 +165,13 @@ class GraphConfigSchema(BaseModel):
         for node_name, node in self.nodes.items():
             if node.type != NodeType.SUBGRAPH:
                 continue
+            # Only what the author actually wrote. `exclude_none` would erase
+            # an explicit `mode: null` (making the loader accept what the CLI
+            # rejects), and dumping unset defaults would make every node look
+            # like it declared empty mappings.
             check_subgraph_node(
-                node_name, node.model_dump(exclude_none=True, by_alias=True)
+                node_name,
+                node.model_dump(by_alias=True, include=node.model_fields_set),
             )
         return self
 

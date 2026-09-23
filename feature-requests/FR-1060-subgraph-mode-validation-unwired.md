@@ -290,3 +290,28 @@ lint with zero warnings (was 2), and run to `phase: complete`.
 **Owed correction.** The public reply on issue #474 states that `mode: stream`
 "is rejected by the schema". That was false when written — it is the claim this
 FR falsified. A follow-up is owed on that issue once this merges.
+
+## Review (PR #676, 2026-09-23)
+
+**First verdict: Not approved**, three blocking findings, all reproduced. The
+review probed the two roads into the shared helper — the CLI hands it raw
+YAML, the schema hands it a normalized `NodeConfig` dump — and found the seam
+I had asserted was closed still open in two places.
+
+| # | Finding | Fix |
+|---|---------|-----|
+| P1 | The direct-mode mapping check tested truthiness, so `mode: direct` with `input_mapping: {}` was accepted — contradicting AC-02 and the reference prose this FR wrote. | Check `model_fields_set` (presence), not value. |
+| P2 | `model_dump(exclude_none=True)` erased an explicit `mode: null`, so the schema defaulted it to `invoke` and accepted what the CLI rejected. The drift the helper exists to prevent survived inside the helper's own caller. | Dump `include=node.model_fields_set`: exactly what the author wrote, nulls preserved, unset defaults omitted. |
+| P3 | AC-03 requires supported modes to validate **and run**; the suite only validated. | Added a compile-and-run regression over `invoke`, `direct`, and omitted mode. |
+
+P2 is the finding worth keeping. The defect this FR was filed against is
+"two consumers of one model disagree". I built a shared route to end that,
+then reintroduced the identical disagreement one layer down — by normalizing
+on one road and not the other. A shared entry point does not make two callers
+agree if they arrive carrying different data.
+
+The suite now includes `TestSchemaAndCliAgree`, which asserts the two paths
+reach the same verdict over six inputs rather than trusting that they do.
+
+23 tests pass; full fast unit suite 6960 passed. Re-probed the corpus under
+the stricter presence rule: still zero failures across all 8 subgraph nodes.

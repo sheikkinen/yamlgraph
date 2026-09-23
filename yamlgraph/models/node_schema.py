@@ -54,10 +54,13 @@ class SubgraphNodeConfig(BaseModel):
         if not self.graph.endswith((".yaml", ".yml")):
             raise ValueError(f"Subgraph must be a YAML file: {self.graph}")
         if self.mode == "direct":
+            # Presence, not truthiness: `input_mapping: {}` is a declaration
+            # that direct mode has no boundary to map across, and accepting
+            # it would contradict the reference and the diagnostic.
             present = [
                 name
                 for name in ("input_mapping", "output_mapping")
-                if getattr(self, name)
+                if name in self.model_fields_set
             ]
             if present:
                 raise ValueError(

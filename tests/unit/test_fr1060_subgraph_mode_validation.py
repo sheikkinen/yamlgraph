@@ -78,12 +78,61 @@ class TestDirectModeRejectsMappings:
     """AC-02: direct mode shares the schema; mappings are a contradiction."""
 
     @pytest.mark.req("REQ-YG-685")
+    @pytest.mark.parametrize("value", [{"phase": "phase"}, {}])
     @pytest.mark.parametrize("field", ["input_mapping", "output_mapping"])
-    def test_direct_with_mapping_exits_nonzero(self, tmp_path, capsys, field):
-        graph = _graph(tmp_path, mode="direct", **{field: {"phase": "phase"}})
+    def test_direct_with_mapping_exits_nonzero(self, tmp_path, capsys, field, value):
+        """Presence, not truthiness: `input_mapping: {}` is still a mapping."""
+        graph = _graph(tmp_path, mode="direct", **{field: value})
         code, out = _validate_captured(graph, capsys)
-        assert code != 0, f"mode=direct with {field} was accepted"
+        assert code != 0, f"mode=direct with {field}: {value!r} was accepted"
         assert field in out, f"diagnostic must name {field}, got: {out!r}"
+
+
+class TestSchemaAndCliAgree:
+    """The shared route exists to stop the loader and the CLI drifting.
+
+    Both consumers reach SubgraphNodeConfig, but by different roads: the CLI
+    hands it raw YAML, the schema hands it a normalized NodeConfig dump. A
+    value the dump erases is accepted by one and rejected by the other.
+    """
+
+    @pytest.mark.req("REQ-YG-685")
+    @pytest.mark.parametrize(
+        "overrides",
+        [
+            {"mode": None},
+            {"mode": "stream"},
+            {"mode": "direct", "input_mapping": {}},
+            {"mode": "direct"},
+            {"mode": "invoke"},
+            {},
+        ],
+        ids=[
+            "null",
+            "unsupported",
+            "direct-empty-mapping",
+            "direct",
+            "invoke",
+            "omitted",
+        ],
+    )
+    def test_both_paths_reach_the_same_verdict(self, tmp_path, capsys, overrides):
+        from yamlgraph.models.graph_schema import validate_graph_schema
+
+        path = _graph(tmp_path, **overrides)
+        cli_ok = _validate_captured(path, capsys)[0] == 0
+
+        config = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
+        try:
+            validate_graph_schema(config)
+            schema_ok = True
+        except ValueError:
+            schema_ok = False
+
+        assert cli_ok == schema_ok, (
+            f"{overrides!r}: CLI says {'valid' if cli_ok else 'invalid'} but the "
+            f"schema says {'valid' if schema_ok else 'invalid'}"
+        )
 
 
 class TestSupportedModesStillValidate:
@@ -100,6 +149,19 @@ class TestSupportedModesStillValidate:
         for fixture in sorted(FIXTURES.glob("*.yaml")):
             code, _ = _validate(str(fixture))
             assert code == 0, f"{fixture.name} must remain valid"
+
+    @pytest.mark.req("REQ-YG-685")
+    @pytest.mark.parametrize("overrides", [{}, {"mode": "invoke"}, {"mode": "direct"}])
+    def test_supported_mode_still_runs(self, tmp_path, overrides):
+        """Validation is not the only path the wiring could have broken."""
+        from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
+
+        path = _graph(tmp_path, **overrides)
+        app = compile_graph(load_graph_config(path)).compile()
+        result = app.invoke({})
+        assert result["phase"] == "complete", (
+            f"{overrides or 'omitted mode'} validated but did not run"
+        )
 
 
 class TestLintIsModeAware:
