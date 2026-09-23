@@ -121,9 +121,16 @@ Whether this *ever* worked is unverified: no test crossed the seam, so a
 regression from a `langchain-anthropic` upgrade and a defect present since
 FR-276 are indistinguishable from inside this repo. The defect is **not
 version-gated within the declared range**: `pyproject.toml` declares
-`langchain-anthropic>=1.5.1` with no upper bound, and the probe above
-reproduces on this repo's resolved **1.5.2** — the floor of that range. An
-upgrade is therefore not the suspect, and the version pin is not the cure.
+`langchain-anthropic>=1.5.1` with no upper bound; the local venv resolves
+**1.5.2** and CI resolves a later 1.7.x, and the probe above reproduces at the
+floor. An upgrade is therefore not the suspect, and the version pin is not the
+cure.
+
+The range is not uniform, though, and the seam test found it: `_format_messages`
+gained a **required** `model` keyword partway through 1.5.x -> 1.7.x. The test
+detects the parameter and spans both. This is the drift-detection value arriving
+before the feature even merged \u2014 the first CI run on a machine that resolved a
+different version inside the declared range turned the test red.
 
 ### Blast radius
 

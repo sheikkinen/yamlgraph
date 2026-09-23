@@ -380,6 +380,8 @@ class TestLangChainSeam:
     @pytest.mark.req("REQ-YG-289")
     def test_cached_segments_reach_langchain_as_cache_control_blocks(self) -> None:
         """Walks producer -> langchain_anthropic. Red if either side changes shape."""
+        import inspect
+
         from langchain_anthropic.chat_models import _format_messages
         from langchain_core.messages import HumanMessage
 
@@ -390,7 +392,14 @@ class TestLangChainSeam:
         )
         assert system_msg is not None
 
-        system, _formatted = _format_messages([system_msg, HumanMessage(content="x")])
+        # `model` became a required kwarg partway through the declared
+        # langchain-anthropic range (>=1.5.1, no ceiling); span both.
+        kwargs = {}
+        if "model" in inspect.signature(_format_messages).parameters:
+            kwargs["model"] = "claude-sonnet-4-5"
+        system, _formatted = _format_messages(
+            [system_msg, HumanMessage(content="x")], **kwargs
+        )
 
         assert system, "system prompt must survive the seam, not just be built"
         assert system[0]["text"] == "STABLE"
