@@ -1,0 +1,29 @@
+version: "1.0"
+name: fr1058-invoke-parent
+description: |
+  FR-1058 AC-06 witness: one compiled `mode: invoke` parent driven on two
+  parent threads.
+
+  Each parent thread must give its child a distinct identity
+  (`parent-a:child`, `parent-b:child`). On unfixed main the OTel wrapper
+  suppresses LangGraph's config injection, so the node sees `config=None`,
+  `_build_child_config` takes its no-parent-thread fallback, and both threads
+  collapse onto the single child thread id `child`.
+
+state:
+  phase: str
+  child_phase: str
+
+nodes:
+  child:
+    type: subgraph
+    graph: child.yaml
+    mode: invoke
+    input_mapping:
+      phase: phase
+    output_mapping:
+      child_phase: phase
+
+edges:
+  - {from: START, to: child}
+  - {from: child, to: END}

@@ -113,6 +113,42 @@ types — the set compiled through a single `add_node` call in
 `yamlgraph/compile/node_compiler.py`. `map`, `interrupt`, and `verify`
 nodes are out of scope for this increment.
 
+### Subgraph nodes: what gets a span depends on the mode
+
+A `subgraph` node is not one shape. Which spans you see depends on its
+`mode:` (FR-1058):
+
+| `mode:` | What is registered | Spans emitted |
+| --- | --- | --- |
+| `invoke` (default) | a callable that invokes the child graph | one outer `yamlgraph.node.execute` span with `yamlgraph.node.type = subgraph`, **plus** a child-node span per node the child executes |
+| relay (FR-797 pair) | a callable relay pair | outer span per relay node, as above |
+| `direct` | the **compiled child graph itself** | **no outer span** — only one `yamlgraph.node.execute` span per node inside the child |
+
+`direct` mode deliberately registers the compiled child object as-is so
+the engine owns its checkpoint namespace (that inheritance is the whole
+point of the mode, and is what makes interrupts durable across it).
+Wrapping it in a callable adapter to obtain an outer span would forfeit
+that, so no outer span is emitted. Nothing is lost from the trace: the
+child's own nodes are instrumented at their own compile and still nest
+under the same graph-run span through normal context propagation. If you
+are looking for a single span representing "time spent in the child",
+use `mode: invoke`; `direct` gives you the child's nodes instead.
+
+### The wrapper is config-transparent
+
+The node wrapper declares `(state, config)` so LangGraph's argument
+injection still supplies a `RunnableConfig`, and forwards it only to
+nodes whose own signature accepts one. Instrumentation therefore never
+changes what a node receives, and with OTEL disabled the wrapper is a
+true pass-through.
+
+One trap worth naming: LangGraph decides config injection from **both**
+the callable's arity **and** its annotation *type*. A stringified
+annotation — which is what `from __future__ import annotations` produces —
+is not recognised, so injection is silently skipped and surfaces only as
+a `UserWarning`. `yamlgraph/compile/node_otel.py` must therefore not use
+that future import.
+
 Out of scope for this boundary: LLM/tool/route/checkpoint/interrupt/verification
 span types, metrics, LangSmith-as-exporter migration, native streaming, direct
 compiled-object invocation, and the MCP server entry point.

@@ -15,7 +15,19 @@ requirements:
     modules:
       - map_compiler.wrap_for_reducer
   - id: REQ-YG-042
-    description: Subgraph node creation
+    description: >
+      Subgraph node creation. FR-1058: `mode: direct` registers the
+      compiled child graph natively (no callable adapter), so the engine
+      owns its checkpoint namespace and interrupts are durable across it;
+      `mode: invoke` runs the child on a derived "<parent>:<node>"
+      thread and strips the parent's checkpoint coordinates
+      (checkpoint_id, checkpoint_ns, checkpoint_map) and internal
+      __pregel_* keys, so a child cannot resume into its parent's
+      checkpoint and two parents invoking the same child do not collide.
+      User `configurable` keys are forwarded; the parent config is never
+      mutated.
     modules:
       - node_factory/subgraph_nodes
-fr: legacy
+      - compile/subgraph_relay
+      - tests/unit/test_fr1058_subgraph_config_propagation.py
+fr: legacy, FR-797, FR-1058
