@@ -586,6 +586,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 270 | CAP-270 Bounded local-Markdown census binding | `examples/demos/corpus_census/adapters/markdown_adapters.py`, `examples/demos/corpus_census/adapters/md-discover.tool.yaml`, `examples/demos/corpus_census/adapters/md-extract.tool.yaml`, `tests/unit/test_markdown_corpus_adapters.py` | REQ-YG-674 |
 | 271 | CAP-271 Pre-Commit Gate Hygiene | `scripts/noqa_coverage.py`, `.pre-commit-config.yaml` | REQ-YG-676 – 677 |
 | 272 | CAP-272 Clean Dirty Main Triage | `scripts/dirty_main_triage.py`, `.github/skills/clean-dirty-main/SKILL.md` | REQ-YG-678 |
+| 274 | CAP-274 Prompt Template Dialect Per Message | `yamlgraph/utils/template.py`, `yamlgraph/executor_base.py`, `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py`, … | REQ-YG-685 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3311,6 +3312,16 @@ A dirty main checkout is triaged by content provenance before anything is discar
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-678 | Provenance triage for a dirty main checkout (FR-1047). scripts/dirty_main_triage.py classifies each entry of `git status --porcelain=v1 -z --untracked-files=all` as TARGET_IDENTICAL when the working bytes equal the blob at the same path in origin/main, KNOWN_BLOB when the bytes occur in another reachable commit, or UNSEEN_BLOB when they occur in no examined reachable ref. Only TARGET_IDENTICAL is safe. A non-main branch, a linked worktree, an unresolvable origin/main, a staged entry, deletion, rename, conflict, type change, symlink, submodule, or non-regular file is UNSUPPORTED; any git, filesystem, or decode failure is ERROR. The run mutates nothing and exits zero only when the tree is clean or every path is TARGET_IDENTICAL. .github/skills/clean-dirty-main/SKILL.md runs the classifier before any mutation, stops before unlocking on any non-safe result, cleans only explicit pathspecs, and restores the FR-889 lock on every exit. | `scripts/dirty_main_triage.py`, `.github/skills/clean-dirty-main/SKILL.md`, `.github/copilot-instructions.md`, `tests/unit/test_dirty_main_triage.py` |
+
+### 274. CAP-274 Prompt Template Dialect Per Message
+
+The dialect of a prompt template (Jinja2 vs `str.format`) is decided once, by `yamlgraph.utils.template.is_jinja`, and always about one message — scalar `system`, each element of a list-form `system`, each `system_segments[*].content`, and `user`. Validation traverses the same units the renderer does, so a Jinja system message can no longer vouch for a `str.format` user message the renderer will reject. Simple-format fields are read with `string.Formatter.parse` rather than a brace regex, and two lint errors gate the failure classes before execution: E013 for a non-Jinja message `str.format` cannot render, E014 for a bare `{var}` inside a Jinja message that Jinja will never substitute. Supersedes W024.
+
+**Feature Request:** FR-1057
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-685 | Prompt template dialect is decided per message by the single discriminator `is_jinja` (`{{` or `{%` present), used by rendering, validation, and lint alike; `prepare_messages` validates scalar `system`, list-form `system`, every `system_segments[*].content`, and `user` independently, so a variable used in only one message is still required and a non-Jinja message carrying text `str.format` cannot render is rejected before the call. Simple-format fields are parsed with `string.Formatter.parse`, contributing root identifiers (`{a}`, `{a.b}`, `{a[0]}` all yield `a`); a field carrying a format spec or conversion (`{pred: alive, args: []}`) documents an output shape and is not a variable, and `{% raw %}` spans are literal. Lint reports E013 when a non-Jinja message has an unmatched brace or a non-identifier field root, naming both escapes in its fix, and E014 when a Jinja message contains a bare identifier-rooted simple field. W024 is retired, superseded by E014. | `yamlgraph/utils/template.py`, `yamlgraph/executor_base.py`, `yamlgraph/linter/checks_prompts.py`, `tests/unit/test_fr1057_prompt_template_dialect.py`, `tests/unit/test_fr1057_prompt_repairs.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

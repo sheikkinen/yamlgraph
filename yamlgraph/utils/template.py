@@ -9,12 +9,120 @@ Supports both simple {variable} placeholders and Jinja2 templates.
 
 import logging
 import re
+import string
+from dataclasses import dataclass
 from typing import Any
 
 from jinja2 import Environment, meta
 from jinja2 import nodes as jinja_nodes
 
 logger = logging.getLogger(__name__)
+
+# Injected by the framework or supplied by Jinja itself, never by the caller.
+_EXCLUDED_VARIABLES = {"state", "loop", "range", "true", "false", "none", "self"}
+
+
+def is_jinja(text: str) -> bool:
+    """Decide which engine renders one message (FR-1057).
+
+    The single source of truth. Every layer — rendering, validation, and the
+    linter — must ask this question about the same unit of text: one message.
+    """
+    return "{{" in text or "{%" in text
+
+
+@dataclass(frozen=True)
+class SimpleFieldScan:
+    """What `str.format` would make of a piece of text.
+
+    Attributes:
+        roots: Root identifiers of every well-formed field.
+        bare_roots: Roots of fields carrying no format spec and no conversion
+            — the shape an author writes when they mean a substitution.
+            `{pred: alive, args: []}` is documentation of an output shape, not
+            a variable, and its `: ...` tail is what says so.
+        invalid_fields: Fields whose root is not an identifier, such as the
+            `"chapters"` that `{"chapters": []}` parses into.
+        brace_error: The formatter's own complaint about unbalanced braces,
+            or None.
+    """
+
+    roots: set[str]
+    bare_roots: set[str]
+    invalid_fields: tuple[str, ...]
+    brace_error: str | None
+
+
+def _field_root(field_name: str) -> str:
+    """Strip the attribute/index tail `str.format` resolves after lookup."""
+    for index, char in enumerate(field_name):
+        if char in ".[":
+            return field_name[:index]
+    return field_name
+
+
+def strip_jinja_raw_blocks(text: str) -> str:
+    """Remove `{% raw %}...{% endraw %}` spans from a Jinja template.
+
+    A raw block is the author declaring that the braces inside are literal
+    output. Scanning it for substitutions would report the escape itself as
+    the defect — the remedy E013 recommends.
+    """
+    return re.sub(
+        r"\{%-?\s*raw\s*-?%\}.*?\{%-?\s*endraw\s*-?%\}",
+        "",
+        text,
+        flags=re.DOTALL,
+    )
+
+
+def scan_simple_fields(text: str) -> SimpleFieldScan:
+    """Read `text` with Python's own format-string parser (FR-1057).
+
+    Uses `string.Formatter.parse` rather than a brace regex: the regex and the
+    real field grammar disagreeing is defect D2 itself, so the checks built on
+    this must inherit the grammar they are policing instead of approximating
+    it. Never raises — an unbalanced brace is reported, not thrown.
+    """
+    formatter = string.Formatter()
+    roots: set[str] = set()
+    bare_roots: set[str] = set()
+    invalid: set[str] = set()
+    brace_error: str | None = None
+    remaining = text
+
+    while remaining:
+        try:
+            for _literal, field_name, spec, conversion in formatter.parse(remaining):
+                if field_name is None:
+                    continue
+                root = _field_root(field_name)
+                if not root.isidentifier():
+                    invalid.add(field_name)
+                    continue
+                roots.add(root)
+                if not spec and not conversion:
+                    bare_roots.add(root)
+            break
+        except ValueError as exc:
+            if brace_error is None:
+                brace_error = str(exc)
+            # Restart the formatter's own parser past the offending brace. The
+            # alternative — recovering by hand — would mean inventing a second
+            # grammar, which is the defect this function exists to close.
+            offsets = [
+                pos for pos in (remaining.find("{"), remaining.find("}")) if pos >= 0
+            ]
+            if not offsets:
+                break
+            remaining = remaining[min(offsets) + 1 :]
+
+    return SimpleFieldScan(
+        roots=roots,
+        bare_roots=bare_roots,
+        invalid_fields=tuple(sorted(invalid)),
+        brace_error=brace_error,
+    )
 
 
 def extract_variables(template: str) -> set[str]:
@@ -39,10 +147,7 @@ def extract_variables(template: str) -> set[str]:
     """
     variables: set[str] = set()
 
-    # Check if template uses Jinja2 syntax
-    is_jinja = "{{" in template or "{%" in template
-
-    if is_jinja:
+    if is_jinja(template):
         # Use Jinja2 AST for correctness. autoescape stays False: templates
         # render LLM prompt text, never HTML (CONF-377).
         env = Environment()  # noqa: S701  # nosec B701
@@ -56,21 +161,15 @@ def extract_variables(template: str) -> set[str]:
             if isinstance(node.target, jinja_nodes.Name)
         }
         variables -= set_targets
-        # Also extract simple {var} placeholders (mixed syntax support)
-        simple_pattern = r"(?<!\{)\{(\w+)\}(?!\})"
-        variables.update(re.findall(simple_pattern, template))
+        # Simple {var} fields survive Jinja rendering untouched; they are still
+        # declared inputs until E014 removes them. Raw blocks are literal.
+        variables.update(
+            scan_simple_fields(strip_jinja_raw_blocks(template)).bare_roots
+        )
     else:
-        # Simple {var} format only
-        simple_pattern = r"\{(\w+)\}"
-        variables = set(re.findall(simple_pattern, template))
+        variables = scan_simple_fields(template).bare_roots
 
-    # Remove common non-input variables
-    # - state: injected by node_factory
-    # - loop: Jinja2 loop context
-    # - range: Jinja2 builtin function
-    # - self: Jinja2 macro context
-    excluded = {"state", "loop", "range", "true", "false", "none", "self"}
-    return variables - excluded
+    return variables - _EXCLUDED_VARIABLES
 
 
 def validate_variables(

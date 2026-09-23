@@ -17,6 +17,11 @@ from yamlgraph.linter.checks import (
     resolve_prompts_dir,
 )
 from yamlgraph.utils.template import extract_variables as extract_template_variables
+from yamlgraph.utils.template import (
+    is_jinja,
+    scan_simple_fields,
+    strip_jinja_raw_blocks,
+)
 
 # W026 default: at or above this many top-level inline-schema output fields, a
 # prompt is flagged as possibly fusing independent judgements (FR-586).
@@ -108,18 +113,50 @@ def check_unanchored_prompt_variables(
     return issues
 
 
-def check_mixed_template_syntax(
-    graph_path: Path, project_root: Path | None = None
-) -> list[LintIssue]:
-    """Warn when prompt files mix simple {var} and Jinja2 syntax."""
-    issues: list[LintIssue] = []
-    graph = load_graph(graph_path)
+def _iter_prompt_messages(prompt_yaml: object) -> list[tuple[str, str]]:
+    """Yield `(field_label, text)` for every renderable message (FR-1057).
 
+    The frozen surface: scalar `system`, list-form `system`,
+    `system_segments[*].content`, and `user`. Non-message fields such as
+    `metadata.description` are never rendered and so can never be defects.
+    """
+    if not isinstance(prompt_yaml, dict):
+        return []
+
+    messages: list[tuple[str, str]] = []
+    segments = prompt_yaml.get("system_segments")
+    system_field = prompt_yaml.get("system")
+
+    if isinstance(segments, list):
+        for index, segment in enumerate(segments):
+            if isinstance(segment, dict):
+                messages.append(
+                    (f"system_segments[{index}]", str(segment.get("content", "")))
+                )
+    elif isinstance(system_field, list):
+        for index, item in enumerate(system_field):
+            content = item.get("content", "") if isinstance(item, dict) else item
+            messages.append((f"system[{index}]", str(content)))
+    elif isinstance(system_field, str):
+        messages.append(("system", system_field))
+
+    user_field = prompt_yaml.get("user")
+    if isinstance(user_field, str):
+        messages.append(("user", user_field))
+
+    return [(label, text) for label, text in messages if text]
+
+
+def _load_prompt_messages(
+    graph_path: Path, project_root: Path | None
+) -> list[tuple[str, str, str, str]]:
+    """Collect `(node, prompt, field_label, text)` across a graph's prompts."""
+    graph = load_graph(graph_path)
     if project_root is None:
         project_root = graph_path.parent
-
     prompts_dir = resolve_prompts_dir(graph, graph_path, project_root)
 
+    collected: list[tuple[str, str, str, str]] = []
     for node_name, node_config in graph.get("nodes", {}).items():
         prompt_name = node_config.get("prompt")
         if not prompt_name:
@@ -131,34 +168,82 @@ def check_mixed_template_syntax(
             continue
 
         with open(prompt_path, encoding="utf-8") as f:
-            prompt_content = f.read()
+            prompt_yaml = yaml.safe_load(f)
 
-        # Reuse shared extraction logic after removing Jinja constructs so
-        # Jinja-only prompts do not produce false positives.
-        simple_scan_text = re.sub(
-            r"\{\{.*?\}\}|\{%.*?%\}",
-            "",
-            prompt_content,
-            flags=re.DOTALL,
+        for field_label, text in _iter_prompt_messages(prompt_yaml):
+            collected.append((node_name, prompt_name, field_label, text))
+
+    return collected
+
+
+def check_unrenderable_simple_messages(
+    graph_path: Path, project_root: Path | None = None
+) -> list[LintIssue]:
+    """E013 — a non-Jinja message `str.format` will refuse to render."""
+    issues: list[LintIssue] = []
+
+    for node_name, prompt_name, field_label, text in _load_prompt_messages(
+        graph_path, project_root
+    ):
+        if is_jinja(text):
+            continue
+        scan = scan_simple_fields(text)
+        if not scan.brace_error and not scan.invalid_fields:
+            continue
+
+        detail = scan.brace_error or (
+            f"invalid format field(s): {', '.join(scan.invalid_fields)}"
         )
-        simple_vars = extract_template_variables(simple_scan_text)
-        has_jinja = "{{" in prompt_content or "{%" in prompt_content
-
-        if simple_vars and has_jinja:
-            issues.append(
-                LintIssue(
-                    severity="warning",
-                    code="W024",
-                    message=(
-                        f"Prompt '{prompt_name}' (node '{node_name}') mixes simple "
-                        f"{{var}} and Jinja2 {{{{var}}}} syntax"
-                    ),
-                    fix=(
-                        f"Convert simple placeholders in '{prompt_name}' to Jinja2 "
-                        "syntax: {{variable}} instead of {variable}"
-                    ),
-                )
+        issues.append(
+            LintIssue(
+                severity="error",
+                code="E013",
+                message=(
+                    f"Prompt '{prompt_name}' (node '{node_name}', field "
+                    f"'{field_label}') is not a valid str.format template: {detail}"
+                ),
+                fix=(
+                    "This message contains no Jinja syntax, so every brace is "
+                    "significant. Rewrite the shape in prose, or wrap it in "
+                    "{% raw %}...{% endraw %} so the message is rendered by Jinja."
+                ),
             )
+        )
+
+    return issues
+
+
+def check_simple_fields_in_jinja_messages(
+    graph_path: Path, project_root: Path | None = None
+) -> list[LintIssue]:
+    """E014 — `{var}` inside a Jinja message, which Jinja never substitutes."""
+    issues: list[LintIssue] = []
+
+    for node_name, prompt_name, field_label, text in _load_prompt_messages(
+        graph_path, project_root
+    ):
+        if not is_jinja(text):
+            continue
+        roots = sorted(scan_simple_fields(strip_jinja_raw_blocks(text)).bare_roots)
+        if not roots:
+            continue
+
+        joined = ", ".join(f"{{{root}}}" for root in roots)
+        issues.append(
+            LintIssue(
+                severity="error",
+                code="E014",
+                message=(
+                    f"Prompt '{prompt_name}' (node '{node_name}', field "
+                    f"'{field_label}') is a Jinja message but contains simple "
+                    f"format field(s) Jinja will not substitute: {joined}"
+                ),
+                fix=(
+                    f"Convert to Jinja syntax in '{prompt_name}': {{{{ variable }}}} "
+                    "instead of {variable}."
+                ),
+            )
+        )
 
     return issues
 
@@ -277,6 +362,7 @@ def check_prompt_complexity(
 
 __all__ = [
     "check_unanchored_prompt_variables",
-    "check_mixed_template_syntax",
+    "check_unrenderable_simple_messages",
+    "check_simple_fields_in_jinja_messages",
     "check_prompt_complexity",
 ]

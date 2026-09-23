@@ -1,0 +1,44 @@
+id: CAP-274
+name: Prompt Template Dialect Per Message
+description: >
+  The dialect of a prompt template (Jinja2 vs `str.format`) is decided once,
+  by `yamlgraph.utils.template.is_jinja`, and always about one message —
+  scalar `system`, each element of a list-form `system`, each
+  `system_segments[*].content`, and `user`. Validation traverses the same
+  units the renderer does, so a Jinja system message can no longer vouch for
+  a `str.format` user message the renderer will reject. Simple-format fields
+  are read with `string.Formatter.parse` rather than a brace regex, and two
+  lint errors gate the failure classes before execution: E013 for a non-Jinja
+  message `str.format` cannot render, E014 for a bare `{var}` inside a Jinja
+  message that Jinja will never substitute. Supersedes W024.
+modules:
+  - yamlgraph/utils/template.py
+  - yamlgraph/executor_base.py
+  - yamlgraph/linter/checks_prompts.py
+  - yamlgraph/linter/graph_linter.py
+  - reference/prompt-yaml.md
+requirements:
+  - id: REQ-YG-685
+    description: >
+      Prompt template dialect is decided per message by the single
+      discriminator `is_jinja` (`{{` or `{%` present), used by rendering,
+      validation, and lint alike; `prepare_messages` validates scalar
+      `system`, list-form `system`, every `system_segments[*].content`, and
+      `user` independently, so a variable used in only one message is still
+      required and a non-Jinja message carrying text `str.format` cannot
+      render is rejected before the call. Simple-format fields are parsed
+      with `string.Formatter.parse`, contributing root identifiers
+      (`{a}`, `{a.b}`, `{a[0]}` all yield `a`); a field carrying a format
+      spec or conversion (`{pred: alive, args: []}`) documents an output
+      shape and is not a variable, and `{% raw %}` spans are literal. Lint
+      reports E013 when a non-Jinja message has an unmatched brace or a
+      non-identifier field root, naming both escapes in its fix, and E014
+      when a Jinja message contains a bare identifier-rooted simple field.
+      W024 is retired, superseded by E014.
+    modules:
+      - yamlgraph/utils/template.py
+      - yamlgraph/executor_base.py
+      - yamlgraph/linter/checks_prompts.py
+      - tests/unit/test_fr1057_prompt_template_dialect.py
+      - tests/unit/test_fr1057_prompt_repairs.py
+fr: FR-1057

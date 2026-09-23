@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Enforced
 **Effort:** 1-2 days
 **Requested:** 2026-09-23
 **First consumer / first event:** the next graph author who writes a JSON
@@ -78,6 +78,24 @@ Four defect classes follow. All four were reproduced by probe against
 `432ce1b4`; the transcripts are quoted verbatim.
 
 ### D1 — validation and rendering disagree about the engine
+
+> **Correction (enforcement, 2026-09-23).** This section originally presented
+> D1 as a constructed fixture with no committed instance. That was wrong.
+> `examples/dungeon_master/prompts/author_plot_plan.yaml` is exactly this
+> shape: a `system` message of literal JSON with no Jinja markers beside a
+> `user` message that *is* Jinja. Proved on base code `432ce1b4`:
+>
+> ```
+> system is jinja: False
+> BASE CODE system render:      KeyError '\n  "agents"'
+> BASE CODE prepare_messages:   KeyError '\n  "agents"'
+> ```
+>
+> Both the `author_plan` and `repair_plan` nodes use that prompt, so the
+> dungeon_master plot lane (FR-561/562/563) **could not run at all** and had
+> not been able to since `9e1eaafa`. The concatenated validator blessed it
+> every time. This is the FR's strongest witness and it was found by the
+> corpus lint, not by reasoning.
 
 ```yaml
 system: You are a planner for {{ topic }}.
@@ -253,52 +271,52 @@ Steps 1 and 2 are not throwaway work under that future: (b) is E014.
 
 Replaced wholesale by the judgement's revised set (R-1 through R-5).
 
-- [ ] **AC-01** `is_jinja(text)` is the sole production discriminator for
+- [x] **AC-01** `is_jinja(text)` is the sole production discriminator for
       prompt-message dialect selection; `format_prompt`, variable
       extraction/validation, E013 and E014 call it rather than repeating
       `{{`/`{%` checks.
-- [ ] **AC-02** A D1 fixture proves `system` is classified Jinja, `user`
+- [x] **AC-02** A D1 fixture proves `system` is classified Jinja, `user`
       simple-format, and `yamlgraph graph lint` returns E013 for the user
       message before execution. No criterion claims the invalid literal is
       automatically repaired.
-- [ ] **AC-03** `prepare_messages` validates scalar `system`, list-form
+- [x] **AC-03** `prepare_messages` validates scalar `system`, list-form
       `system`, every `system_segments[*].content`, and `user` content
       independently; a variable used in only one message remains required.
-- [ ] **AC-04** Shared simple-field parsing uses `string.Formatter.parse()`
+- [x] **AC-04** Shared simple-field parsing uses `string.Formatter.parse()`
       and variable extraction returns root identifiers for `{name}`,
       `{analysis.grade}` and `{items[0]}`.
-- [ ] **AC-05** E013 fires for `Return {"chapters": []} for {topic}` and for
+- [x] **AC-05** E013 fires for `Return {"chapters": []} for {topic}` and for
       unmatched braces, but not for runtime-valid `{topic}`,
       `{analysis.grade}` or `{items[0]}` fields.
-- [ ] **AC-06** E013 does not fire for `Return {"chapters": []} for {{ topic }}`
+- [x] **AC-06** E013 does not fire for `Return {"chapters": []} for {{ topic }}`
       because that message is Jinja text.
-- [ ] **AC-07** E014 fires for `{synopsis}`, `{analysis.grade}` and other
+- [x] **AC-07** E014 fires for `{synopsis}`, `{analysis.grade}` and other
       simple-format fields inside a Jinja message; it does not fire for
       literal JSON text or for content inside a valid Jinja raw block.
-- [ ] **AC-08** W024 is removed from registration and its superseded tests
+- [x] **AC-08** W024 is removed from registration and its superseded tests
       are replaced by E014 tests.
-- [ ] **AC-09** The one retained live incident is a committed path, E014
+- [x] **AC-09** The one retained live incident is a committed path, E014
       detects it before repair, and a real `format_prompt` regression test
       with brace-free fixture values proves each intended field is
       substituted after repair. (Not "no `{` survives": Jinja raw blocks
       render literal braces by design, and values may contain braces.)
-- [ ] **AC-10** A prompt whose metadata/`description` contains `{foo}`
+- [x] **AC-10** A prompt whose metadata/`description` contains `{foo}`
       produces neither E013 nor E014 solely because of that non-message field.
-- [ ] **AC-11** Linting every graph under `examples/` and `graphs/` yields
+- [x] **AC-11** Linting every graph under `examples/` and `graphs/` yields
       zero E013/E014 findings after the retained repair; the command and the
       complete graph count are recorded.
-- [ ] **AC-12** Tests tagged `@pytest.mark.req("REQ-YG-685")`;
+- [x] **AC-12** Tests tagged `@pytest.mark.req("REQ-YG-685")`;
       `capabilities/CAP-274-prompt-template-dialect.yaml` and the matching
       `ARCHITECTURE.md` entries exist; `python scripts/req_coverage.py
       --strict` exits 0.
-- [ ] **AC-13** `reference/prompt-yaml.md` states that dialect is selected
+- [x] **AC-13** `reference/prompt-yaml.md` states that dialect is selected
       per message, documents simple-format field rules, and shows both Jinja
       remedies for literal braces: a Jinja variable in that message, or
       `{% raw %}...{% endraw %}`.
-- [ ] **AC-14** The prompt repair was made through `scripts/author.sh`, and
+- [x] **AC-14** The prompt repair was made through `scripts/author.sh`, and
       `tmp/draft-authoring-report.md` records precedent, lint, smoke/render
       witness, and any blocked validation honestly.
-- [ ] **AC-15** A `type: fix`, `scope: prompts` changelog fragment, an FR
+- [x] **AC-15** A `type: fix`, `scope: prompts` changelog fragment, an FR
       implementation record/status update, and a diary Distill entry with a
       **Seed:** are present.
 
@@ -313,6 +331,17 @@ YAML only (`git ls-files '*.yaml'`, 1064 files), classified by dialect:
  163  str.format only    <- would break under "Jinja everywhere" (156 files)
    1  MIXED              <- already silently broken today
 ```
+
+> **Correction (enforcement, 2026-09-23) — the census undercounts.** The
+> classifier above used `\{(\w+)\}` — *the very grammar defect D2 names*. It
+> cannot see an attribute tail (`{synopsis.title}`) or a bare literal brace,
+> so it could not see most of what this FR is about. Re-run with the shipped
+> `scan_simple_fields` parser, lint over all 203 tracked graphs found **6
+> findings across 4 defect sites in 3 files**, not 1. Second method
+> correction in this FR after R-4: a census is only as good as its grammar,
+> and measuring a grammar defect with the defective grammar undercounts by
+> construction. AC-11's "zero findings" gate was, per
+> `threshold_encodes_forecast`, encoding my forecast of one defect.
 
 | Alternative | Probe result | Disposition |
 |---|---|---|
@@ -370,3 +399,83 @@ R-3 offered "retire W024" or "keep it plus a distinguishing fixture". I took
 retirement, because I could not construct the fixture — if you know of a
 mixing case that is stylistically wrong yet renders faithfully, say so and
 W024 stays.
+
+---
+
+## Implementation Record (2026-09-23)
+
+**Status: Enforced.** All 15 acceptance criteria met. Commits on
+`feat/fr-1057-prompt-template-dialect-split`: `b83db9e0` (FR), `9c8418a2`
+(judgement revisions), `fb25815e` (RED), GREEN following.
+
+### What shipped (D-1..D-8)
+
+| Deliverable | Where |
+|---|---|
+| D-1 `is_jinja`, `SimpleFieldScan`, `scan_simple_fields`, `strip_jinja_raw_blocks`; `extract_variables` rerouted off both brace regexes | `yamlgraph/utils/template.py` |
+| D-2 per-message validation; `_extract_system_template_for_validation` deleted | `yamlgraph/executor_base.py` |
+| D-3 E013 + E014; W024 retired (function, registration, `__all__`, tests) | `yamlgraph/linter/checks_prompts.py`, `graph_linter.py` |
+| D-5 one prompt repair, authored via `scripts/author.sh` | `examples/dungeon_master/prompts/author_plot_plan.yaml` |
+| D-6 dialect-per-message documentation | `reference/prompt-yaml.md` |
+| D-7 CAP-274 / REQ-YG-685 | `capabilities/CAP-274-prompt-template-dialect.yaml`, `ARCHITECTURE.md` |
+| D-8 changelog fragment, this record, diary Distill | `changelog/unreleased/fr-1057-prompt-template-dialect-split.md` |
+
+### Deviations and corrections
+
+1. **D1 had a live committed instance** (see the correction box in D1). The FR
+   as judged asserted it did not. `examples/dungeon_master`'s plot lane was
+   broken at runtime and is now fixed.
+2. **The census undercounted** (see the correction box under Alternatives).
+   The scope of the repair grew from 1 file to 3; the *code* scope did not.
+3. **E014's grammar needed two narrowings the judgement did not anticipate**,
+   both found by running the new check over the whole committed corpus rather
+   than over fixtures:
+   - *Format specs mark documentation.* `examples/plot_modeller/prompts/extract_goals.yaml`
+     documents output as `{pred: alive, args: [<agent>], value: true}`.
+     `string.Formatter` reads that as field `pred` with format spec
+     ` alive, args…`. E014 fired wrongly — and worse, `extract_variables`
+     began *requiring* a `pred` variable, a regression that would have broken
+     that graph and was invisible to all 6907 unit tests. Cure: only
+     `bare_roots` (no format spec, no conversion) count as substitutions.
+   - *Raw blocks are literal.* `examples/yamlgraph_gen/prompts/assemble_graph.yaml`
+     documents `{% raw %}{state.field}{% endraw %}`, which AC-07 already
+     excluded. Cure: `strip_jinja_raw_blocks` before scanning. The test that
+     was supposed to cover this had been passing for the wrong reason.
+
+### Out of scope, found and deliberately left (C-6)
+
+A **fifth** defect shape exists that this FR does not address:
+`novel_generator`'s `prompts/timeline/construct.yaml` contains
+`Title: {synopsis.title}` in a non-Jinja message. It is a syntactically
+well-formed `str.format` field, so E013 correctly stays silent — but LLM
+node outputs are always dicts (`llm_nodes.py` returns `result.model_dump()`),
+and `str.format` does `getattr` on the attribute tail, so it can never render:
+`'dict' object has no attribute 'title'`. Confirmed pre-existing by
+`git stash` + re-run on base code. Candidate follow-up FR: a lint or runtime
+rule for attribute access in simple-format messages.
+
+### Operator decision — novel_generator retired from `examples/demos/`
+
+The three `novel_generator` E014 repairs collided with
+`scripts/check_demo_proof.sh`, which requires a staged successful
+`demo-output.log` for any changed demo — unobtainable while defect 5 stands,
+and defect 5 is out of scope. Surfaced as a decision; the operator chose
+**"mv novel_generator to projects & remove from examples/demos"**. Executed:
+the repaired tree was copied to the untracked private `projects/` directory
+and `git rm`-ed from `examples/demos/novel_generator/` (14 files) along with
+`tests/integration/test_novel_generator.py`. No CAP, `ARCHITECTURE.md` entry,
+`README.md` line, or `examples/demos/demo.sh` entry referenced it, so the
+retirement is self-contained. AC-09's witness is therefore the
+dungeon_master D1 crash — a stronger witness than the evolve prompt, since it
+was a real runtime failure rather than a silently dropped variable.
+
+### Witnesses
+
+- `tests/unit/test_fr1057_prompt_template_dialect.py` — 18 tests
+- `tests/unit/test_fr1057_prompt_repairs.py` — the dungeon_master D1 crash,
+  rendering correctly after repair
+- Full unit suite green; `python scripts/req_coverage.py --strict` exits 0
+- AC-11: `yamlgraph graph lint` over every tracked graph-shaped YAML
+  (`git ls-files '*.yaml' '*.yml'` filtered on a top-level `nodes:` key —
+  **242 graphs**) → **0 E013/E014 findings, 0 lint crashes**. Log:
+  `logs/ac11e.log`.

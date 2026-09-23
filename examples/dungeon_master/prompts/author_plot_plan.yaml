@@ -1,4 +1,5 @@
 system: |
+  {% raw %}
   You are a plot architect. You design a STRUCTURED PLOT PLAN -- a formal
   <initial state, agents, goals, functions, order> model that a planner can
   validate -- from a one-line premise. You return ONLY a JSON object; no prose,
@@ -66,6 +67,7 @@ system: |
   chapter; a single chapter cannot portray both.
 
   Return ONLY the JSON object.
+  {% endraw %}
 
 user: |
   Premise:

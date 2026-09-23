@@ -39,9 +39,10 @@ from yamlgraph.linter.checks_loader_ux import (
     check_tool_module_graph_local,
 )
 from yamlgraph.linter.checks_prompts import (
-    check_mixed_template_syntax,
     check_prompt_complexity,
+    check_simple_fields_in_jinja_messages,
     check_unanchored_prompt_variables,
+    check_unrenderable_simple_messages,
 )
 from yamlgraph.linter.checks_providers import check_thinking_budget
 from yamlgraph.linter.checks_semantic import (
@@ -137,7 +138,8 @@ def lint_graph(
     # E008 module-vs-graph-local file)
     all_issues.extend(check_prompt_messages_contract(graph_path, project_root))
     all_issues.extend(check_tool_module_graph_local(graph_path))
-    all_issues.extend(check_mixed_template_syntax(graph_path, project_root))
+    all_issues.extend(check_unrenderable_simple_messages(graph_path, project_root))
+    all_issues.extend(check_simple_fields_in_jinja_messages(graph_path, project_root))
     all_issues.extend(check_prompt_complexity(graph_path, project_root))
     all_issues.extend(check_edge_coverage(graph_path))
     all_issues.extend(check_node_types(graph_path))

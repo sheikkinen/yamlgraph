@@ -17,7 +17,7 @@ from yamlgraph.utils.structured_output import (
     invoke_structured,
     is_second_attempt_error,
 )
-from yamlgraph.utils.template import validate_variables
+from yamlgraph.utils.template import is_jinja, scan_simple_fields, validate_variables
 
 logger = logging.getLogger(__name__)
 
@@ -116,7 +116,7 @@ def format_prompt(
             format_prompt("Topic: {{ state.topic }}", {}, state={"topic": "AI"})
     """
     # Check for Jinja2 syntax
-    if "{%" in template or "{{" in template:
+    if is_jinja(template):
         from jinja2 import Template
 
         jinja_template = Template(template)
@@ -132,29 +132,49 @@ def format_prompt(
     return template.format(**safe_vars)
 
 
-def _extract_system_template_for_validation(
+def _iter_message_templates(
     prompt_config: dict, has_system_segments: bool, has_system: bool
-) -> str:
-    """Extract system template content for variable validation."""
-    system_template = ""
+) -> list[str]:
+    """List every renderable message, separately (FR-1057).
+
+    The dialect is decided per message, so validation must see the same units
+    the renderer does. Concatenating system and user let a Jinja system bless
+    a `str.format` user message the renderer then rejected (D1).
+    """
+    templates: list[str] = []
     if has_system_segments:
-        # Extract content from all segments for validation
-        segments = prompt_config["system_segments"]
-        for segment in segments:
-            system_template += segment.get("content", "")
+        for segment in prompt_config["system_segments"]:
+            templates.append(segment.get("content", ""))
     elif has_system:
         system_field = prompt_config["system"]
-        # Handle both scalar string and list format for system field
         if isinstance(system_field, list):
-            # List format: [{"content": "text", "cache": bool}, ...]
             for item in system_field:
-                if isinstance(item, dict):
-                    system_template += item.get("content", "")
-                else:
-                    system_template += str(item)
+                templates.append(
+                    item.get("content", "") if isinstance(item, dict) else str(item)
+                )
         else:
-            system_template = system_field
-    return system_template
+            templates.append(system_field)
+    templates.append(prompt_config.get("user", ""))
+    return [text for text in templates if text]
+
+
+def _reject_unrenderable_message(template: str, prompt_name: str) -> None:
+    """Raise on text `str.format` cannot render, naming both escapes (D3)."""
+    if is_jinja(template):
+        return
+    scan = scan_simple_fields(template)
+    if not scan.brace_error and not scan.invalid_fields:
+        return
+    detail = (
+        scan.brace_error or f"invalid format field(s): {', '.join(scan.invalid_fields)}"
+    )
+    raise ValueError(
+        f"Prompt '{prompt_name}' has a message that is not a valid template "
+        f"({detail}). This message has no Jinja syntax, so it is rendered with "
+        "str.format and every brace is significant. Rewrite the shape in prose "
+        "or wrap it in {% raw %}...{% endraw %} to make the message Jinja. "
+        "Lint reports this as E013."
+    )
 
 
 def _resolve_provider_and_model(
@@ -224,12 +244,13 @@ def prepare_messages(  # noqa: C901
             f"Cannot specify both 'system' and 'system_segments' fields in prompt '{prompt_name}'"
         )
 
-    # Build full template for variable validation
-    system_template = _extract_system_template_for_validation(
+    # Validate per message: the dialect is a property of one message, not of
+    # the concatenation (FR-1057).
+    for message_template in _iter_message_templates(
         prompt_config, has_system_segments, has_system
-    )
-    full_template = system_template + prompt_config.get("user", "")
-    validate_variables(full_template, variables, prompt_name)
+    ):
+        _reject_unrenderable_message(message_template, prompt_name)
+        validate_variables(message_template, variables, prompt_name)
 
     # Extract provider and model from YAML if not provided via parameter
     resolved_provider, resolved_model = _resolve_provider_and_model(
