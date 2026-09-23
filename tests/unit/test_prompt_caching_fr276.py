@@ -193,10 +193,10 @@ class TestAnthropicCacheControl:
         system_msg = messages[0]
         assert isinstance(system_msg, SystemMessage)
 
-        # This will fail until implementation - SystemMessage should have
-        # additional_kwargs with content blocks and cache_control
-        assert hasattr(system_msg, "additional_kwargs")
-        cache_blocks = system_msg.additional_kwargs.get("content", [])
+        # FR-1055: blocks must live in .content — additional_kwargs is not read
+        # by langchain_anthropic, which drops the system prompt with them.
+        cache_blocks = system_msg.content
+        assert not system_msg.additional_kwargs.get("content")
         assert len(cache_blocks) == 2
         assert cache_blocks[0].get("cache_control") == {"type": "ephemeral"}
         assert "cache_control" not in cache_blocks[1]
@@ -227,7 +227,7 @@ class TestAnthropicCacheControl:
         )
 
         system_msg = messages[0]
-        cache_blocks = system_msg.additional_kwargs.get("content", [])
+        cache_blocks = system_msg.content
 
         # Only third block should have cache_control
         assert "cache_control" not in cache_blocks[0]
@@ -342,7 +342,7 @@ class TestExecutorPathConsistency:
             assert isinstance(system_msg, SystemMessage)
 
             # Should have same Anthropic cache_control behavior
-            cache_blocks = system_msg.additional_kwargs.get("content", [])
+            cache_blocks = system_msg.content
             assert len(cache_blocks) == 2
             assert cache_blocks[0].get("cache_control") == {"type": "ephemeral"}
 
