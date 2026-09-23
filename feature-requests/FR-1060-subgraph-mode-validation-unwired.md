@@ -170,15 +170,17 @@ Superseded by the judgement's revised set (R-1 through R-3 folded).
       `mode: direct`, and emits both for `mode: invoke` without
       `input_mapping` and `output_mapping`.
 - [ ] AC-05 The `type: subgraph` property table in `reference/graph-yaml.md`
-      identifies exactly `invoke` and `direct` as accepted `mode` values,
-      identifies `invoke` as the default, does not identify `stream` as a
-      subgraph mode, and explains that direct mode shares the state schema and
-      rejects `input_mapping`/`output_mapping`. Scoped to that row: `stream`
+      identifies `invoke` as the default, and explains that direct mode shares
+      the state schema and rejects `input_mapping`/`output_mapping`. Narrowed
+      to the prose obligations: the accepted *value set* is owned by AC-06, so
+      the two no longer assert the same contract. Scoped to that row: `stream`
       legitimately appears elsewhere in the file (8 occurrences, incl. the LLM
       node `stream: bool` field and the CLI `--stream` flag) (R-2).
 - [ ] AC-06 A test extracts the accepted values from that specific
-      reference-table row and proves equality with the `Literal` members of
-      `SubgraphNodeConfig.mode`, so the two cannot drift again.
+      reference-table row and proves set-equality with the `Literal` members of
+      `SubgraphNodeConfig.mode`, so the two cannot drift again. This is the
+      sole owner of the value-set contract, including the absence of `stream`
+      as a subgraph mode.
 - [ ] AC-07 `REQ-YG-685` is declared under CAP-01 and in `ARCHITECTURE.md`;
       every new test is tagged `@pytest.mark.req("REQ-YG-685")` (R-1).
 - [ ] AC-08 The RED commit demonstrates failures caused by the unwired
