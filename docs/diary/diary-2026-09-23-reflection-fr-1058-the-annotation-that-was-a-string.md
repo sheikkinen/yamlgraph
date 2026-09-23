@@ -63,11 +63,47 @@ having executed — a false green inside the very FR whose purpose is to stop a
 silently-disabled code path. The instrument had the same disease as the
 patient.
 
+## The parallel suite that proved nothing
+
+Two more defects surfaced *after* I declared this enforced, and both were
+caught by instruments I had not run.
+
+The PR review found AC-06 ticked on a witness that never resumed anything.
+The criterion has two halves — distinct identity, and independent durable
+resume — and my test covered the first. Worse, this FR *already contained*
+the sentence explaining why the second was missing ("invoke children compile
+without a checkpointer"), sitting a few hundred lines from the tick. I wrote
+both. Writing an obstacle down is not the same as noticing it contradicts a
+claim you are making elsewhere in the same document.
+
+Then CI failed where 6935 local passes had not. My test module had copied the
+OTel suite's private exporter and provider installer. OpenTelemetry's global
+`TracerProvider` can be set once per process; both copies guarded with
+`isinstance(get_tracer_provider(), TracerProvider)`, so whichever module ran
+second short-circuited, never attached *its* exporter, and observed zero
+spans. Mine-first broke twelve of theirs; theirs-first broke three of mine.
+
+Every local run had used `-n auto`, which put the two modules on different
+workers — one process each, no contention, green. The parallelism I adopted
+for speed was also the thing concealing the bug. CI, running them together,
+was the first honest observation.
+
 ## Heuristics
 
 - **`downstream_sufficiency`**: a correct root cause is not automatically a
   complete one. When a fix targeting a confirmed cause leaves tests red, the
   default hypothesis is a *second gate on the same path*, not a bad fix.
+- **`parallel_is_not_isolated`**: a green `-n auto` suite is evidence about
+  correctness, not about isolation — xdist grants separate processes and
+  hides every process-global collision. Before trusting a suite, run the
+  suspect modules together in ONE process, in BOTH orders.
+- **`copied_global_manager`**: duplicating a helper that manages
+  process-global state is not DRY debt, it is a correctness bug — the
+  "already installed?" guard turns the loser into a silent no-op. Such
+  helpers need exactly one owner.
+- **`own_document_rebuts_own_claim`**: an FR long enough to hold both a
+  criterion and the observation that defeats it will hold them both happily.
+  Before ticking an AC, search the document for the reason it cannot be true.
 - **`warning_that_contradicts_itself`**: a message asserting `X is not X` is a
   type-versus-repr comparison. Read it as "one of these is a string."
 - **`mirror_test`**: a witness that imports its expected values from the module
@@ -85,3 +121,12 @@ are what catch wrong fixes rather than lazy tests — could the judge be
 required to add exactly one method clause to every AC set, naming the
 instrument that would otherwise lie? What would that clause have said for the
 FRs we later had to reopen?
+
+**Seed:** Three defects here were each found by the *first* instrument of a
+kind I had not yet used: the review (first reader denied my narrative), CI
+(first single-process run), the outsider (first reader denied the context).
+Each was cheap and each found something the previous ones structurally could
+not. If an instrument's yield is highest on its first use, the scarce
+resource is not effort but *variety of vantage*. What is the cheapest
+unused vantage on a change about to be declared done — and should "name one"
+be the last question of every enforce, the way **Distill** is the last task?
