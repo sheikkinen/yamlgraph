@@ -586,6 +586,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 270 | CAP-270 Bounded local-Markdown census binding | `examples/demos/corpus_census/adapters/markdown_adapters.py`, `examples/demos/corpus_census/adapters/md-discover.tool.yaml`, `examples/demos/corpus_census/adapters/md-extract.tool.yaml`, `tests/unit/test_markdown_corpus_adapters.py` | REQ-YG-674 |
 | 271 | CAP-271 Pre-Commit Gate Hygiene | `scripts/noqa_coverage.py`, `.pre-commit-config.yaml` | REQ-YG-676 – 677 |
 | 272 | CAP-272 Clean Dirty Main Triage | `scripts/dirty_main_triage.py`, `.github/skills/clean-dirty-main/SKILL.md` | REQ-YG-678 |
+| 273 | CAP-273 DeepSeek Non-Thinking Mode | `yamlgraph/utils/llm_providers.py`, `yamlgraph/utils/llm_factory.py` | REQ-YG-684 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3311,6 +3312,16 @@ A dirty main checkout is triaged by content provenance before anything is discar
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-678 | Provenance triage for a dirty main checkout (FR-1047). scripts/dirty_main_triage.py classifies each entry of `git status --porcelain=v1 -z --untracked-files=all` as TARGET_IDENTICAL when the working bytes equal the blob at the same path in origin/main, KNOWN_BLOB when the bytes occur in another reachable commit, or UNSEEN_BLOB when they occur in no examined reachable ref. Only TARGET_IDENTICAL is safe. A non-main branch, a linked worktree, an unresolvable origin/main, a staged entry, deletion, rename, conflict, type change, symlink, submodule, or non-regular file is UNSUPPORTED; any git, filesystem, or decode failure is ERROR. The run mutates nothing and exits zero only when the tree is clean or every path is TARGET_IDENTICAL. .github/skills/clean-dirty-main/SKILL.md runs the classifier before any mutation, stops before unlocking on any non-safe result, cleans only explicit pathspecs, and restores the FR-889 lock on every exit. | `scripts/dirty_main_triage.py`, `.github/skills/clean-dirty-main/SKILL.md`, `.github/copilot-instructions.md`, `tests/unit/test_dirty_main_triage.py` |
+
+### 273. CAP-273 DeepSeek Non-Thinking Mode
+
+DeepSeek enables thinking by default at `high` effort on every model it serves, and exposes no token budget — only an effort enum. The one `thinking_budget` value that carries an exact DeepSeek meaning is `0`, which maps to `reasoning_effort: "none"`. Every other value keeps its existing meaning: omission preserves the API default, an accepted sub-1024 budget stays a logged no-op so graphs remain portable across providers, and a real token budget still fails loudly because DeepSeek cannot honour one.
+
+**Feature Request:** FR-1056
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-684 | DeepSeek reasoning toggle at the provider boundary (FR-1056). `dispatch_provider` forwards `thinking_budget` to `_create_deepseek_llm`, which sets `reasoning_effort="none"` on the `ChatOpenAI` client if and only if `thinking_budget == 0`. Omission and any accepted non-zero value (including -1 and sub-1024 portability budgets) leave `reasoning_effort` off the request payload entirely, and an ignored non-zero value emits a DEBUG record naming the provider and the value. `thinking_budget >= 1024` continues to raise `ValueError` from `create_llm` because `deepseek` remains outside `llm_factory.THINKING_PROVIDERS`. The LLM cache key already carries `thinking_budget`, so thinking-on and thinking-off clients never alias. | `yamlgraph/utils/llm_providers.py`, `yamlgraph/utils/llm_factory.py`, `tests/unit/test_fr1056_deepseek_thinking.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
