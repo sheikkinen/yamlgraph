@@ -1,7 +1,7 @@
 id: CAP-212
 name: OpenTelemetry Observability Boundary
 status: active
-fr: FR-759
+fr: FR-759, FR-1058
 feature_request: FR-759
 description: >
   Opt-in, vendor-neutral OpenTelemetry span schema for graph-run and

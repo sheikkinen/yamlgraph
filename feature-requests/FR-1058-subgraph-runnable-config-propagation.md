@@ -540,6 +540,24 @@ later at `builder.compile(checkpointer=...)`. So `parent_checkpointer` is
 predates the three defects and is unrelated to them, it does not affect any
 AC, and it is **not** fixed here. Filed as S-4 below.
 
+### A registry gap exposed by the changelog gate
+
+Adding the changelog fragment turned `test_no_req_collision_across_unrelated_frs`
+red. The gate requires a fragment's `req:` to appear in a capability whose
+`fr:` names the claiming FR. It fires only when a REQ has **two or more**
+claimants, so the gap was latent: FR-797's released fragment already claimed
+`REQ-YG-042` while CAP-11 recorded `fr: legacy`, meaning no FR owned that
+requirement. Our fragment became the second claimant and made the gap visible.
+
+Resolved by recording the FRs that actually govern each capability, using the
+comma-list form the registry already supports:
+
+- `CAP-11` → `fr: legacy, FR-797, FR-1058` (origin remains legacy; FR-797 and
+  FR-1058 have since defined REQ-YG-042's behaviour)
+- `CAP-212` → `fr: FR-759, FR-1058`
+
+`ARCHITECTURE.md` regenerated from the registry. Full suite green.
+
 ### Verification
 
 | Check | Result |

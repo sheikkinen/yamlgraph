@@ -30,4 +30,4 @@ requirements:
       - node_factory/subgraph_nodes
       - compile/subgraph_relay
       - tests/unit/test_fr1058_subgraph_config_propagation.py
-fr: legacy
+fr: legacy, FR-797, FR-1058

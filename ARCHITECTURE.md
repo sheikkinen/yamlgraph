@@ -723,6 +723,8 @@ Export results/states in JSON/Markdown, handle serialization for persistence.
 
 Parallel fan-out and nested subgraph execution.
 
+**Feature Request:** legacy, FR-797, FR-1058
+
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-040 | Map node compilation | `map_compiler` |
@@ -2703,7 +2705,7 @@ The judge and review governance pipelines execute through exactly one operationa
 
 Opt-in, vendor-neutral OpenTelemetry span schema for graph-run and node-execution tracing. Disabled by default (no OTEL import, no spans, no behavior change). Enabled via YAMLGRAPH_OTEL_EXPORT=otlp; fails fast before any node executes when enabled but the `otel` extra is not installed. Emits one yamlgraph.graph.run span per invocation with a shared UUIDv7 run identity, sha256 variables hash (never raw values), and success|error|interrupted outcome; child yamlgraph.node.execute spans per node with node name/type, state keys-written (names only), and optional exception-class-name-only error attribute. Node spans are wrapped generically in node_compiler.py (llm, router, tool, python, agent, tool_call, race, passthrough, copilot, subgraph) via node_otel.py, mirroring the node_timeout.py wrapping pattern. LangSmith tracing is unaffected — this boundary is a parallel, vendor-neutral exporter path. FR-811 extends the root-span boundary to non-streaming programmatic calls made through run_graph_async.
 
-**Feature Request:** FR-759
+**Feature Request:** FR-759, FR-1058
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
