@@ -87,6 +87,31 @@ def _validate_nodes(nodes: dict) -> list[str]:
     return warnings
 
 
+def _validate_subgraph_nodes(nodes: dict) -> list[str]:
+    """Validate `type: subgraph` nodes against the schema that owns them.
+
+    FR-1060: without this the CLI reported VALID for modes the loader and
+    the schema both reject.
+
+    Args:
+        nodes: Dict of node_name -> node_config
+
+    Returns:
+        List of error messages
+    """
+    from yamlgraph.models.graph_schema import check_subgraph_node
+
+    errors = []
+    for node_name, node_config in nodes.items():
+        if node_config.get("type") != "subgraph":
+            continue
+        try:
+            check_subgraph_node(node_name, node_config)
+        except ValueError as e:
+            errors.append(str(e))
+    return errors
+
+
 def _report_validation_result(
     graph_path: Path,
     config: dict,
@@ -147,6 +172,7 @@ def cmd_graph_validate(args: Namespace) -> None:
         node_names = set(nodes.keys()) | {"START", "END"}
 
         errors.extend(_validate_edges(edges, node_names))
+        errors.extend(_validate_subgraph_nodes(nodes))
         warnings.extend(_validate_nodes(nodes))
 
         # Report results

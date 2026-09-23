@@ -1170,7 +1170,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-240
-- **File**: [yamlgraph/models/node_schema.py](../yamlgraph/models/node_schema.py#L75)
+- **File**: [yamlgraph/models/node_schema.py](../yamlgraph/models/node_schema.py#L84)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
