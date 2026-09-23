@@ -14,6 +14,11 @@ still bills and waits for `high`-effort reasoning on every call.
 [Alternatives Considered](#alternatives-considered). Each row carries a probe
 result, not a prediction: DeepSeek API docs read 2026-09-23 plus two executed
 probes against the installed `langchain_openai` 1.4.1.
+**`is_this_a_graph`:** No. This is a deterministic one-value mapping at the
+provider construction boundary — no per-item model calls, no multi-stage LLM
+pipeline, no fan-out. `yamlgraph graph list` holds no graph for provider-client
+construction, and none would be appropriate: the work is Python at a seam, and
+its witness is a request payload assertion, not an LLM judgement.
 **Prior art:**
 - [FR-071-thinking-budget-graph-level.md](FR-071-thinking-budget-graph-level.md)
   — introduced `thinking_budget` as an Anthropic-only token budget; this FR does
@@ -128,23 +133,39 @@ deliberate, documented choice — not an oversight.
 
 ## Acceptance Criteria
 
-- [ ] `create_llm(provider="deepseek", thinking_budget=0)` returns a
-      `ChatOpenAI` whose request payload contains `reasoning_effort: "none"`
-      (asserted via `_get_request_payload`, not via constructor kwargs).
-- [ ] `create_llm(provider="deepseek")` (budget omitted) produces a payload
-      with **no** `reasoning_effort` key — DeepSeek's default is not disturbed.
-- [ ] `create_llm(provider="deepseek", thinking_budget=512)` produces a payload
-      with no `reasoning_effort` key and does not raise (portability cure).
-- [ ] `create_llm(provider="deepseek", thinking_budget=8000)` still raises
-      `ValueError` naming the supported providers (unchanged behaviour).
-- [ ] Anthropic / Google / Vertex payload construction is unchanged (existing
-      thinking tests stay green).
-- [ ] RED commit precedes GREEN commit; tests tagged
-      `@pytest.mark.req("REQ-YG-684")`, capability `CAP-273` added.
-- [ ] Changelog fragment in `changelog/unreleased/` (`type: fix`,
-      `scope: providers`).
-- [ ] `reference/graph-yaml.md` `thinking_budget` section documents the DeepSeek
-      semantics (0 = off; other values ignored; effort control out of scope).
+Frozen by the judgement (2026-09-23), AC-01 … AC-12:
+
+- [ ] AC-01: With the LLM cache isolated,
+      `create_llm(provider="deepseek", model="deepseek-v4-pro", thinking_budget=0)`
+      returns `ChatOpenAI` and `_get_request_payload(...)` contains
+      `reasoning_effort == "none"`.
+- [ ] AC-02: With the cache isolated, the same call with `thinking_budget`
+      omitted produces a request payload with no `reasoning_effort` key.
+- [ ] AC-03: With the cache isolated, the same call with `thinking_budget=512`
+      does not raise, produces a payload with no `reasoning_effort` key, and
+      emits the specified DEBUG record naming the ignored value and provider.
+- [ ] AC-04: `create_llm(provider="deepseek", model="deepseek-v4-pro",
+      thinking_budget=8000)` raises `ValueError` naming the supported
+      token-budget providers; no DeepSeek client is constructed.
+- [ ] AC-05: Existing Anthropic, Google, and Vertex thinking-budget tests pass
+      unchanged in asserted behaviour.
+- [ ] AC-06: Distinct DeepSeek calls with omitted, zero, and 512 budgets do not
+      alias in the client cache.
+- [ ] AC-07: Every new test carries `@pytest.mark.req("REQ-YG-684")`, and
+      `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-08: `capabilities/CAP-273-deepseek-non-thinking.yaml` exists and
+      defines REQ-YG-684; `ARCHITECTURE.md` registers CAP-273 and REQ-YG-684
+      with the frozen four-case contract.
+- [ ] AC-09: `reference/graph-yaml.md` and the `create_llm` `thinking_budget`
+      parameter documentation state: DeepSeek zero disables thinking, omission
+      preserves the API default, accepted other values are ignored, and effort
+      tuning is unsupported.
+- [ ] AC-10: A `changelog/unreleased/` fragment has `type: fix`,
+      `scope: providers`, and identifies FR-1056 / REQ-YG-684.
+- [ ] AC-11: Git history contains a failing RED test commit before the GREEN
+      implementation commit.
+- [ ] AC-12: The FR records the explicit `is_this_a_graph` disposition and,
+      after enforcement, records implementation status and deviations.
 
 ## Alternatives Considered
 
@@ -180,3 +201,17 @@ deliberate, documented choice — not an oversight.
 - **`reasoning_content` round-tripping.** DeepSeek returns a 400 when `tools`
   are present and prior-turn `reasoning_content` is not passed back. Affects
   thinking-mode agent loops, not this switch.
+
+## Judgement (2026-09-23)
+
+**Verdict:** APPROVED WITH REVISIONS — see
+[FR-1056-deepseek-thinking-off.judgement.md](FR-1056-deepseek-thinking-off.judgement.md).
+
+R-1 (`is_this_a_graph` disposition), R-2 (CAP-273 / REQ-YG-684 traceability
+frozen into AC-07/AC-08), and R-3 (DEBUG observability + `create_llm` docstring
+in AC-03/AC-09) are folded in above. Frozen deliverables D-1 … D-5 and gates
+C-1 … C-5 are binding; the not-authorized list stands.
+
+## Implementation Status
+
+_(filled during enforce)_
