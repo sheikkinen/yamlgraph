@@ -374,6 +374,29 @@ class TestExecutorPathConsistency:
             assert isinstance(messages[0], SystemMessage)
 
 
+class TestLangChainSeam:
+    """FR-1055: the producer->consumer seam, not the producer's own output."""
+
+    @pytest.mark.req("REQ-YG-289")
+    def test_cached_segments_reach_langchain_as_cache_control_blocks(self) -> None:
+        """Walks producer -> langchain_anthropic. Red if either side changes shape."""
+        from langchain_anthropic.chat_models import _format_messages
+        from langchain_core.messages import HumanMessage
+
+        from yamlgraph.executor_base import _build_system_message_from_segments
+
+        system_msg = _build_system_message_from_segments(
+            [{"content": "STABLE", "cache": True}], {}, None, "anthropic"
+        )
+        assert system_msg is not None
+
+        system, _formatted = _format_messages([system_msg, HumanMessage(content="x")])
+
+        assert system, "system prompt must survive the seam, not just be built"
+        assert system[0]["text"] == "STABLE"
+        assert system[0]["cache_control"] == {"type": "ephemeral"}
+
+
 class TestErrorHandling:
     """Test validation and error cases (AC-10)."""
 
