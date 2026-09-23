@@ -1,0 +1,23 @@
+version: "1.0"
+name: fr1058-direct-interrupt-parent
+description: |
+  FR-1058 AC-04 witness parent: a `mode: direct` child that interrupts.
+
+  The test compiles this parent against a SqliteSaver, closes the connection
+  after the pause, reopens it, and resumes. An in-memory saver would prove
+  nothing about durability, so the AC forbids it.
+
+state:
+  phase: str
+  question: str
+  user_answer: str
+
+nodes:
+  child:
+    type: subgraph
+    graph: interrupt_child.yaml
+    mode: direct
+
+edges:
+  - {from: START, to: child}
+  - {from: child, to: END}
