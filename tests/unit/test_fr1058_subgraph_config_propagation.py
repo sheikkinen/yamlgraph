@@ -243,6 +243,67 @@ class TestInvokeModeThreadIdentity:
 
 
 @pytest.mark.req("REQ-YG-042")
+class TestInvokeModeIndependentResume:
+    """AC-06, second half: the two children must RESUME independently.
+
+    ``TestInvokeModeThreadIdentity`` proves the ids differ and that no parent
+    checkpoint coordinate reaches the child, but its child runs to completion
+    in one shot — it can never show a resume, and the criterion was wrongly
+    ticked on its strength alone.
+
+    This child declares a ``type: interrupt`` node, which makes the node
+    relay-capable under FR-797 and gives it a checkpointer. Both parent
+    threads are paused BEFORE either is resumed, so a child reading the other
+    thread's checkpoint would surface as the wrong answer coming back.
+    """
+
+    def test_both_threads_pause_then_resume_to_their_own_answer(self):
+        from langgraph.types import Command
+
+        _, app = _compile_fixture(
+            "relay_invoke_parent.yaml", checkpointer=MemorySaver()
+        )
+        cfg_a = {"configurable": {"thread_id": "parent-a"}}
+        cfg_b = {"configurable": {"thread_id": "parent-b"}}
+
+        # Pause both before resuming either: with only one thread in flight
+        # a cross-read has nothing to read.
+        paused_a = app.invoke({"phase": "start"}, cfg_a)
+        paused_b = app.invoke({"phase": "start"}, cfg_b)
+        assert "__interrupt__" in paused_a, "thread a never paused"
+        assert "__interrupt__" in paused_b, "thread b never paused"
+
+        done_a = app.invoke(Command(resume="answer-a"), cfg_a)
+        done_b = app.invoke(Command(resume="answer-b"), cfg_b)
+
+        assert "__interrupt__" not in done_a, "thread a still paused"
+        assert "__interrupt__" not in done_b, "thread b still paused"
+        assert done_a["answer"] == "answer-a"
+        assert done_b["answer"] == "answer-b", "thread b read thread a's resume"
+        assert done_a["child_phase"] == "complete"
+        assert done_b["child_phase"] == "complete"
+
+    def test_resuming_one_thread_leaves_the_other_paused(self):
+        """Corruption is the other half of AC-06: resuming a must not
+        advance b's child, and b must still be resumable afterwards."""
+        from langgraph.types import Command
+
+        _, app = _compile_fixture(
+            "relay_invoke_parent.yaml", checkpointer=MemorySaver()
+        )
+        cfg_a = {"configurable": {"thread_id": "parent-a"}}
+        cfg_b = {"configurable": {"thread_id": "parent-b"}}
+
+        app.invoke({"phase": "start"}, cfg_a)
+        app.invoke({"phase": "start"}, cfg_b)
+        app.invoke(Command(resume="answer-a"), cfg_a)
+
+        assert app.get_state(cfg_b).next, "thread b was advanced by a's resume"
+        done_b = app.invoke(Command(resume="answer-b"), cfg_b)
+        assert done_b["answer"] == "answer-b"
+
+
+@pytest.mark.req("REQ-YG-042")
 class TestBuildChildConfig:
     """AC-07: one table-driven witness for the child-config contract."""
 
