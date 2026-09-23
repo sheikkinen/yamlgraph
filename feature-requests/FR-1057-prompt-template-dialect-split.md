@@ -621,3 +621,10 @@ later-merging branch yields.
   projects/` (**202 graphs**) → **0 E013/E014, 0 crashes**
   (`logs/corpus-lint-p1.log`). Re-run after Correction 6 over the same 202
   graphs → **0 E013/E014, 0 crashes** (`logs/corpus-lint-c6.log`).
+
+### Distill
+
+`docs/diary/diary-2026-09-23-reflection-fr-1057-the-cure-wider-than-its-false-positive.md`
+— a cure must be no wider than the false positive it treats, and a heuristic
+that infers author intent is a design smell wherever a declaration is
+available.
