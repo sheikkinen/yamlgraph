@@ -353,20 +353,23 @@ picks its own dialect, independently of its neighbours.** A message containing
 `{{` or `{%` is rendered by Jinja2; every other message is rendered by Python's
 `str.format`. A Jinja system message does not make the user message Jinja.
 
-In a **simple-format** (non-Jinja) message every brace is significant:
+**A brace is a field.** There is no category of braces that merely *look* like
+fields: nothing in the text distinguishes an example from a substitution, so
+nothing guesses. An author who wants a literal brace declares it with
+`{% raw %}` (below).
 
-- `{name}`, `{obj.field}`, and `{items[0]}` are substitutions; the required
-  variable is the **root** (`name`, `obj`, `items`).
-- A format spec or conversion does not change that: `{score:.2f}`, `{name!r}`,
-  `{label:>10}`, `{value:{width}}` and `{when:%Y-%m-%d}` are substitutions too,
-  and for the nested case both `value` and `width` are required. Python hands
-  the spec to the value's own `__format__`, so **no** spec makes a field
-  optional — every well-formed field is required here.
-- Consequently a shape like `{pred: alive, args: []}` is *not* documentation in
-  a simple-format message: `str.format` will try to resolve `pred`. To write
-  literal braces, use Jinja and one of its escapes (below). The exemption for
-  documentation shapes applies only inside Jinja messages, where such text
-  renders literally and **E014** stays quiet about it.
+- `{name}`, `{obj.field}`, and `{items[0]}` are fields; the required variable is
+  the **root** (`name`, `obj`, `items`).
+- A format spec or conversion does not make a field optional: `{score:.2f}`,
+  `{name!r}`, `{label:>10}`, `{value:{width}}` and `{when:%Y-%m-%d}` are all
+  required, and for the nested case both `value` and `width` are. Python hands
+  the spec to the value's own `__format__`, so the spec grammar is open-ended
+  and no rule can rule a field out.
+- A shape like `{pred: alive, args: []}` is therefore a field too. In a
+  simple-format message `str.format` will try to resolve `pred`; in a Jinja
+  message it renders literally but **E014** reports it, because the same text
+  would break the moment the message stopped being Jinja. Wrap it in
+  `{% raw %}` to say it is prose.
 - Anything else (an unmatched brace, a non-identifier field root such as
   `{"chapters": []}`) cannot be rendered. Lint reports **E013** before the call.
 

@@ -565,6 +565,43 @@ demos that continue to exist is untouched. **This is a change to enforcement
 infrastructure made inside the PR it unblocks** — the reviewer should read it
 as such, and it is recorded here rather than left in the diff to be noticed.
 
+### Correction 6 — the guesser is deleted; the author declares instead
+
+Corrections 3 and 4 were both repairs to the same machinery: a heuristic that
+tried to tell a *documentation shape* (`{pred: alive, args: []}`) apart from a
+*substitution* (`{score:.2f}`) by inspecting the field's tail. Review round 3
+found the third defect in it: because the exemption also suppressed E014, a
+perfectly valid simple-format field inside a Jinja message (`{when:%Y-%m-%d}`)
+was still invisible to lint and to validation — the very failure AC-07 exists
+to catch.
+
+The census that justified the machinery is two braces:
+
+| prompt | message | field |
+|---|---|---|
+| `examples/plot_modeller/prompts/extract_goals.yaml` | `user` | `pred` |
+| `examples/yamlgraph_gen/prompts/assemble_graph.yaml` | `system` | `positive` |
+
+Nothing else in the corpus (`prompts/**/*.yaml`, all message units) relied on
+it. Twenty-five lines of heuristic, three review rounds and two self-inflicted
+defects existed to silence an advisory warning about two braces — and Jinja
+already ships the answer: `{% raw %}`.
+
+So the guesser is gone. `_FORMAT_SPEC`, `_CONVERSIONS`, `_is_substitution` and
+`SimpleFieldScan.substitution_roots` are deleted; E014 and `extract_variables`
+both read `roots`. The rule is now one sentence: **a brace is a field; to print
+a literal brace, declare it with `{% raw %}`.** No grammar can rule a field out
+— Python hands the format spec to the value's own `__format__` — so the only
+sound discriminator is an explicit one, and the author is the only party who
+holds the intent.
+
+The two prompts above were amended to wrap their shapes in `{% raw %}`, routed
+through the authoring adapter (`scripts/author.sh`, report at
+`tmp/draft-authoring-report.md`) as FR-767 requires; the adapter lint- and
+smoke-verified both referencing graphs.
+
+This closes review round 3 P1 and restores AC-07 as originally frozen.
+
 ### Witnesses
 
 - `tests/unit/test_fr1057_prompt_template_dialect.py` — 22 tests
@@ -577,4 +614,5 @@ as such, and it is recorded here rather than left in the diff to be noticed.
   **242 graphs**) → **0 E013/E014 findings, 0 lint crashes**. Log:
   `logs/ac11e.log`. Re-run after Correction 4 over `examples/ graphs/
   projects/` (**202 graphs**) → **0 E013/E014, 0 crashes**
-  (`logs/corpus-lint-p1.log`).
+  (`logs/corpus-lint-p1.log`). Re-run after Correction 6 over the same 202
+  graphs → **0 E013/E014, 0 crashes** (`logs/corpus-lint-c6.log`).

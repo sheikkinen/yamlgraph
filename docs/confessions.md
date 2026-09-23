@@ -143,7 +143,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Command is built as a list (no shell=True), with fixed executable/flags plus validated node configuration (`model`, `resume`, `continue_session`, `timeout`). No raw user input is interpolated into shell commands.
 
 ### CONF-009
-- **File**: [yamlgraph/utils/template.py](../yamlgraph/utils/template.py#L191)
+- **File**: [yamlgraph/utils/template.py](../yamlgraph/utils/template.py#L152)
 - **Code**: S701
 - **Sin**: Jinja2 `Environment()` without `autoescape=True`.
 - **Penance**: Used for YAML prompt template variable extraction, not HTML rendering. Autoescape would corrupt prompt text by escaping `<`, `>`, `&` characters. No web output is generated from this code path.
@@ -1465,7 +1465,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Verdict transport — every outcome including CancelledError must cross the thread boundary to the caller's Future; swallowing nothing, relabeling nothing. Same contract as the FR-707 bridge it replaces.
 
 ### CONF-377
-- **File**: [yamlgraph/utils/template.py](../yamlgraph/utils/template.py#L191)
+- **File**: [yamlgraph/utils/template.py](../yamlgraph/utils/template.py#L152)
 - **Code**: B701
 - **Sin**: Jinja2 `Environment()` constructed with `autoescape=False` (default).
 - **Penance**: Templates render LLM prompt text, never HTML — autoescaping would corrupt prompts containing markup-like characters. XSS requires a browser sink; there is none.

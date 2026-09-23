@@ -20,6 +20,7 @@ from yamlgraph.utils.template import (
     extract_variables,
     is_jinja,
     scan_simple_fields,
+    strip_jinja_raw_blocks,
     validate_variables,
 )
 
@@ -77,18 +78,19 @@ def test_scan_simple_fields_returns_root_identifiers() -> None:
 
 
 @pytest.mark.req("REQ-YG-685")
-def test_scan_separates_documentation_shapes_from_substitutions() -> None:
-    """A `: ...` tail marks an output-shape example, not a variable.
+def test_a_documentation_shape_is_a_field_like_any_other() -> None:
+    """There is no "looks like prose" exemption (Correction 6).
 
-    The plot_modeller goal-extraction prompt documents its output as
-    `{pred: alive, args: [<agent>], value: true}`. It lives in a Jinja
-    message, which is the only place this distinction is consulted — E014
-    must not report it. A census of the prompt corpus found every
-    documentation shape on the Jinja side and none on the `str.format` side.
+    Two rounds of review killed the guesser that tried to tell an example
+    apart from a field. An author who wants literal braces says so with
+    `{% raw %}`; `strip_jinja_raw_blocks` removes the span before the scan.
     """
-    scan = scan_simple_fields("Shape: {pred: alive, args: []} and {topic}")
-    assert scan.substitution_roots == {"topic"}
-    assert "pred" in scan.roots
+    assert scan_simple_fields("Shape: {pred: alive, args: []} and {topic}").roots == {
+        "pred",
+        "topic",
+    }
+    declared = "{{ x }} {% raw %}{pred: alive, args: []}{% endraw %} {topic}"
+    assert scan_simple_fields(strip_jinja_raw_blocks(declared)).roots == {"topic"}
 
 
 @pytest.mark.req("REQ-YG-685")
@@ -98,8 +100,7 @@ def test_a_type_specific_format_spec_is_still_a_required_variable() -> None:
     Python hands the spec to the value's own `__format__`, so
     `{when:%Y-%m-%d}` is valid for a `datetime`. A closed regex says
     otherwise, and the disagreement reappears as a `KeyError` at render —
-    the failure C-3 requires to be loud and early. On the `str.format` side
-    every well-formed field is required, no matter its tail.
+    the failure C-3 requires to be loud and early.
     """
     template = "When: {when:%Y-%m-%d}"
     assert extract_variables(template) == {"when"}
@@ -111,14 +112,8 @@ def test_a_type_specific_format_spec_is_still_a_required_variable() -> None:
 
 
 @pytest.mark.req("REQ-YG-685")
-def test_format_spec_fields_are_substitutions_not_documentation() -> None:
-    """A valid format spec or conversion marks a real field (review P2).
-
-    The first cure keyed on "has a tail" and swallowed `{score:.2f}` with the
-    prose braces: lint stayed silent, validation required nothing, and the
-    render then raised KeyError. On the Jinja side, where the guess is only
-    advisory, the discriminator is whether the tail is a format spec.
-    """
+def test_format_spec_fields_are_required_variables() -> None:
+    """A format spec or conversion never makes a field optional (review P2)."""
     for template, expected in [
         ("Score: {score:.2f}", {"score"}),
         ("Name: {name!r}", {"name"}),
@@ -126,7 +121,7 @@ def test_format_spec_fields_are_substitutions_not_documentation() -> None:
         ("Grouped: {total:,}", {"total"}),
         ("Nested: {value:{width}}", {"value", "width"}),
     ]:
-        assert scan_simple_fields(template).substitution_roots == expected
+        assert scan_simple_fields(template).roots == expected
         assert extract_variables(template) == expected
 
 

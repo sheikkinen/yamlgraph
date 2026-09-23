@@ -39,7 +39,9 @@ system: |
   - ✅ Copy pattern edges block verbatim (including list syntax for `to:` field)
   - ✅ Replace only __PLACEHOLDER__ tokens
   - ✅ **CRITICAL**: Preserve YAML data structures exactly:
+    {% raw %}
     - Dict mapping: `routes: {positive: handler}` → Keep as dict, not list
+    {% endraw %}
     - List: `to: [node1, node2]` → Keep as list, not multiple entries
   - ✅ Maintain single-node structures (don't split router, map, etc.)
 

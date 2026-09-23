@@ -7,8 +7,10 @@ description: >
   `system_segments[*].content`, and `user`. Validation traverses the same
   units the renderer does, so a Jinja system message can no longer vouch for
   a `str.format` user message the renderer will reject. Simple-format fields
-  are read with `string.Formatter.parse` rather than a brace regex, and two
-  lint errors gate the failure classes before execution: E013 for a non-Jinja
+  are read with `string.Formatter.parse` rather than a brace regex, and every
+  well-formed field is a required variable — nothing infers that a brace is
+  merely prose; an author declares a literal brace with `{% raw %}`. Two lint
+  errors gate the failure classes before execution: E013 for a non-Jinja
   message `str.format` cannot render, E014 for a bare `{var}` inside a Jinja
   message that Jinja will never substitute. Supersedes W024.
 modules:
@@ -28,16 +30,15 @@ requirements:
       required and a non-Jinja message carrying text `str.format` cannot
       render is rejected before the call. Simple-format fields are parsed
       with `string.Formatter.parse`, contributing root identifiers
-      (`{a}`, `{a.b}`, `{a[0]}` all yield `a`); in a `str.format` message
-      every well-formed field is required, whatever its format spec, because
-      Python hands the spec to the value's own `__format__`. Inside a Jinja
-      message a field whose tail is not a format spec
-      (`{pred: alive, args: []}`) documents an output shape and E014 leaves
-      it alone, and `{% raw %}` spans are literal. Lint
-      reports E013 when a non-Jinja message has an unmatched brace or a
-      non-identifier field root, naming both escapes in its fix, and E014
-      when a Jinja message contains a bare identifier-rooted simple field.
-      W024 is retired, superseded by E014.
+      (`{a}`, `{a.b}`, `{a[0]}` all yield `a`); every well-formed field is a
+      required variable, whatever its format spec, because Python hands the
+      spec to the value's own `__format__` and the spec grammar is therefore
+      open-ended. No heuristic exempts a field for resembling documentation:
+      an author who wants a literal brace declares it with `{% raw %}`, whose
+      spans are stripped before the scan. Lint reports E013 when a non-Jinja
+      message has an unmatched brace or a non-identifier field root, naming
+      both escapes in its fix, and E014 when a Jinja message contains any
+      identifier-rooted simple field. W024 is retired, superseded by E014.
     modules:
       - yamlgraph/utils/template.py
       - yamlgraph/executor_base.py

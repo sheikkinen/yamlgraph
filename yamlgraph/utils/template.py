@@ -21,34 +21,6 @@ logger = logging.getLogger(__name__)
 # Injected by the framework or supplied by Jinja itself, never by the caller.
 _EXCLUDED_VARIABLES = {"state", "loop", "range", "true", "false", "none", "self"}
 
-# The format-spec mini-language, transcribed from its own definition:
-# [[fill]align][sign][z][#][0][width][grouping][.precision][type]
-_FORMAT_SPEC = re.compile(
-    r"^(?:.?[<>=^])?[-+ ]?z?#?0?\d*[,_]?(?:\.\d+)?[bcdeEfFgGnosxX%]?$"
-)
-_CONVERSIONS = frozenset("rsa")
-
-
-def _is_substitution(spec: str | None, conversion: str | None) -> bool:
-    """Does this field look like a substitution rather than prose?
-
-    `{score:.2f}` and `{name!r}` do. `{pred: alive, args: []}` is an author
-    documenting an output shape; its tail is not a format spec, and that —
-    not the mere presence of a `:` — is what says so.
-
-    A guess, and deliberately only used where guessing is safe. Python hands
-    the format spec to the value's own `__format__`, so `{when:%Y-%m-%d}` is
-    valid for a `datetime` and this function will still say no. Ask it only
-    on the Jinja side, where a stray `{x}` renders as literal text and a
-    wrong answer costs an advisory warning. The `str.format` side must use
-    `roots`: there a wrong answer is a `KeyError` at render time.
-    """
-    if conversion is not None and conversion not in _CONVERSIONS:
-        return False
-    if not spec or "{" in spec:  # nested field width/precision
-        return True
-    return _FORMAT_SPEC.match(spec) is not None
-
 
 def is_jinja(text: str) -> bool:
     """Decide which engine renders one message (FR-1057).
@@ -64,15 +36,11 @@ class SimpleFieldScan:
     """What `str.format` would make of a piece of text.
 
     Attributes:
-        roots: Root identifiers of every well-formed field. This is the set a
-            `str.format` message is validated against, because this is the
-            set `str.format` itself will look up: a format spec is passed to
-            the value's `__format__` and cannot be used to rule a field out.
-        substitution_roots: `roots` minus the fields whose tail is not a
-            format spec at all — the `{pred: alive, args: []}` an author
-            writes to document an output shape. A heuristic, safe only where
-            a wrong answer is advisory: the Jinja side, where such a field
-            renders as literal text rather than raising.
+        roots: Root identifiers of every well-formed field. Every one of them
+            is a required variable. There is no subset of "fields that only
+            look like fields": Python hands the format spec to the value's
+            own `__format__`, so no grammar can rule one out. An author who
+            wants literal braces declares them with `{% raw %}`.
         invalid_fields: Fields whose root is not an identifier, such as the
             `"chapters"` that `{"chapters": []}` parses into.
         brace_error: The formatter's own complaint about unbalanced braces,
@@ -80,7 +48,6 @@ class SimpleFieldScan:
     """
 
     roots: set[str]
-    substitution_roots: set[str]
     invalid_fields: tuple[str, ...]
     brace_error: str | None
 
@@ -118,14 +85,13 @@ def scan_simple_fields(text: str) -> SimpleFieldScan:
     """
     formatter = string.Formatter()
     roots: set[str] = set()
-    substitution_roots: set[str] = set()
     invalid: set[str] = set()
     brace_error: str | None = None
     remaining = text
 
     while remaining:
         try:
-            for _literal, field_name, spec, conversion in formatter.parse(remaining):
+            for _literal, field_name, spec, _conversion in formatter.parse(remaining):
                 if field_name is None:
                     continue
                 root = _field_root(field_name)
@@ -133,14 +99,10 @@ def scan_simple_fields(text: str) -> SimpleFieldScan:
                     invalid.add(field_name)
                     continue
                 roots.add(root)
-                if _is_substitution(spec, conversion):
-                    substitution_roots.add(root)
                 if spec and "{" in spec:
                     # A nested width/precision is a required variable too:
                     # `{value:{width}}` cannot render without `width`.
-                    nested = scan_simple_fields(spec)
-                    roots |= nested.roots
-                    substitution_roots |= nested.substitution_roots
+                    roots |= scan_simple_fields(spec).roots
             break
         except ValueError as exc:
             if brace_error is None:
@@ -157,7 +119,6 @@ def scan_simple_fields(text: str) -> SimpleFieldScan:
 
     return SimpleFieldScan(
         roots=roots,
-        substitution_roots=substitution_roots,
         invalid_fields=tuple(sorted(invalid)),
         brace_error=brace_error,
     )
@@ -201,12 +162,8 @@ def extract_variables(template: str) -> set[str]:
         variables -= set_targets
         # Simple {var} fields survive Jinja rendering untouched; they are still
         # declared inputs until E014 removes them. Raw blocks are literal.
-        variables.update(
-            scan_simple_fields(strip_jinja_raw_blocks(template)).substitution_roots
-        )
+        variables.update(scan_simple_fields(strip_jinja_raw_blocks(template)).roots)
     else:
-        # Every field, documentation-looking or not: `str.format` will try to
-        # resolve it, so validation must require it.
         variables = scan_simple_fields(template).roots
 
     return variables - _EXCLUDED_VARIABLES

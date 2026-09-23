@@ -224,9 +224,7 @@ def check_simple_fields_in_jinja_messages(
     ):
         if not is_jinja(text):
             continue
-        roots = sorted(
-            scan_simple_fields(strip_jinja_raw_blocks(text)).substitution_roots
-        )
+        roots = sorted(scan_simple_fields(strip_jinja_raw_blocks(text)).roots)
         if not roots:
             continue
 
