@@ -549,6 +549,22 @@ variable; in a Jinja message a field that cannot be a variable is left alone.*
 user-facing documentation and said a spec-bearing field is documentation; both
 are corrected, and `ARCHITECTURE.md` regenerated.
 
+### Correction 5 — the demo-proof gate cannot be satisfied by a deletion
+
+CI blocked with `Demo 'novel_generator' changed but no demo-output.log in diff`.
+The gate collects every demo directory touched by the diff and demands a fresh
+`demo-output.log` for each. Retiring a demo touches its directory, so the gate
+asked a deleted demo to prove it still runs — an obligation with no possible
+discharge, and the only escape hatch would have been `--no-verify` or undoing
+the operator's retirement decision.
+
+`.github/workflows/commitlint.yml` now skips a demo whose directory is absent
+at HEAD, with one line of reasoning attached: *the gate asks a demo to prove it
+still runs; a deleted demo has nothing to prove.* The proof obligation for
+demos that continue to exist is untouched. **This is a change to enforcement
+infrastructure made inside the PR it unblocks** — the reviewer should read it
+as such, and it is recorded here rather than left in the diff to be noticed.
+
 ### Witnesses
 
 - `tests/unit/test_fr1057_prompt_template_dialect.py` — 22 tests

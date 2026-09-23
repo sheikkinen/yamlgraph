@@ -281,6 +281,13 @@ jobs:
           MISSING=0
           INVALID=0
           for DEMO in $CHANGED_DEMOS; do
+            if [ ! -d "examples/demos/${DEMO}" ]; then
+              # The demo was retired in this PR. The gate asks a demo to prove
+              # it still runs; a deleted demo has nothing to prove, and no log
+              # it could produce. Deletion is reviewed as scope, not as proof.
+              echo "⏭️ Demo '$DEMO' was removed — nothing to prove"
+              continue
+            fi
             LOG="examples/demos/${DEMO}/demo-output.log"
             if git diff --name-only "$BASE_SHA" "$HEAD_SHA" | grep -qF "$LOG"; then
               if ! validate_demo_output_log_file "$LOG" "$LOG"; then
