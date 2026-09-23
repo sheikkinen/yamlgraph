@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS (revisions folded 2026-09-23)
+**Status:** Enforced except AC-10 (live cache measurement blocked on credentials)
 **Effort:** 0.5 days
 **Requested:** 2026-09-23
 **First consumer / first event:** `yamlgraph-visual-novel` FR-008, Pass C —
@@ -215,6 +215,64 @@ and copied into this FR?
 call's exact non-zero cache-read field and value. The existing log's prose
 `Cache hit!` (`demo-output.log:13-14`) is a claim, not a measurement, and does
 not satisfy AC-10. A success-shaped log must never be synthesized.
+
+## Implementation Status (2026-09-23)
+
+**Enforced except AC-10.** Commits on `feat/fr-1055-anthropic-prompt-cache`:
+
+| Commit | Content |
+|---|---|
+| `ccec1e77` | RED — seam test fails with `assert ''`: the system prompt is dropped, not merely uncached |
+| `2af5cf90` | GREEN — blocks moved to `SystemMessage.content`; three producer assertions rewritten off `additional_kwargs` |
+
+- AC-01..AC-07: **met.** `pytest tests/unit/test_prompt_caching_fr276.py -q
+  --no-cov` \u2192 16 passed. Full fast suite \u2192 6893 passed, 61 skipped, 1 xfailed.
+  `scripts/req_coverage.py --strict` \u2192 exit 0.
+- AC-08: **met** \u2014 no public contract change (above).
+- AC-09: fragment `changelog/unreleased/fr-1055-anthropic-system-segments.md`;
+  Distill entry pending.
+- AC-10: **BLOCKED \u2014 not met, and not claimed.** See below.
+
+### AC-10: live verification blocked (no measured cache hit is claimed)
+
+The operator approved the paid run (R-4). It did not complete. Two findings,
+both recorded rather than worked around:
+
+**1. Credentials rejected.** The witness reached the API and was refused:
+
+```
+anthropic.AuthenticationError: Error code: 401 -
+{'type': 'error', 'error': {'type': 'authentication_error',
+ 'message': 'API key is invalid.'}, 'request_id': None}
+```
+
+The key in `.env` is well-formed (`sk-ant-` prefix, 108 chars), so this is a
+revoked/expired credential, not a missing one. Per C-3 and R-4 this FR
+therefore records the deferred decision and **makes no claim of a measured
+cache hit**. The existing `demo-output.log` is left untouched.
+
+**2. The demo could never have cached anything anyway.** Anthropic's minimum
+cacheable prefix is 1024 tokens (Sonnet) / 2048 (Haiku).
+`examples/demos/prompt-caching/prompts/analyze.yaml` is 1298 **bytes** \u2014 on the
+order of 300 tokens. Its committed log line `\u2713 Cache hit! Shared system segment
+reused from analyze step` (`demo-output.log:13-14`) is authored narration, not
+a reading: the demo is below the floor at which a `cache_control` breakpoint
+does anything, and always was. This is a second, independent defect of the same
+class as the one this FR fixes \u2014 a success-shaped artifact standing in for a
+measurement \u2014 and needs its own FR.
+
+**What the live path did verify.** Run through the shipping entry point
+(`prepare_messages` \u2192 `create_llm`, a ~2.3k-token stable prefix):
+
+```
+[call-1] system message type=list
+[call-1] blocks=2 first_keys=['cache_control', 'text', 'type']
+[call-1] cache_control={'type': 'ephemeral'}
+```
+
+Before the fix the same probe printed `type=str` (empty string). So the repair
+is confirmed end-to-end up to the network boundary; only the round-trip cache
+number remains unmeasured.
 
 ## Acceptance Criteria
 
