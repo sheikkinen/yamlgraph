@@ -1321,7 +1321,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Documents the structured-output mismatch recovery path. Renaming would obscure intent.
 
 ### CONF-351
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L384)
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L382)
 - **Code**: FB001
 - **Sin**: Docstring of `_invoke_llm_once` contains `fallback` — describes the FR-464 structured-output fallback strategy.
 - **Penance**: Documents the retry-then-parse pattern. Renaming would obscure intent.

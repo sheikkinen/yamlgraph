@@ -193,10 +193,10 @@ class TestAnthropicCacheControl:
         system_msg = messages[0]
         assert isinstance(system_msg, SystemMessage)
 
-        # This will fail until implementation - SystemMessage should have
-        # additional_kwargs with content blocks and cache_control
-        assert hasattr(system_msg, "additional_kwargs")
-        cache_blocks = system_msg.additional_kwargs.get("content", [])
+        # FR-1055: blocks must live in .content — additional_kwargs is not read
+        # by langchain_anthropic, which drops the system prompt with them.
+        cache_blocks = system_msg.content
+        assert not system_msg.additional_kwargs.get("content")
         assert len(cache_blocks) == 2
         assert cache_blocks[0].get("cache_control") == {"type": "ephemeral"}
         assert "cache_control" not in cache_blocks[1]
@@ -227,7 +227,7 @@ class TestAnthropicCacheControl:
         )
 
         system_msg = messages[0]
-        cache_blocks = system_msg.additional_kwargs.get("content", [])
+        cache_blocks = system_msg.content
 
         # Only third block should have cache_control
         assert "cache_control" not in cache_blocks[0]
@@ -342,7 +342,7 @@ class TestExecutorPathConsistency:
             assert isinstance(system_msg, SystemMessage)
 
             # Should have same Anthropic cache_control behavior
-            cache_blocks = system_msg.additional_kwargs.get("content", [])
+            cache_blocks = system_msg.content
             assert len(cache_blocks) == 2
             assert cache_blocks[0].get("cache_control") == {"type": "ephemeral"}
 
@@ -372,6 +372,38 @@ class TestExecutorPathConsistency:
 
             assert len(messages) == 2
             assert isinstance(messages[0], SystemMessage)
+
+
+class TestLangChainSeam:
+    """FR-1055: the producer->consumer seam, not the producer's own output."""
+
+    @pytest.mark.req("REQ-YG-289")
+    def test_cached_segments_reach_langchain_as_cache_control_blocks(self) -> None:
+        """Walks producer -> langchain_anthropic. Red if either side changes shape."""
+        import inspect
+
+        from langchain_anthropic.chat_models import _format_messages
+        from langchain_core.messages import HumanMessage
+
+        from yamlgraph.executor_base import _build_system_message_from_segments
+
+        system_msg = _build_system_message_from_segments(
+            [{"content": "STABLE", "cache": True}], {}, None, "anthropic"
+        )
+        assert system_msg is not None
+
+        # `model` became a required kwarg partway through the declared
+        # langchain-anthropic range (>=1.5.1, no ceiling); span both.
+        kwargs = {}
+        if "model" in inspect.signature(_format_messages).parameters:
+            kwargs["model"] = "claude-sonnet-4-5"
+        system, _formatted = _format_messages(
+            [system_msg, HumanMessage(content="x")], **kwargs
+        )
+
+        assert system, "system prompt must survive the seam, not just be built"
+        assert system[0]["text"] == "STABLE"
+        assert system[0]["cache_control"] == {"type": "ephemeral"}
 
 
 class TestErrorHandling:

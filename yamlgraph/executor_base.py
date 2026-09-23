@@ -331,11 +331,9 @@ def _build_system_message_from_segments(
                 block["cache_control"] = {"type": "ephemeral"}
             content_blocks.append(block)
 
-        # Create SystemMessage with content blocks in additional_kwargs
-        return SystemMessage(
-            content="",  # Empty content, actual content in additional_kwargs
-            additional_kwargs={"content": content_blocks},
-        )
+        # FR-1055: langchain_anthropic reads only .content; blocks parked in
+        # additional_kwargs are discarded along with the system prompt.
+        return SystemMessage(content=content_blocks)
 
     # For non-Anthropic providers, flatten to single string
     combined_content = "\n".join(segment["content"] for segment in processed_segments)
