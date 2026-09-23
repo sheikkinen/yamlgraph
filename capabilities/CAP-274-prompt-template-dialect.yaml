@@ -20,7 +20,7 @@ modules:
   - yamlgraph/linter/graph_linter.py
   - reference/prompt-yaml.md
 requirements:
-  - id: REQ-YG-685
+  - id: REQ-YG-686
     description: >
       Prompt template dialect is decided per message by the single
       discriminator `is_jinja` (`{{` or `{%` present), used by rendering,

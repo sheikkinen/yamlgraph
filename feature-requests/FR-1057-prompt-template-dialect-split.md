@@ -305,7 +305,7 @@ Replaced wholesale by the judgement's revised set (R-1 through R-5).
 - [x] **AC-11** Linting every graph under `examples/` and `graphs/` yields
       zero E013/E014 findings after the retained repair; the command and the
       complete graph count are recorded.
-- [x] **AC-12** Tests tagged `@pytest.mark.req("REQ-YG-685")`;
+- [x] **AC-12** Tests tagged `@pytest.mark.req("REQ-YG-686")`;
       `capabilities/CAP-274-prompt-template-dialect.yaml` and the matching
       `ARCHITECTURE.md` entries exist; `python scripts/req_coverage.py
       --strict` exits 0.
@@ -417,7 +417,7 @@ W024 stays.
 | D-3 E013 + E014; W024 retired (function, registration, `__all__`, tests) | `yamlgraph/linter/checks_prompts.py`, `graph_linter.py` |
 | D-5 one prompt repair, authored via `scripts/author.sh` | `examples/dungeon_master/prompts/author_plot_plan.yaml` |
 | D-6 dialect-per-message documentation | `reference/prompt-yaml.md` |
-| D-7 CAP-274 / REQ-YG-685 | `capabilities/CAP-274-prompt-template-dialect.yaml`, `ARCHITECTURE.md` |
+| D-7 CAP-274 / REQ-YG-686 | `capabilities/CAP-274-prompt-template-dialect.yaml`, `ARCHITECTURE.md` |
 | D-8 changelog fragment, this record, diary Distill | `changelog/unreleased/fr-1057-prompt-template-dialect-split.md` |
 
 ### Deviations and corrections
@@ -601,6 +601,11 @@ through the authoring adapter (`scripts/author.sh`, report at
 smoke-verified both referencing graphs.
 
 This closes review round 3 P1 and restores AC-07 as originally frozen.
+
+**REQ id reallocated to REQ-YG-686.** FR-1060 merged to `main` first and took
+`REQ-YG-685` for CAP-01; two branches allocated the same next-free id in
+parallel, and the registry's duplicate check caught it on the merge. The
+later-merging branch yields.
 
 ### Witnesses
 

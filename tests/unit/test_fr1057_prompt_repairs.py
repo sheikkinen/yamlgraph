@@ -10,10 +10,10 @@ from yamlgraph.executor_base import prepare_messages
 # about that artifact, not about a copy of it.
 pytestmark = pytest.mark.process
 
-REQ = "REQ-YG-685"
+REQ = "REQ-YG-686"
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_dungeon_master_plot_plan_system_message_renders() -> None:
     """The live D1 crash, condemned (AC-11).
 

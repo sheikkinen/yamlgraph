@@ -24,7 +24,7 @@ from yamlgraph.utils.template import (
     validate_variables,
 )
 
-REQ = "REQ-YG-685"
+REQ = "REQ-YG-686"
 
 
 def write_prompt(tmp_path: Path, name: str, content: str) -> None:
@@ -60,7 +60,7 @@ def lint_codes(tmp_path: Path, prompt: str, content: str, state: dict) -> list[s
 # --- D-1: one discriminator, one field grammar -------------------------------
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_is_jinja_discriminates_on_jinja_markers() -> None:
     """The sole dialect discriminator keys on `{{` and `{%` only."""
     assert is_jinja("Hello {{ name }}")
@@ -69,7 +69,7 @@ def test_is_jinja_discriminates_on_jinja_markers() -> None:
     assert not is_jinja('Return {"chapters": []}')
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_scan_simple_fields_returns_root_identifiers() -> None:
     """Attribute and index tails collapse to their root identifier (AC-04)."""
     assert scan_simple_fields("{name}").roots == {"name"}
@@ -77,7 +77,7 @@ def test_scan_simple_fields_returns_root_identifiers() -> None:
     assert scan_simple_fields("{items[0]}").roots == {"items"}
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_a_documentation_shape_is_a_field_like_any_other() -> None:
     """There is no "looks like prose" exemption (Correction 6).
 
@@ -93,7 +93,7 @@ def test_a_documentation_shape_is_a_field_like_any_other() -> None:
     assert scan_simple_fields(strip_jinja_raw_blocks(declared)).roots == {"topic"}
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_a_type_specific_format_spec_is_still_a_required_variable() -> None:
     """Validation must not guess at the format-spec grammar (review P1).
 
@@ -111,7 +111,7 @@ def test_a_type_specific_format_spec_is_still_a_required_variable() -> None:
     )
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_format_spec_fields_are_required_variables() -> None:
     """A format spec or conversion never makes a field optional (review P2)."""
     for template, expected in [
@@ -125,14 +125,14 @@ def test_format_spec_fields_are_required_variables() -> None:
         assert extract_variables(template) == expected
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_format_spec_field_is_validated_before_render() -> None:
     """Validation must fail where the render would (review P2, C-3)."""
     with pytest.raises(ValueError, match="score"):
         validate_variables("Score: {score:.2f}", {}, "p")
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_scan_simple_fields_reports_non_identifier_root() -> None:
     """A JSON shape parses as a field whose root is not an identifier (D2)."""
     scan = scan_simple_fields('Return {"chapters": []} for {topic}')
@@ -140,21 +140,21 @@ def test_scan_simple_fields_reports_non_identifier_root() -> None:
     assert scan.invalid_fields == ('"chapters"',)
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_scan_simple_fields_reports_unmatched_brace() -> None:
     """An unmatched brace is reported, not raised (D2)."""
     scan = scan_simple_fields("unmatched { here")
     assert scan.brace_error is not None
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_scan_recovers_variables_after_an_unmatched_brace() -> None:
     """A stray brace must not hide later fields from validation."""
     scan = scan_simple_fields("stray { then {topic}")
     assert "topic" in scan.roots
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_extract_variables_uses_root_identifiers() -> None:
     """Variable extraction inherits the formatter's field grammar (AC-04)."""
     assert extract_variables("Grade: {analysis.grade}") == {"analysis"}
@@ -164,7 +164,7 @@ def test_extract_variables_uses_root_identifiers() -> None:
 # --- D-2: validation is per message ------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_variable_used_only_in_system_is_still_required(tmp_path: Path) -> None:
     """Per-message validation must not narrow the required set (AC-03)."""
     write_prompt(
@@ -176,7 +176,7 @@ def test_variable_used_only_in_system_is_still_required(tmp_path: Path) -> None:
         prepare_messages("split", {}, prompts_dir=tmp_path / "prompts")
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_variable_used_only_in_a_segment_is_still_required(tmp_path: Path) -> None:
     """Every `system_segments[*].content` is validated (AC-03)."""
     write_prompt(
@@ -191,7 +191,7 @@ def test_variable_used_only_in_a_segment_is_still_required(tmp_path: Path) -> No
         prepare_messages("segmented", {}, prompts_dir=tmp_path / "prompts")
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_jinja_system_does_not_bless_a_simple_format_user(tmp_path: Path) -> None:
     """D1: the concatenation used to hide the user message's real dialect."""
     write_prompt(
@@ -209,7 +209,7 @@ def test_jinja_system_does_not_bless_a_simple_format_user(tmp_path: Path) -> Non
 # --- D-3 / D-2 at lint time: E013 --------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_e013_fires_for_literal_json_in_a_simple_format_message(
     tmp_path: Path,
 ) -> None:
@@ -223,7 +223,7 @@ def test_e013_fires_for_literal_json_in_a_simple_format_message(
     assert "E013" in codes
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_e013_fix_text_names_both_escapes(tmp_path: Path) -> None:
     """AC-13's remedies must reach the author through the finding."""
     write_prompt(tmp_path, "e013fix", 'user: |\n  Return {"chapters": []}\n')
@@ -232,7 +232,7 @@ def test_e013_fix_text_names_both_escapes(tmp_path: Path) -> None:
     assert "raw" in fix
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_e013_does_not_fire_for_well_formed_fields(tmp_path: Path) -> None:
     """AC-05: attribute and index fields are well-formed `str.format` templates.
 
@@ -249,7 +249,7 @@ def test_e013_does_not_fire_for_well_formed_fields(tmp_path: Path) -> None:
     assert "E013" not in codes
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_e013_does_not_fire_for_a_jinja_message(tmp_path: Path) -> None:
     """AC-06: literal braces are ordinary text once the message is Jinja."""
     codes = lint_codes(
@@ -264,7 +264,7 @@ def test_e013_does_not_fire_for_a_jinja_message(tmp_path: Path) -> None:
 # --- D-4 at lint time: E014 --------------------------------------------------
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_e014_fires_for_simple_fields_in_a_jinja_message(tmp_path: Path) -> None:
     """AC-07: Jinja never substitutes `{var}`; it passes it through."""
     write_prompt(
@@ -285,7 +285,7 @@ def test_e014_fires_for_simple_fields_in_a_jinja_message(tmp_path: Path) -> None
     assert "analysis" in e014[0].message
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_e014_does_not_fire_for_literal_json_or_raw_blocks(tmp_path: Path) -> None:
     """AC-07: only identifier-rooted bare fields are silent drops.
 
@@ -304,7 +304,7 @@ def test_e014_does_not_fire_for_literal_json_or_raw_blocks(tmp_path: Path) -> No
     assert "E014" not in codes
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_dialect_checks_ignore_non_message_fields(tmp_path: Path) -> None:
     """AC-10: `metadata.description` is never rendered, so it is never a defect."""
     codes = lint_codes(
@@ -319,7 +319,7 @@ def test_dialect_checks_ignore_non_message_fields(tmp_path: Path) -> None:
     assert "E014" not in codes
 
 
-@pytest.mark.req("REQ-YG-685")
+@pytest.mark.req("REQ-YG-686")
 def test_w024_is_retired(tmp_path: Path) -> None:
     """AC-08: the mixed-syntax warning is superseded by E014."""
     from yamlgraph.linter import checks_prompts

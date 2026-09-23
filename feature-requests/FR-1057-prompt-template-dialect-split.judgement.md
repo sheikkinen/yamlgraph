@@ -78,7 +78,7 @@ Because enforcement modifies an existing `prompts/*.yaml` artifact, route that p
 | D-4 | Focused unit/regression tests under `tests/unit/` |
 | D-5 | Repair only the committed live D4 prompt paths retained after R-4 |
 | D-6 | Per-message dialect and escape documentation in `reference/prompt-yaml.md` |
-| D-7 | `capabilities/CAP-274-prompt-template-dialect.yaml`, REQ-YG-685 architecture registration, and tagged tests |
+| D-7 | `capabilities/CAP-274-prompt-template-dialect.yaml`, REQ-YG-686 architecture registration, and tagged tests |
 | D-8 | Fix changelog fragment, FR implementation record/status, graph-authoring report for prompt edits, and diary Distill entry |
 
 Not authorized: rendering every prompt through Jinja; automatic brace rewriting; changes to `yamlgraph/tools/shell.py`; edits to absent/external `yamlgraph-visual-novel` or `projects/ninchat_voice` artifacts; unrelated prompt cleanup; new graph behavior; provider, schema, or LLM changes; new template dialects.
@@ -96,7 +96,7 @@ Not authorized: rendering every prompt through Jinja; automatic brace rewriting;
 - [ ] AC-09: Every live incident retained after R-4 is a committed path, E014 detects it before repair, and a real `format_prompt` regression test with brace-free fixture values proves each intended field is substituted after repair.
 - [ ] AC-10: A prompt whose metadata/description contains `{foo}` produces neither E013, E014, nor W024 solely because of that non-message field.
 - [ ] AC-11: Linting every graph under `examples/` and `graphs/` yields zero E013/E014 findings after the retained live repairs; the command and complete graph count are recorded.
-- [ ] AC-12: Tests are tagged `@pytest.mark.req("REQ-YG-685")`; `capabilities/CAP-274-prompt-template-dialect.yaml` and the matching `ARCHITECTURE.md` requirement/capability entries exist; `python scripts/req_coverage.py --strict` exits 0.
+- [ ] AC-12: Tests are tagged `@pytest.mark.req("REQ-YG-686")`; `capabilities/CAP-274-prompt-template-dialect.yaml` and the matching `ARCHITECTURE.md` requirement/capability entries exist; `python scripts/req_coverage.py --strict` exits 0.
 - [ ] AC-13: `reference/prompt-yaml.md` states that dialect is selected per message, documents simple-format field rules, and shows both Jinja remedies for literal braces: a Jinja variable in that message or `{% raw %}...{% endraw %}`.
 - [ ] AC-14: The retained prompt repairs were made through `scripts/author.sh`, and `tmp/draft-authoring-report.md` records precedent, lint, smoke/render witness, and blocked validation honestly.
 - [ ] AC-15: A `type: fix`, `scope: prompts` changelog fragment, FR implementation record/status update, and diary Distill entry with a **Seed:** are present.
