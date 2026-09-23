@@ -358,12 +358,15 @@ In a **simple-format** (non-Jinja) message every brace is significant:
 - `{name}`, `{obj.field}`, and `{items[0]}` are substitutions; the required
   variable is the **root** (`name`, `obj`, `items`).
 - A format spec or conversion does not change that: `{score:.2f}`, `{name!r}`,
-  `{label:>10}` and `{value:{width}}` are substitutions too, and both `value`
-  and `width` are required.
-- A field whose tail is **not** a valid format spec — `{pred: alive, args: []}`
-  — documents an output shape rather than requesting a substitution, and is
-  left alone. The discriminator is the format-spec grammar, not the presence
-  of a `:`.
+  `{label:>10}`, `{value:{width}}` and `{when:%Y-%m-%d}` are substitutions too,
+  and for the nested case both `value` and `width` are required. Python hands
+  the spec to the value's own `__format__`, so **no** spec makes a field
+  optional — every well-formed field is required here.
+- Consequently a shape like `{pred: alive, args: []}` is *not* documentation in
+  a simple-format message: `str.format` will try to resolve `pred`. To write
+  literal braces, use Jinja and one of its escapes (below). The exemption for
+  documentation shapes applies only inside Jinja messages, where such text
+  renders literally and **E014** stays quiet about it.
 - Anything else (an unmatched brace, a non-identifier field root such as
   `{"chapters": []}`) cannot be rendered. Lint reports **E013** before the call.
 

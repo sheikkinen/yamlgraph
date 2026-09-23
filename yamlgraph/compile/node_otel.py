@@ -7,10 +7,15 @@ call time, so a disabled run pays only a single environment lookup —
 no OpenTelemetry import, no span, no behavior change (AC-03).
 """
 
-from __future__ import annotations
+# No `from __future__ import annotations` here: it stringifies the wrapper's
+# `config` annotation, and LangGraph decides whether to inject RunnableConfig
+# by inspecting that annotation as a real type (FR-1058).
 
 from collections.abc import Callable
 from typing import Any
+
+from langchain_core.runnables import RunnableConfig
+from langchain_core.runnables.config import call_func_with_variable_args
 
 
 def _maybe_wrap_otel(
@@ -29,14 +34,17 @@ def _maybe_wrap_otel(
         A wrapped callable with identical behavior when OTEL is disabled.
     """
 
-    def otel_wrapped(state: dict) -> Any:
+    # Declares (state, config) so LangGraph's arity inspection still injects
+    # RunnableConfig; the dispatch below forwards it only to nodes that
+    # accept it, keeping the disabled path a true no-op (FR-1058).
+    def otel_wrapped(state: dict, config: RunnableConfig | None = None) -> Any:
         from yamlgraph.observability import otel
 
         if not otel.is_otel_enabled():
-            return node_fn(state)
+            return call_func_with_variable_args(node_fn, state, config or {})
 
         with otel.node_execution_span(node_name, node_type) as node_ctx:
-            result = node_fn(state)
+            result = call_func_with_variable_args(node_fn, state, config or {})
             if isinstance(result, dict):
                 node_ctx.keys_written = list(result.keys())
             return result

@@ -28,9 +28,12 @@ requirements:
       required and a non-Jinja message carrying text `str.format` cannot
       render is rejected before the call. Simple-format fields are parsed
       with `string.Formatter.parse`, contributing root identifiers
-      (`{a}`, `{a.b}`, `{a[0]}` all yield `a`); a field carrying a format
-      spec or conversion (`{pred: alive, args: []}`) documents an output
-      shape and is not a variable, and `{% raw %}` spans are literal. Lint
+      (`{a}`, `{a.b}`, `{a[0]}` all yield `a`); in a `str.format` message
+      every well-formed field is required, whatever its format spec, because
+      Python hands the spec to the value's own `__format__`. Inside a Jinja
+      message a field whose tail is not a format spec
+      (`{pred: alive, args: []}`) documents an output shape and E014 leaves
+      it alone, and `{% raw %}` spans are literal. Lint
       reports E013 when a non-Jinja message has an unmatched brace or a
       non-identifier field root, naming both escapes in its fix, and E014
       when a Jinja message contains a bare identifier-rooted simple field.

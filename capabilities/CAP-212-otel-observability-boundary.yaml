@@ -1,7 +1,7 @@
 id: CAP-212
 name: OpenTelemetry Observability Boundary
 status: active
-fr: FR-759
+fr: FR-759, FR-1058
 feature_request: FR-759
 description: >
   Opt-in, vendor-neutral OpenTelemetry span schema for graph-run and
@@ -47,12 +47,27 @@ requirements:
       shares its UUIDv7 with route evidence, records interrupt/error
       outcomes, and fails before invocation when enabled OTEL lacks the
       extra or required graph-name metadata. Direct invocation and native
-      streaming remain outside the boundary.
+      streaming remain outside the boundary. FR-1058: the node wrapper
+      declares (state, config) and dispatches via
+      call_func_with_variable_args, so LangGraph still injects
+      RunnableConfig and the wrapper forwards it only to nodes that
+      accept one — instrumentation never changes what a node receives,
+      and the disabled path stays a true pass-through. Because LangGraph
+      decides injection by both arity and annotation type, node_otel.py
+      must not use `from __future__ import annotations` (a stringified
+      annotation silently disables injection). Subgraph span coverage is
+      mode-dependent: `mode: invoke` and FR-797 relay nodes emit an outer
+      yamlgraph.node.execute span plus the child's node spans, while
+      `mode: direct` emits only the child's node spans — the compiled
+      child is registered as-is to preserve checkpoint namespace
+      inheritance, and is deliberately not wrapped.
     modules:
       - yamlgraph/observability/otel.py
       - yamlgraph/compile/node_otel.py
       - yamlgraph/compile/node_compiler.py
+      - yamlgraph/compile/subgraph_relay.py
       - yamlgraph/cli/graph_commands.py
       - yamlgraph/executor_async.py
       - tests/unit/test_otel_observability.py
       - tests/unit/test_async_executor.py
+      - tests/unit/test_fr1058_subgraph_config_propagation.py

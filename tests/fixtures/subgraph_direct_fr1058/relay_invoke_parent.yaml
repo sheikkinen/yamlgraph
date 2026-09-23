@@ -1,0 +1,33 @@
+version: "1.0"
+name: fr1058-relay-invoke-parent
+description: |
+  FR-1058 AC-06 behavioural witness: one compiled `mode: invoke` parent whose
+  child interrupts, driven on two parent threads that must pause and resume
+  independently.
+
+  `invoke_parent.yaml` proves the two threads derive distinct child
+  identities, but its child runs to completion in one shot, so it can never
+  show a resume. This parent's child declares a `type: interrupt` node, which
+  makes the node relay-capable under FR-797 and gives the child a
+  checkpointer — so each parent thread genuinely pauses, persists, and
+  resumes, and a cross-read between the two would be observable.
+
+state:
+  phase: str
+  child_phase: str
+  answer: str
+
+nodes:
+  child:
+    type: subgraph
+    graph: interrupt_child.yaml
+    mode: invoke
+    input_mapping:
+      phase: phase
+    output_mapping:
+      child_phase: phase
+      answer: user_answer
+
+edges:
+  - {from: START, to: child}
+  - {from: child, to: END}

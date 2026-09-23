@@ -8,12 +8,13 @@ Covers the four defect classes the FR names:
 - D4 simple-format fields silently dropped inside a Jinja message.
 """
 
+from datetime import datetime
 from pathlib import Path
 
 import pytest
 import yaml
 
-from yamlgraph.executor_base import prepare_messages
+from yamlgraph.executor_base import format_prompt, prepare_messages
 from yamlgraph.linter.graph_linter import lint_graph
 from yamlgraph.utils.template import (
     extract_variables,
@@ -80,12 +81,33 @@ def test_scan_separates_documentation_shapes_from_substitutions() -> None:
     """A `: ...` tail marks an output-shape example, not a variable.
 
     The plot_modeller goal-extraction prompt documents its output as
-    `{pred: alive, args: [<agent>], value: true}`. Treating `pred` as a
-    required variable would break that graph.
+    `{pred: alive, args: [<agent>], value: true}`. It lives in a Jinja
+    message, which is the only place this distinction is consulted — E014
+    must not report it. A census of the prompt corpus found every
+    documentation shape on the Jinja side and none on the `str.format` side.
     """
     scan = scan_simple_fields("Shape: {pred: alive, args: []} and {topic}")
     assert scan.substitution_roots == {"topic"}
     assert "pred" in scan.roots
+
+
+@pytest.mark.req("REQ-YG-685")
+def test_a_type_specific_format_spec_is_still_a_required_variable() -> None:
+    """Validation must not guess at the format-spec grammar (review P1).
+
+    Python hands the spec to the value's own `__format__`, so
+    `{when:%Y-%m-%d}` is valid for a `datetime`. A closed regex says
+    otherwise, and the disagreement reappears as a `KeyError` at render —
+    the failure C-3 requires to be loud and early. On the `str.format` side
+    every well-formed field is required, no matter its tail.
+    """
+    template = "When: {when:%Y-%m-%d}"
+    assert extract_variables(template) == {"when"}
+    with pytest.raises(ValueError, match="when"):
+        validate_variables(template, {}, "p")
+    assert format_prompt(template, {"when": datetime(2026, 9, 23)}) == (
+        "When: 2026-09-23"
+    )
 
 
 @pytest.mark.req("REQ-YG-685")
@@ -94,8 +116,8 @@ def test_format_spec_fields_are_substitutions_not_documentation() -> None:
 
     The first cure keyed on "has a tail" and swallowed `{score:.2f}` with the
     prose braces: lint stayed silent, validation required nothing, and the
-    render then raised KeyError. The discriminator is whether the tail is a
-    format spec, not whether a tail exists.
+    render then raised KeyError. On the Jinja side, where the guess is only
+    advisory, the discriminator is whether the tail is a format spec.
     """
     for template, expected in [
         ("Score: {score:.2f}", {"score"}),

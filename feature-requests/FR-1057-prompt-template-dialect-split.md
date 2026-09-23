@@ -509,13 +509,56 @@ render without `width`. The lesson is the general one: a cure aimed at a false
 positive must be no wider than the false positive, or it buys silence with a
 new blind spot.
 
+### Correction 4 — the discriminator was a guess, and guessing was unsafe on one side (review P1)
+
+Correction 3 was still wrong, and the second review found it in the same place.
+`_FORMAT_SPEC` transcribes the *standard* format-spec grammar, but Python does
+not own that grammar: `format()` hands the spec to the value's own
+`__format__`. `{when:%Y-%m-%d}` is a perfectly valid field for a `datetime`,
+and the regex says it is prose. Probed on the Correction-3 code:
+
+```
+"When: {when:%Y-%m-%d}"
+  scan_simple_fields  -> roots={'when'}, substitution_roots=set()
+  extract_variables   -> set()
+  validate_variables(..., {}, "p")   -> PASSED        # should have raised
+  format_prompt(..., {"when": datetime(2026,9,23)})   -> "When: 2026-09-23"
+```
+
+Validation requiring nothing while the render resolves `when` is defect D1
+wearing a third costume. No regex can close this, because the grammar is open
+by design.
+
+Cure: stop asking the question where the answer must be right, and keep it only
+where a wrong answer is cheap.
+
+| message dialect | what an unresolvable field costs | set used |
+| --- | --- | --- |
+| `str.format` | `KeyError` at render | `roots` — **every** well-formed field |
+| Jinja | nothing; the text renders literally | `substitution_roots` — the guess |
+
+`extract_variables` now takes `roots` on the `str.format` branch. The
+documentation-shape exemption survives only on the Jinja side, feeding E014,
+which is advisory. A census of the whole prompt corpus confirms the exemption
+is not needed anywhere else: of the messages containing a field whose tail is
+not a format spec, **2 are Jinja and 0 are `str.format`**. The rule now reads
+as one sentence per dialect: *in a `str.format` message every field is a
+variable; in a Jinja message a field that cannot be a variable is left alone.*
+
+`reference/prompt-yaml.md` and `CAP-274` carried the Correction-3 claim into
+user-facing documentation and said a spec-bearing field is documentation; both
+are corrected, and `ARCHITECTURE.md` regenerated.
+
 ### Witnesses
 
-- `tests/unit/test_fr1057_prompt_template_dialect.py` — 20 tests
+- `tests/unit/test_fr1057_prompt_template_dialect.py` — 22 tests
 - `tests/unit/test_fr1057_prompt_repairs.py` — the dungeon_master D1 crash,
   rendering correctly after repair
-- Full unit suite green; `python scripts/req_coverage.py --strict` exits 0
+- Full unit suite green (**7004 passed, 55 skipped, 1 xfailed**);
+  `python scripts/req_coverage.py --strict` exits 0
 - AC-11: `yamlgraph graph lint` over every tracked graph-shaped YAML
   (`git ls-files '*.yaml' '*.yml'` filtered on a top-level `nodes:` key —
   **242 graphs**) → **0 E013/E014 findings, 0 lint crashes**. Log:
-  `logs/ac11e.log`.
+  `logs/ac11e.log`. Re-run after Correction 4 over `examples/ graphs/
+  projects/` (**202 graphs**) → **0 E013/E014, 0 crashes**
+  (`logs/corpus-lint-p1.log`).

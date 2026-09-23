@@ -50,39 +50,10 @@ def _reset_otel_env(monkeypatch):
     otel._provider_configured = False
 
 
-_SHARED_EXPORTER = None
-
-
-def _install_shared_provider_once():
-    """OpenTelemetry's global TracerProvider can only be set once per
-    process — install a single provider backed by a shared in-memory
-    exporter and clear its captured spans between tests instead of
-    replacing the provider."""
-    from opentelemetry import trace
-    from opentelemetry.sdk.trace import TracerProvider
-    from opentelemetry.sdk.trace.export import SimpleSpanProcessor
-    from opentelemetry.sdk.trace.export.in_memory_span_exporter import (
-        InMemorySpanExporter,
-    )
-
-    global _SHARED_EXPORTER
-    if _SHARED_EXPORTER is None:
-        _SHARED_EXPORTER = InMemorySpanExporter()
-    if isinstance(trace.get_tracer_provider(), TracerProvider):
-        return
-    provider = TracerProvider()
-    provider.add_span_processor(SimpleSpanProcessor(_SHARED_EXPORTER))
-    trace.set_tracer_provider(provider)
-
-
-@pytest.fixture
-def in_memory_exporter(monkeypatch):
-    """Enable OTEL export and yield the shared in-memory exporter, cleared."""
-    _install_shared_provider_once()
-    otel._provider_configured = True
-    _SHARED_EXPORTER.clear()
-    monkeypatch.setenv(otel.ENV_VAR, otel.ENABLED_VALUE)
-    return _SHARED_EXPORTER
+# `_install_shared_provider_once` and the `in_memory_exporter` fixture moved
+# to tests/unit/conftest.py. The global TracerProvider can only be set once
+# per process, so a per-module copy meant the module that lost the race
+# observed zero spans — order-dependent, and hidden by -n auto (FR-1058).
 
 
 @pytest.mark.req("REQ-YG-570")

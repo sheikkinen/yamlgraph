@@ -30,11 +30,18 @@ _CONVERSIONS = frozenset("rsa")
 
 
 def _is_substitution(spec: str | None, conversion: str | None) -> bool:
-    """Is this field a substitution, or prose that merely looks like one?
+    """Does this field look like a substitution rather than prose?
 
-    `{score:.2f}` and `{name!r}` are substitutions. `{pred: alive, args: []}`
-    is an author documenting an output shape; its tail is not a format spec,
-    and that — not the mere presence of a `:` — is what says so.
+    `{score:.2f}` and `{name!r}` do. `{pred: alive, args: []}` is an author
+    documenting an output shape; its tail is not a format spec, and that —
+    not the mere presence of a `:` — is what says so.
+
+    A guess, and deliberately only used where guessing is safe. Python hands
+    the format spec to the value's own `__format__`, so `{when:%Y-%m-%d}` is
+    valid for a `datetime` and this function will still say no. Ask it only
+    on the Jinja side, where a stray `{x}` renders as literal text and a
+    wrong answer costs an advisory warning. The `str.format` side must use
+    `roots`: there a wrong answer is a `KeyError` at render time.
     """
     if conversion is not None and conversion not in _CONVERSIONS:
         return False
@@ -57,14 +64,15 @@ class SimpleFieldScan:
     """What `str.format` would make of a piece of text.
 
     Attributes:
-        roots: Root identifiers of every well-formed field.
-        substitution_roots: Roots of fields that will actually be substituted
-            at render time — every field whose conversion and format spec are
-            valid, including `{score:.2f}` and `{name!r}`. Excluded are fields
-            whose tail is not a format spec at all, such as the
-            `{pred: alive, args: []}` an author writes to document an output
-            shape. This is the set validation and E014 must use: anything
-            narrower lets a real field pass unvalidated and crash at render.
+        roots: Root identifiers of every well-formed field. This is the set a
+            `str.format` message is validated against, because this is the
+            set `str.format` itself will look up: a format spec is passed to
+            the value's `__format__` and cannot be used to rule a field out.
+        substitution_roots: `roots` minus the fields whose tail is not a
+            format spec at all — the `{pred: alive, args: []}` an author
+            writes to document an output shape. A heuristic, safe only where
+            a wrong answer is advisory: the Jinja side, where such a field
+            renders as literal text rather than raising.
         invalid_fields: Fields whose root is not an identifier, such as the
             `"chapters"` that `{"chapters": []}` parses into.
         brace_error: The formatter's own complaint about unbalanced braces,
@@ -197,7 +205,9 @@ def extract_variables(template: str) -> set[str]:
             scan_simple_fields(strip_jinja_raw_blocks(template)).substitution_roots
         )
     else:
-        variables = scan_simple_fields(template).substitution_roots
+        # Every field, documentation-looking or not: `str.format` will try to
+        # resolve it, so validation must require it.
+        variables = scan_simple_fields(template).roots
 
     return variables - _EXCLUDED_VARIABLES
 
