@@ -587,6 +587,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 271 | CAP-271 Pre-Commit Gate Hygiene | `scripts/noqa_coverage.py`, `.pre-commit-config.yaml` | REQ-YG-676 – 677 |
 | 272 | CAP-272 Clean Dirty Main Triage | `scripts/dirty_main_triage.py`, `.github/skills/clean-dirty-main/SKILL.md` | REQ-YG-678 |
 | 273 | CAP-273 DeepSeek Non-Thinking Mode | `yamlgraph/utils/llm_providers.py`, `yamlgraph/utils/llm_factory.py` | REQ-YG-684 |
+| 274 | CAP-274 Prompt Template Dialect Per Message | `yamlgraph/utils/template.py`, `yamlgraph/executor_base.py`, `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py`, … | REQ-YG-686 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3325,6 +3326,16 @@ DeepSeek enables thinking by default at `high` effort on every model it serves, 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-684 | DeepSeek reasoning toggle at the provider boundary (FR-1056). `dispatch_provider` forwards `thinking_budget` to `_create_deepseek_llm`, which sets `reasoning_effort="none"` on the `ChatOpenAI` client if and only if `thinking_budget == 0`. Omission and any accepted non-zero value (including -1 and sub-1024 portability budgets) leave `reasoning_effort` off the request payload entirely, and an ignored non-zero value emits a DEBUG record naming the provider and the value. `thinking_budget >= 1024` continues to raise `ValueError` from `create_llm` because `deepseek` remains outside `llm_factory.THINKING_PROVIDERS`. The LLM cache key already carries `thinking_budget`, so thinking-on and thinking-off clients never alias. | `yamlgraph/utils/llm_providers.py`, `yamlgraph/utils/llm_factory.py`, `tests/unit/test_fr1056_deepseek_thinking.py` |
+
+### 274. CAP-274 Prompt Template Dialect Per Message
+
+The dialect of a prompt template (Jinja2 vs `str.format`) is decided once, by `yamlgraph.utils.template.is_jinja`, and always about one message — scalar `system`, each element of a list-form `system`, each `system_segments[*].content`, and `user`. Validation traverses the same units the renderer does, so a Jinja system message can no longer vouch for a `str.format` user message the renderer will reject. Simple-format fields are read with `string.Formatter.parse` rather than a brace regex, and every well-formed field is a required variable — nothing infers that a brace is merely prose; an author declares a literal brace with `{% raw %}`. Two lint errors gate the failure classes before execution: E013 for a non-Jinja message `str.format` cannot render, E014 for a bare `{var}` inside a Jinja message that Jinja will never substitute. Supersedes W024.
+
+**Feature Request:** FR-1057
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-686 | Prompt template dialect is decided per message by the single discriminator `is_jinja` (`{{` or `{%` present), used by rendering, validation, and lint alike; `prepare_messages` validates scalar `system`, list-form `system`, every `system_segments[*].content`, and `user` independently, so a variable used in only one message is still required and a non-Jinja message carrying text `str.format` cannot render is rejected before the call. Simple-format fields are parsed with `string.Formatter.parse`, contributing root identifiers (`{a}`, `{a.b}`, `{a[0]}` all yield `a`); every well-formed field is a required variable, whatever its format spec, because Python hands the spec to the value's own `__format__` and the spec grammar is therefore open-ended. No heuristic exempts a field for resembling documentation: an author who wants a literal brace declares it with `{% raw %}`, whose spans are stripped before the scan. Lint reports E013 when a non-Jinja message has an unmatched brace or a non-identifier field root, naming both escapes in its fix, and E014 when a Jinja message contains any identifier-rooted simple field. W024 is retired, superseded by E014. | `yamlgraph/utils/template.py`, `yamlgraph/executor_base.py`, `yamlgraph/linter/checks_prompts.py`, `tests/unit/test_fr1057_prompt_template_dialect.py`, `tests/unit/test_fr1057_prompt_repairs.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

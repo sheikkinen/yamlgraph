@@ -17,11 +17,13 @@ user: |
   conditions that define success or failure.
 
   Use ONLY these five predicate types:
+  {% raw %}
   - `alive`: a character survives. `{pred: alive, args: [<agent>], value: true}`
   - `at`: a character reaches a location. `{pred: at, args: [<agent>, <location>], value: true}`
   - `holds`: a character possesses an object. `{pred: holds, args: [<agent>, <object>], value: true/false}`
   - `rel`: a relationship between characters. `{pred: rel, args: [<agent1>, <agent2>], value: <relationship>}`
   - `faction`: a group membership. `{pred: faction, args: [<agent>, <group>], value: true/false}`
+  {% endraw %}
 
   Guidance:
   - Most stories have 3–6 goals. Include **all** goals the synopsis drives
