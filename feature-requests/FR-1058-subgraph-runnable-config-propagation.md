@@ -95,7 +95,7 @@ wrapping the one node kind that is not a function.
 
 ## Proposed Solution
 
-Adopt the reporter's patch with two corrections (§Findings against the
+Adopt three of the reporter's patch's four changes (§Findings against the
 submitted patch).
 
 1. `_maybe_wrap_otel()` declares `(state, config=None)` and dispatches through
@@ -108,28 +108,64 @@ submitted patch).
    executor routing values (`__pregel_*`, `checkpoint_id`, `checkpoint_ns`,
    `checkpoint_map`). Propagating `__pregel_send` into a separately invoked
    child would bypass the FR-797 commit-before-pause relay.
-4. `_maybe_wrap_timeout()` threads the same config through, so composing the
-   two wrappers cannot re-hide it.
+
+The patch's fourth change — threading config through `_maybe_wrap_timeout()` —
+is **not adopted** (F-1). `yamlgraph/node_timeout.py` is not touched by this FR.
+
+Item 3 is not defensive coding against hypothetical keys. Probe — the
+`configurable` dict LangGraph actually delivers to a node under a checkpointer:
+
+```text
+PROBE C  __pregel_call  __pregel_checkpointer  __pregel_read
+         __pregel_replay_state  __pregel_runtime  __pregel_scratchpad
+         __pregel_send  __pregel_task_id
+         checkpoint_id  checkpoint_map  checkpoint_ns
+         tenant  thread_id          (tenant/thread_id = the caller's own)
+```
+
+Every key the filter names is present on every invocation. Today this is inert
+because config never arrives; the moment item 1 lands, all eight `__pregel_*`
+handles begin flowing into separately invoked children. Item 3 is what keeps
+item 1 from trading a silent-aliasing bug for a state-corruption one.
 
 ### Findings against the submitted patch
 
-- **F-1 (must fix): wrong REQ tag.** The patch tags its timeout test
-  `REQ-YG-069`. That ID exists but belongs to CAP-16 linter-cross-reference.
-  The per-node timeout requirement is **REQ-YG-078** (CAP-96, FR-069) — the FR
-  number was transcribed as a REQ number. `req_coverage.py --strict` cannot
-  catch this: the tag is well-formed and resolvable, just attached to an
-  unrelated capability.
-- **F-2 (resolved, no action): the thread-hop concern.** `_maybe_wrap_timeout`
-  runs the node inside a `ThreadPoolExecutor`, and contextvar-carried
-  `RunnableConfig` is historically lossy across threads. Probed rather than
-  assumed:
+- **F-1 (cut): the timeout-wrapper change has no reachable caller.** The patch
+  also rewrites `_maybe_wrap_timeout()` to forward config. Probed before
+  accepting:
 
   ```text
-  PROBE B  across thread: T-thread
+  PROBE D  config-aware node fns in yamlgraph/:
+      node_factory/subgraph_nodes.py:210  subgraph_node(state, config=None)
+      node_factory/subgraph_nodes.py:251  run_fn(state, config=None)
+  PROBE E  _maybe_wrap_timeout call sites (node_compiler.py):
+      127 tool · 139 python · 168 agent · 194 tool_call · 258 llm
+  PROBE F  grep -c _maybe_wrap_timeout yamlgraph/compile/subgraph_relay.py -> 0
   ```
 
-  The patch passes config as an explicit argument, not via contextvar, so the
-  hop is safe. Recorded here so the next reader does not re-litigate it.
+  The only two config-aware node functions are the subgraph ones, and the
+  subgraph compile path never applies the timeout wrapper. The two wrappers
+  cannot compose on any path the compiler can produce. For the five node types
+  that *are* timeout-wrapped, all state-only, `call_func_with_variable_args(fn,
+  state, {})` is exactly `fn(state)` — so the change alters five live node
+  types to buy no behavior on any of them.
+
+  The patch's own evidence is the tell: its
+  `test_timeout_and_otel_wrappers_preserve_runnable_config` hand-composes the
+  two wrappers over a locally-defined `def node_fn(state, config)`. It is green
+  against a shape the compiler cannot emit.
+
+  Cutting this dissolves the patch's REQ mis-tag as a side effect: it tags that
+  test `REQ-YG-069` (CAP-16 linter cross-reference) where the per-node timeout
+  requirement is `REQ-YG-078` (CAP-96). That test is the tag's only occurrence
+  in the patch, so deleting the change deletes the defect rather than
+  correcting it. Recorded so the next reader does not re-derive the correction.
+
+- **F-2 (resolved, no action): the thread-hop concern is moot.** I had flagged
+  that `_maybe_wrap_timeout` runs its node inside a `ThreadPoolExecutor`, where
+  contextvar-carried `RunnableConfig` is historically lossy. PROBE B showed the
+  patch passes config explicitly rather than via contextvar, so the hop was
+  safe anyway; with F-1 cut, no thread boundary is crossed by this FR at all.
 
 ### Accepted regression
 
@@ -154,8 +190,7 @@ Defect 1. `reference/otel-observability.md` must state the narrowed set.
       independently.
 - [ ] `_build_child_config` retains user keys and drops `__pregel_*`,
       `checkpoint_id`, `checkpoint_ns`, `checkpoint_map`.
-- [ ] Config survives `_maybe_wrap_timeout` composed with `_maybe_wrap_otel`.
-- [ ] Timeout-related tests tag **REQ-YG-078**, not REQ-YG-069 (F-1).
+- [ ] `yamlgraph/node_timeout.py` is unmodified by this FR (F-1).
 - [ ] `reference/otel-observability.md` records the narrowed instrumented set.
 - [ ] RED commit precedes GREEN; changelog fragment in `changelog/unreleased/`.
 
@@ -167,7 +202,8 @@ Defect 1. `reference/otel-observability.md` must state the narrowed set.
 | 2 | Preserve the wrapped function's signature via `functools.wraps` instead of `call_func_with_variable_args` | Built it and invoked through a compiled graph: signatures report `(state)` and `(state, config=None)` correctly, but the run dies `TypeError: cfg_fn() got an unexpected keyword argument 'config'` | **Rejected** — see note below; the probe falsified the reason I first wrote down |
 | 3 | Wrap the `CompiledStateGraph` in a `RunnableLambda` to keep the outer span | `isinstance(compiled, Pregel)` → `True`; `isinstance(RunnableLambda(compiled.invoke), Pregel)` → `False` | **Rejected** — LangGraph detects native subgraphs by `Pregel` instance, so this loses exactly the checkpoint-namespace inheritance `mode: direct` exists to provide |
 | 4 | Do nothing; document `mode: direct` as unsupported | `git log` shows the mode shipped and is referenced in reference docs | **Rejected** — a shipped, documented mode that raises `TypeError` on every invoke is a defect, not a documentation gap |
-| 5 | Adopt the reporter's patch with F-1 corrected | PROBE A, PROBE B, and the reproduction above | **Accepted** |
+| 5 | Adopt the reporter's patch verbatim, all four changes | PROBE D/E/F: the only config-aware node fns are the two subgraph ones; the subgraph compile path calls `_maybe_wrap_timeout` zero times | **Rejected** — change 4 has no reachable caller; it perturbs five live node types to serve a composition the compiler cannot emit |
+| 6 | Adopt changes 1–3, drop change 4 | PROBE A, PROBE C, PROBE D/E/F, and the reproduction above | **Accepted** |
 
 Note on alternative 2: my first written rejection claimed `inspect.signature`
 would follow `__wrapped__` and over-report parameters for state-only nodes.
@@ -185,5 +221,5 @@ wrong reason would have survived review.
 - FR-759 — per-node OTel spans; its instrumented-node claim narrows here
 - FR-797 — the relay two-node split whose contract item 3 protects
 - `yamlgraph/compile/node_otel.py`, `yamlgraph/compile/subgraph_relay.py`,
-  `yamlgraph/node_factory/subgraph_nodes.py`, `yamlgraph/node_timeout.py`
-- REQ-YG-042 (CAP-11), REQ-YG-570 (CAP-212), REQ-YG-078 (CAP-96)
+  `yamlgraph/node_factory/subgraph_nodes.py`
+- REQ-YG-042 (CAP-11), REQ-YG-570 (CAP-212)
