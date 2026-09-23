@@ -88,17 +88,34 @@ def _create_azure_llm(
 
 
 def _create_deepseek_llm(
-    model: str, temperature: float, **kwargs: object
+    model: str, temperature: float, thinking_budget: int | None = None, **kwargs: object
 ) -> BaseChatModel:
-    """Create DeepSeek LLM (OpenAI-compatible API)."""
+    """Create DeepSeek LLM (OpenAI-compatible API).
+
+    FR-1056: DeepSeek thinks by default at ``high`` effort and has no token
+    budget, so only ``thinking_budget == 0`` is expressible here — it becomes
+    ``reasoning_effort="none"``. Any other value is left off the request so the
+    API default stands and sub-1024 portability budgets stay harmless.
+    """
     from langchain_openai import ChatOpenAI
+
+    deepseek_kwargs = dict(kwargs)
+    if thinking_budget == 0:
+        deepseek_kwargs["reasoning_effort"] = "none"
+    elif thinking_budget is not None:
+        logger.debug(
+            "Ignoring thinking_budget=%s for provider 'deepseek': DeepSeek has "
+            "no token budget, only reasoning_effort; thinking stays at the API "
+            "default. Use thinking_budget=0 to disable thinking.",
+            thinking_budget,
+        )
 
     return ChatOpenAI(
         model=model,
         temperature=temperature,
         base_url="https://api.deepseek.com/v1",
         api_key=os.getenv("DEEPSEEK_API_KEY"),
-        **_bounded(dict(kwargs)),
+        **_bounded(deepseek_kwargs),
     )
 
 
@@ -309,7 +326,10 @@ def _create_runpod_llm(
 
 
 # Providers whose factory accepts a `thinking_budget` argument (FR-680).
-_THINKING_PROVIDERS = frozenset({"anthropic", "google", "vertex"})
+# Deliberately wider than `llm_factory.THINKING_PROVIDERS` (FR-1056): DeepSeek
+# can only be told to STOP thinking, so a real token budget must still fail
+# there while `0` is routed here.
+_THINKING_PROVIDERS = frozenset({"anthropic", "deepseek", "google", "vertex"})
 
 # Data-driven provider registry (FR-680). Adding a provider is one entry here
 # plus its `_create_*_llm` factory — no edit to `dispatch_provider`.

@@ -90,7 +90,7 @@ defaults:
 |----------|------|---------|-------------|
 | `provider` | `string` | env-based | Default LLM provider |
 | `temperature` | `float` | `0.7` | Default temperature |
-| `thinking_budget` | `int` | `None` | Extended thinking tokens. `anthropic`: `0` or `≥1024`, forces `temperature=1` (FR-071). `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). |
+| `thinking_budget` | `int` | `None` | Extended thinking tokens. `anthropic`: `0` or `≥1024`, forces `temperature=1` (FR-071). `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). `deepseek`: only `0` is meaningful — it disables thinking; omitted keeps the API default (thinking on, effort `high`); other accepted values are ignored and `≥1024` raises (FR-1056). |
 | `prompts_relative` | `bool` | `false` | Resolve prompts relative to graph file |
 | `prompts_dir` | `string` | `prompts/` | Explicit prompts directory path |
 
@@ -272,7 +272,7 @@ Each node in the `nodes` section defines a processing step.
 | `temperature` | `float` | from defaults | LLM temperature |
 | `provider` | `string` | from defaults | LLM provider |
 | `max_tokens` | `int` | from config | Maximum output tokens for this node's LLM call |
-| `thinking_budget` | `int` | from defaults | Extended thinking tokens. `anthropic`: `0` or `≥1024`, forces `temperature=1` (FR-071). `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). |
+| `thinking_budget` | `int` | from defaults | Extended thinking tokens. `anthropic`: `0` or `≥1024`, forces `temperature=1` (FR-071). `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). `deepseek`: only `0` is meaningful — it disables thinking; omitted keeps the API default (thinking on, effort `high`); other accepted values are ignored and `≥1024` raises (FR-1056). |
 | `skip_if_exists` | `bool` | `true` | Skip if state key has truthy value (FR-050: `[]`, `""`, `None` do NOT skip) |
 | `parse_json` | `bool` | `false` | Extract JSON from LLM response |
 | `stream` | `bool` | `false` | Enable token-by-token streaming |
