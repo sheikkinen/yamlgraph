@@ -120,14 +120,30 @@ class TestFeatureRequestNumbering:
         ]
         assert not orphans, f"Judgements with no parent FR: {orphans}"
 
-    def test_untracked_files_are_not_collisions(self) -> None:
-        """A parallel session's uncommitted FR must not fail this guard."""
-        probe = FR_DIR / "FR-000-untracked-probe.md"
-        probe.write_text("probe\n", encoding="utf-8")
-        try:
-            assert "FR-000-untracked-probe.md" not in _tracked_fr_names()
-        finally:
-            probe.unlink()
+    @pytest.mark.req("REQ-YG-631")
+    def test_untracked_files_are_not_collisions(self, tmp_path: Path) -> None:
+        """A parallel session's uncommitted FR must not fail this guard.
+
+        FR-1094: built in a temporary repository so the witness never writes
+        into the real `feature-requests/`, which FR-889 locks on main.
+        """
+        fr_dir = tmp_path / "feature-requests"
+        fr_dir.mkdir()
+        (fr_dir / "FR-001-tracked.md").write_text("tracked\n", encoding="utf-8")
+        for args in (
+            ["init", "-q"],
+            ["config", "user.email", "fr1094@example.invalid"],
+            ["config", "user.name", "fr1094"],
+            ["add", "feature-requests/FR-001-tracked.md"],
+            ["commit", "-q", "--no-gpg-sign", "-m", "tracked"],
+        ):
+            subprocess.run(["git", *args], cwd=tmp_path, check=True)
+        (fr_dir / "FR-000-untracked-probe.md").write_text("probe\n", encoding="utf-8")
+
+        names = _tracked_fr_names(tmp_path)
+
+        assert "FR-001-tracked.md" in names
+        assert "FR-000-untracked-probe.md" not in names
 
     def test_sibling_words_in_slugs_are_not_treated_as_siblings(self) -> None:
         """FR-215-research-agent-demo.md is a primary FR, not a research sibling."""
