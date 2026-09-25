@@ -445,7 +445,7 @@ next commit on the branch. One PR, per the operator ruling.
 `tests/unit/test_fr1073_map_result_contract.py`, the migrated map test
 files, and the consumer witnesses below. AC-03 cut by the operator ruling.
 AC-23: status, decisions, changelog fragment and the diary entry
-(`docs/diary/2026-09-25-map-result-contract.md`) are in this PR.
+(`docs/diary/diary-2026-09-25-a-deviation-note-is-not-an-amendment.md`) are in this PR.
 
 **Consumer migration (H-3, AC-17).**
 - 11 files drop their `_error` branch: a failed item can no longer reach
@@ -468,12 +468,22 @@ AC-23: status, decisions, changelog fragment and the diary entry
 **Graph edits (H-1, H-2, AC-18).** Brief
 `feature-requests/authoring-briefs/fr-1073-map-migration.md`, run through
 `scripts/author.sh`. Rows 2, 5, 6, 7, 10, 50, 59 move `on_error` (and
-`max_retries`) into the sub-node. Row 27 adds `min_success: 2`. Lint: no
-new errors; `book_translator` keeps its E303 (`human_review.resume_key`),
-present on main before this change. Smoke: `map-timeout` run from its own
-graph, recorded in `examples/demos/map-timeout/demo-output.log`: two
-results, one non-tolerated `TimeoutError` in `results_failures`, verdict
-met, no raise. LLM graphs: compile check only, no live run (H-4).
+`max_retries`) into the sub-node. Row 27 adds `min_success: 2`. A second
+brief, `feature-requests/authoring-briefs/fr-1073-book-translator-state.md`,
+also run through `scripts/author.sh`, declares `reviewed_chunks: dict` in
+`book_translator`'s state. That clears its E303
+(`human_review.resume_key`), which was on main before this change (review
+P3). The governed reports are written to `tmp/draft-authoring-report.md`
+per run and are not committed; their results:
+
+| Graph | `yamlgraph graph lint` | Smoke |
+|---|---|---|
+| `batch_image_prompts` | exit 0 | compile check; no live run (H-4) |
+| `book_translator` | exit 0 (0 errors, 4 warnings) | `graph info` exit 0; no live run (H-4) |
+| `daily_digest` | exit 0 | compile check; no live run (H-4) |
+| `diary_digest` | exit 0 | compile check; no live run (H-4) |
+| `ocr_cleanup` | exit 0 | compile check; no live run (H-4) |
+| `demos/map-timeout` | exit 0 | run from its own graph, `examples/demos/map-timeout/demo-output.log`: two results, one non-tolerated `TimeoutError` in `results_failures`, verdict met, no raise, `current_step: _map_process_join` |
 
 **Deviations from the plan.**
 - `MapFailure.index`, not `_map_index`.

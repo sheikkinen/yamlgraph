@@ -27,6 +27,7 @@ state:
   glossary: dict
   quality_threshold: float
   needs_review: bool
+  reviewed_chunks: dict
 
 # Python tools - minimal data transforms only
 tools:

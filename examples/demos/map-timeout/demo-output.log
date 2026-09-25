@@ -4,19 +4,19 @@
    Nodes: 1
    Edges: 2
 
-2026-09-25 23:28:16,882 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: slow_task
-2026-09-25 23:28:16,882 [INFO] yamlgraph.compile.node_compiler: Added node: process (type=map)
-2026-09-25 23:28:16,896 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a0da41-227a-75a4-9695-2c2da3afc506", "artifact_hash": "sha256:d8fa81f7ce92df8f2b9770d506a355708f59fc7c7e9c4fae46da4bd4b6bf410e", "graph": "/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/feat/fr-1073-map-result-contract/examples/demos/map-timeout/graph.yaml", "yamlgraph_version": "0.6.0", "thread_id": null, "started_at": "2026-09-25T20:28:16Z"}
-2026-09-25 23:28:17,002 [INFO] yamlgraph.route: {"event": "route", "node": "process", "value": "map", "target": "_map_process_sub", "thread_id": null, "ts": "2026-09-25T20:28:17Z", "fan_out": 3}
-2026-09-25 23:28:18,279 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a0da41-227a-75a4-9695-2c2da3afc506", "ended_at": "2026-09-25T20:28:18Z", "dropped_events": 0}
+2026-09-25 23:57:19,703 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: slow_task
+2026-09-25 23:57:19,704 [INFO] yamlgraph.compile.node_compiler: Added node: process (type=map)
+2026-09-25 23:57:19,719 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a0da5b-ba61-73ff-9a20-db4e00e72332", "artifact_hash": "sha256:d8fa81f7ce92df8f2b9770d506a355708f59fc7c7e9c4fae46da4bd4b6bf410e", "graph": "/Users/sheikki/Documents/src/yamlgraph/tmp/worktrees/feat/fr-1073-map-result-contract/examples/demos/map-timeout/graph.yaml", "yamlgraph_version": "0.6.0", "thread_id": null, "started_at": "2026-09-25T20:57:19Z"}
+2026-09-25 23:57:19,810 [INFO] yamlgraph.route: {"event": "route", "node": "process", "value": "map", "target": "_map_process_sub", "thread_id": null, "ts": "2026-09-25T20:57:19Z", "fan_out": 3}
+2026-09-25 23:57:21,087 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a0da5b-ba61-73ff-9a20-db4e00e72332", "ended_at": "2026-09-25T20:57:21Z", "dropped_events": 0}
 
 🚀 Running graph: graph.yaml
 
-🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a0da41-2284-77b1-80dd-ecb503a47ab4?poll=true
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a0da5b-ba6b-7200-bb54-aea0646f31dd?poll=true
 ============================================================
 RESULT
 ============================================================
   current_step: _map_process_join
   workload: {'tasks': [{'name': 'fast-task', 'delay_seconds': 0.1}, {'name': 'medium-task', 'delay_seconds': 0.3}, {'name': 'slow-task', 'delay_seconds': 5.0}]}
   results: [{'_map_index': 0, 'name': 'fast-task', 'status': 'completed', 'duration': 0.1}, {'_map_index': 1, 'name': 'medium-task', 'status': 'completed', 'duration': 0.3}]
-  results_failures: [MapFailure(map='process', dispatch='e0d24c93ceed429293c8624db701c882', index=2, error_type='TimeoutError', message='Branch timed out after 1.0s', node='_map_process_sub', tolerated=False)]
+  results_failures: [MapFailure(map='process', dispatch='3c17e4ea9ddb4430b245a53f447592e9', index=2, error_type='TimeoutError', message='Branch timed out after 1.0s', node='_map_process_sub', tolerated=False)]
