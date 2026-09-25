@@ -281,3 +281,6 @@ coverage disclosure). Every row carries a probe-produced detail.
 - Reducer: `examples/demos/person_profile_census/tools.py:302-347` (rollup), `:360-382` (canary), `:384-` (reducer), `:544-573` (brief input), `:612-` (render)
 - Graph: `examples/demos/person_profile_census/graph.yaml:125-150`
 - Evidence: `logs/tt-profile.log`, `tmp/tt-profile.md` line 8 (operator-local; corp content, not committed)
+- 2026-09-25: [FR-1064](FR-1064-map-branch-contract.md) re-enters this
+  territory at the map fan-in; per the shelving evidence its `min_success`
+  defaults to record-only, and raising is an explicit per-map opt-in.

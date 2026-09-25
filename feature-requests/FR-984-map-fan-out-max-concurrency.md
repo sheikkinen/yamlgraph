@@ -294,3 +294,5 @@ fan-out width). Every row carries a probe-produced detail.
 - Platform: `langgraph/pregel/_executor.py:135` (v1.2.9)
 - Plumbing: `yamlgraph/compile/graph_loader.py:84`, `yamlgraph/cli/graph_run_helpers.py:140-143`, `yamlgraph/cli/__init__.py:98-104`
 - First consumer: `examples/demos/person_profile_census/graph.yaml:105-125`
+- 2026-09-25: [FR-1068](FR-1068-default-max-concurrency.md) proposes a fixed
+  default when neither flag nor config sets a value.
