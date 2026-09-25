@@ -10,6 +10,8 @@ from typing import Any
 
 from pydantic import BaseModel, ConfigDict, Field, ValidationError
 
+from yamlgraph.models.map_results import MapFailure
+
 MODEL = "mercury-2"
 PATTERN_PROMPT_VERSION = "judge_pattern.v1"
 MODEL_PROMPT_VERSION = "judge_model.v1"
@@ -94,8 +96,6 @@ def _metadata_by_index(contents: list[Any]) -> list[CommitMetadata]:
     for index, content in enumerate(contents):
         if not isinstance(content, dict):
             raise ValueError(f"content {index} must be a dict")
-        if "_error" in content:
-            raise ValueError(f"content {index} contains map error: {content['_error']}")
         data = {key: value for key, value in content.items() if key != "_map_index"}
         try:
             rows.append(CommitMetadata.model_validate(data))
@@ -107,14 +107,23 @@ def _metadata_by_index(contents: list[Any]) -> list[CommitMetadata]:
 
 
 def _labels_by_index(
-    findings: list[Any], *, key: str, expected_count: int
+    findings: list[Any],
+    *,
+    key: str,
+    expected_count: int,
+    failures: list[Any] | None = None,
 ) -> dict[int, str | None]:
+    # FR-1073: a tolerated (skipped) judge failure still blocks this ledger.
+    if failures:
+        first = MapFailure.model_validate(failures[0])
+        raise ValueError(
+            f"{key}: {len(failures)} finding(s) failed; first at index "
+            f"{first.index}: {first.message}"
+        )
     labels: dict[int, str | None] = {}
     for finding in findings:
         if not isinstance(finding, dict):
             raise ValueError(f"{key} finding must be a dict")
-        if "_error" in finding:
-            raise ValueError(f"{key} finding contains map error: {finding['_error']}")
         index = finding.get("_map_index")
         if not isinstance(index, int):
             raise ValueError(f"{key} finding missing _map_index")
@@ -227,11 +236,13 @@ def reduce_ledger(state: dict[str, Any] | None = None, **kwargs: Any) -> dict[st
         _require_list(effective_state, "pattern_findings"),
         key="pattern",
         expected_count=len(contents),
+        failures=effective_state.get("pattern_findings_failures"),
     )
     model_labels = _labels_by_index(
         _require_list(effective_state, "model_findings"),
         key="model_mentioned",
         expected_count=len(contents),
+        failures=effective_state.get("model_findings_failures"),
     )
     rows = _ledger_rows(
         repo_alias=repo_alias,
@@ -252,6 +263,7 @@ def mark_patterns_complete(
         _require_list(effective_state, "pattern_findings"),
         key="pattern",
         expected_count=len(contents),
+        failures=effective_state.get("pattern_findings_failures"),
     )
     return {"pattern_pass_complete": True}
 

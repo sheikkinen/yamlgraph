@@ -4,7 +4,30 @@ from unittest.mock import MagicMock
 
 import pytest
 
-from yamlgraph.compile.map_compiler import compile_map_node, wrap_for_reducer
+from yamlgraph.compile.map_compiler import compile_map_node
+from yamlgraph.compile.map_compiler import wrap_for_reducer as _wrap_for_reducer
+
+
+def wrap_for_reducer(node_fn, collect_key, state_key):
+    return _wrap_for_reducer(
+        node_fn, collect_key, state_key, map_name="m", failures_key="failed"
+    )
+
+
+def _collected(result: dict, key: str) -> dict:
+    """Drop the FR-1073 accounting row to compare the collected payload."""
+    assert len(result["_map_accounting"]) == 1
+    return {k: v for k, v in result.items() if k == key}
+
+
+def _added(builder: MagicMock) -> dict:
+    return {c.args[0]: c.args[1] for c in builder.add_node.call_args_list}
+
+
+def _dispatch_then_route(builder, map_edge, name, state):
+    """Run the dispatch node, merge its update, then route (FR-1073)."""
+    update = _added(builder)[name](state)
+    return map_edge({**state, **update})
 
 
 class TestWrapForReducer:
@@ -18,9 +41,9 @@ class TestWrapForReducer:
             return {"result": state["item"] * 2}
 
         wrapped = wrap_for_reducer(simple_node, "collected", "result")
-        result = wrapped({"item": 5})
+        result = wrapped({"item": 5, "_map_dispatch": "d"})
 
-        assert result == {"collected": [10]}
+        assert _collected(result, "collected") == {"collected": [10]}
 
     @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
     def test_preserves_map_index(self):
@@ -30,9 +53,11 @@ class TestWrapForReducer:
             return {"data": state["value"]}
 
         wrapped = wrap_for_reducer(node_fn, "results", "data")
-        result = wrapped({"value": "test", "_map_index": 2})
+        result = wrapped({"value": "test", "_map_index": 2, "_map_dispatch": "d"})
 
-        assert result == {"results": [{"_map_index": 2, "value": "test"}]}
+        assert _collected(result, "results") == {
+            "results": [{"_map_index": 2, "value": "test"}]
+        }
 
     @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
     def test_extracts_state_key(self):
@@ -42,9 +67,11 @@ class TestWrapForReducer:
             return {"frame_data": {"before": "a", "after": "b"}, "other": "ignore"}
 
         wrapped = wrap_for_reducer(node_fn, "frames", "frame_data")
-        result = wrapped({})
+        result = wrapped({"_map_dispatch": "d"})
 
-        assert result == {"frames": [{"before": "a", "after": "b"}]}
+        assert _collected(result, "frames") == {
+            "frames": [{"before": "a", "after": "b"}]
+        }
 
 
 class TestCompileMapNode:
@@ -62,11 +89,11 @@ class TestCompileMapNode:
         builder = MagicMock()
         defaults = {}
 
-        map_edge, sub_node_name = compile_map_node("expand", config, builder, defaults)
+        map_edge, join_name = compile_map_node("expand", config, builder, defaults)
 
-        # Should return callable and sub-node name
+        # Should return callable and join-node name (FR-1073)
         assert callable(map_edge)
-        assert sub_node_name == "_map_expand_sub"
+        assert join_name == "_map_expand_join"
 
     @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
     def test_map_edge_returns_send_list(self):
@@ -82,10 +109,11 @@ class TestCompileMapNode:
         builder = MagicMock()
         defaults = {}
 
-        map_edge, sub_node_name = compile_map_node("expand", config, builder, defaults)
+        map_edge, _ = compile_map_node("expand", config, builder, defaults)
+        sub_node_name = "_map_expand_sub"
 
         state = {"items": ["a", "b", "c"]}
-        sends = map_edge(state)
+        sends = _dispatch_then_route(builder, map_edge, "expand", state)
 
         assert len(sends) == 3
         assert all(isinstance(s, Send) for s in sends)
@@ -97,7 +125,7 @@ class TestCompileMapNode:
 
     @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
     def test_map_edge_empty_list(self):
-        """Empty list returns empty Send list."""
+        """Empty list routes straight to the account node (FR-1073)."""
         config = {
             "over": "{items}",
             "as": "item",
@@ -110,9 +138,9 @@ class TestCompileMapNode:
         map_edge, _ = compile_map_node("expand", config, builder, defaults)
 
         state = {"items": []}
-        sends = map_edge(state)
+        target = _dispatch_then_route(builder, map_edge, "expand", state)
 
-        assert sends == []
+        assert target == "_map_expand_account"
 
     @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
     def test_adds_wrapped_sub_node_to_builder(self):
@@ -128,10 +156,13 @@ class TestCompileMapNode:
 
         compile_map_node("expand", config, builder, defaults)
 
-        # Should call builder.add_node
-        builder.add_node.assert_called_once()
-        call_args = builder.add_node.call_args
-        assert call_args[0][0] == "_map_expand_sub"
+        # FR-1073: dispatch, sub, account and join nodes
+        assert list(_added(builder)) == [
+            "expand",
+            "_map_expand_sub",
+            "_map_expand_account",
+            "_map_expand_join",
+        ]
 
     @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
     def test_validates_over_is_list(self):
@@ -145,11 +176,11 @@ class TestCompileMapNode:
         builder = MagicMock()
         defaults = {}
 
-        map_edge, _ = compile_map_node("expand", config, builder, defaults)
+        compile_map_node("expand", config, builder, defaults)
 
         state = {"not_a_list": "string"}
         with pytest.raises(TypeError, match="must resolve to list"):
-            map_edge(state)
+            _added(builder)["expand"](state)
 
 
 class TestWrapForReducerErrorHandling:
@@ -157,23 +188,21 @@ class TestWrapForReducerErrorHandling:
 
     @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
     def test_exception_captured_with_map_index(self):
-        """Exceptions should be captured with _map_index."""
+        """Exceptions become a MapFailure, never a collected item (FR-1073)."""
 
         def failing_node(state: dict) -> dict:
             raise ValueError("Processing failed")
 
         wrapped = wrap_for_reducer(failing_node, "results", "data")
-        result = wrapped({"_map_index": 3})
+        result = wrapped({"_map_index": 3, "_map_dispatch": "d"})
 
-        # Should contain error info
-        assert "results" in result
-        assert len(result["results"]) == 1
-        assert result["results"][0]["_map_index"] == 3
-        assert "_error" in result["results"][0]
-        assert "Processing failed" in result["results"][0]["_error"]
-        assert result["results"][0]["_error_type"] == "ValueError"
-        # Should also propagate to errors list
-        assert "errors" in result
+        assert "results" not in result
+        [failure] = result["failed"]
+        assert failure.index == 3
+        assert "Processing failed" in failure.message
+        assert failure.error_type == "ValueError"
+        assert failure.tolerated is False
+        assert len(result["errors"]) == 1
 
     @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
     def test_error_in_result_handled(self):
@@ -183,11 +212,11 @@ class TestWrapForReducerErrorHandling:
             return {"error": "Something went wrong"}
 
         wrapped = wrap_for_reducer(node_with_error, "results", "data")
-        result = wrapped({"_map_index": 2})
+        result = wrapped({"_map_index": 2, "_map_dispatch": "d"})
 
-        assert "results" in result
-        assert result["results"][0]["_map_index"] == 2
-        assert "_error" in result["results"][0]
+        assert "results" not in result
+        assert result["failed"][0].index == 2
+        assert result["_map_accounting"][0].outcome == "failed"
 
     @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
     def test_errors_list_in_result_handled(self):
@@ -197,11 +226,11 @@ class TestWrapForReducerErrorHandling:
             return {"errors": ["Error 1", "Error 2"]}
 
         wrapped = wrap_for_reducer(node_with_errors, "results", "data")
-        result = wrapped({"_map_index": 1})
+        result = wrapped({"_map_index": 1, "_map_dispatch": "d"})
 
-        assert "results" in result
-        assert "errors" in result
-        assert result["results"][0]["_map_index"] == 1
+        assert "results" not in result
+        assert len(result["errors"]) == 1
+        assert result["failed"][0].index == 1
 
     @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
     def test_pydantic_model_converted(self):
@@ -216,7 +245,7 @@ class TestWrapForReducerErrorHandling:
             return {"data": ItemResult(name="test", value=42)}
 
         wrapped = wrap_for_reducer(node_returning_pydantic, "results", "data")
-        result = wrapped({})
+        result = wrapped({"_map_dispatch": "d"})
 
         assert result["results"][0]["name"] == "test"
         assert result["results"][0]["value"] == 42
@@ -305,12 +334,12 @@ class TestCompileMapNodePython:
             "yamlgraph.compile.map_compiler.load_python_function",
             return_value=process_item,
         ):
-            map_edge, sub_node_name = compile_map_node(
+            _, join_name = compile_map_node(
                 "process", config, builder, defaults, python_tools=python_tools
             )
 
-        assert sub_node_name == "_map_process_sub"
-        builder.add_node.assert_called_once()
+        assert join_name == "_map_process_join"
+        assert "_map_process_sub" in _added(builder)
 
     @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
     def test_python_subnode_returns_correct_result(self):
@@ -342,10 +371,10 @@ class TestCompileMapNodePython:
             )
 
         # Get the wrapped node that was added
-        wrapped_node = builder.add_node.call_args[0][1]
+        wrapped_node = _added(builder)["_map_process_sub"]
 
         # Call it with a test state
-        result = wrapped_node({"item": "test", "_map_index": 0})
+        result = wrapped_node({"item": "test", "_map_index": 0, "_map_dispatch": "d"})
 
         assert "results" in result
         assert result["results"][0]["_map_index"] == 0

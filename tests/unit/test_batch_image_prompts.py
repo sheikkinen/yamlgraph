@@ -106,9 +106,13 @@ class TestBatchImagePromptsGraphStructure:
         )
 
     def test_enrich_has_on_error_skip(self):
+        # FR-1073: tolerance is read from the sub-node, not the map level.
         graph = _load_yaml(GRAPH_FILE)
         enrich = graph["nodes"]["enrich"]
-        assert enrich.get("on_error") == "skip", "enrich must have on_error: skip"
+        assert "on_error" not in enrich, "map-level on_error is not read"
+        assert enrich["node"].get("on_error") == "skip", (
+            "enrich sub-node must have on_error: skip"
+        )
 
     def test_enrich_collects_to_prompts(self):
         graph = _load_yaml(GRAPH_FILE)

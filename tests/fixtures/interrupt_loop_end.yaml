@@ -18,6 +18,12 @@ checkpointer:
   type: sqlite
   path: ":memory:"
 
+tools:
+  plan_item:
+    type: python
+    module: tests.fixtures.interrupt_loop_tools
+    function: plan_item
+
 loop_limits:
   parse: 50
 
@@ -45,10 +51,9 @@ nodes:
     as: item
     max_items: 4
     node:
-      type: passthrough
+      type: python
+      tool: plan_item
       state_key: plan
-      output:
-        plan: "{state.item}"
     collect: plans
 
 edges:

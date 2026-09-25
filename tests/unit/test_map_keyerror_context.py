@@ -78,18 +78,22 @@ class TestMapNodeKeyErrorContext:
         }
 
         # Compile should succeed (config is valid)
-        map_edge, _ = compile_map_node(
+        compile_map_node(
             "process_items",
             map_config,
             builder,
             defaults={},
         )
+        # FR-1073: `over` is first resolved by the dispatch node.
+        dispatch = dict(c.args for c in builder.add_node.call_args_list)[
+            "process_items"
+        ]
 
-        # Execute the edge function with state missing the key
+        # Execute the dispatch node with state missing the key
         state = {"other_data": "exists"}
 
         with pytest.raises(KeyError) as exc_info:
-            map_edge(state)
+            dispatch(state)
 
         error_message = str(exc_info.value)
 

@@ -33,6 +33,12 @@ pytestmark = pytest.mark.process
 class TestMapMaxItems:
     """Map node fan-out should be capped by max_items."""
 
+    @staticmethod
+    def _route(builder, map_edge, state):
+        """FR-1073: the dispatch node opens the token the router reads."""
+        update = builder.nodes["test_map"].runnable.invoke(state)
+        return map_edge({**state, **update})
+
     @pytest.mark.req("REQ-YG-055")
     def test_map_edge_truncates_items_to_max_items(self):
         """When items list exceeds max_items, truncate + warn."""
@@ -64,7 +70,7 @@ class TestMapMaxItems:
 
         # Create state with 10 items
         state = {"items": list(range(10)), "results": [], "current_step": ""}
-        sends = map_edge(state)
+        sends = self._route(builder, map_edge, state)
 
         # Should only fan out to 3 items
         assert len(sends) == 3
@@ -98,7 +104,7 @@ class TestMapMaxItems:
         )
 
         state = {"items": list(range(20)), "results": [], "current_step": ""}
-        sends = map_edge(state)
+        sends = self._route(builder, map_edge, state)
 
         # Should cap at graph-level default of 5
         assert len(sends) == 5
@@ -132,7 +138,7 @@ class TestMapMaxItems:
         )
 
         state = {"items": [1, 2, 3], "results": [], "current_step": ""}
-        sends = map_edge(state)
+        sends = self._route(builder, map_edge, state)
 
         assert len(sends) == 3
 
@@ -165,7 +171,7 @@ class TestMapMaxItems:
         )
 
         state = {"items": list(range(200)), "results": [], "current_step": ""}
-        sends = map_edge(state)
+        sends = self._route(builder, map_edge, state)
 
         # Default cap should be 100
         assert len(sends) == 100

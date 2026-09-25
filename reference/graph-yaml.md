@@ -692,13 +692,19 @@ nodes:
 | `node` | `object` | Yes | Sub-node definition (llm, router, or python) |
 | `collect` | `string` | Yes | State key where results are collected |
 | `max_items` | `int` | No | Maximum fan-out items (overrides `config.max_map_items`) |
-| `timeout` | `float` | No | Per-branch timeout in seconds (FR-069). Each branch must complete within this limit. |
-| `on_error` | `string` | No | Error handling: `skip` skips timed-out branches, `fail` (default) raises |
+| `timeout` | `float` | No | Per-branch timeout in seconds (FR-069). Each branch must complete within this limit. A timeout is never tolerated. |
+| `failures` | `string` | No | State key for failed branches (FR-1073). Default: `<collect>_failures`. |
+| `min_success` | `int` or `float` | No | Successes plus tolerated failures required (FR-1073): an `int` count, or a `float` fraction of dispatched items in `[0, 1]`. Default: every dispatched item (strict). |
 
-**How it works:**
-1. Fan-out: Each item is dispatched via `Send()` for parallel processing
-2. Process: Sub-node runs independently per item with `{state.<as>}` available
-3. Collect: Results are aggregated using `Annotated[list, operator.add]` reducer
+The map compiler does not read a map-level `on_error`. Put `on_error: skip`
+(or `retry` with `max_retries`) on the sub-node; a failure it skips is
+*tolerated*.
+
+**How it works (FR-1073):**
+1. Dispatch: the map node records a dispatch token and item count, then sends each item with `Send()`
+2. Process: the sub-node (`_map_<name>_sub`) runs per item with `{state.<as>}` available
+3. Account: `_map_<name>_account` counts every dispatched index, writes the `MapVerdict` to `_map_verdict.<name>` and closes the dispatch. Successes go to `collect`, sorted by `_map_index`. Failures never enter `collect`; each lands in `failures` as a typed `MapFailure` (`map`, `dispatch`, `index`, `error_type`, `message`, `node`, `tolerated`). A failure that is not tolerated also adds one `PipelineError` to `errors`.
+4. Join: `_map_<name>_join` raises `MapCompletenessError` when successes plus tolerated failures fall below `min_success`. It runs one step after the account node, so a checkpointed thread keeps the failed verdict. Outgoing edges start at the join.
 
 **Sub-node variable access:**
 ```yaml

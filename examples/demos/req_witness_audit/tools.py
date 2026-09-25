@@ -76,8 +76,6 @@ def write_raw_results(state: dict[str, Any]) -> dict[str, list[str]]:
     for result in sorted(audit_results, key=_map_index):
         if not isinstance(result, dict):
             raise ValueError("mapped audit result must be an object")
-        if "_error" in result:
-            raise ValueError(f"mapped audit result failed: {result['_error']}")
 
         index = _map_index(result)
         batch = batches_by_index.get(index)

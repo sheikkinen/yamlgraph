@@ -171,7 +171,7 @@ def _compile_agent_node(ctx: NodeCompileContext) -> None:
 
 
 def _compile_map_node(ctx: NodeCompileContext) -> tuple[str, Any]:
-    map_edge_fn, sub_node_name = compile_map_node(
+    map_edge_fn, join_name = compile_map_node(
         ctx.node_name,
         ctx.node_config,
         ctx.graph,
@@ -181,7 +181,7 @@ def _compile_map_node(ctx: NodeCompileContext) -> tuple[str, Any]:
         python_tools=ctx.python_tools,
         tools=ctx.tools,
     )
-    return (ctx.node_name, (map_edge_fn, sub_node_name))
+    return (ctx.node_name, (map_edge_fn, join_name))
 
 
 def _compile_tool_call_node(ctx: NodeCompileContext) -> None:

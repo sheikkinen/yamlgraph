@@ -343,7 +343,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 8 | CAP-8 Error Handling | `error_handlers`, `error_handlers.NodeResult`, `error_handlers.build_skip_error_state`, `error_handlers.check_loop_limit`, … | REQ-YG-027 – 031 |
 | 9 | CAP-9 CLI Interface | `cli/__init__`, `cli/__main__`, `cli/deprecation`, `cli/graph_commands`, … | REQ-YG-032 – 035 |
 | 10 | CAP-10 Export & Serialization | `cli/graph_commands.cmd_graph_codegen`, `cli/schema_commands`, `storage/export`, `storage/serializers` | REQ-YG-036 – 039, 553 |
-| 11 | CAP-11 Subgraph & Map | `map_compiler`, `map_compiler.wrap_for_reducer`, `node_factory/subgraph_nodes` | REQ-YG-040 – 042 |
+| 11 | CAP-11 Subgraph & Map | `map_compiler`, `map_compiler.wrap_for_reducer`, `node_factory/subgraph_nodes` | REQ-YG-040 – 042, 692 |
 | 12 | CAP-12 Utilities | `config`, `constants`, `node_factory/base`, `schema_loader`, … | REQ-YG-043 – 046 |
 | 13 | CAP-13 LangSmith Tracing | `cli/graph_commands`, `utils/tracing` | REQ-YG-047, 547 |
 | 14 | CAP-14 Graph-Level Streaming | `executor_async` | REQ-YG-048 – 049, 065, 480 |
@@ -726,13 +726,14 @@ Export results/states in JSON/Markdown, handle serialization for persistence.
 
 Parallel fan-out and nested subgraph execution.
 
-**Feature Request:** legacy, FR-797, FR-1058
+**Feature Request:** legacy, FR-797, FR-1058, FR-1073
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-040 | Map node compilation | `map_compiler` |
 | REQ-YG-041 | Output wrapping for reduction | `map_compiler.wrap_for_reducer` |
 | REQ-YG-042 | Subgraph node creation. FR-1058: `mode: direct` registers the compiled child graph natively (no callable adapter), so the engine owns its checkpoint namespace and interrupts are durable across it; `mode: invoke` runs the child on a derived "<parent>:<node>" thread and strips the parent's checkpoint coordinates (checkpoint_id, checkpoint_ns, checkpoint_map) and internal __pregel_* keys, so a child cannot resume into its parent's checkpoint and two parents invoking the same child do not collide. User `configurable` keys are forwarded; the parent config is never mutated. | `node_factory/subgraph_nodes`, `compile/subgraph_relay`, `tests/unit/test_fr1058_subgraph_config_propagation.py` |
+| REQ-YG-692 | FR-1073 map result contract. A map compiles to a dispatch node, a sub-node and a join. Branch failures never enter `collect`; they land as typed `MapFailure` records in `failures` (default `<collect>_failures`), non-tolerated ones with exactly one `PipelineError`. The join accounts every dispatched index against the exact dispatch token, writes a `MapVerdict` and raises `MapCompletenessError` when `min_success` (strict by default) is unmet; same-map overlap raises `MapAccountingError`. | `map_compiler`, `compile/map_contract`, `models/map_results`, `tests/unit/test_fr1073_map_result_contract.py` |
 
 ### 12. CAP-12 Utilities
 

@@ -146,7 +146,9 @@ def aggregate_classifications(state: dict[str, Any]) -> dict[str, Any]:
     }
 
     OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
-    OUTPUT_PATH.write_text(json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    OUTPUT_PATH.write_text(
+        json.dumps(result, indent=2, sort_keys=True) + "\n", encoding="utf-8"
+    )
     return {"result": result, "sessions": []}
 
 
@@ -180,8 +182,6 @@ def _normalized_classifications(
     for raw in sorted(raw_items, key=lambda item: item.get("_map_index", 0)):
         if not isinstance(raw, dict):
             raise ValueError(f"classification item must be a dict, got {type(raw)}")
-        if "_error" in raw:
-            raise ValueError(f"map classification failed: {raw['_error']}")
 
         index = raw.get("_map_index")
         if not isinstance(index, int) or not 0 <= index < len(ordered_session_ids):

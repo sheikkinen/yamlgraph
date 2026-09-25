@@ -360,16 +360,6 @@ def _render_state(results, empty_pages, lo=1, hi=10):
 
 
 @pytest.mark.req("REQ-YG-578")
-def test_gate_render_error_entry_raises():
-    tools = _demo_tools()
-    state = _render_state(
-        [{"_map_index": 0, "_error": "pdftoppm exploded"}], empty_pages=[1]
-    )
-    with pytest.raises(ValueError, match="render"):
-        tools.gate_render(state)
-
-
-@pytest.mark.req("REQ-YG-578")
 def test_gate_render_filters_stale_and_verifies_membership():
     tools = _demo_tools()
     state = _render_state(
@@ -453,14 +443,6 @@ def test_merge_vision_drops_blank_transcriptions():
         _merge_state([_t(1, "", blank=True), _t(3, "x", idx=1)], [2], [1, 3])
     )
     assert [c["page"] for c in out["chunks"]] == [2, 3]
-
-
-@pytest.mark.req("REQ-YG-578")
-def test_merge_vision_error_entry_raises():
-    tools = _demo_tools()
-    state = _merge_state([{"_map_index": 0, "_error": "vision timeout"}], [2], [1])
-    with pytest.raises(ValueError, match="transcri"):
-        tools.merge_vision(state)
 
 
 @pytest.mark.req("REQ-YG-578")
