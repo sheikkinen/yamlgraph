@@ -3,6 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Bug
 **Status:** Proposed
+**Human decision (2026-09-25, operator):** H-1 floor of 3 entries per dimension accepted; H-2 AC-09 uses the rerun FR-1073's H-4 already authorized.
 **Effort:** 0.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next

@@ -3,6 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Bug
 **Status:** Proposed
+**Human decision (2026-09-25, operator):** suggested default accepted — graph `variables:` keys missing from the schema are out of scope here and get their own FR.
 **Effort:** 1 day
 **Requested:** 2026-09-25
 **First consumer / first event:** the next

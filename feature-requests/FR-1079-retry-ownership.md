@@ -3,6 +3,7 @@
 **Priority:** HIGH
 **Type:** Bug
 **Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1079-retry-ownership.judgement.md), advisory until human-reviewed); authority gated on R-1–R-6 folded and the provider baseline committed (C-1). No implementation authority yet.
+**Human decision (2026-09-25, operator; judgement C-1 / C-8):** the operator delegates judgement review: where the implementing agent and the judge agree, authority stands without an operator read. The agent verified R-1's key claim on main (`race_node.py` and `tools/agent.py` call the provider with their own retry loops, outside the executor) and agrees. Paid live observation (D-7) approved up to USD 10 total.
 **Effort:** 1.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next `innovation_matrix` run on haiku
