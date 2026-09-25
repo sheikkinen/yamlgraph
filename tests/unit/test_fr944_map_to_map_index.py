@@ -212,20 +212,21 @@ class TestErrorAttribution:
 
 
 class TestCompiledPathWitness:
-    """AC-06 under FR-1073: upstream sub -> upstream join -> downstream dispatch."""
+    """AC-06 under FR-1073: upstream sub -> account -> join -> downstream dispatch."""
 
     @pytest.mark.req("REQ-YG-568")
     def test_join_node_in_compiled_path(self, tmp_path):
-        """The upstream map's join is the fan-in barrier: its sub-node has a
-        static edge to it, it has a static edge to the downstream dispatch
-        node, and no router is attached to the upstream sub-node."""
+        """The upstream map's join is the fan-in barrier: its sub-node reaches
+        it via the account node, it has a static edge to the downstream
+        dispatch node, and no router is attached to the upstream sub-node."""
         builder = load_and_compile(str(_write_graph(tmp_path)))
 
         join_name = "_map_first_map_join"
         assert join_name in builder.nodes
 
         static_edges = set(builder.edges)
-        assert ("_map_first_map_sub", join_name) in static_edges
+        assert ("_map_first_map_sub", "_map_first_map_account") in static_edges
+        assert ("_map_first_map_account", join_name) in static_edges
         assert (join_name, "second_map") in static_edges
 
         branch_sources = set(builder.branches.keys())

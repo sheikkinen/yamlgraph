@@ -15,6 +15,7 @@ from langgraph.graph import StateGraph
 from yamlgraph.compile.map_contract import (
     branch_failure,
     classify_result,
+    make_account_node,
     make_dispatch_node,
     make_dispatch_router,
     make_join_node,
@@ -355,14 +356,17 @@ def compile_map_node(
             items = items[:max_items]
         return items
 
-    # FR-1073: dispatch -> sub -> join
+    # FR-1073: dispatch -> sub -> account -> join
+    account_name = f"_map_{name}_account"
     builder.add_node(name, make_dispatch_node(name, resolve_items))
     builder.add_node(sub_node_name, wrapped_node)
-    builder.add_node(join_name, make_join_node(name, config.get("min_success")))
+    builder.add_node(account_name, make_account_node(name, config.get("min_success")))
+    builder.add_node(join_name, make_join_node(name))
     map_edge = make_dispatch_router(
-        name, sub_node_name, join_name, item_var, resolve_items
+        name, sub_node_name, account_name, item_var, resolve_items
     )
-    builder.add_conditional_edges(name, map_edge, [sub_node_name, join_name])
-    builder.add_edge(sub_node_name, join_name)
+    builder.add_conditional_edges(name, map_edge, [sub_node_name, account_name])
+    builder.add_edge(sub_node_name, account_name)
+    builder.add_edge(account_name, join_name)
 
     return map_edge, join_name

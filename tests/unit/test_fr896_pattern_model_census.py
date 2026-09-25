@@ -111,7 +111,7 @@ class TestPatternModelGitTools:
         state["model_findings_failures"] = [
             {
                 "map": "model_judge",
-                "dispatch": None,
+                "dispatch": "d",
                 "index": 1,
                 "error_type": "RuntimeError",
                 "message": "boom",

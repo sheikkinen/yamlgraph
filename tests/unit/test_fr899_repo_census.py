@@ -279,7 +279,7 @@ class TestRepoLedgerReducer:
         state["findings_failures"] = [
             {
                 "map": "judge",
-                "dispatch": None,
+                "dispatch": "d",
                 "index": 0,
                 "error_type": "RuntimeError",
                 "message": "boom",

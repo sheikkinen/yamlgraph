@@ -14,7 +14,7 @@ class MapFailure(BaseModel):
     """One failed map branch, kept out of `collect`."""
 
     map: str
-    dispatch: str | None
+    dispatch: str
     index: int
     error_type: str
     message: str
@@ -26,7 +26,7 @@ class MapAccounting(BaseModel):
     """One row per finished branch; the join counts these."""
 
     map: str
-    dispatch: str | None
+    dispatch: str
     index: int
     outcome: Literal["succeeded", "tolerated", "failed"]
 

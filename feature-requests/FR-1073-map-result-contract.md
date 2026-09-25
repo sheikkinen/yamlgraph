@@ -434,18 +434,18 @@ next commit on the branch. One PR, per the operator ruling.
   `MapVerdict`, `MapCompletenessError`, `MapAccountingError`, the reducers,
   and `compute_verdict` (item 7 arithmetic).
 - `yamlgraph/compile/map_contract.py`: branch classification, the dispatch
-  node and router, and the join.
-- `map_compiler.py` compiles `<name>` (dispatch), `_map_<name>_sub` and
-  `_map_<name>_join`. `edge_compiler.py` starts every outgoing edge at the
+  node and router, the account node and the join.
+- `map_compiler.py` compiles `<name>` (dispatch), `_map_<name>_sub`,
+  `_map_<name>_account` and `_map_<name>_join`. `edge_compiler.py` starts
+  every outgoing edge at the
   join. `validators.py` checks `min_success` and `failures` at load.
   `state_builder.py`/`state_codegen.py` declare the reducers.
 
-**AC status.** AC-01, AC-02, AC-04 to AC-22 met: witnesses in
+**AC status.** AC-01, AC-02, AC-04 to AC-23 met: witnesses in
 `tests/unit/test_fr1073_map_result_contract.py`, the migrated map test
 files, and the consumer witnesses below. AC-03 cut by the operator ruling.
-AC-23: status, decisions and changelog fragment are in this PR. The diary
-entry lands in the session diary PR that follows FR-1094 (operator plan
-item 3).
+AC-23: status, decisions, changelog fragment and the diary entry
+(`docs/diary/2026-09-25-map-result-contract.md`) are in this PR.
 
 **Consumer migration (H-3, AC-17).**
 - 11 files drop their `_error` branch: a failed item can no longer reach
@@ -478,8 +478,15 @@ met, no raise. LLM graphs: compile check only, no live run (H-4).
 **Deviations from the plan.**
 - `MapFailure.index`, not `_map_index`.
 - `key` cut (operator ruling); the dispatch token is a UUID per dispatch.
-- The join raises without committing its verdict; checkpoint inspection
-  after the raise still sees the finished results (AC-06).
+- Item 8 names three nodes; the map compiles four. Item 6 requires the
+  verdict and the closed dispatch to be written before
+  `MapCompletenessError`, and LangGraph discards every write of a node
+  that raises. So `_map_<name>_account` does item 6's first four steps and
+  `_map_<name>_join` raises in the next step. The join still owns every
+  outgoing edge (AC-14). Found by review of PR #702 (P1); the checkpoint
+  witness now asserts the failed verdict and `_map_open.<name> is None`.
+- `MapFailure.dispatch` and `MapAccounting.dispatch` are required strings;
+  a branch without `_map_dispatch` raises `MapAccountingError` (review P2).
 - The FR-944 barrier node is dropped: the join is the barrier.
 - The map `Send` branch in `routing.py` is deleted; the dispatch router
   owns fan-out. It re-resolves `over` and checks the count against the

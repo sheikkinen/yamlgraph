@@ -703,8 +703,8 @@ The map compiler does not read a map-level `on_error`. Put `on_error: skip`
 **How it works (FR-1073):**
 1. Dispatch: the map node records a dispatch token and item count, then sends each item with `Send()`
 2. Process: the sub-node (`_map_<name>_sub`) runs per item with `{state.<as>}` available
-3. Join: `_map_<name>_join` counts every dispatched index. Successes go to `collect`, sorted by `_map_index`. Failures never enter `collect`; each lands in `failures` as a typed `MapFailure` (`map`, `dispatch`, `index`, `error_type`, `message`, `node`, `tolerated`). A failure that is not tolerated also adds one `PipelineError` to `errors`.
-4. Verdict: the join raises `MapCompletenessError` when successes plus tolerated failures fall below `min_success`. Outgoing edges start at the join.
+3. Account: `_map_<name>_account` counts every dispatched index, writes the `MapVerdict` to `_map_verdict.<name>` and closes the dispatch. Successes go to `collect`, sorted by `_map_index`. Failures never enter `collect`; each lands in `failures` as a typed `MapFailure` (`map`, `dispatch`, `index`, `error_type`, `message`, `node`, `tolerated`). A failure that is not tolerated also adds one `PipelineError` to `errors`.
+4. Join: `_map_<name>_join` raises `MapCompletenessError` when successes plus tolerated failures fall below `min_success`. It runs one step after the account node, so a checkpointed thread keeps the failed verdict. Outgoing edges start at the join.
 
 **Sub-node variable access:**
 ```yaml

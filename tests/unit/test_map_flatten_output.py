@@ -155,7 +155,7 @@ class TestWrapForReducerFlatten:
             map_name="analyze",
             failures_key="failed",
         )
-        result = wrapped({"_map_index": 0, "item": "test"})
+        result = wrapped({"_map_index": 0, "_map_dispatch": "d", "item": "test"})
         assert len(result["_map_accounting"]) == 1
         return {"collected": result["collected"]}
 

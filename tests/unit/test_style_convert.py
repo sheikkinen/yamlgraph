@@ -265,7 +265,7 @@ class TestMapOutputCompatibility:
                 map_name="convert_styles",
                 failures_key="prompts_failures",
             )
-            out = wrapped({"_map_index": i})
+            out = wrapped({"_map_index": i, "_map_dispatch": "d"})
             collected.extend(out["prompts"])
         return collected
 
@@ -321,7 +321,7 @@ class TestFailurePathSurfacesError:
             map_name="convert_styles",
             failures_key="prompts_failures",
         )
-        out = wrapped({"_map_index": 2})
+        out = wrapped({"_map_index": 2, "_map_dispatch": "d"})
 
         # Error surfaces on the errors channel (not swallowed).
         assert out.get("errors"), "branch failure must surface on state.errors"

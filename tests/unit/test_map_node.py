@@ -41,7 +41,7 @@ class TestWrapForReducer:
             return {"result": state["item"] * 2}
 
         wrapped = wrap_for_reducer(simple_node, "collected", "result")
-        result = wrapped({"item": 5})
+        result = wrapped({"item": 5, "_map_dispatch": "d"})
 
         assert _collected(result, "collected") == {"collected": [10]}
 
@@ -53,7 +53,7 @@ class TestWrapForReducer:
             return {"data": state["value"]}
 
         wrapped = wrap_for_reducer(node_fn, "results", "data")
-        result = wrapped({"value": "test", "_map_index": 2})
+        result = wrapped({"value": "test", "_map_index": 2, "_map_dispatch": "d"})
 
         assert _collected(result, "results") == {
             "results": [{"_map_index": 2, "value": "test"}]
@@ -67,7 +67,7 @@ class TestWrapForReducer:
             return {"frame_data": {"before": "a", "after": "b"}, "other": "ignore"}
 
         wrapped = wrap_for_reducer(node_fn, "frames", "frame_data")
-        result = wrapped({})
+        result = wrapped({"_map_dispatch": "d"})
 
         assert _collected(result, "frames") == {
             "frames": [{"before": "a", "after": "b"}]
@@ -125,7 +125,7 @@ class TestCompileMapNode:
 
     @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
     def test_map_edge_empty_list(self):
-        """Empty list routes straight to the join (FR-1073)."""
+        """Empty list routes straight to the account node (FR-1073)."""
         config = {
             "over": "{items}",
             "as": "item",
@@ -140,7 +140,7 @@ class TestCompileMapNode:
         state = {"items": []}
         target = _dispatch_then_route(builder, map_edge, "expand", state)
 
-        assert target == "_map_expand_join"
+        assert target == "_map_expand_account"
 
     @pytest.mark.req("REQ-YG-040", "REQ-YG-041")
     def test_adds_wrapped_sub_node_to_builder(self):
@@ -156,10 +156,11 @@ class TestCompileMapNode:
 
         compile_map_node("expand", config, builder, defaults)
 
-        # FR-1073: dispatch, sub and join nodes
+        # FR-1073: dispatch, sub, account and join nodes
         assert list(_added(builder)) == [
             "expand",
             "_map_expand_sub",
+            "_map_expand_account",
             "_map_expand_join",
         ]
 
@@ -193,7 +194,7 @@ class TestWrapForReducerErrorHandling:
             raise ValueError("Processing failed")
 
         wrapped = wrap_for_reducer(failing_node, "results", "data")
-        result = wrapped({"_map_index": 3})
+        result = wrapped({"_map_index": 3, "_map_dispatch": "d"})
 
         assert "results" not in result
         [failure] = result["failed"]
@@ -211,7 +212,7 @@ class TestWrapForReducerErrorHandling:
             return {"error": "Something went wrong"}
 
         wrapped = wrap_for_reducer(node_with_error, "results", "data")
-        result = wrapped({"_map_index": 2})
+        result = wrapped({"_map_index": 2, "_map_dispatch": "d"})
 
         assert "results" not in result
         assert result["failed"][0].index == 2
@@ -225,7 +226,7 @@ class TestWrapForReducerErrorHandling:
             return {"errors": ["Error 1", "Error 2"]}
 
         wrapped = wrap_for_reducer(node_with_errors, "results", "data")
-        result = wrapped({"_map_index": 1})
+        result = wrapped({"_map_index": 1, "_map_dispatch": "d"})
 
         assert "results" not in result
         assert len(result["errors"]) == 1
@@ -244,7 +245,7 @@ class TestWrapForReducerErrorHandling:
             return {"data": ItemResult(name="test", value=42)}
 
         wrapped = wrap_for_reducer(node_returning_pydantic, "results", "data")
-        result = wrapped({})
+        result = wrapped({"_map_dispatch": "d"})
 
         assert result["results"][0]["name"] == "test"
         assert result["results"][0]["value"] == 42
@@ -373,7 +374,7 @@ class TestCompileMapNodePython:
         wrapped_node = _added(builder)["_map_process_sub"]
 
         # Call it with a test state
-        result = wrapped_node({"item": "test", "_map_index": 0})
+        result = wrapped_node({"item": "test", "_map_index": 0, "_map_dispatch": "d"})
 
         assert "results" in result
         assert result["results"][0]["_map_index"] == 0

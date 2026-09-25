@@ -108,7 +108,7 @@ class TestWrapForReducerTimeout:
             return {"result": "done"}
 
         wrapped = wrap_for_reducer(slow_node, "results", "result", timeout=0.05)
-        result = wrapped({"_map_index": 0})
+        result = wrapped({"_map_index": 0, "_map_dispatch": "d"})
 
         # FR-1073: a timeout is a MapFailure, never a collected item
         assert "results" not in result
@@ -127,7 +127,7 @@ class TestWrapForReducerTimeout:
             return {"result": state["item"] * 2}
 
         wrapped = wrap_for_reducer(fast_node, "results", "result", timeout=5.0)
-        result = wrapped({"item": 5, "_map_index": 0})
+        result = wrapped({"item": 5, "_map_index": 0, "_map_dispatch": "d"})
 
         assert "results" in result
         assert result["results"][0] == {"_map_index": 0, "value": 10}
@@ -140,7 +140,7 @@ class TestWrapForReducerTimeout:
             return {"result": "ok"}
 
         wrapped = wrap_for_reducer(node_fn, "results", "result")
-        result = wrapped({})
+        result = wrapped({"_map_dispatch": "d"})
 
         assert result["results"] == ["ok"]
         assert [r.outcome for r in result["_map_accounting"]] == ["succeeded"]
@@ -156,7 +156,7 @@ class TestWrapForReducerTimeout:
             return {"result": "done"}
 
         wrapped = wrap_for_reducer(slow_node, "results", "result", timeout=0.05)
-        result = wrapped({"_map_index": 0})
+        result = wrapped({"_map_index": 0, "_map_dispatch": "d"})
 
         assert result["errors"][0].type == ErrorType.TIMEOUT_ERROR
         assert result["errors"][0].retryable is False
@@ -202,7 +202,7 @@ class TestCompileMapNodeTimeout:
         ]
 
         # Call it with state — should time out
-        result = wrapped_node({"item": "x", "_map_index": 0})
+        result = wrapped_node({"item": "x", "_map_index": 0, "_map_dispatch": "d"})
 
         assert "results" not in result
         assert "timed out" in result["results_failures"][0].message.lower()

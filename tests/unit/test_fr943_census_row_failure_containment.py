@@ -75,7 +75,7 @@ class TestContainment:
         """FR-1073: a tolerated branch failure arrives on findings_failures."""
         failure = {
             "map": "judge",
-            "dispatch": None,
+            "dispatch": "d",
             "index": 1,
             "error_type": "RuntimeError",
             "message": "boom",

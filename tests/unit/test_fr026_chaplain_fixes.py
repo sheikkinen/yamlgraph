@@ -49,7 +49,7 @@ class TestWrapForReducerNonDict:
             return "hello world"
 
         wrapped = wrap_for_reducer(string_node, "results", "output")
-        result = wrapped({"_map_index": 0})
+        result = wrapped({"_map_index": 0, "_map_dispatch": "d"})
 
         # Should not crash, should collect the value
         assert "results" in result
@@ -63,7 +63,7 @@ class TestWrapForReducerNonDict:
             return 42
 
         wrapped = wrap_for_reducer(int_node, "results", "output")
-        result = wrapped({"_map_index": 0})
+        result = wrapped({"_map_index": 0, "_map_dispatch": "d"})
 
         assert "results" in result
         assert result["results"][0]["value"] == 42
@@ -76,7 +76,7 @@ class TestWrapForReducerNonDict:
             return "processed"
 
         wrapped = wrap_for_reducer(string_node, "results", "output")
-        result = wrapped({"_map_index": 3})
+        result = wrapped({"_map_index": 3, "_map_dispatch": "d"})
 
         item = result["results"][0]
         assert item["_map_index"] == 3
@@ -90,7 +90,7 @@ class TestWrapForReducerNonDict:
             return {"output": "some result", "meta": "data"}
 
         wrapped = wrap_for_reducer(dict_node, "results", "output")
-        result = wrapped({"_map_index": 0})
+        result = wrapped({"_map_index": 0, "_map_dispatch": "d"})
 
         assert "results" in result
         item = result["results"][0]
@@ -106,7 +106,7 @@ class TestWrapForReducerNonDict:
             return [1, 2, 3]
 
         wrapped = wrap_for_reducer(list_node, "results", "output")
-        result = wrapped({"_map_index": 1})
+        result = wrapped({"_map_index": 1, "_map_dispatch": "d"})
 
         item = result["results"][0]
         assert item["_map_index"] == 1

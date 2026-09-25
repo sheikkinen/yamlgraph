@@ -11,7 +11,7 @@ from examples.ocr_cleanup.tools.merger import merge_paragraphs_node
 def test_skip_report_reads_map_failures() -> None:
     failure = {
         "map": "cleanup_pages",
-        "dispatch": None,
+        "dispatch": "d",
         "index": 3,
         "error_type": "TimeoutError",
         "message": "llm timed out",
