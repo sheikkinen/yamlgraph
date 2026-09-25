@@ -72,8 +72,7 @@ printed first. Nothing else about streaming changes.
 - [ ] Tests carry `@pytest.mark.req("REQ-YG-694")`, a new requirement
       ("`graph run --stream` exits 1 on an error event, else 0") in
       `capabilities/CAP-14-graph-level-streaming.yaml`, home of the CLI
-      streaming REQ-YG-480. Highest in `capabilities/*.yaml` is REQ-YG-692;
-      FR-1088 claims 693. `ARCHITECTURE.md` regenerated;
+      streaming REQ-YG-480. `ARCHITECTURE.md` regenerated;
       `python scripts/req_coverage.py --strict` passes.
 - [ ] Changelog fragment (`type: fix`, `scope: cli`, `req: REQ-YG-694`).
 - [ ] Diary entry in `docs/diary/` with a **Seed:**.

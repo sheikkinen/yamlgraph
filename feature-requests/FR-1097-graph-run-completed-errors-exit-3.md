@@ -10,33 +10,19 @@
 2026-09-24 that run lost four of 25 map branches, recorded all four in
 `state.errors`, printed its success output and exited 0
 ([docs/issues-2026-09-24.md](../docs/issues-2026-09-24.md) §1.2 items 4–7).
-**Research:** carried from FR-1083. The FR-890 research route was not run, by
-operator decision (2026-09-25: "refile. skip research — document as
-skipped"). The committed substitute is FR-1083's
-[Alternatives Considered](FR-1083-exit-code-reflects-errors.md#alternatives-considered)
-(six solution classes, one chosen, one preserved dissent, `is_this_a_graph`
-answered "no"), which the judgement found substantive
-([judgement](FR-1083-exit-code-reflects-errors.judgement.md) "What is sound"),
-plus [docs/issues-2026-09-24.md](../docs/issues-2026-09-24.md) §1.2, §2 D4
-(no graph and not the CLI reads `state.errors`) and §7 B. This FR keeps the
-chosen class unchanged: the CLI reads the final `state.errors`, tolerance is a
-typed field set where the error is built, and a completed run with losses
-exits 3.
+**Research:** skipped by operator decision (2026-09-25); the substitute is
+FR-1083's
+[Alternatives Considered](FR-1083-exit-code-reflects-errors.md#alternatives-considered),
+found substantive by its judgement. The chosen class is unchanged.
 **Prior art:**
 - [FR-1083](FR-1083-exit-code-reflects-errors.md) +
-  [judgement](FR-1083-exit-code-reflects-errors.judgement.md) (**SPLIT**, no
-  authority). This FR is its deliverable D-1, with R-1..R-6 applied:
-  no `--stream` change (R-1), operator decisions recorded (R-2), CLI tally kept
-  out of graph state (R-3), map witness per FR-1073 (R-4), complete caller
-  census (R-5), unconditional ACs (R-6). D-2, the streaming error-event exit,
-  is [FR-1098](FR-1098-stream-error-event-exit-status.md).
-- [FR-1066](FR-1066-exit-code-reflects-errors.md) (**Rejected**,
-  [judgement](FR-1066-exit-code-reflects-errors.judgement.md)). Same goal.
-  FR-1083 answered its objections (reachable completed paths instead of a
-  raising witness; output and exports before exit 3; caller table); this FR
-  inherits those answers. FR-1066's operator decision stands: "exit 3 is a
-  hard stop. Shell callers must not continue past it unless they handle it
-  explicitly."
+  [judgement](FR-1083-exit-code-reflects-errors.judgement.md) (**SPLIT**).
+  This FR is its deliverable D-1 with R-1..R-6 applied; D-2 is
+  [FR-1098](FR-1098-stream-error-event-exit-status.md).
+- [FR-1066](FR-1066-exit-code-reflects-errors.md) (**Rejected**). Its
+  objections were answered by FR-1083; its operator decision stands: "exit 3
+  is a hard stop. Shell callers must not continue past it unless they handle
+  it explicitly."
 - [FR-1073](FR-1073-map-result-contract.md) (merged 2026-09-25, PR #702;
   judgement C-3 met). It owns the map failure channel: a non-tolerated branch
   failure adds exactly one `PipelineError` with `node=_map_<name>_sub`
@@ -50,8 +36,6 @@ exits 3.
   `on_fail: halt` raises `GuardHaltError`
   (`yamlgraph/utils/guard_runtime.py#L240-L241`) before output and exports,
   exiting 1 like a crash. Opt-in and output-destroying; not a substitute.
-- [FR-827](FR-827-gitclaw-forkable-runner.md) defect 4 (carried from
-  FR-1083) — worked around downstream only.
 
 ## Summary
 
@@ -237,9 +221,9 @@ non-zero**, **handles 3** (edited by this FR).
 | 27 | `scripts/research.sh#L71-L84` | `set -u` (L6); `GRAPH_RC=$?` (L73); artifact + schema check L76, L83–L84 decide | **handles 3** |
 | 28 | `scripts/review.sh#L57-L62` | `set -u` (L6); `GRAPH_RC=$?` (L58); artifact check L61–L62 decides | **handles 3** |
 | 29 | `.github/workflows/commitlint.yml#L305` | echoed hint only (L247 runs `check_changelog_req.py --skip-llm`, no graph run) | unchanged (not a caller) |
-| 30 | `scripts/check_changelog_req.py#L179-L200`, `#L314-L315` | non-zero → `None` → listed "LLM unavailable" | **handles 3**: own reason `graph completed with errors (rc=3)` |
+| 30 | `scripts/check_changelog_req.py#L179-L200`, `#L314-L315` | non-zero → `None` → listed "LLM unavailable"; CI and pre-commit pass `--skip-llm` | unchanged (any non-zero = no LLM verdict) |
 | 31 | `yamlgraph/utils/fsm/action.py#L279`, `#L325-L332` | non-zero → FSM `error_event` | unchanged (any non-zero = `error_event`) |
-| 32 | `examples/yamlgraph_gen/tools/runner.py#L24-L43` | non-zero → `valid: False`, errors parsed from a traceback only | **handles 3**: parse the stderr summary lines into `errors` |
+| 32 | `examples/yamlgraph_gen/tools/runner.py#L24-L43` | non-zero → `valid: False` | unchanged (a run with errors is not valid) |
 
 Rows 19, 24, 25, 27, 28 edit (decision 1): after the graph command, a
 `case` on the status prints `graph completed with errors (rc=3)` to stderr on
@@ -299,10 +283,7 @@ GREEN after, each with `@pytest.mark.req("REQ-YG-XXX")` for the new REQ.
 - [ ] AC-11: every "handles 3" row in the Caller census is changed and
   covered: rows 19, 24, 25, 27, 28 by a shell assertion with a stub `YG`
   exiting 3 that shows the stderr line and the unchanged artifact verdict
-  (pass with a valid artifact, fail 65 without); row 30 by a unit test that
-  an rc-3 result is reported with its own reason, not "LLM unavailable";
-  row 32 by a unit test that stderr summary lines become `errors`. No other
-  caller is edited.
+  (pass with a valid artifact, fail 65 without). No other caller is edited.
 - [ ] AC-12: `reference/getting-started.md` documents non-stream 0/1/3, the
   tolerated rule (skip, warn), the history rule, both JSON keys, and the
   absence of exit 3 in message streaming.

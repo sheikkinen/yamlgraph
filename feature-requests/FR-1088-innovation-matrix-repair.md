@@ -214,12 +214,12 @@ From the judgement's revised criteria. Witness file:
   H-4 has already been consumed, this criterion is recorded as blocked for
   lack of spend authority and does not authorize another run.
 - [ ] AC-10: `capabilities/CAP-278-innovation-matrix-demo.yaml` defines
-  `REQ-YG-693` and `fr: FR-1088`; the requirement states the full contract
+  `REQ-YG-690` and `fr: FR-1088`; the requirement states the full contract
   (declared `domain`, 3 to 5 entries per dimension, cap equals the schema
   product, dimension-derived unique IDs, index-grounded synthesis that
   renders every pair and marks missing expansions); every new test in
   `tests/unit/test_fr1088_innovation_matrix_repair.py` carries
-  `@pytest.mark.req("REQ-YG-693")`; `ARCHITECTURE.md` is regenerated;
+  `@pytest.mark.req("REQ-YG-690")`; `ARCHITECTURE.md` is regenerated;
   `python scripts/req_coverage.py --strict` passes.
 - [ ] AC-11: The focused deterministic test file passes, and RED and GREEN
   are separate commits; RED fails on the missing FR-1088 behavior, not on
@@ -230,12 +230,6 @@ From the judgement's revised criteria. Witness file:
   `Seed:` record the delivered repair and any honest validation limitation.
 - [ ] AC-13: The implementation diff contains none of the not-authorized
   surfaces below.
-
-REQ number: the judgement named `REQ-YG-690`. The highest REQ in
-`capabilities/*.yaml` is `REQ-YG-692` (FR-1073, `CAP-11-subgraph-map.yaml`),
-so this FR takes the next free number above it, `REQ-YG-693`; the
-unused 690–691 gap is left to whoever reserved it. `CAP-278` is unclaimed
-in `capabilities/` and in every FR.
 
 ## Alternatives Considered
 
@@ -299,7 +293,7 @@ Deliverables (judgement D-1–D-8):
 | D-3 | `examples/demos/innovation_matrix/prompts/generate_dimensions.yaml` (bounds), `.../prompts/synthesize.yaml` (index join, no literal count) |
 | D-4 | `examples/demos/innovation_matrix/nodes/cartesian.py`: IDs from lengths, empty-dimension refusal, count-free docstrings |
 | D-5 | `tests/unit/test_fr1088_innovation_matrix_repair.py` |
-| D-6 | `capabilities/CAP-278-innovation-matrix-demo.yaml` (`REQ-YG-693`), regenerated `ARCHITECTURE.md`, `changelog/unreleased/fr-1088-innovation-matrix-repair.md` |
+| D-6 | `capabilities/CAP-278-innovation-matrix-demo.yaml` (`REQ-YG-690`), regenerated `ARCHITECTURE.md`, `changelog/unreleased/fr-1088-innovation-matrix-repair.md` |
 | D-7 | Local `tmp/draft-authoring-report.md`; committed `examples/demos/innovation_matrix/demo-output-pipeline.log` and its input `examples/demos/innovation_matrix/domain-brief.md`; this FR's implementation record |
 | D-8 | One `docs/diary/` reflection with `Seed:` |
 
@@ -310,7 +304,7 @@ map overflow policy (FR-939); undeclared-variable policy (FR-1067);
 `graph.yaml`, `drill-down.yaml`, `select_cells.yaml`,
 `generate_matrix.yaml`; E007 coverage of map sub-node variables; a second
 paid run; unrelated demo cleanup; any capability or architecture change
-beyond CAP-278 and REQ-YG-693.
+beyond CAP-278 and REQ-YG-690.
 
 Enforcement conditions C-1–C-8 are in the
 [judgement](FR-1088-innovation-matrix-repair.judgement.md#conditions-for-enforcement);
