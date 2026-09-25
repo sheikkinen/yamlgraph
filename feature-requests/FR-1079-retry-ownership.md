@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1079-retry-ownership.judgement.md), advisory until human-reviewed); authority gated on R-1–R-6 folded and the provider baseline committed (C-1). No implementation authority yet.
 **Effort:** 1.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next `innovation_matrix` run on haiku
