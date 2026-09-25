@@ -175,7 +175,7 @@ starts by establishing which layers ran (RED 5 below) before claiming a count.
 
 ## Related
 
-- Map-result half refiled with research as [FR-1073](FR-1073-map-result-contract.md); the retry half is not yet refiled.
+- Map-result half refiled with research as [FR-1073](FR-1073-map-result-contract.md); the retry half is refiled as [FR-1079](FR-1079-retry-ownership.md).
 - Plan: [docs/issues-2026-09-24.md](../docs/issues-2026-09-24.md) §7 A
 - Depends on: [FR-1063](FR-1063-map-compiler-package-split.md)
 - Consumed by: [FR-1065](FR-1065-resumable-map-investigation.md), [FR-1066](FR-1066-exit-code-reflects-errors.md), [FR-1070](FR-1070-innovation-matrix-repair.md)
