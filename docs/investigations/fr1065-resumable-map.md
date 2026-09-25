@@ -144,7 +144,7 @@ and each further migration is its own change.
   parent; the 5a/5b counts assume no seventh item finishes inside that
   window (items take 50 ms, 2 at a time).
 
-## Pilot budget (judgement R-3; proposed, awaiting operator acceptance)
+## Pilot budget (judgement R-3; accepted by operator 2026-09-25)
 
 For the `person_profile_census` pilot under FR-1076:
 

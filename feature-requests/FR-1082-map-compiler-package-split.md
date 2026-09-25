@@ -3,6 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Enhancement (refactor)
 **Status:** Proposed
+**Human decision (2026-09-25, operator):** all three suggested defaults under [Human decision needed](#human-decision-needed) accepted — in-body research table; enforce only if no FR-1073 branch or open PR exists, else withdraw and refile after FR-1073 merges; D-3 path note in FR-1073 if this lands first.
 **Effort:** 0.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the first implementation commit of

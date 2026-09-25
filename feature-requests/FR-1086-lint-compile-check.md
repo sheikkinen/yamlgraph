@@ -3,6 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Bug / Linter completeness
 **Status:** Proposed
+**Human decision (2026-09-25, operator):** suggested default accepted — building is opt-in (`graph lint --build`); plain `graph lint` executes no graph-declared Python.
 **Effort:** 1 day
 **Requested:** 2026-09-25
 **First consumer / first event:** `yamlgraph graph lint --build

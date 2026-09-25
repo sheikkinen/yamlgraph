@@ -3,6 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Bug
 **Status:** Proposed
+**Human decision (2026-09-25, operator):** suggested default accepted — one fixed built-in width of 8 for every provider and entry point, re-confirming the FR-1068 / PR #691 answer.
 **Effort:** 0.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next `innovation_matrix` run
