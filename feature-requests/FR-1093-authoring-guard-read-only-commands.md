@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Enhancement (enforcement documentation; no change to any allow/deny decision)
-**Status:** Proposed
+**Status:** Withdrawn (2026-09-25, operator). Folded into [FR-1092](FR-1092-authoring-guard-covers-all-graph-files.md) (Proposed Solution item 8, AC-12), which rewrites the same guard and denial text. No separate judge run.
 **Effort:** 0.5 day
 **Requested:** 2026-09-25
 **First consumer / first event:** the next agent whose read-only

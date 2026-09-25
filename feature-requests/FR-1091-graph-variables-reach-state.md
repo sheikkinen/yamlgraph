@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Bug
-**Status:** Proposed
+**Status:** Parked (2026-09-25, operator). The census finds 0 graphs losing a key today, and the only consumer named is FR-1084's test fixture. Revive when a graph actually loses a key. Not to be judged while parked.
 **Effort:** 0.5 day
 **Requested:** 2026-09-25
 **First consumer / first event:** the implementer of FR-1084 AC-06, whose

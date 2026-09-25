@@ -53,6 +53,9 @@ grid bound; nothing about the guard. No precedent against this FR.
 [FR-1013](FR-1013-chaplain-doctrine-sweep.md) (REJECTED). Rejected because
 the process became the deliverable. Taken as a size limit: the fix stays
 inside the three predicate surfaces plus their docs.
+[FR-1093](FR-1093-authoring-guard-read-only-commands.md) (Withdrawn). Its
+read-route denial hint is folded in here as Proposed Solution item 8; its
+Problem and census stay in that file as the evidence.
 A search of `feature-requests/` for `pre-command-guard`, `governed_path` and
 `author.sh` found no REJECTED FR that proposed or refused widening the
 governed set.
@@ -236,8 +239,15 @@ docs. `graphs/` arms are unchanged.
    ([#L269](../.github/hooks/scripts/pre-command-guard.sh#L269)) name the
    content rule and the terminal rule. The doctrine sentence
    ([doctrine.md#L11-L13](../.github/skills/graph-authoring/doctrine.md#L11-L13))
-   says "a graph (any YAML with a top-level `nodes:` key) or a prompt"
-   (H-3).
+   says "a graph (any YAML with a top-level `nodes:` key) or a prompt".
+   `.github/copilot-instructions.md` is not edited.
+8. **Read-route hint (from FR-1093).** When the reason is the catch-all
+   "unrecognized write shape … (fail closed)", the denial also says:
+   read-only? use the editor's read/search tools, `yamlgraph graph lint
+   <path>`, or a script under `tmp/` run as `python tmp/<name>.py`; writes
+   still go through `scripts/author.sh`. Other reasons keep today's text.
+   No allow/deny decision changes. Evidence: FR-1093 Problem §2 (26 agent
+   false positives, 0 prevented writes among the 11 recovered).
 
 ## Acceptance Criteria
 
@@ -285,7 +295,7 @@ before any guard edit (Commandment 7).
   not today's counts, so new files are held to it.
 - [ ] AC-09: `.github/hooks/README.md` contract row
   ([#L80](../.github/hooks/README.md#L80)) and section (#L82-L92), the Check
-  6 comment, the denial text, the doctrine sentence (H-3), the REQ-YG-423
+  6 comment, the denial text, the `doctrine.md` sentence, the REQ-YG-423
   row in `ARCHITECTURE.md` and `capabilities/CAP-158-copilot-skill-promotion.yaml`
   describe the content rule and the terminal rule.
   `python scripts/req_coverage.py --strict` passes.
@@ -295,6 +305,10 @@ before any guard edit (Commandment 7).
 - [ ] AC-11: the PR is reviewed through `scripts/review.sh` and by a human
   before merge. The diff touches no check other than Check 6 and no file
   other than those named in this FR.
+- [ ] AC-12 (RED): the `load_and_compile` `python -c` probe from FR-1093's
+  First-consumer line is still denied, and its output names `tmp/` and
+  `yamlgraph graph lint`. A redirect onto a governed path produces the same
+  denial text as today, with no read-route line.
 
 ## Alternatives Considered
 
@@ -351,8 +365,8 @@ logic" the conventions warn about. The census was one `grep`.
   match them; stated here as a known limit, not handled.
 - Retagging FR-767's hook tests from REQ-YG-527 to REQ-YG-423. Recorded in
   Problem finding 6; not changed by this FR (H-6).
-- The `.github/copilot-instructions.md` sentence at line 13 unless H-3
-  says otherwise.
+- The `.github/copilot-instructions.md` sentence at line 13 (operator,
+  2026-09-25: no Scripture edit).
 
 ## Human decisions needed
 
@@ -361,10 +375,9 @@ logic" the conventions warn about. The census was one `grep`.
   remain and check content.
 - **H-2 — nested prompts.** Govern the 22 `prompts/<sub>/*.yaml` files.
   Suggested default: yes.
-- **H-3 — doctrine wording.** Update `doctrine.md#L11-L13` to name the
-  content rule. Suggested default: yes for `doctrine.md`; the matching
-  clause in `.github/copilot-instructions.md` line 13 also yes, as a
-  one-clause Scripture edit read by the human at PR review.
+- **H-3 — doctrine wording.** Decided 2026-09-25 (operator): edit
+  `doctrine.md#L11-L13` only; `.github/copilot-instructions.md` is not
+  edited.
 - **H-4 — graphs outside `examples/`/`graphs/`.** Suggested default: out
   of scope; test fixtures are test code and the adapter graphs are
   enforcement infrastructure under their own review.

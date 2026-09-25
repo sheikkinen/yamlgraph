@@ -189,8 +189,7 @@ that writes into a governed root fails in its own PR.
   fails only under the lock is fixed with `tmp_path` in this PR and listed in
   the implementation record; none is skipped or excluded.
 - [ ] AC-06: every new or changed test carries
-  `@pytest.mark.req("REQ-YG-627")` (the module's existing tag; see Human
-  decision needed), and `python scripts/req_coverage.py --strict` passes.
+  `@pytest.mark.req("REQ-YG-627")` (the module's existing tag), and `python scripts/req_coverage.py --strict` passes.
 - [ ] AC-07: changelog fragment in `changelog/unreleased/` (`type: fix`,
   `scope: tests`, `req: REQ-YG-627`), FR implementation record, diary entry.
 
@@ -239,12 +238,6 @@ needs a model judgement.
   `test (3.11)`, `test (3.13)`), `core-test` job, or a new job. Suggested
   default: the `test` job — it is already required, so the check blocks
   merge without changing branch protection.
-- **REQ tag for the FR-number guard** (Problem §5). Options: keep
-  `REQ-YG-627` (today's tag, which ARCHITECTURE.md assigns to the SMTP
-  tool), or add a new REQ for FR-number uniqueness and retag the module.
-  Suggested default: keep `REQ-YG-627` in this FR so the diff stays on the
-  defect; the misattribution is not fixed by this FR, and whether to file it
-  is the operator's call.
 - **Diff review of the workflow edit.** Suggested default: operator reviews
   the CI step before merge, per `instruction_boundary_uncrossed`.
 
@@ -252,7 +245,7 @@ needs a model judgement.
 
 Tests writing into ungoverned directories (`tmp/`, `outputs/`, `logs/`,
 `examples/`, root files). The Windows CI job. Local-run detection (class 3).
-The REQ-YG-627 misattribution (Human decision needed). Changes to the FR-889
+The REQ-YG-627 misattribution (Problem §5; operator, 2026-09-25: not fixed here). Changes to the FR-889
 lock or its governed-root list.
 
 ## Related
