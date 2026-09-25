@@ -29,8 +29,8 @@ requirements:
       size gate enforces the 450-line limit with a shrink-only baseline
       and the FR-942 instruction byte ceiling (33,966 combined bytes
       for the two per-turn instruction files). The CI unit-test job
-      locks the governed roots before pytest, and tests write only to
-      temporary directories, never into a governed root.
+      locks the governed roots before pytest, so a unit test that writes
+      into a governed root fails in CI.
     modules:
       - scripts/worktree.sh
       - .github/workflows/workflow.yml

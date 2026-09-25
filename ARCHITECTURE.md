@@ -3162,7 +3162,7 @@ Governed enforcement roots on the main checkout are OS-locked (chmod -R u-w) via
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-631 | Main-checkout governed roots are locked at the filesystem; unlock and sync are audited verbs; edit-tool writes and bare lock-mutator commands on main are denied with executable cures; the widened size gate enforces the 450-line limit with a shrink-only baseline and the FR-942 instruction byte ceiling (33,966 combined bytes for the two per-turn instruction files). The CI unit-test job locks the governed roots before pytest, and tests write only to temporary directories, never into a governed root. | `scripts/worktree.sh`, `.github/workflows/workflow.yml`, `tests/unit/test_fr_numbering.py`, `.github/hooks/scripts/checks/main_write.py`, `scripts/size_gate.py`, `.github/hooks/tests/test_main_write_guard.py`, `.github/hooks/tests/test_size_gate.py` |
+| REQ-YG-631 | Main-checkout governed roots are locked at the filesystem; unlock and sync are audited verbs; edit-tool writes and bare lock-mutator commands on main are denied with executable cures; the widened size gate enforces the 450-line limit with a shrink-only baseline and the FR-942 instruction byte ceiling (33,966 combined bytes for the two per-turn instruction files). The CI unit-test job locks the governed roots before pytest, so a unit test that writes into a governed root fails in CI. | `scripts/worktree.sh`, `.github/workflows/workflow.yml`, `tests/unit/test_fr_numbering.py`, `.github/hooks/scripts/checks/main_write.py`, `scripts/size_gate.py`, `.github/hooks/tests/test_main_write_guard.py`, `.github/hooks/tests/test_size_gate.py` |
 
 ### 256. CAP-256 LAN Host Recon
 
