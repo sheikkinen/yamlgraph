@@ -61,7 +61,7 @@ def _is_sibling(name: str, number: str) -> bool:
     return any(name == f"FR-{number}-{slug}.md" for slug in SIBLING_SLUGS)
 
 
-def _tracked_fr_names() -> list[str]:
+def _tracked_fr_names(root: Path = REPO_ROOT) -> list[str]:
     """Tracked FR filenames.
 
     Deliberately git, not a filesystem glob: a parallel session's
@@ -71,7 +71,7 @@ def _tracked_fr_names() -> list[str]:
     """
     out = subprocess.run(
         ["git", "ls-files", "feature-requests/FR-*.md"],
-        cwd=REPO_ROOT,
+        cwd=root,
         capture_output=True,
         text=True,
         check=True,

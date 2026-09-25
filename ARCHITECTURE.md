@@ -570,7 +570,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 252 | CAP-252 Shared SMTP Email Tool | `examples` | REQ-YG-627 |
 | 253 | CAP-253 Org repository census with pinned-Azure delegation | `examples/demos/repo_census`, `examples/demos/corpus_census` | REQ-YG-628 |
 | 254 | CAP-254 Session Worktree Lifecycle | `scripts/worktree.sh`, `scripts/vscode/now.py`, `scripts/vscode/session_join.py` | REQ-YG-629 – 630 |
-| 255 | CAP-255 OS-Enforced Main-Write Lock | `scripts/worktree.sh`, `.github/hooks/scripts/checks/main_write.py`, `.github/hooks/scripts/checks/lane_guard.py`, `scripts/size_gate.py`, … | REQ-YG-631 |
+| 255 | CAP-255 OS-Enforced Main-Write Lock | `scripts/worktree.sh`, `.github/workflows/workflow.yml`, `tests/unit/test_fr_numbering.py`, `.github/hooks/scripts/checks/main_write.py`, … | REQ-YG-631 |
 | 256 | CAP-256 LAN Host Recon | `.github/skills/lan-recon/SKILL.md`, `.github/skills/lan-recon/__init__.py`, `.github/skills/lan-recon/recon.py`, `.github/skills/lan-recon/models.py`, … | REQ-YG-635 |
 | 257 | CAP-257 LAN Copilot Delegation | `.github/skills/lan-delegate/SKILL.md`, `.github/skills/lan-delegate/__init__.py`, `.github/skills/lan-delegate/errors.py`, `.github/skills/lan-delegate/models.py`, … | REQ-YG-636 |
 | 258 | CAP-258 Issue-Queue Delegation Runner | `.github/skills/issue-delegate/SKILL.md`, `.github/skills/issue-delegate/models.py`, `.github/skills/issue-delegate/worker.py`, `.github/skills/issue-delegate/windows_job.ps1`, … | REQ-YG-637 |
@@ -3156,13 +3156,13 @@ Manual session-lane tooling: `scripts/worktree.sh session <id>` creates an isola
 
 ### 255. CAP-255 OS-Enforced Main-Write Lock
 
-Governed enforcement roots on the main checkout are OS-locked (chmod -R u-w) via scripts/worktree.sh lock-main/unlock-main/sync; the pre-command guard retains only edit-tool classification and a lock-mutator fence (git never fenced, sudo passes), with the FR-888 shell grammar deleted and a widened shrink-only file-size gate that also enforces the FR-942 instruction byte ceiling (33,966 combined bytes for .github/copilot-instructions.md + CLAUDE.md).
+Governed enforcement roots on the main checkout are OS-locked (chmod -R u-w) via scripts/worktree.sh lock-main/unlock-main/sync; the pre-command guard retains only edit-tool classification and a lock-mutator fence (git never fenced, sudo passes), with the FR-888 shell grammar deleted and a widened shrink-only file-size gate that also enforces the FR-942 instruction byte ceiling (33,966 combined bytes for .github/copilot-instructions.md + CLAUDE.md). The CI test job runs the unit suite under the same lock (FR-1094), so a test that writes into a governed root fails in CI, not only on a locked main.
 
-**Feature Request:** FR-889, FR-942
+**Feature Request:** FR-889, FR-942, FR-1094
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-631 | Main-checkout governed roots are locked at the filesystem; unlock and sync are audited verbs; edit-tool writes and bare lock-mutator commands on main are denied with executable cures; the widened size gate enforces the 450-line limit with a shrink-only baseline and the FR-942 instruction byte ceiling (33,966 combined bytes for the two per-turn instruction files). | `scripts/worktree.sh`, `.github/hooks/scripts/checks/main_write.py`, `scripts/size_gate.py`, `.github/hooks/tests/test_main_write_guard.py`, `.github/hooks/tests/test_size_gate.py` |
+| REQ-YG-631 | Main-checkout governed roots are locked at the filesystem; unlock and sync are audited verbs; edit-tool writes and bare lock-mutator commands on main are denied with executable cures; the widened size gate enforces the 450-line limit with a shrink-only baseline and the FR-942 instruction byte ceiling (33,966 combined bytes for the two per-turn instruction files). The CI unit-test job locks the governed roots before pytest, and tests write only to temporary directories, never into a governed root. | `scripts/worktree.sh`, `.github/workflows/workflow.yml`, `tests/unit/test_fr_numbering.py`, `.github/hooks/scripts/checks/main_write.py`, `scripts/size_gate.py`, `.github/hooks/tests/test_main_write_guard.py`, `.github/hooks/tests/test_size_gate.py` |
 
 ### 256. CAP-256 LAN Host Recon
 
