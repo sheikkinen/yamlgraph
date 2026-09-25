@@ -3,6 +3,7 @@
 **Priority:** HIGH
 **Type:** Enhancement (investigation)
 **Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1065-resumable-map-investigation.judgement.md)); investigation-only authority after R-1–R-3 are folded. No runtime implementation authority.
+**Human decision (2026-09-25, operator; judgement R-3 / C-2):** map consumers read results from the store; `collect` state semantics need not remain available. The report still records checkpoint bytes and migration counts for both contracts.
 **Effort:** 1.5 days (investigation only; the fix FR is filed from its findings)
 **Requested:** 2026-09-25
 **First consumer / first event:** the fi-catalog pilot
