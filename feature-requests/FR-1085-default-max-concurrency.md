@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1085-default-max-concurrency.judgement.md)); authority gated on folding the required revisions. No implementation authority yet.
 **Human decision (2026-09-25, operator):** suggested default accepted — one fixed built-in width of 8 for every provider and entry point, re-confirming the FR-1068 / PR #691 answer.
 **Effort:** 0.5 days
 **Requested:** 2026-09-25

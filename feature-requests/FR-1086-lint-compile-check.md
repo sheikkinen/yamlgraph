@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug / Linter completeness
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1086-lint-compile-check.judgement.md)); authority gated on folding the required revisions. No implementation authority yet.
 **Human decision (2026-09-25, operator):** suggested default accepted — building is opt-in (`graph lint --build`); plain `graph lint` executes no graph-declared Python.
 **Effort:** 1 day
 **Requested:** 2026-09-25
