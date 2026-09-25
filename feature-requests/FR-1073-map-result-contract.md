@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1073-map-result-contract.judgement.md)); R-1–R-6 folded 2026-09-25 (see [Revision fold](#revision-fold)). **Authority active (2026-09-25):** operator accepted H-1–H-4 in [Migration census](#migration-census) and the fold as written, satisfying judgement C-1 and C-5.
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1073-map-result-contract.judgement.md)); R-1–R-6 folded 2026-09-25 (see [Revision fold](#revision-fold)). **Authority active (2026-09-25):** operator accepted H-1–H-4 in [Migration census](#migration-census) and the fold as written, satisfying judgement C-1 and C-5. **Operator ruling (2026-09-25): "no splits or bloat".** One PR. Cut: `key` and the duplicate-key check (AC-03 and the `key` half of AC-01; no consumer until FR-1065), and the H-4 live rerun. All graph edits go through one authoring brief.
 **Effort:** 1.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next
