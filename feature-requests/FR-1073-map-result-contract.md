@@ -445,7 +445,7 @@ next commit on the branch. One PR, per the operator ruling.
 `tests/unit/test_fr1073_map_result_contract.py`, the migrated map test
 files, and the consumer witnesses below. AC-03 cut by the operator ruling.
 AC-23: status, decisions, changelog fragment and the diary entry
-(`docs/diary/diary-2026-09-25-a-deviation-note-is-not-an-amendment.md`) are in this PR.
+(`docs/diary/2026-09-25-reflection-fr-1073.md`) are in this PR.
 
 **Consumer migration (H-3, AC-17).**
 - 11 files drop their `_error` branch: a failed item can no longer reach
