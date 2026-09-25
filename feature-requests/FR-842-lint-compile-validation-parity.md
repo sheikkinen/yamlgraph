@@ -162,3 +162,10 @@ suite asserts only the desired behavior and never expects the defective one.
 FR-842 authorizes the lint-parity change in `yamlgraph/linter/`, its tests,
 docs, and changelog fragment. It authorizes no condition-grammar, evaluator,
 loader-behavior, CLI-flag, or GitClaw-repository change.
+
+## Related
+
+- 2026-09-25: [FR-1069](FR-1069-lint-builds-graph.md) extends this parity
+  from `validate_config` to building the graph (`compile_graph` +
+  `.compile()`), after `examples/demos/safety-guards` passed lint but could
+  not compile.

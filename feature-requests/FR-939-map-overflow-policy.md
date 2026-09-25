@@ -145,3 +145,6 @@ the cost guard FR-027 correctly installed.
 - `027-execution-safety-guards.md` (superseded disposition)
 - `capabilities/CAP-11-subgraph-map.yaml`
 - `docs/plan-web-toolkit.md` (component D, first consumer)
+- 2026-09-25: first in the order of `docs/issues-2026-09-24.md` §7 (fix F);
+  required before any paid run of [FR-1065](FR-1065-resumable-map-investigation.md);
+  [FR-1070](FR-1070-innovation-matrix-repair.md) depends on it.

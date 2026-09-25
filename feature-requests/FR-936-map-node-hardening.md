@@ -259,3 +259,9 @@ with `on_error`; `retry` runs first, `on_error` disposes the final failure.
   origin), FR-052 (flatten_output), FR-467 (router→map Send fan-out)
 - LangGraph docs: Graph API (`Send`, node caching, retry), Persistence
   (pending writes, durability modes)
+- 2026-09-25: row D-4's surface (sub-node exception ordering) is taken over
+  by [FR-1064](FR-1064-map-branch-contract.md), which couples it to the
+  failure channel and proposes superseding FR-957. Component D (cache,
+  Store-backed results, resume) is investigated in
+  [FR-1065](FR-1065-resumable-map-investigation.md). D-1, D-2, D-3 unchanged.
+  Plan: `docs/issues-2026-09-24.md` §7.

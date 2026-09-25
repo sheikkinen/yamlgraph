@@ -292,6 +292,11 @@ documented feature.
 - `langgraph/types.py:418-436` (`RetryPolicy`), `langgraph/_internal/_retry.py` (`default_retry_on`), `langgraph/errors.py:149-153` (`NodeError`), `langgraph/pregel/_algo.py:1236-1238`
 - `capabilities/CAP-11-subgraph-map.yaml`
 - `docs/plan-web-toolkit.md` audit item 4
+- 2026-09-25: [FR-1064](FR-1064-map-branch-contract.md) proposes superseding
+  this FR. The design here lets branch exceptions reach LangGraph so
+  `error_handler` handles the final failure; `docs/issues-2026-09-24.md` §4.1
+  witnesses that `error_handler` fires only for a single-task step. Status
+  changes when FR-1064 is judged.
 
 ## Judgement (2026-09-02)
 

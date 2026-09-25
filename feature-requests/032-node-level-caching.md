@@ -1,6 +1,10 @@
 # FR-032: Node-Level Caching
 
 **Status**: Implemented
+**Status note (2026-09-25)**: the `cache:` field is inert — nothing in
+`yamlgraph/` passes a cache to `compile()` (`docs/issues-2026-09-24.md` §5.1).
+The map part moves to [FR-1065](FR-1065-resumable-map-investigation.md),
+which also owns correcting this status.
 **Priority**: P0
 **Effort**: 3-5 days
 **Created**: 2026-02-13

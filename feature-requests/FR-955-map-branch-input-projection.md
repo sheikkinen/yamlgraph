@@ -299,6 +299,9 @@ results; cost is paid today).
 - `capabilities/CAP-11-subgraph-map.yaml`
 - `docs/plan-web-toolkit.md` — audit item 1, component D sequencing
 - `docs/2026-09-02-brainstorm-business-use-cases.md` §5.2
+- 2026-09-25: prerequisite for [FR-1065](FR-1065-resumable-map-investigation.md)
+  — the projected input set is what bounds a branch's node version
+  (`docs/issues-2026-09-24.md` §6.3).
 
 ## Judgement (2026-09-02)
 

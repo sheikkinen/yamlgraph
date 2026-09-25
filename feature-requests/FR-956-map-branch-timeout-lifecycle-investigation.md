@@ -298,6 +298,10 @@ FR-069's `on_error: skip` semantics are in use).
 - `yamlgraph/utils/route_log.py:213-223`, `yamlgraph/routing.py:14-113` (why no route-log event)
 - `docs/plan-web-toolkit.md` audit item 3
 - `docs/2026-09-02-brainstorm-business-use-cases.md` §5.2
+- 2026-09-25: `docs/issues-2026-09-24.md` §7 E.2 folds in here — pass the
+  branch `timeout` into the LLM client's request timeout, and document that
+  FR-069 bounds the wait, not the work. Timeouts stop being retried in
+  [FR-1064](FR-1064-map-branch-contract.md).
 
 ## Judgement (2026-09-02)
 
