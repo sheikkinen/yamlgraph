@@ -588,6 +588,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 272 | CAP-272 Clean Dirty Main Triage | `scripts/dirty_main_triage.py`, `.github/skills/clean-dirty-main/SKILL.md` | REQ-YG-678 |
 | 273 | CAP-273 DeepSeek Non-Thinking Mode | `yamlgraph/utils/llm_providers.py`, `yamlgraph/utils/llm_factory.py` | REQ-YG-684 |
 | 274 | CAP-274 Prompt Template Dialect Per Message | `yamlgraph/utils/template.py`, `yamlgraph/executor_base.py`, `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py`, … | REQ-YG-686 |
+| 277 | CAP-277 Resumable Map Investigation Witnesses | `tests/fixtures/fr1065/probes.py`, `docs/investigations/fr1065-resumable-map.md` | REQ-YG-689 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3336,6 +3337,16 @@ The dialect of a prompt template (Jinja2 vs `str.format`) is decided once, by `y
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-686 | Prompt template dialect is decided per message by the single discriminator `is_jinja` (`{{` or `{%` present), used by rendering, validation, and lint alike; `prepare_messages` validates scalar `system`, list-form `system`, every `system_segments[*].content`, and `user` independently, so a variable used in only one message is still required and a non-Jinja message carrying text `str.format` cannot render is rejected before the call. Simple-format fields are parsed with `string.Formatter.parse`, contributing root identifiers (`{a}`, `{a.b}`, `{a[0]}` all yield `a`); every well-formed field is a required variable, whatever its format spec, because Python hands the spec to the value's own `__format__` and the spec grammar is therefore open-ended. No heuristic exempts a field for resembling documentation: an author who wants a literal brace declares it with `{% raw %}`, whose spans are stripped before the scan. Lint reports E013 when a non-Jinja message has an unmatched brace or a non-identifier field root, naming both escapes in its fix, and E014 when a Jinja message contains any identifier-rooted simple field. W024 is retired, superseded by E014. | `yamlgraph/utils/template.py`, `yamlgraph/executor_base.py`, `yamlgraph/linter/checks_prompts.py`, `tests/unit/test_fr1057_prompt_template_dialect.py`, `tests/unit/test_fr1057_prompt_repairs.py` |
+
+### 277. CAP-277 Resumable Map Investigation Witnesses
+
+FR-1065 investigation probes on minimal LangGraph fixtures: store concurrency and cross-process persistence, lease exclusion, checkpoint size of state-collected versus store-held results, bounded batch scheduling, killed-process versus interrupted-process resume, and the inert FR-032 cache policy. Witnesses only; no runtime behavior.
+
+**Feature Request:** FR-1065
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-689 | The FR-1065 report's claims are pinned by executable witnesses: SqliteCache holds under concurrent branches and persists across two processes but gives no lease exclusion (INSERT OR REPLACE), while a UNIQUE-key INSERT lease admits exactly one of two racing processes; store-held results keep the final checkpoint an order of magnitude smaller than a state collect; a bounded batch loop keeps peak memory well below one-step fan-out; SIGKILL mid-superstep re-executes every completed branch on same-thread resume, SIGINT does not; a new thread reuses no earlier result; a node CachePolicy caches only when compile() receives a cache, and no yamlgraph runtime route passes one. | `tests/fixtures/fr1065/probes.py`, `tests/unit/test_fr1065_resumable_map_probes.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
