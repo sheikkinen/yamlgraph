@@ -523,6 +523,24 @@ test, and the full unit suite passed. Their committed logs predate
 FR-1073. `map-timeout` is the one demo with a fresh log, produced by its
 own graph.
 
+**Post-judgement operator rulings (2026-09-26).** These change frozen
+judgement clauses; they are recorded here as amendments, not deviations.
+Review round 2 of PR #702 raised each one.
+- **A-1 (review P1): `key` cut.** The judgement froze `key` in the failure
+  and accounting identity and a duplicate-key check before any `Send`
+  (AC-01 `key` half, AC-03). The operator's 2026-09-25 ruling cuts both.
+  First consumer is FR-1065, which will carry `key` when it needs it.
+- **A-2 (review P4): `book_translator` state edit approved after the
+  fact.** Judgement C-7 excludes unrelated demo repair; C-6 requires every
+  edited graph to lint. `book_translator` failed lint (E303) on `main`
+  before this change, so C-6 and C-7 conflict for that graph. The operator
+  approves the `reviewed_chunks: dict` edit and its brief.
+- **A-3 (review P2): demo proofs postponed.** The 12 demo logs above are
+  replaced with a one-line `✅ Live run postponed until map proven to
+  work` notice. They are not run logs; the previous live runs remain in
+  git history. The live runs happen after this map contract has been
+  proven in use.
+
 ## Related
 
 - Research brief: [research-briefs/map-result-contract-brief.md](research-briefs/map-result-contract-brief.md)
