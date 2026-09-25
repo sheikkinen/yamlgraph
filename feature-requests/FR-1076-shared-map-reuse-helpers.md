@@ -3,6 +3,7 @@
 **Priority:** HIGH
 **Type:** Enhancement
 **Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1076-shared-map-reuse-helpers.judgement.md)); authority gated on R-1 (FR-1065 investigation witnesses), R-2–R-5 folded, and FR-1073 merged. No implementation authority yet.
+**R-1 evidence (2026-09-25):** FR-1065 report [docs/investigations/fr1065-resumable-map.md](../docs/investigations/fr1065-resumable-map.md), witnesses `tests/unit/test_fr1065_resumable_map_probes.py` (REQ-YG-689). Two-process SQLite: `SqliteCache` rejected as store and lock (intermittent fresh-file crash, no exclusion); `UNIQUE`-insert lease selected (0/10 double winners). Checkpoint at 10k: 4,190,047 B with `collect` vs 51,210 B with store-selected results. **`kill -9` + same-thread resume re-ran all 6 finished branches of 20** (one-step map, both durability modes): item 6 below is false and AC-08 / C-6 are RED against the current engine; a batch loop bounds loss to the open batch. Pilot budget proposed in the report, awaiting operator acceptance. R-2–R-5 not yet folded.
 **Effort:** 1 day
 **Requested:** 2026-09-25
 **First consumer / first event:** the next re-run of
@@ -106,9 +107,12 @@ report:       # tool: map_reuse_read → only what the consumer needs
    of the latest run's key set. Consumers — prompt or Python — get only what
    they read into state (operator decision for FR-1065: consumers read from
    the store).
-6. **Mid-map crash.** Covered by the checkpointer: completed branch writes
-   are stored per task, so resuming the same thread does not re-run them.
-   Witnessed, not assumed (AC-6).
+6. **Mid-map crash.** ~~Covered by the checkpointer: completed branch writes
+   are stored per task, so resuming the same thread does not re-run them.~~
+   **Disproved** (FR-1065 report row 5a): branch writes reach the
+   checkpointer only when the step ends, so `kill -9` re-runs every finished
+   branch of the open step. Crash survival needs a batch loop or
+   branch-level writes, each a separate judged FR (judgement C-6).
 7. **Migration.** `person_profile_census` only, through the graph-authoring
    route (`scripts/author.sh`). The four existing reinventions are not
    migrated by this FR; each migration is its own change.

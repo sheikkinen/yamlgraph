@@ -5,6 +5,7 @@
 **Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1065-resumable-map-investigation.judgement.md)); investigation-only authority after R-1–R-3 are folded. No runtime implementation authority.
 **Partly superseded (2026-09-25):** reuse questions 1, 2 and 5 are refiled as [FR-1076](FR-1076-shared-map-reuse-helpers.md) (shared tools, graph-owned reuse); questions 3 (chunked scheduling) and 4 (node-version inputs under FR-955 projection) remain this investigation's.
 **Human decision (2026-09-25, operator; judgement R-3 / C-2):** map consumers read results from the store; `collect` state semantics need not remain available. The report still records checkpoint bytes and migration counts for both contracts.
+**Investigation complete (2026-09-25):** report [docs/investigations/fr1065-resumable-map.md](../docs/investigations/fr1065-resumable-map.md); witnesses `tests/unit/test_fr1065_resumable_map_probes.py` (REQ-YG-689). Headline: `kill -9` re-runs every finished branch of the open step (one-step map); a batch loop bounds the loss to one batch. Deviation from C-1: the probes ran before R-1/R-2 were folded into this file; the fold (ACs and the "Candidate contracts" relabel below) lands in the same PR as the probes. No production code changed (C-3).
 **Effort:** 1.5 days (investigation only; the fix FR is filed from its findings)
 **Requested:** 2026-09-25
 **First consumer / first event:** the fi-catalog pilot
@@ -80,7 +81,7 @@ the items whose key is new, whose version changed, whose node version changed,
 or whose last failure was transient; survives `kill -9` without re-executing
 finished items; and writes a per-run ledger that reports deletions.
 
-## Decided (enters the investigation as constraints)
+## Candidate contracts (hypotheses, judgement R-2; verdicts in the report)
 
 | Part | Definition |
 |---|---|
@@ -109,13 +110,19 @@ finished items; and writes a per-run ledger that reports deletions.
 5. **Resume.** `kill -9` mid-run, re-run: finished items are not re-executed
    and output equals an uninterrupted run.
 
-## Acceptance Criteria
+## Acceptance Criteria (judgement R-1, revised)
 
-- [ ] One committed witness test per question 1–5 (RED where the current code fails).
-- [ ] A two-run fixture: run 2 changes one item's version, deletes one, and contains one transient-failed and one permanent-failed item from run 1 — asserts exactly the changed and the transient item are executed, the permanent one is carried, and the ledger classifies all five states.
-- [ ] A node-version change (prompt edit) re-runs all items; `--refresh` re-runs all.
-- [ ] The fix FR is filed with the frozen design, citing these witnesses, and states the lint rules (`ledger:` without `key:`; `cache:` on agent/subgraph without `node_version:`; FR-032 `cache:` inside a map sub-node is inert).
-- [ ] `032-node-level-caching.md` status corrected (inert: no `compile(cache=...)`), with the grep witness.
+The fix-shaped criteria (two-run fixture, `--refresh`, node-version
+invalidation, ledger, lint rules) moved to the successor
+[FR-1076](FR-1076-shared-map-reuse-helpers.md) per R-1.
+
+- [x] AC-01: `SqliteCache` concurrency in one process and across two processes, plus lease exclusion — report rows 1a–1f; tests `test_sqlite_cache_*`, `test_sqlite_unique_insert_lease_excludes_second_process`.
+- [x] AC-02: checkpoint bytes at 10k for state `collect` vs store-read, and consumer migration counts for both contracts — report rows 2a/2b and "Consumer migration counts"; test `test_store_results_shrink_final_checkpoint`.
+- [x] AC-03 (partial): batch loop at 10k with memory measured — report row 3; test `test_batch_loop_bounds_peak_memory`. FR-944/FR-1064 join compatibility recorded as **blocked** (FR-1064 join half not refiled).
+- [x] AC-04: killed-process fixture with exact rerun counts; `kill -9` vs `SIGINT` separated; thread resume vs cross-run reuse separated — report rows 5a–5d; tests `test_sigkill_*`, `test_sigint_*`, `test_new_thread_reuses_no_earlier_result`.
+- [x] AC-05: the report selects or rejects each candidate contract, records the human consumer decision, and links the successor FR-1076. A batch-loop fix FR (question 3) is not filed.
+- [x] AC-06: `compile(cache=...)` is passed by no runtime route (AST witness `test_no_runtime_route_passes_cache_to_compile`; `test_cache_policy_is_inert_without_compile_cache`); `032-node-level-caching.md` status corrected.
+- Question 4 (node-version inputs under FR-955 projection): **blocked** — FR-955 is judged, not implemented.
 
 ## Alternatives Considered
 

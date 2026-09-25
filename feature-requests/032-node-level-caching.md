@@ -1,10 +1,12 @@
 # FR-032: Node-Level Caching
 
-**Status**: Implemented
-**Status note (2026-09-25)**: the `cache:` field is inert — nothing in
-`yamlgraph/` passes a cache to `compile()` (`docs/issues-2026-09-24.md` §5.1).
-The map part moves to [FR-1065](FR-1065-resumable-map-investigation.md),
-which also owns correcting this status.
+**Status**: Implemented — **inert** (2026-09-25, FR-1065 AC-06): the
+`cache:` field builds a LangGraph `CachePolicy`, but no `yamlgraph/` route
+passes a cache to `compile()`, so nothing is cached. Witnesses:
+`tests/unit/test_fr1065_resumable_map_probes.py::test_no_runtime_route_passes_cache_to_compile`
+(AST scan of `yamlgraph/`) and `::test_cache_policy_is_inert_without_compile_cache`
+(2 node calls without a cache, 1 with `InMemoryCache`). Map reuse moved to
+[FR-1076](FR-1076-shared-map-reuse-helpers.md).
 **Priority**: P0
 **Effort**: 3-5 days
 **Created**: 2026-02-13

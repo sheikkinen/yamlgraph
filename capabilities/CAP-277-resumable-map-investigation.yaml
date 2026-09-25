@@ -1,0 +1,28 @@
+id: CAP-277
+name: Resumable Map Investigation Witnesses
+description: >
+  FR-1065 investigation probes on minimal LangGraph fixtures: store
+  concurrency and cross-process persistence, lease exclusion, checkpoint
+  size of state-collected versus store-held results, bounded batch
+  scheduling, killed-process versus interrupted-process resume, and the
+  inert FR-032 cache policy. Witnesses only; no runtime behavior.
+modules:
+  - tests/fixtures/fr1065/probes.py
+  - docs/investigations/fr1065-resumable-map.md
+requirements:
+  - id: REQ-YG-689
+    description: >
+      The FR-1065 report's claims are pinned by executable witnesses:
+      SqliteCache holds under concurrent branches and persists across two
+      processes but gives no lease exclusion (INSERT OR REPLACE), while a
+      UNIQUE-key INSERT lease admits exactly one of two racing processes;
+      store-held results keep the final checkpoint an order of magnitude
+      smaller than a state collect; a bounded batch loop keeps peak memory
+      well below one-step fan-out; SIGKILL mid-superstep re-executes every completed
+      branch on same-thread resume, SIGINT does not; a new thread reuses
+      no earlier result; a node CachePolicy caches only when compile()
+      receives a cache, and no yamlgraph runtime route passes one.
+    modules:
+      - tests/fixtures/fr1065/probes.py
+      - tests/unit/test_fr1065_resumable_map_probes.py
+fr: FR-1065
