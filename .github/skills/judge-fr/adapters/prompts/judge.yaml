@@ -14,5 +14,4 @@ user: |
   request at {{ fr_path }}. Input closure: FR + cited evidence + repo
   doctrine only. Write the DRAFT judgement to {{ artifact_path }}
   per .github/skills/judge-fr/judgement.template.md, using file tools
-  directly — do not run the judge again. Output is advisory until
-  human-reviewed.
+  directly — do not run the judge again.
