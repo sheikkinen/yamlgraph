@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1076-shared-map-reuse-helpers.judgement.md)); authority gated on R-1 (FR-1065 investigation witnesses), R-2–R-5 folded, and FR-1073 merged. No implementation authority yet.
 **Effort:** 1 day
 **Requested:** 2026-09-25
 **First consumer / first event:** the next re-run of

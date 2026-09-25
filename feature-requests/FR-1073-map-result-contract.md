@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1073-map-result-contract.judgement.md)); authority activates after R-1–R-6 are folded and every non-strict migration threshold is human-approved. No implementation authority yet.
 **Effort:** 1.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next
