@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Rejected — [judgement](FR-1068-default-max-concurrency.judgement.md); no implementation authority. Research and human default-risk decision required.
 **Effort:** 0.25 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next `innovation_matrix` run on any

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement (investigation)
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1065-resumable-map-investigation.judgement.md)); investigation-only authority after R-1–R-3 are folded. No runtime implementation authority.
 **Effort:** 1.5 days (investigation only; the fix FR is filed from its findings)
 **Requested:** 2026-09-25
 **First consumer / first event:** the fi-catalog pilot
