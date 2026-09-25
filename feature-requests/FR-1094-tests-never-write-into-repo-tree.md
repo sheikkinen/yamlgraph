@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1094-tests-never-write-into-repo-tree.judgement.md)); R-1–R-6 folded 2026-09-25. **Authority active (2026-09-25):** C-1 (fold) and C-2 (CI placement, see [Human decisions](#human-decisions)) satisfied. Merge gated on C-3–C-6.
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1094-tests-never-write-into-repo-tree.judgement.md)); R-1–R-6 folded 2026-09-25. **Authority active (2026-09-25):** C-1 (fold) and C-2 (CI placement, see [Human decisions](#human-decisions)) satisfied. Merge gated on C-3–C-6. **Implemented (2026-09-26)** — see [Implementation record](#implementation-record).
 **Effort:** 0.5 day
 **Requested:** 2026-09-25
 **First consumer / first event:** the next
@@ -274,6 +274,27 @@ this implementation record and one diary entry. Not authorized: changes to
 `scripts/worktree.sh` or FR-889's roots, other tests, Windows CI, an audit
 hook, skips or exclusions, CAP-252 or SMTP, FR renumbering, or retagging
 the rest of the FR-numbering module.
+
+## Implementation record
+
+**Status:** implemented on branch `fix/fr-1094-governed-roots-lock`;
+AC-05 (CI matrix) and C-3 (operator review of the workflow step) are
+checked on the PR.
+
+| AC | Evidence |
+|---|---|
+| AC-01 | RED commit `test(tests): FR-1094 RED hermetic untracked-probe witness` (`SKIP=pytest`): `TypeError: _tracked_fr_names() takes 0 positional arguments but 1 was given`; `1 failed, 6 passed`. |
+| AC-02 | GREEN commit `fix(tests): FR-1094 hermetic FR-numbering witness; CI runs under the lock`: `_tracked_fr_names(root: Path = REPO_ROOT)` with `cwd=root`. The probe is written under `tmp_path` only. |
+| AC-03 | `pytest tests/unit/test_fr_numbering.py -q --no-cov` → exit 0 in the worktree. |
+| AC-04 | Standalone clone `/private/tmp/fr1094-clone` at `f5c115f07560897812a7c70ce7db7fb2a5484aaa`: `scripts/worktree.sh lock-main` (then `touch feature-requests/x` → `Permission denied`), then `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` → `6904 passed, 73 skipped, 1 xfailed`, exit 0. The branch was then rebased onto `main` after #701; the rebase changed only `feature-requests/` files, so the tested code is the code in this PR. |
+| AC-05 | `workflow.yml` `test` job: step `Lock governed roots (FR-1094)` runs `scripts/worktree.sh lock-main` after `Install dependencies` and before `Run tests`. Matrix result: on the PR. |
+| AC-06 | The locked run exposed no other failure. No file outside D-1–D-5 was edited. |
+| AC-07 | Function-level `@pytest.mark.req("REQ-YG-631")` on the witness; CAP-255 and `REQ-YG-631` name `.github/workflows/workflow.yml` and `tests/unit/test_fr_numbering.py`; `ARCHITECTURE.md` regenerated; `python scripts/req_coverage.py --strict` → exit 0. |
+| AC-08 | `changelog/unreleased/fr-1094-tests-never-write-into-repo-tree.md` (`type: fix`, `scope: tests`, `req: REQ-YG-631`); diary `docs/diary/2026-09-26-reflection-fr-1094.md` with a **Seed:**. |
+
+**Deviations:** none. A first locked run also passed
+`PYTHONPATH=$PWD -p no:cacheprovider`; it was rerun with the exact AC-04
+command, and that run is the one recorded.
 
 ## Out of scope
 
