@@ -265,7 +265,9 @@ Operator standing rule (2026-09-25): suggested defaults count as accepted.
 - **Diff review of the workflow edit:** the operator reviews the CI step
   before merge (judgement C-3, `instruction_boundary_uncrossed`).
   **Approved by the operator, 2026-09-26** (step `Lock governed roots
-  (FR-1094)` in `.github/workflows/workflow.yml`).
+  (FR-1094)` in `.github/workflows/workflow.yml`). The paired step
+  `Unlock governed roots (FR-1094)` was approved separately the same day
+  (see [Unlock step](#unlock-step-2026-09-26)).
 
 ## Scope (frozen by judgement)
 
@@ -316,6 +318,19 @@ one CI run.
 lowers peak memory): `batched < one_step`, without the fixed 50% margin.
 The count assertion is unchanged. Operator ruling 2026-09-26; this adds
 the file to the frozen scope (D-1).
+
+### Unlock step (2026-09-26)
+
+**Observed:** CI run 36194184888, `test (3.13)`: `Run tests` passed, then
+`Run encoding-boundary linter` (`ruff check --select PLW1514 --preview .`)
+failed with `Failed to initialize cache at
+.../tests/fixtures/ramp_target/.ruff_cache: Permission denied`. The nested
+fixture project has its own ruff config, so ruff writes a cache inside the
+locked `tests/` root. `test (3.11)` was cancelled by fail-fast.
+
+**Correction:** step `Unlock governed roots (FR-1094)` runs
+`scripts/worktree.sh unlock-main` right after `Run tests`, so the lock
+covers pytest only. Part of D-2; operator approved 2026-09-26 (C-3).
 
 ## Out of scope
 
