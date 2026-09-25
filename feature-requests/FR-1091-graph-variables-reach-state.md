@@ -5,7 +5,7 @@
 **Status:** Parked (2026-09-25, operator). The census finds 0 graphs losing a key today, and the only consumer named is FR-1084's test fixture. Revive when a graph actually loses a key. Not to be judged while parked.
 **Effort:** 0.5 day
 **Requested:** 2026-09-25
-**First consumer / first event:** the implementer of FR-1084 AC-06, whose
+**First consumer / first event:** the implementer of FR-1084 AC-07, whose
 fixture passes `--var gv_only=x` for a graph `variables:` key that is not in
 `state:`. Today `gv_only` is dropped whether it comes from `variables:` or
 from `--var`. After this FR it is a state key and reaches state (see "Human
@@ -255,7 +255,7 @@ membership in a `TypedDict` builder; nothing asks a model anything.
 
 ## Human decision needed
 
-1. **FR-1084 AC-06 conflicts with this FR.** FR-1084 AC-06 expects
+1. **FR-1084 AC-07 conflicts with this FR.** FR-1084 AC-07 expects
    `--var gv_only=x` to be refused because `gv_only` is a `variables:` key
    that is not a schema key. After this FR, `gv_only` is a schema key and is
    accepted. Suggested default: this FR's semantics win (a `variables:` key
