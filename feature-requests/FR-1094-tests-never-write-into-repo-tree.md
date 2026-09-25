@@ -264,6 +264,8 @@ Operator standing rule (2026-09-25): suggested defaults count as accepted.
   blocks merge without a branch-protection change.
 - **Diff review of the workflow edit:** the operator reviews the CI step
   before merge (judgement C-3, `instruction_boundary_uncrossed`).
+  **Approved by the operator, 2026-09-26** (step `Lock governed roots
+  (FR-1094)` in `.github/workflows/workflow.yml`).
 
 ## Scope (frozen by judgement)
 
