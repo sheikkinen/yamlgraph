@@ -1,8 +1,8 @@
-# Feature Request: Unit tests never write into the repository tree — the suite is green on the locked main checkout
+# Feature Request: Unit tests never write into FR-889 governed roots — the suite is green on the locked main checkout
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1094-tests-never-write-into-repo-tree.judgement.md)); R-1–R-6 folded 2026-09-25. **Authority active (2026-09-25):** C-1 (fold) and C-2 (CI placement, see [Human decisions](#human-decisions)) satisfied. Merge gated on C-3–C-6.
 **Effort:** 0.5 day
 **Requested:** 2026-09-25
 **First consumer / first event:** the next
@@ -46,9 +46,21 @@ discipline on the shared repo; covers sessions, not the test suite.
 [FR-469](FR-469-fr-number-allocation-gate.md) (Proposed). FR-number
 allocation; shares the module under test, not the defect.
 REJECTED sweep: `Status: REJECTED` FRs matching
-`isolation|pollution|tmp_path|repo tree|read-only|hermetic` returned FR-117,
-FR-277, FR-643, FR-839, FR-874. By title none concerns tests writing into
-the repository tree; dismissed.
+`isolation|pollution|tmp_path|repo tree|read-only|hermetic` returned five
+(judgement R-6):
+[FR-117](FR-117-enforce-worktree-watch-integration.md) spawned
+`enforce_worktree.sh` from `watch.sh`; it is pipeline orchestration and
+never touches where tests write.
+[FR-277](FR-277-watcher2-baseline-checkpointing.md) cached watcher2
+doctrine inputs by hash; it is a run-time cache, not a filesystem boundary.
+[FR-643](FR-643-novel-fandom-worldgen-loop.md) was a worldgen graph for
+novel_fandom; its only overlap is the word "isolation" in its prompts.
+[FR-839](FR-839-gitclaw-immutable-owner-contract.md) added an immutable
+owner artifact to GitClaw's CI; it protects a model's input, not the
+repository from tests.
+[FR-874](FR-874-cross-device-agent-memory-sync.md) synced agent memory
+through git; it moves notes between machines and has no test-suite surface.
+None shares this FR's problem or solution.
 
 ## Summary
 
@@ -60,8 +72,8 @@ into a governed root fails in the PR instead of on the next locked-main run.
 ## Value Statement
 
 Any agent or operator running the fast unit suite on the main checkout gets a
-green result that means "nothing broke", instead of one known red test that
-hides the next real one.
+green result that means no test wrote into an FR-889 governed root, instead
+of one known red test that hides the next real one.
 
 ## Problem
 
@@ -136,7 +148,8 @@ hides the next real one.
 
 The fast unit suite is green on the FR-889-locked main checkout, and it
 stays green because CI runs the suite with the same roots locked, so any test
-that writes into a governed root fails in its own PR.
+that writes into an FR-889 governed root (`FR889_GOVERNED_ROOTS`) fails in
+its own PR. Paths outside those roots are not covered.
 
 ## Proposed Solution
 
@@ -151,8 +164,9 @@ that writes into a governed root fails in its own PR.
    passing (`plausible_wrong_answer`). The other six tests keep reading the
    real repository read-only.
 2. **Census hits.** The census found one true hit, so class (b) and class
-   (a) coincide at this HEAD. Any further hit exposed by item 3 in CI is
-   fixed in the same PR with `tmp_path`.
+   (a) coincide at this HEAD. If a locked run exposes any further test,
+   implementation stops and this FR is amended with the exact file and fix
+   before that file is edited (judgement R-5).
 3. **CI mirrors the lock.** In the `test` job of
    [workflow.yml](../.github/workflows/workflow.yml#L69-L99), after
    dependency install and before `Run tests`, add a step that runs
@@ -166,32 +180,40 @@ that writes into a governed root fails in its own PR.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 (RED, committed alone with `SKIP=pytest`): a new test in
-  `tests/unit/test_fr_numbering.py` builds a `tmp_path` git repo with one
-  committed FR, runs `chmod -R u-w` on its `feature-requests/`,
-  monkeypatches the module's `REPO_ROOT` and `FR_DIR` to it, and runs the
-  untracked-probe check. On the unfixed code it fails with
-  `PermissionError`. It skips with a stated reason when
-  `os.geteuid() == 0` (chmod is not enforced for root) and on `win32`. It
-  restores write permission in teardown so `tmp_path` cleanup succeeds. It
-  never touches the real main lock.
-- [ ] AC-02 (GREEN): with Proposed Solution item 1, AC-01 passes, and
-  `test_untracked_files_are_not_collisions` asserts both that the tracked
-  FR is listed and that the untracked probe is not.
-- [ ] AC-03: `tests/unit/test_fr_numbering.py` passes on the locked main
-  checkout (`scripts/worktree.sh lock-main` state), log committed or cited
-  in the implementation record.
-- [ ] AC-04: `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` on the
-  locked main checkout reports 0 failed; the log path and summary line are
-  recorded in the FR implementation record.
-- [ ] AC-05: the CI `test` job runs `scripts/worktree.sh lock-main` before
-  `pytest tests/unit/`, and both matrix entries pass. Any further test that
-  fails only under the lock is fixed with `tmp_path` in this PR and listed in
-  the implementation record; none is skipped or excluded.
-- [ ] AC-06: every new or changed test carries
-  `@pytest.mark.req("REQ-YG-627")` (the module's existing tag), and `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-07: changelog fragment in `changelog/unreleased/` (`type: fix`,
-  `scope: tests`, `req: REQ-YG-627`), FR implementation record, diary entry.
+The judgement's revised AC-01 to AC-08 are adopted (R-2 to R-5).
+
+- [ ] AC-01 (RED, committed alone with `SKIP=pytest`):
+  `test_untracked_files_are_not_collisions(tmp_path)` creates a temporary
+  git repository with repository-local identity, one committed FR, and one
+  untracked probe; it calls `_tracked_fr_names(tmp_path)`, asserts the
+  tracked name is present and the probe absent, and fails against current
+  code because the helper accepts no root argument.
+- [ ] AC-02 (GREEN): `_tracked_fr_names(root: Path = REPO_ROOT)` uses `root`
+  as the `git ls-files` working directory; AC-01 passes and the witness
+  creates, modifies, and deletes nothing under the real repository's
+  governed roots.
+- [ ] AC-03: `pytest tests/unit/test_fr_numbering.py -q --no-cov` passes in
+  the implementation worktree.
+- [ ] AC-04: in a disposable standalone clone checked out at the
+  implementation commit, `scripts/worktree.sh lock-main` followed by
+  `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` reports zero
+  failures; the implementation record states the commit SHA, exact
+  commands, and summary.
+- [ ] AC-05: the required CI `test` job runs `scripts/worktree.sh lock-main`
+  after dependency installation and before `pytest tests/unit/`; both
+  Python 3.11 and 3.13 matrix entries complete successfully.
+- [ ] AC-06: if any locked run exposes a test other than the named
+  FR-numbering witness, implementation stops and FR-1094 is amended with the
+  exact file and intended correction before that file is edited; no failure
+  is skipped or excluded.
+- [ ] AC-07: the changed witness has a function-level
+  `@pytest.mark.req("REQ-YG-631")`; CAP-255 and the `REQ-YG-631`
+  architecture entry name the CI lock and witness;
+  `python scripts/req_coverage.py --strict` passes. No new artifact claims
+  `REQ-YG-627`.
+- [ ] AC-08: a `changelog/unreleased/` fix fragment uses `scope: tests` and
+  `req: REQ-YG-631`; the FR contains the implementation record; the diary
+  entry contains a **Seed:**.
 
 ## Alternatives Considered
 
@@ -221,7 +243,7 @@ Solution classes (chosen: 4):
    review (`instruction_boundary_uncrossed`); it detects in CI, not in a
    local worktree run; and CI runs slow-marked tests the local census did
    not execute under the lock, so the first CI run may expose further hits
-   (AC-05 fixes them in-PR).
+   (AC-06 stops and amends this FR before fixing them).
 5. **(d) Run the unit suite only in worktrees.** Rejected: it hides the
    defect. The suite would still write into the repository tree; the result
    would depend on where it is run.
@@ -232,19 +254,31 @@ Solution classes (chosen: 4):
 census is a deterministic grep and AST scan over about 600 files; no item
 needs a model judgement.
 
-## Human decision needed
+## Human decisions
 
-- **Where the CI lock step runs.** Options: `test` job (required contexts
-  `test (3.11)`, `test (3.13)`), `core-test` job, or a new job. Suggested
-  default: the `test` job — it is already required, so the check blocks
-  merge without changing branch protection.
-- **Diff review of the workflow edit.** Suggested default: operator reviews
-  the CI step before merge, per `instruction_boundary_uncrossed`.
+Operator standing rule (2026-09-25): suggested defaults count as accepted.
+
+- **Where the CI lock step runs:** the existing required `test` matrix job,
+  after dependency installation and before pytest (judgement R-6, C-2). It
+  is already a required context (`test (3.11)`, `test (3.13)`), so the check
+  blocks merge without a branch-protection change.
+- **Diff review of the workflow edit:** the operator reviews the CI step
+  before merge (judgement C-3, `instruction_boundary_uncrossed`).
+
+## Scope (frozen by judgement)
+
+D-1 `tests/unit/test_fr_numbering.py` (root parameter plus the hermetic
+witness only); D-2 the `workflow.yml` lock step; D-3 CAP-255 and the
+`REQ-YG-631` entry in `ARCHITECTURE.md`; D-4 one changelog fragment; D-5
+this implementation record and one diary entry. Not authorized: changes to
+`scripts/worktree.sh` or FR-889's roots, other tests, Windows CI, an audit
+hook, skips or exclusions, CAP-252 or SMTP, FR renumbering, or retagging
+the rest of the FR-numbering module.
 
 ## Out of scope
 
 Tests writing into ungoverned directories (`tmp/`, `outputs/`, `logs/`,
-`examples/`, root files). The Windows CI job. Local-run detection (class 3).
+`examples/`, root files); the guarantee covers `FR889_GOVERNED_ROOTS` only. The Windows CI job. Local-run detection (class 3).
 The REQ-YG-627 misattribution (Problem §5; operator, 2026-09-25: not fixed here). Changes to the FR-889
 lock or its governed-root list.
 

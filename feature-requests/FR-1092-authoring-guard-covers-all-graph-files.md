@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — SPLIT ([judgement](FR-1092-authoring-guard-covers-all-graph-files.judgement.md)); SPLIT overridden by operator ruling 2026-09-25 ("no splits or bloat"): enforced whole, boundary defects R-3–R-7 folded at enforcement. Not scheduled until FR-1073 and FR-1094 merge.
 **Effort:** 1 day
 **Requested:** 2026-09-25
 **First consumer / first event:** the first edit to
