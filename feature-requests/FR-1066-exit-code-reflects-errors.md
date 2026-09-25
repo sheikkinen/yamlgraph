@@ -3,6 +3,7 @@
 **Priority:** HIGH
 **Type:** Bug
 **Status:** Rejected — [judgement](FR-1066-exit-code-reflects-errors.judgement.md); no implementation authority. Re-file with research and reachable exit paths.
+**Refiled (2026-09-25):** as [FR-1083](FR-1083-exit-code-reflects-errors.md).
 **Human decision (2026-09-25, operator; judgement R-3 / AC-04):** exit 3 is a hard stop. Shell callers must not continue past it unless they handle it explicitly; the refile lists each caller and its handling.
 **Effort:** 0.5 days
 **Requested:** 2026-09-25

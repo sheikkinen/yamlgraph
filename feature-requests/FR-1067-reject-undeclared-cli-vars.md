@@ -3,6 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Bug
 **Status:** Rejected — [judgement](FR-1067-reject-undeclared-cli-vars.judgement.md); no implementation authority. Re-file with substantive research.
+**Refiled (2026-09-25):** as [FR-1084](FR-1084-reject-undeclared-cli-vars.md).
 **Effort:** 0.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next
