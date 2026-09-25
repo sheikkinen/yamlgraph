@@ -3,6 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Bug
 **Status:** Rejected — [judgement](FR-1068-default-max-concurrency.judgement.md); no implementation authority. Research and human default-risk decision required.
+**Refiled (2026-09-25):** as [FR-1085](FR-1085-default-max-concurrency.md).
 **Human decision (2026-09-25, operator; judgement R-2 / AC-02):** the runtime default is width 8 for all providers and entry points (`run_graph`, `run_graph_async`, streaming), overridable per run. Accepted risk: a provider quota below 8 (witnessed: 2) yields 429s until overridden.
 **Effort:** 0.25 days
 **Requested:** 2026-09-25

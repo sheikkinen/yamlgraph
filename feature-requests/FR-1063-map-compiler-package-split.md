@@ -3,6 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Enhancement (refactor)
 **Status:** Rejected — [judgement](FR-1063-map-compiler-package-split.judgement.md); no implementation authority. Re-file with substantive research.
+**Refiled (2026-09-25):** as [FR-1082](FR-1082-map-compiler-package-split.md).
 **Effort:** 0.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** [FR-1064](FR-1064-map-branch-contract.md)

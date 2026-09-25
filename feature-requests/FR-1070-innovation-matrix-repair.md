@@ -3,6 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Bug
 **Status:** Rejected — [judgement](FR-1070-innovation-matrix-repair.judgement.md); no implementation authority. Re-file with research and a supported grid bound.
+**Refiled (2026-09-25):** as [FR-1088](FR-1088-innovation-matrix-repair.md).
 **Effort:** 0.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next

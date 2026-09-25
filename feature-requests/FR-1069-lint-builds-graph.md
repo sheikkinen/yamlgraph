@@ -3,6 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Bug / Linter completeness
 **Status:** SPLIT — [judgement](FR-1069-lint-builds-graph.judgement.md); lint trust boundary and demo repair require separately judged FRs. No implementation authority.
+**Split (2026-09-25):** into [FR-1086](FR-1086-lint-compile-check.md) (compile check) and [FR-1087](FR-1087-safety-guards-demo-repair.md) (demo repair).
 **Human decision (2026-09-25, operator; judgement R-2 / AC-02):** compilation is opt-in via `graph lint --build` on trusted graphs; plain `lint` never imports graph-declared Python. The promise becomes "`lint --build` passes implies the graph builds".
 **Effort:** 0.5 days
 **Requested:** 2026-09-25
