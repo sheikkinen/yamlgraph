@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Rejected — [judgement](FR-1066-exit-code-reflects-errors.judgement.md); no implementation authority. Re-file with research and reachable exit paths.
 **Effort:** 0.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** any script or CI job running

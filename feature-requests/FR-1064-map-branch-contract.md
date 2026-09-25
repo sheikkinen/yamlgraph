@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** SPLIT — [judgement](FR-1064-map-branch-contract.judgement.md); map results and provider-wide retry require independently judged FRs. No implementation authority.
 **Effort:** 2 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next `innovation_matrix` run on haiku

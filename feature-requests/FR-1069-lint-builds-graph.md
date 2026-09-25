@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug / Linter completeness
-**Status:** Proposed
+**Status:** SPLIT — [judgement](FR-1069-lint-builds-graph.judgement.md); lint trust boundary and demo repair require separately judged FRs. No implementation authority.
 **Effort:** 0.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** `yamlgraph graph lint
