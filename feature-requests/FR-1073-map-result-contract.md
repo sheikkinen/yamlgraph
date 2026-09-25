@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1073-map-result-contract.judgement.md)); R-1–R-6 folded 2026-09-25 (see [Revision fold](#revision-fold)). Authority activates on human decisions H-1–H-3 in [Migration census](#migration-census) and human review. No implementation authority yet.
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1073-map-result-contract.judgement.md)); R-1–R-6 folded 2026-09-25 (see [Revision fold](#revision-fold)). **Authority active (2026-09-25):** operator accepted H-1–H-4 in [Migration census](#migration-census) and the fold as written, satisfying judgement C-1 and C-5.
 **Effort:** 1.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next
@@ -327,7 +327,10 @@ Out of scope: retry ownership (separate FR from FR-1064 R-1), resume
 - After the change, row 59's `SkipReport` would see no skips in
   `state.errors` (R-3), so `merger.py` reads `failures` instead.
 
-**Human decisions.**
+**Human decisions.** All four accepted by the operator on 2026-09-25, as
+proposed below ("open questions had suggested or implied solutions. all
+accepted"). H-4: the `innovation_matrix` rerun spend is authorized (C-9),
+run after deterministic acceptance and non-gating.
 - **H-1 (R-5):** approve the table, in which every map is strict except
   row 27 (`map-timeout`, `min_success: 2`).
   - Row 27 evidence: the demo exists to show a timeout. `tasks.yaml` gives
