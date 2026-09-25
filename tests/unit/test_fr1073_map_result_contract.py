@@ -269,6 +269,32 @@ class TestBranchOutcome:
         assert verdict.met is True
         assert out["seen"] == ["a", "c"]
 
+    @pytest.mark.parametrize("model", ["MapFailure", "MapAccounting"])
+    def test_record_requires_dispatch_token(self, model):
+        from pydantic import ValidationError
+
+        from yamlgraph.models import map_results
+
+        fields = {"map": "fan", "dispatch": None, "index": 0}
+        if model == "MapFailure":
+            fields |= {
+                "error_type": "ValueError",
+                "message": "m",
+                "node": "_map_fan_sub",
+                "tolerated": False,
+            }
+        else:
+            fields["outcome"] = "succeeded"
+        with pytest.raises(ValidationError):
+            getattr(map_results, model)(**fields)
+
+    def test_branch_without_dispatch_token_fails(self):
+        from yamlgraph.compile.map_contract import success_accounting
+        from yamlgraph.models.map_results import MapAccountingError
+
+        with pytest.raises(MapAccountingError, match="fan"):
+            success_accounting("fan", {"_map_index": 0})
+
     def test_timeout_is_never_tolerated(self, tmp_path):
         out = _run(
             tmp_path,
@@ -300,6 +326,9 @@ class TestJoinVerdict:
         assert len(values["results_failures"]) == 1
         assert sorted(row.index for row in values["_map_accounting"]) == [0, 1, 2]
         assert "seen" not in values or values["seen"] is None
+        verdict = values["_map_verdict"]["fan"]
+        assert (verdict.succeeded, verdict.failed, verdict.met) == (2, 1, False)
+        assert values["_map_open"]["fan"] is None
 
     def test_fraction_threshold_passes_only_real_results(self, tmp_path):
         out = _run(
@@ -468,11 +497,16 @@ class TestTokensAndChannels:
 
 @pytest.mark.req("REQ-YG-692")
 class TestTopology:
-    def test_three_nodes_and_join_owns_outgoing(self, tmp_path):
+    def test_four_nodes_and_join_owns_outgoing(self, tmp_path):
         drawable = _compile(tmp_path).compile().get_graph()
-        assert {"fan", "_map_fan_sub", "_map_fan_join"} <= set(drawable.nodes)
+        nodes = {"fan", "_map_fan_sub", "_map_fan_account", "_map_fan_join"}
+        assert nodes <= set(drawable.nodes)
         sub_targets = {e.target for e in drawable.edges if e.source == "_map_fan_sub"}
-        assert sub_targets == {"_map_fan_join"}
+        assert sub_targets == {"_map_fan_account"}
+        account_targets = {
+            e.target for e in drawable.edges if e.source == "_map_fan_account"
+        }
+        assert account_targets == {"_map_fan_join"}
         into_consume = {e.source for e in drawable.edges if e.target == "consume"}
         assert into_consume == {"_map_fan_join"}
 
