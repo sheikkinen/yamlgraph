@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1073-map-result-contract.judgement.md)); R-1–R-6 folded 2026-09-25 (see [Revision fold](#revision-fold)). **Authority active (2026-09-25):** operator accepted H-1–H-4 in [Migration census](#migration-census) and the fold as written, satisfying judgement C-1 and C-5.
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1073-map-result-contract.judgement.md)); R-1–R-6 folded 2026-09-25 (see [Revision fold](#revision-fold)). **Authority active (2026-09-25):** operator accepted H-1–H-4 in [Migration census](#migration-census) and the fold as written, satisfying judgement C-1 and C-5. **Operator ruling (2026-09-25): "no splits or bloat".** One PR. Cut: `key` and the duplicate-key check (AC-03 and the `key` half of AC-01; no consumer until FR-1065), and the H-4 live rerun. All graph edits go through one authoring brief. **Implemented 2026-09-25** — see [Implementation](#implementation-2026-09-25).
 **Effort:** 1.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next
@@ -423,6 +423,130 @@ The strict default goes ahead now; it does not wait for FR-1065. Resume
 makes a failed run cheaper but does not make undeclared partial output
 correct ([judgement](FR-1073-map-result-contract.judgement.md), "What is
 sound"). The operator's preference (2026-09-25) was the same.
+
+## Implementation (2026-09-25)
+
+Branch `feat/fr-1073-map-result-contract`. RED `b38aff20`; GREEN is the
+next commit on the branch. One PR, per the operator ruling.
+
+**Code.**
+- `yamlgraph/models/map_results.py`: `MapFailure`, `MapAccounting`,
+  `MapVerdict`, `MapCompletenessError`, `MapAccountingError`, the reducers,
+  and `compute_verdict` (item 7 arithmetic).
+- `yamlgraph/compile/map_contract.py`: branch classification, the dispatch
+  node and router, the account node and the join.
+- `map_compiler.py` compiles `<name>` (dispatch), `_map_<name>_sub`,
+  `_map_<name>_account` and `_map_<name>_join`. `edge_compiler.py` starts
+  every outgoing edge at the
+  join. `validators.py` checks `min_success` and `failures` at load.
+  `state_builder.py`/`state_codegen.py` declare the reducers.
+
+**AC status.** AC-01, AC-02, AC-04 to AC-23 met: witnesses in
+`tests/unit/test_fr1073_map_result_contract.py`, the migrated map test
+files, and the consumer witnesses below. AC-03 cut by the operator ruling.
+AC-23: status, decisions, changelog fragment and the diary entry
+(`docs/diary/2026-09-25-reflection-fr-1073.md`) are in this PR.
+
+**Consumer migration (H-3, AC-17).**
+- 11 files drop their `_error` branch: a failed item can no longer reach
+  `collect`. Rows 41 and 47 lose the rewrite into `not_an_incident` /
+  `obsolete`. A strict map now raises at the join before these consumers
+  run (AC-06, AC-19 witnesses), so no per-consumer fixture exists: the
+  consumers no longer have a failed-item path.
+- `corpus_census`, `person_profile_census`, `cap_journey_census` turn
+  `findings_failures` records into the same failed ledger row as before.
+  Witness: `test_failures_channel_becomes_failed_row`.
+- `repo_census` and `pattern_model_census` raise on any
+  `*_findings_failures` record, tolerated or not. Witnesses:
+  `test_tolerated_failure_still_rejected` (both suites).
+- `ocr_cleanup/tools/merger.py` builds its `SkipReport` from
+  `map_results_failures`. Witness: `tests/unit/test_fr1073_ocr_skip_report.py`.
+- Four tests that fed hand-built `_error` envelopes to removed branches
+  were deleted (`test_style_convert`, `test_fr776_vision_fallback` ×2,
+  `test_abstraction_span_separation`).
+
+**Graph edits (H-1, H-2, AC-18).** Brief
+`feature-requests/authoring-briefs/fr-1073-map-migration.md`, run through
+`scripts/author.sh`. Rows 2, 5, 6, 7, 10, 50, 59 move `on_error` (and
+`max_retries`) into the sub-node. Row 27 adds `min_success: 2`. A second
+brief, `feature-requests/authoring-briefs/fr-1073-book-translator-state.md`,
+also run through `scripts/author.sh`, declares `reviewed_chunks: dict` in
+`book_translator`'s state. That clears its E303
+(`human_review.resume_key`), which was on main before this change (review
+P3). The governed reports are written to `tmp/draft-authoring-report.md`
+per run and are not committed; their results:
+
+| Graph | `yamlgraph graph lint` | Smoke |
+|---|---|---|
+| `batch_image_prompts` | exit 0 | compile check; no live run (H-4) |
+| `book_translator` | exit 0 (0 errors, 4 warnings) | `graph info` exit 0; no live run (H-4) |
+| `daily_digest` | exit 0 | compile check; no live run (H-4) |
+| `diary_digest` | exit 0 | compile check; no live run (H-4) |
+| `ocr_cleanup` | exit 0 | compile check; no live run (H-4) |
+| `demos/map-timeout` | exit 0 | run from its own graph, `examples/demos/map-timeout/demo-output.log`: two results, one non-tolerated `TimeoutError` in `results_failures`, verdict met, no raise, `current_step: _map_process_join` |
+
+**Deviations from the plan.**
+- `MapFailure.index`, not `_map_index`.
+- `key` cut (operator ruling); the dispatch token is a UUID per dispatch.
+- Item 8 names three nodes; the map compiles four. Item 6 requires the
+  verdict and the closed dispatch to be written before
+  `MapCompletenessError`, and LangGraph discards every write of a node
+  that raises. So `_map_<name>_account` does item 6's first four steps and
+  `_map_<name>_join` raises in the next step. The join still owns every
+  outgoing edge (AC-14). Found by review of PR #702 (P1); the checkpoint
+  witness now asserts the failed verdict and `_map_open.<name> is None`.
+- `MapFailure.dispatch` and `MapAccounting.dispatch` are required strings;
+  a branch without `_map_dispatch` raises `MapAccountingError` (review P2).
+- The FR-944 barrier node is dropped: the join is the barrier.
+- The map `Send` branch in `routing.py` is deleted; the dispatch router
+  owns fan-out. It re-resolves `over` and checks the count against the
+  dispatch record (AC-11).
+- The `Send` payload carries `_map_dispatch` so each branch reports its
+  token.
+- `tests/fixtures/interrupt_loop_end.yaml` had a `passthrough` sub-node
+  inside a map, which never worked: it failed on every item with an
+  `rsplit` error that the old contract hid as an `_error` result. The
+  fixture now uses a python tool (`tests/fixtures/interrupt_loop_tools.py`).
+  This is the FR's thesis, witnessed by the repository's own fixture.
+- `yamlgraph/schemas/graph-v1.json` unchanged: it does not list
+  `timeout` or `flatten_output` either and admits extra node keys.
+
+**Gate bypass (operator decision, 2026-09-25).** The GREEN commit ran with
+`SKIP=demo-proof-check`. The gate asks for a fresh `demo-output.log` for
+12 LLM demos whose tool code changed: book-summary, cap_journey_census,
+corpus_census, pattern_model_census, person_profile_census,
+philosopher_book, ramp_doctrine, ramp_incidents, repo_census,
+req_witness_audit, salvage_classify, session-shapes. The gate is right
+that their behaviour changed. The operator chose unit witnesses over 12
+live runs (cost, gh/azure credentials): each changed branch has a unit
+test, and the full unit suite passed. Their committed logs predate
+FR-1073. `map-timeout` is the one demo with a fresh log, produced by its
+own graph.
+
+**Post-judgement operator rulings (2026-09-26).** These change frozen
+judgement clauses; they are recorded here as amendments, not deviations.
+Review round 2 of PR #702 raised each one.
+- **A-1 (review P1): `key` cut.** The judgement froze `key` in the failure
+  and accounting identity and a duplicate-key check before any `Send`
+  (AC-01 `key` half, AC-03). The operator's 2026-09-25 ruling cuts both.
+  First consumer is FR-1065, which will carry `key` when it needs it.
+- **A-2 (review P4): `book_translator` state edit approved after the
+  fact.** Judgement C-7 excludes unrelated demo repair; C-6 requires every
+  edited graph to lint. `book_translator` failed lint (E303) on `main`
+  before this change, so C-6 and C-7 conflict for that graph. The operator
+  approves the `reviewed_chunks: dict` edit and its brief.
+- **A-3 (review P2): demo proofs postponed.** The 12 demo logs above are
+  replaced with a one-line `✅ Live run postponed until map proven to
+  work` notice. They are not run logs; the previous live runs remain in
+  git history. The live runs happen after this map contract has been
+  proven in use.
+- **A-4 (review P3): FR-944 barrier node dropped.** Judgement R-4 and
+  item 206 name upstream sub → upstream join → FR-944 barrier →
+  downstream fan-out. The implementation wires the upstream join straight
+  to the downstream dispatch: the join already runs only after every
+  upstream branch has reported, so a separate barrier would wait on the
+  same event twice. The operator accepts this topology (2026-09-26);
+  `test_fr944_map_to_map_index.py` witnesses the end state.
 
 ## Related
 

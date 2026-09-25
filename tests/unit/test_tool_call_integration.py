@@ -154,7 +154,7 @@ class TestMapWithToolCall:
         }
 
         # This should work - map_compiler needs to handle tool_call sub-nodes
-        map_edge_fn, sub_node_name = compile_map_node(
+        map_edge_fn, join_name = compile_map_node(
             "execute_discovery",
             map_config,
             graph,
@@ -162,6 +162,7 @@ class TestMapWithToolCall:
             tools_registry=tools_registry,  # New parameter for tool_call
         )
 
+        sub_node_name = "_map_execute_discovery_sub"
         assert callable(map_edge_fn)
-        assert sub_node_name == "_map_execute_discovery_sub"
+        assert join_name == "_map_execute_discovery_join"
         assert sub_node_name in graph.nodes

@@ -118,6 +118,13 @@ def generate_typeddict_code(
         elif node_type == "map":
             if collect_key := node_config.get("collect"):
                 fields[collect_key] = "list"
+                # FR-1073: typed failures channel
+                fields[node_config.get("failures") or f"{collect_key}_failures"] = (
+                    "list"
+                )
+            fields["_map_accounting"] = "list"
+            fields["_map_open"] = "dict"
+            fields["_map_verdict"] = "dict"
         elif node_type == "race":
             fields["_race_winner"] = "dict"
         elif node_type == "subgraph" and subgraph_relay_capable(

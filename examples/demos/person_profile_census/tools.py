@@ -22,6 +22,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, HttpUrl, ValidationError
 
+from yamlgraph.models.map_results import MapFailure
+
 AZURE_VARS = ("AZURE_AI_ENDPOINT", "AZURE_AI_API_KEY", "AZURE_MODEL")
 VALID_VISIBILITY = {"public", "private", "internal"}
 CHANGE_KIND_ENUM = frozenset(
@@ -316,7 +318,7 @@ def _mechanical_rollup(rows: list[PRLedgerRow]) -> dict[str, Any]:
             months[d[:7]] += 1
     top_by_size = sorted(
         rows,
-        key=lambda r: (r.additions + r.deletions),
+        key=lambda r: r.additions + r.deletions,
         reverse=True,
     )[:10]
     return {
@@ -381,13 +383,22 @@ def _canary_gate(canary: Any, rows: list[PRLedgerRow]) -> None:
         )
 
 
+def _failures_as_findings(failures: Any) -> list[dict[str, Any]]:
+    """FR-1073: tolerated judge failures arrive on the map's failures channel."""
+    records = [MapFailure.model_validate(f) for f in failures or []]
+    return [{"_map_index": f.index, "_error": f.message} for f in records]
+
+
 def reduce_pr_ledger(
     state: dict[str, Any] | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     state = state or {}
     items = state.get("items") or []
     contents = state.get("contents") or []
-    findings = state.get("findings") or []
+    findings = [
+        *(state.get("findings") or []),
+        *_failures_as_findings(state.get("findings_failures")),
+    ]
     problem_labels = _parse_json_list(state.get("problem_labels"), "problem_labels")
     surface_labels = _parse_json_list(state.get("surface_labels"), "surface_labels")
     output_path = state.get("output_path")

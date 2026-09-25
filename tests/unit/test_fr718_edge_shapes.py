@@ -101,11 +101,11 @@ class TestRouteMappingPure:
         mapping = build_expression_route_mapping(
             [("score >= 0.5", "publish"), ("score < 0.5", "mapper")],
             loop_exit_target=None,
-            map_nodes=MAP_NODES,
         )
         assert mapping["publish"] == "publish"
         assert mapping[END] == END
-        assert mapping["mapper__item"] == "mapper__item"  # FR-467 sub-node
+        # FR-1073: a map target is a plain node (its dispatch node)
+        assert mapping["mapper"] == "mapper"
 
     @pytest.mark.req("REQ-YG-568")
     def test_router_route_mapping_redirects(self):

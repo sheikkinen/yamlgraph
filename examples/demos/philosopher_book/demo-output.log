@@ -1,4 +1,2 @@
-Graph execution completed successfully
-not applicable — editorial graph output is manuscript files, not terminal output
-PDF export: examples/demos/philosopher_book/final/book.pdf (496K)
-chore: doc update
+✅ Live run postponed until map proven to work (FR-1073, PR #702; operator ruling 2026-09-26).
+This file is not a run log. The previous live run is in git history: git log -p -- examples/demos/philosopher_book/demo-output.log

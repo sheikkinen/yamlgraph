@@ -206,8 +206,7 @@ def validate_disposition(
             )
         if verdict == "lift" and not str(target or "").startswith("ramp/salvage/"):
             errors.append(
-                f"lift {path!r} target_path must start with ramp/salvage/: "
-                f"{target!r}"
+                f"lift {path!r} target_path must start with ramp/salvage/: {target!r}"
             )
     return errors
 
@@ -228,16 +227,6 @@ def _normalize_map_results(map_results: list[dict], manifest: list[str]) -> list
             if isinstance(index, int) and 0 <= index < len(manifest)
             else ""
         )
-        if "_error" in item:
-            items.append(
-                {
-                    "path": true_path,
-                    "category": "asset",
-                    "verdict": "obsolete",
-                    "rationale": item["_error"],
-                }
-            )
-            continue
         payload = item.get("classification") or item
         if hasattr(payload, "model_dump"):
             payload = payload.model_dump()

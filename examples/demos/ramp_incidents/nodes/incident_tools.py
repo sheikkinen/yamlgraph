@@ -186,16 +186,6 @@ def _normalize_map_results(map_results: list[dict]) -> list[dict]:
     for result in sorted(map_results or [], key=lambda item: item.get("_map_index", 0)):
         item = dict(result)
         item.pop("_map_index", None)
-        if "_error" in item:
-            classifications.append(
-                {
-                    "verdict": "not_an_incident",
-                    "path": "",
-                    "source_ref": "",
-                    "_error": item["_error"],
-                }
-            )
-            continue
         payload = item.get("incident_classification") or item
         if hasattr(payload, "model_dump"):
             payload = payload.model_dump()

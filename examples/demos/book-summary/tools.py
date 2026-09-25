@@ -57,10 +57,6 @@ def accumulate(state: dict) -> dict:
     for entry in state.get("page_summaries") or []:
         if not isinstance(entry, dict):
             continue
-        if "_error" in entry:
-            raise ValueError(
-                f"page summary failed in window {lo}-{hi}: {entry['_error']}"
-            )
         page = entry.get("page")
         if page is None or not lo <= page <= hi:
             continue
@@ -153,8 +149,6 @@ def gate_render(state: dict) -> dict:
                     f"render failed in window {lo}-{hi}: {entry.get('error')}"
                 )
             entry = {"_map_index": entry.get("_map_index"), **(entry["result"] or {})}
-        if "_error" in entry:
-            raise ValueError(f"render failed in window {lo}-{hi}: {entry['_error']}")
         page = entry.get("page")
         if page is None or not lo <= page <= hi:
             continue
@@ -199,10 +193,6 @@ def merge_vision(state: dict) -> dict:
     for entry in state.get("transcriptions") or []:
         if not isinstance(entry, dict):
             continue
-        if "_error" in entry:
-            raise ValueError(
-                f"transcription failed in window {lo}-{hi}: {entry['_error']}"
-            )
         page = entry.get("page")
         if page is None or not lo <= page <= hi:
             continue

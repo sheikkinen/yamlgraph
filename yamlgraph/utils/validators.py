@@ -184,6 +184,34 @@ def validate_map_node(node_name: str, node_config: dict[str, Any]) -> None:
         if field not in node_config:
             raise ValueError(f"Map node '{node_name}' missing required '{field}' field")
 
+    # FR-1073: min_success is an int count >= 0 or a float fraction in [0, 1]
+    if "min_success" in node_config:
+        value = node_config["min_success"]
+        valid_int = (
+            isinstance(value, int) and not isinstance(value, bool) and value >= 0
+        )
+        valid_float = isinstance(value, float) and 0.0 <= value <= 1.0
+        if not (valid_int or valid_float):
+            raise ValueError(
+                f"Map node '{node_name}': min_success must be an integer >= 0 "
+                f"or a float in [0.0, 1.0], got {value!r}"
+            )
+
+    # FR-1073: failures must be a distinct, non-reserved state key
+    if "failures" in node_config:
+        value = node_config["failures"]
+        reserved = {"errors", "current_step", "_loop_counts", node_config["collect"]}
+        if (
+            not isinstance(value, str)
+            or not value
+            or value in reserved
+            or value.startswith("_map_")
+        ):
+            raise ValueError(
+                f"Map node '{node_name}': failures must be a non-empty state key "
+                f"distinct from collect and reserved keys, got {value!r}"
+            )
+
 
 def validate_interactive_tool_node(node_name: str, node_config: dict[str, Any]) -> None:
     """Validate interactive_tool node has required fields.

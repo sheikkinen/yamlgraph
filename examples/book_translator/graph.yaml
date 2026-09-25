@@ -27,6 +27,7 @@ state:
   glossary: dict
   quality_threshold: float
   needs_review: bool
+  reviewed_chunks: dict
 
 # Python tools - minimal data transforms only
 tools:
@@ -79,13 +80,13 @@ nodes:
     node:
       type: llm
       prompt: extract_terms
+      on_error: skip
       variables:
         text: "{state.chunk.text}"
         existing_glossary: "{state.glossary}"
         source_language: "{state.source_language}"
         target_language: "{state.target_language}"
     collect: term_extractions
-    on_error: skip
 
   # Phase 2b: Merge extracted terms
   merge_glossary:
@@ -102,6 +103,8 @@ nodes:
     node:
       type: llm
       prompt: translate_chunk
+      on_error: retry
+      max_retries: 2
       variables:
         text: "{state.chunk.text}"
         source_language: "{state.source_language}"
@@ -111,8 +114,6 @@ nodes:
         context_before: "{state.chunk.context_before}"
         context_after: "{state.chunk.context_after}"
     collect: translations
-    on_error: retry
-    max_retries: 2
 
   # Phase 4: Proofread translations
   proofread_all:
@@ -123,12 +124,12 @@ nodes:
     node:
       type: llm
       prompt: proofread
+      on_error: skip
       variables:
         original: "{state.translation.original}"
         translated: "{state.translation.text}"
         glossary: "{state.glossary}"
     collect: proofread_chunks
-    on_error: skip
 
   # Phase 5: Quality gate
   quality_check:

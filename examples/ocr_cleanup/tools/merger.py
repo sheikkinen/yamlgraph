@@ -8,6 +8,8 @@ from __future__ import annotations
 from collections import Counter
 
 from yamlgraph.contrib import SkipReport, to_serializable
+from yamlgraph.models.map_results import MapFailure
+from yamlgraph.models.schemas import ErrorType, PipelineError
 
 
 def merge_paragraphs(cleaned_pages: list[dict]) -> dict:
@@ -156,8 +158,20 @@ def merge_paragraphs_node(state: dict) -> dict:
 
     result = merge_paragraphs(cleaned_pages)
 
-    # Report skipped pages (FR-044d demo)
-    skip_report = SkipReport.from_state(state)
+    # Report skipped pages (FR-044d demo). FR-1073: skipped branches are
+    # tolerated map failures, not state.errors entries.
+    skip_report = SkipReport(
+        errors=[
+            PipelineError(
+                type=ErrorType.UNKNOWN_ERROR,
+                message=f"page index {f.index}: {f.message}",
+                node=f.node,
+            )
+            for f in map(
+                MapFailure.model_validate, state.get("map_results_failures") or []
+            )
+        ]
+    )
     if skip_report.count > 0:
         skip_report.log()
         result["skip_report"] = skip_report.to_dict()

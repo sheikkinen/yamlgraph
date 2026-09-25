@@ -272,6 +272,24 @@ class TestRepoLedgerReducer:
         with pytest.raises(ValueError, match="missing"):
             reduce_repo_ledger(state)
 
+    @pytest.mark.req("REQ-YG-692")
+    def test_tolerated_failure_still_rejected(self, tmp_path):
+        """FR-1073: a skipped judge branch on findings_failures blocks the ledger."""
+        state = _good_state(tmp_path)
+        state["findings_failures"] = [
+            {
+                "map": "judge",
+                "dispatch": "d",
+                "index": 0,
+                "error_type": "RuntimeError",
+                "message": "boom",
+                "node": "judge",
+                "tolerated": True,
+            }
+        ]
+        with pytest.raises(ValueError, match="failed; first at index 0: boom"):
+            reduce_repo_ledger(state)
+
     @pytest.mark.req("REQ-YG-628")
     def test_duplicate_finding_rejected(self, tmp_path):
         state = _good_state(tmp_path)

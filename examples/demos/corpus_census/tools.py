@@ -28,6 +28,8 @@ from pydantic import (
     model_validator,
 )
 
+from yamlgraph.models.map_results import MapFailure
+
 ERROR_STRINGS = ("Error:", "No results")
 MODEL = "claude-haiku-4-5"
 PROMPT_VERSION = "judge_item.v1"
@@ -363,6 +365,17 @@ def reduce_ledger(state: dict[str, Any] | None = None, **kwargs: Any) -> dict[st
         raise ValueError("items must be a list")
     if not isinstance(findings, list):
         raise ValueError("findings must be a list")
+    # FR-1073: tolerated judge failures arrive on the map's failures channel.
+    findings = [
+        *findings,
+        *(
+            {"_map_index": f.index, "_error": f.message}
+            for f in map(
+                MapFailure.model_validate,
+                effective_state.get("findings_failures") or [],
+            )
+        ),
+    ]
     if not isinstance(output_path, str) or not output_path.strip():
         raise ValueError("output_path must be a non-empty string")
 
@@ -415,8 +428,8 @@ def prepare_brief_input(
 
 def render_brief(state: dict[str, Any] | None = None, **kwargs: Any) -> dict[str, Any]:
     """Render a citation-checked human brief from structured claims."""
-    from examples.demos.corpus_census.adapters import census_brief
     from examples.demos.corpus_census import brief_model_selection as bms
+    from examples.demos.corpus_census.adapters import census_brief
 
     effective_state = state if isinstance(state, dict) else kwargs
     brief_path = _require_non_empty_string(effective_state, "brief_path")

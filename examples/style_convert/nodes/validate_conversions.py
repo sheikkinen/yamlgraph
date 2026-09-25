@@ -35,17 +35,8 @@ def validate_conversions_node(state: dict) -> dict:
     source = state.get("source_prompts") or []
     prompts = state.get("prompts") or []
 
-    failed = [
-        entry for entry in prompts if isinstance(entry, dict) and "_error" in entry
-    ]
-    if failed:
-        indices = [entry.get("_map_index", "?") for entry in failed]
-        raise ValueError(
-            f"{len(failed)} of {len(source)} style conversions failed "
-            f"(branch indices {indices}); aborting before save so no partial "
-            f"prompt file is written. First error: {failed[0].get('_error')!r}"
-        )
-
+    # FR-1073: a failed branch never reaches `prompts`; the strict map join
+    # raises MapCompletenessError before this node runs.
     if len(prompts) != len(source):
         raise ValueError(
             f"Converted prompt count {len(prompts)} does not match source "

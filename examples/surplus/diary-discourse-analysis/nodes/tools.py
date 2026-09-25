@@ -157,7 +157,9 @@ def write_dossier(state: dict[str, Any]) -> dict[str, Any]:
 
     json_path = output_dir / "dossier.json"
     md_path = output_dir / "dossier.md"
-    json_path.write_text(json.dumps(dossier, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    json_path.write_text(
+        json.dumps(dossier, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+    )
     md_path.write_text(_render_markdown_index(dossier), encoding="utf-8")
     print(f"wrote {json_path} and {md_path}")
     return {
@@ -404,8 +406,6 @@ def _ordered_clean_memoranda(
     for item in sorted(raw_items, key=lambda value: value.get("_map_index", 0)):
         if not isinstance(item, dict):
             raise ValueError(f"memorandum item must be a dict, got {type(item)}")
-        if "_error" in item:
-            raise ValueError(f"map memorandum failed: {item['_error']}")
         index = item.get("_map_index")
         if not isinstance(index, int) or not 0 <= index < len(ordered_chunk_ids):
             raise ValueError(f"memorandum has invalid _map_index: {index}")
@@ -439,8 +439,6 @@ def _ordered_clean_distillations(
     for item in sorted(raw_items, key=lambda value: value.get("_map_index", 0)):
         if not isinstance(item, dict):
             raise ValueError(f"distillation item must be a dict, got {type(item)}")
-        if "_error" in item:
-            raise ValueError(f"map distillation failed: {item['_error']}")
         index = item.get("_map_index")
         if not isinstance(index, int) or not 0 <= index < len(ordered_batch_ids):
             raise ValueError(f"distillation has invalid _map_index: {index}")

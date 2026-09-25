@@ -246,20 +246,7 @@ def _normalize_map_results(state: dict) -> list[dict]:
         state.get("map_results") or [], key=lambda r: r.get("_map_index", 0)
     ):
         item = dict(result)
-        map_index = item.pop("_map_index", None)
-        if "_error" in item:
-            decisions.append(
-                {
-                    "_error": item["_error"],
-                    "_map_index": map_index,
-                    "family": "",
-                    "id": "",
-                    "verdict": "",
-                    "reason": "",
-                    "target_evidence": "",
-                }
-            )
-            continue
+        item.pop("_map_index", None)
         decisions.append(item)
     return decisions
 
@@ -273,11 +260,6 @@ def merge_doctrine(state: dict) -> dict:
         errors.append(
             f"count mismatch: {len(source_items)} source items, {len(decisions)} outputs"
         )
-    for decision in decisions:
-        if "_error" in decision:
-            errors.append(
-                f"map item {decision.get('_map_index')} failed: {decision['_error']}"
-            )
     errors.extend(validate_draft(decisions, source_items))
     if errors:
         raise ValueError("; ".join(errors))

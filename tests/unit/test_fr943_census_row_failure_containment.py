@@ -70,6 +70,33 @@ class TestContainment:
         peers = [r for r in rows if r["item_ref"] != "corpus/b.txt"]
         assert all(r["judgement"] == "steering" for r in peers)
 
+    @pytest.mark.req("REQ-YG-692")
+    def test_failures_channel_becomes_failed_row(self, tmp_path):
+        """FR-1073: a tolerated branch failure arrives on findings_failures."""
+        failure = {
+            "map": "judge",
+            "dispatch": "d",
+            "index": 1,
+            "error_type": "RuntimeError",
+            "message": "boom",
+            "node": "judge",
+            "tolerated": True,
+        }
+        out = str(tmp_path / "ledger.md")
+        result = reduce_ledger(
+            {
+                "items": list(ITEMS),
+                "findings": [_good(0), _good(2)],
+                "findings_failures": [failure],
+                "output_path": out,
+            }
+        )["ledger"]
+        assert result["rows"] == 3
+        failed = [r for r in _rows(tmp_path) if r["judgement"] == "abstain"]
+        assert [(r["item_ref"], r["abstain_reason"]) for r in failed] == [
+            ("corpus/b.txt", "row failed: boom")
+        ]
+
     @pytest.mark.req("REQ-YG-634")
     def test_error_string_judgement_contained(self, tmp_path):
         """AC-03: error-string judgement becomes a failed row, raw preserved."""

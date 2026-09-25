@@ -68,13 +68,13 @@ nodes:
     node:
       type: llm
       prompt: cleanup_page
+      on_error: skip
+      max_retries: 2
       variables:
         page_num: "{state.page.page_num}"
         raw_text: "{state.page.raw_text}"
         prev_page_last_line: "{state.page.prev_last_line}"
     collect: map_results
-    on_error: skip
-    max_retries: 2
 
   merge_paragraphs:
     type: python

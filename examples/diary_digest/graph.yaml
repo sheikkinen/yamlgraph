@@ -78,12 +78,12 @@ nodes:
     node:
       type: llm
       prompt: analyze_relevance
+      on_error: skip
       variables:
         title: "{state.article.title}"
         source: "{state.article.source}"
         topics: "{state.topics}"
     collect: scored_articles
-    on_error: skip
 
   filter_relevant:
     type: python

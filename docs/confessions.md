@@ -293,7 +293,7 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Penance**: Test file needs to import from scripts/ which is not a package.
 
 ### CONF-020
-- **File**: [tests/unit/test_fr027_execution_safety.py](../tests/unit/test_fr027_execution_safety.py#L805)
+- **File**: [tests/unit/test_fr027_execution_safety.py](../tests/unit/test_fr027_execution_safety.py#L811)
 - **Code**: E731 (do not assign a lambda expression)
 - **Sin**: Lambda assigned to variable for signal handler test.
 - **Penance**: Lambda is cleaner than def for trivial no-op handler in test fixture. Accepted for test code.
@@ -1877,7 +1877,7 @@ The ID ranges are:
 - **Penance**: FR-912 — literal pathspec from a module-level constant, no interpolation; same rationale as CONF-437/CONF-438.
 
 ### CONF-443
-- **File**: [examples/demos/corpus_census/tools.py](../examples/demos/corpus_census/tools.py#L49)
+- **File**: [examples/demos/corpus_census/tools.py](../examples/demos/corpus_census/tools.py#L51)
 - **Code**: E402
 - **Sin**: `import ledger_failures` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: FR-943 — demo-local taxonomy module outside the installable package; the REPO_ROOT path bootstrap must precede the import (CONF-427/430 idiom).
@@ -1961,13 +1961,13 @@ The ID ranges are:
 - **Penance**: FR-959 — same vendor-JSON mirroring rationale as CONF-454.
 
 ### CONF-457
-- **File**: [examples/demos/cap_journey_census/tools.py](../examples/demos/cap_journey_census/tools.py#L28)
+- **File**: [examples/demos/cap_journey_census/tools.py](../examples/demos/cap_journey_census/tools.py#L30)
 - **Code**: E402
 - **Sin**: `from examples.demos.cap_journey_census.extract import …` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: CAP journey census (docs/2026-09-05-research-plan-cap-journey-census.md) — demo-local split to stay under the 450-line gate; the REPO_ROOT path bootstrap must precede the import (CONF-443 idiom).
 
 ### CONF-458
-- **File**: [examples/demos/cap_journey_census/tools.py](../examples/demos/cap_journey_census/tools.py#L32)
+- **File**: [examples/demos/cap_journey_census/tools.py](../examples/demos/cap_journey_census/tools.py#L34)
 - **Code**: E402
 - **Sin**: `from examples.demos.cap_journey_census.render import _markdown` after a `sys.path.insert` — module-level import not at top.
 - **Penance**: Same split as CONF-457 (rendering moved to render.py for the size gate); same bootstrap ordering.

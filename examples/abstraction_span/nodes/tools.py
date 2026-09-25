@@ -78,8 +78,6 @@ def _align_scores(
 
     rows: list[dict[str, Any]] = []
     for score in scores:
-        if "_error" in score:
-            raise ValueError(f"A map branch failed: {score.get('_error')}")
         idx = score.get("_map_index")
         if idx is None or not (0 <= idx < len(corpus)):
             raise ValueError(f"Score missing valid _map_index: {score}")

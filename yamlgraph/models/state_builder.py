@@ -9,6 +9,7 @@ from operator import add
 from pathlib import Path
 from typing import Annotated, Any, TypedDict
 
+from yamlgraph.models.map_results import add_by_index, merge_by_key, merge_map_open
 from yamlgraph.models.relay_fields import (
     relay_state_fields,
     subgraph_relay_capable,
@@ -260,6 +261,12 @@ def extract_node_fields(
             # Map node collect field needs sorted reducer for ordered fan-in
             if collect_key := node_config.get("collect"):
                 fields[collect_key] = Annotated[list, sorted_add]
+                # FR-1073: typed failures, accounting, open dispatch, verdict
+                failures_key = node_config.get("failures") or f"{collect_key}_failures"
+                fields[failures_key] = Annotated[list, add_by_index]
+            fields["_map_accounting"] = Annotated[list, add]
+            fields["_map_open"] = Annotated[dict, merge_map_open]
+            fields["_map_verdict"] = Annotated[dict, merge_by_key]
 
         elif node_type == "race":
             fields["_race_winner"] = Any

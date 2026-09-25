@@ -8,16 +8,22 @@ Four findings from Chaplain code audit:
 """
 
 import contextlib
+from functools import partial
 from pathlib import Path
 from unittest.mock import patch
 
 import pytest
 
-from yamlgraph.compile.map_compiler import wrap_for_reducer
+from yamlgraph.compile import map_compiler
 from yamlgraph.linter.checks import LintIssue
 from yamlgraph.linter.checks_semantic import check_error_handling
 from yamlgraph.models import PipelineError
 from yamlgraph.node_factory import create_node_function
+
+# FR-1073: map_name/failures_key are required keyword arguments.
+wrap_for_reducer = partial(
+    map_compiler.wrap_for_reducer, map_name="m", failures_key="failed"
+)
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "linter"
 
@@ -43,7 +49,7 @@ class TestWrapForReducerNonDict:
             return "hello world"
 
         wrapped = wrap_for_reducer(string_node, "results", "output")
-        result = wrapped({"_map_index": 0})
+        result = wrapped({"_map_index": 0, "_map_dispatch": "d"})
 
         # Should not crash, should collect the value
         assert "results" in result
@@ -57,7 +63,7 @@ class TestWrapForReducerNonDict:
             return 42
 
         wrapped = wrap_for_reducer(int_node, "results", "output")
-        result = wrapped({"_map_index": 0})
+        result = wrapped({"_map_index": 0, "_map_dispatch": "d"})
 
         assert "results" in result
         assert result["results"][0]["value"] == 42
@@ -70,7 +76,7 @@ class TestWrapForReducerNonDict:
             return "processed"
 
         wrapped = wrap_for_reducer(string_node, "results", "output")
-        result = wrapped({"_map_index": 3})
+        result = wrapped({"_map_index": 3, "_map_dispatch": "d"})
 
         item = result["results"][0]
         assert item["_map_index"] == 3
@@ -84,7 +90,7 @@ class TestWrapForReducerNonDict:
             return {"output": "some result", "meta": "data"}
 
         wrapped = wrap_for_reducer(dict_node, "results", "output")
-        result = wrapped({"_map_index": 0})
+        result = wrapped({"_map_index": 0, "_map_dispatch": "d"})
 
         assert "results" in result
         item = result["results"][0]
@@ -100,7 +106,7 @@ class TestWrapForReducerNonDict:
             return [1, 2, 3]
 
         wrapped = wrap_for_reducer(list_node, "results", "output")
-        result = wrapped({"_map_index": 1})
+        result = wrapped({"_map_index": 1, "_map_dispatch": "d"})
 
         item = result["results"][0]
         assert item["_map_index"] == 1
