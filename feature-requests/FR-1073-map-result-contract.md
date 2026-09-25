@@ -171,6 +171,9 @@ should implement the fix.
 
 ### Questions for the judge
 
+Operator preference (2026-09-25): strict default now, with the migration
+census; the judge decides.
+
 - The strict default changes behavior for every existing map whose graph
   currently tolerates failed branches silently. The migration (item 7) sets
   `min_success` explicitly where partial success is intended. Is that census
