@@ -540,6 +540,13 @@ Review round 2 of PR #702 raised each one.
   work` notice. They are not run logs; the previous live runs remain in
   git history. The live runs happen after this map contract has been
   proven in use.
+- **A-4 (review P3): FR-944 barrier node dropped.** Judgement R-4 and
+  item 206 name upstream sub → upstream join → FR-944 barrier →
+  downstream fan-out. The implementation wires the upstream join straight
+  to the downstream dispatch: the join already runs only after every
+  upstream branch has reported, so a separate barrier would wait on the
+  same event twice. The operator accepts this topology (2026-09-26);
+  `test_fr944_map_to_map_index.py` witnesses the end state.
 
 ## Related
 
