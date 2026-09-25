@@ -170,20 +170,17 @@ class TestParallelFanOutEdgeCompilation:
 
     @pytest.mark.req("REQ-YG-237")
     def test_parallel_fanout_with_map_target(self):
-        """Fan-out with a map node target uses map edge function."""
+        """Fan-out to a map target is a plain edge into its dispatch node (FR-1073)."""
         mock_graph = MagicMock()
         mock_map_fn = MagicMock()
-        map_nodes = {"expand": (mock_map_fn, "expand_sub")}
+        map_nodes = {"expand": (mock_map_fn, "_map_expand_join")}
 
         edge = {"from": "generate", "to": ["analyze", "expand"]}
         _process_edge(edge, mock_graph, map_nodes, {}, {})
 
-        # Regular target gets add_edge
         assert call("generate", "analyze") in mock_graph.add_edge.call_args_list
-        # Map target gets conditional edge with map function
-        mock_graph.add_conditional_edges.assert_called_once_with(
-            "generate", mock_map_fn, ["expand_sub"]
-        )
+        assert call("generate", "expand") in mock_graph.add_edge.call_args_list
+        mock_graph.add_conditional_edges.assert_not_called()
 
     @pytest.mark.req("REQ-YG-237")
     def test_parallel_fanout_single_target_list(self):

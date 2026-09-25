@@ -19,6 +19,7 @@ nodes:
     as: task
     collect: results
     timeout: 1.0
+    min_success: 2
     node:
       type: python
       tool: slow_task

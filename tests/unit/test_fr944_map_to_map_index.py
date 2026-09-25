@@ -1,9 +1,9 @@
 """FR-944: map-to-map chaining must deliver true per-branch _map_index.
 
-REQ-YG-568 witnesses for the MAP_TO_MAP barrier-join contract: the
-downstream map router must fire once, after upstream fan-in, on merged
-state — via a generated pass-through join node — so every downstream
-branch receives its true index.
+REQ-YG-568 witnesses for map-to-map chaining. Since FR-1073 the upstream
+map's own join node is the fan-in barrier: the downstream dispatch fires
+once, after upstream fan-in, on merged state, so every downstream branch
+receives its true index.
 
 Graphs are built from real YAML via load_and_compile so the actual
 edge_compiler MAP_TO_MAP path is exercised, not a mocked builder.
@@ -191,59 +191,55 @@ class TestErrorAttribution:
 
     @pytest.mark.req("REQ-YG-568")
     def test_error_entry_carries_true_index(self, tmp_path):
-        """Poison row at index 2: wrap_for_reducer error envelope carries
-        _map_index == 2 with exact error text/type; peers unchanged."""
-        app = _compile_chained(tmp_path, second_fn="second_fails_on_c")
+        """Poison row at index 2: the MapFailure record (FR-1073) carries
+        index == 2 with exact error text/type; peers unchanged."""
+        graph_path = _write_graph(tmp_path, second_fn="second_fails_on_c")
+        graph_path.write_text(
+            graph_path.read_text(encoding="utf-8").replace(
+                "    collect: seconds\n", "    collect: seconds\n    min_success: 2\n"
+            ),
+            encoding="utf-8",
+        )
+        app = load_and_compile(str(graph_path)).compile()
         result = app.invoke({"items": ["a", "b", "c"]})
 
-        seconds = result["seconds"]
-        error_entries = [f for f in seconds if "_error" in f]
-        assert len(error_entries) == 1
-        err = error_entries[0]
-        assert err["_map_index"] == 2
-        assert "poison row" in err["_error"]
-        assert err["_error_type"] == "ValueError"
-        ok = [f for f in seconds if "_error" not in f]
+        [err] = result["seconds_failures"]
+        assert err.index == 2
+        assert "poison row" in err.message
+        assert err.error_type == "ValueError"
+        ok = result["seconds"]
         assert [(f["_map_index"], f["echo"]) for f in ok] == [(0, "A"), (1, "B")]
 
 
 class TestCompiledPathWitness:
-    """AC-06: upstream sub-node -> generated join -> downstream Send router."""
+    """AC-06 under FR-1073: upstream sub -> upstream join -> downstream dispatch."""
 
     @pytest.mark.req("REQ-YG-568")
     def test_join_node_in_compiled_path(self, tmp_path):
-        """The generated pass-through join exists; the upstream sub-node has
-        a static edge to it; no downstream-map conditional router is
-        attached directly to the upstream sub-node."""
+        """The upstream map's join is the fan-in barrier: its sub-node has a
+        static edge to it, it has a static edge to the downstream dispatch
+        node, and no router is attached to the upstream sub-node."""
         builder = load_and_compile(str(_write_graph(tmp_path)))
 
-        join_name = "_map_join_first_map_second_map"
+        join_name = "_map_first_map_join"
         assert join_name in builder.nodes
 
         static_edges = set(builder.edges)
         assert ("_map_first_map_sub", join_name) in static_edges
+        assert (join_name, "second_map") in static_edges
 
         branch_sources = set(builder.branches.keys())
-        assert join_name in branch_sources
+        assert "second_map" in branch_sources
         assert "_map_first_map_sub" not in branch_sources
-
-    @pytest.mark.req("REQ-YG-568")
-    def test_join_is_stateless_passthrough(self, tmp_path):
-        """The join returns {} without mutating state."""
-        builder = load_and_compile(str(_write_graph(tmp_path)))
-
-        join_runnable = builder.nodes["_map_join_first_map_second_map"].runnable
-        state = {"items": ["a"], "firsts": [{"_map_index": 0, "value": "A"}]}
-        assert join_runnable.invoke(dict(state)) == {}
+        assert "_map_join_first_map_second_map" not in builder.nodes
 
 
 class TestJoinNameCollision:
-    """AC-07: synthetic join-name collision fails compilation explicitly."""
+    """AC-07 under FR-1073: a user node occupying a generated map node
+    name fails compilation explicitly."""
 
     @pytest.mark.req("REQ-YG-568")
     def test_collision_raises_naming_edge_and_node(self, tmp_path):
-        """A user node occupying the generated join name must fail
-        compilation naming the map-to-map edge and the synthetic name."""
         (tmp_path / "tools_fr944.py").write_text(TOOLS_SRC, encoding="utf-8")
         graph_yaml = (
             GRAPH_TEMPLATE.format(
@@ -252,7 +248,7 @@ class TestJoinNameCollision:
             .replace(
                 "edges:",
                 (
-                    "  _map_join_first_map_second_map:\n"
+                    "  _map_first_map_join:\n"
                     "    type: python\n"
                     "    tool: make_other\n"
                     "    state_key: other\n"
@@ -261,15 +257,12 @@ class TestJoinNameCollision:
             )
             .replace(
                 "  - from: second_map\n    to: END",
-                "  - from: second_map\n    to: _map_join_first_map_second_map\n"
-                "  - from: _map_join_first_map_second_map\n    to: END",
+                "  - from: second_map\n    to: _map_first_map_join\n"
+                "  - from: _map_first_map_join\n    to: END",
             )
         )
         graph_path = tmp_path / "graph.yaml"
         graph_path.write_text(graph_yaml, encoding="utf-8")
 
-        with pytest.raises(
-            ValueError,
-            match=r"first_map.*second_map.*_map_join_first_map_second_map",
-        ):
+        with pytest.raises(ValueError, match=r"_map_first_map_join"):
             load_and_compile(str(graph_path))

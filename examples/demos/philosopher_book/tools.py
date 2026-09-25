@@ -495,10 +495,6 @@ def save_edited_chapters(state: dict[str, Any]) -> dict[str, Any]:
     saved: list[dict[str, Any]] = []
     for index, chapter in enumerate(chapters):
         edited = _coerce_mapping(edited_chapters[index], f"edited_chapters[{index}]")
-        if "_error" in edited:
-            raise ValueError(
-                f"Map edit failed for {chapter['filename']}: {edited['_error']}"
-            )
 
         edited_markdown = _to_str(edited.get("edited_markdown"))
         if edited_markdown is None:

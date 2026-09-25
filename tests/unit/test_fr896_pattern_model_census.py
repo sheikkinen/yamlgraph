@@ -104,6 +104,24 @@ class TestPatternModelReducer:
 
 
 class TestPatternModelGitTools:
+    @pytest.mark.req("REQ-YG-692")
+    def test_tolerated_failure_still_rejected(self, tmp_path):
+        """FR-1073: a skipped judge branch on *_findings_failures blocks the ledger."""
+        state = _good_state(tmp_path)
+        state["model_findings_failures"] = [
+            {
+                "map": "model_judge",
+                "dispatch": None,
+                "index": 1,
+                "error_type": "RuntimeError",
+                "message": "boom",
+                "node": "model_judge",
+                "tolerated": True,
+            }
+        ]
+        with pytest.raises(ValueError, match="model_mentioned: 1 finding"):
+            reduce_ledger(state)
+
     @pytest.mark.req("REQ-YG-624")
     def test_git_extract_schema_is_metadata_only(self, tmp_path):
         module_path = DEMO_DIR / "tools" / "git_tools.py"

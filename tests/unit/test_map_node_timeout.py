@@ -3,13 +3,20 @@
 import concurrent.futures
 import os
 import time
+from functools import partial
 from unittest.mock import MagicMock
 
 import pytest
 
-from yamlgraph.compile.map_compiler import compile_map_node, wrap_for_reducer
+from yamlgraph.compile import map_compiler
+from yamlgraph.compile.map_compiler import compile_map_node
 from yamlgraph.models import PipelineError
 from yamlgraph.models.schemas import ErrorType
+
+# FR-1073: map_name/failures_key are required keyword arguments.
+wrap_for_reducer = partial(
+    map_compiler.wrap_for_reducer, map_name="m", failures_key="failed"
+)
 
 
 class TestNodeConfigTimeout:
@@ -103,14 +110,13 @@ class TestWrapForReducerTimeout:
         wrapped = wrap_for_reducer(slow_node, "results", "result", timeout=0.05)
         result = wrapped({"_map_index": 0})
 
-        assert "results" in result
-        assert len(result["results"]) == 1
-        assert result["results"][0]["_map_index"] == 0
-        assert "_error" in result["results"][0]
-        assert "timed out" in result["results"][0]["_error"].lower()
-        assert "_error_type" in result["results"][0]
-        assert result["results"][0]["_error_type"] == "TimeoutError"
-        assert "errors" in result
+        # FR-1073: a timeout is a MapFailure, never a collected item
+        assert "results" not in result
+        [failure] = result["failed"]
+        assert failure.index == 0
+        assert "timed out" in failure.message.lower()
+        assert failure.error_type == "TimeoutError"
+        assert failure.tolerated is False
         assert result["errors"][0].type == ErrorType.TIMEOUT_ERROR
 
     @pytest.mark.req("REQ-YG-078")
@@ -136,7 +142,8 @@ class TestWrapForReducerTimeout:
         wrapped = wrap_for_reducer(node_fn, "results", "result")
         result = wrapped({})
 
-        assert result == {"results": ["ok"]}
+        assert result["results"] == ["ok"]
+        assert [r.outcome for r in result["_map_accounting"]] == ["succeeded"]
 
     @pytest.mark.req("REQ-YG-078")
     @pytest.mark.slow
@@ -189,15 +196,16 @@ class TestCompileMapNodeTimeout:
         ):
             compile_map_node("expand", config, builder, defaults)
 
-        # Extract the wrapped node that was added to builder
-        wrapped_node = builder.add_node.call_args[0][1]
+        # Extract the wrapped sub-node that was added to builder
+        wrapped_node = {c.args[0]: c.args[1] for c in builder.add_node.call_args_list}[
+            "_map_expand_sub"
+        ]
 
         # Call it with state — should time out
         result = wrapped_node({"item": "x", "_map_index": 0})
 
-        assert "results" in result
-        assert "_error" in result["results"][0]
-        assert "timed out" in result["results"][0]["_error"].lower()
+        assert "results" not in result
+        assert "timed out" in result["results_failures"][0].message.lower()
         assert result["errors"][0].type == ErrorType.TIMEOUT_ERROR
 
 

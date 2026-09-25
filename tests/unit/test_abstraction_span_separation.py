@@ -111,11 +111,3 @@ class TestSeparationVerdictNode:
         state = {"corpus": _CORPUS, "scores": _scores([4, 3, 1])}
         with pytest.raises(ValueError, match="length mismatch"):
             separation_verdict(state)
-
-    @pytest.mark.req("REQ-YG-020", "REQ-YG-040")
-    def test_node_raises_on_failed_branch(self):
-        scores = _scores([4, 4, 3, 3, 2, 1, 1])
-        scores[2] = {"_map_index": 2, "_error": "boom"}
-        state = {"corpus": _CORPUS, "scores": scores}
-        with pytest.raises(ValueError, match="branch failed"):
-            separation_verdict(state)

@@ -98,5 +98,7 @@ def test_unconditional_edge_to_map_still_compiles() -> None:
 
     graph = compile_graph(cfg)
 
-    # The unconditional map source registers its single fan-out router.
-    assert len(graph.branches["start"]) == 1
+    # FR-1073: the source has a plain edge; the fan-out router lives on
+    # the map's dispatch node.
+    assert "start" not in graph.branches
+    assert len(graph.branches["plan"]) == 1

@@ -170,22 +170,25 @@ class TestMapFanOutEmission:
     def test_map_fanout_emits_name_count_no_state(self, monkeypatch, route_records):
         monkeypatch.setenv("YAMLGRAPH_ROUTE_LOG", "1")
 
-        def map_edge_fn(state):
-            return [
-                Send("process_items_sub", {"item": "SECRET-PAYLOAD-1"}),
-                Send("process_items_sub", {"item": "SECRET-PAYLOAD-2"}),
-            ]
+        from yamlgraph.compile.map_contract import make_dispatch_router
 
-        router = make_expr_router_fn(
-            [("ready == True", "process_items")],
-            "generate",
-            map_nodes={"process_items": (map_edge_fn, "process_items_sub")},
+        # FR-1073: fan-out is emitted by the map's own dispatch router.
+        router = make_dispatch_router(
+            "process_items",
+            "_map_process_items_sub",
+            "_map_process_items_join",
+            "item",
+            lambda state, warn: ["SECRET-PAYLOAD-1", "SECRET-PAYLOAD-2"],
         )
-        result = router({"ready": True})
+        result = router(
+            {"_map_open": {"process_items": {"dispatch": "t", "dispatched": 2}}}
+        )
         assert isinstance(result, list) and len(result) == 2
+        assert all(isinstance(s, Send) for s in result)
 
         (line,) = _lines(route_records)
-        assert line["target"] == "process_items"
+        assert line["node"] == "process_items"
+        assert line["target"] == "_map_process_items_sub"
         assert line["fan_out"] == 2
         raw = route_records[0].getMessage()
         assert "SECRET" not in raw

@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1073-map-result-contract.judgement.md)); R-1–R-6 folded 2026-09-25 (see [Revision fold](#revision-fold)). **Authority active (2026-09-25):** operator accepted H-1–H-4 in [Migration census](#migration-census) and the fold as written, satisfying judgement C-1 and C-5. **Operator ruling (2026-09-25): "no splits or bloat".** One PR. Cut: `key` and the duplicate-key check (AC-03 and the `key` half of AC-01; no consumer until FR-1065), and the H-4 live rerun. All graph edits go through one authoring brief.
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1073-map-result-contract.judgement.md)); R-1–R-6 folded 2026-09-25 (see [Revision fold](#revision-fold)). **Authority active (2026-09-25):** operator accepted H-1–H-4 in [Migration census](#migration-census) and the fold as written, satisfying judgement C-1 and C-5. **Operator ruling (2026-09-25): "no splits or bloat".** One PR. Cut: `key` and the duplicate-key check (AC-03 and the `key` half of AC-01; no consumer until FR-1065), and the H-4 live rerun. All graph edits go through one authoring brief. **Implemented 2026-09-25** — see [Implementation](#implementation-2026-09-25).
 **Effort:** 1.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next
@@ -423,6 +423,88 @@ The strict default goes ahead now; it does not wait for FR-1065. Resume
 makes a failed run cheaper but does not make undeclared partial output
 correct ([judgement](FR-1073-map-result-contract.judgement.md), "What is
 sound"). The operator's preference (2026-09-25) was the same.
+
+## Implementation (2026-09-25)
+
+Branch `feat/fr-1073-map-result-contract`. RED `b38aff20`; GREEN is the
+next commit on the branch. One PR, per the operator ruling.
+
+**Code.**
+- `yamlgraph/models/map_results.py`: `MapFailure`, `MapAccounting`,
+  `MapVerdict`, `MapCompletenessError`, `MapAccountingError`, the reducers,
+  and `compute_verdict` (item 7 arithmetic).
+- `yamlgraph/compile/map_contract.py`: branch classification, the dispatch
+  node and router, and the join.
+- `map_compiler.py` compiles `<name>` (dispatch), `_map_<name>_sub` and
+  `_map_<name>_join`. `edge_compiler.py` starts every outgoing edge at the
+  join. `validators.py` checks `min_success` and `failures` at load.
+  `state_builder.py`/`state_codegen.py` declare the reducers.
+
+**AC status.** AC-01, AC-02, AC-04 to AC-22 met: witnesses in
+`tests/unit/test_fr1073_map_result_contract.py`, the migrated map test
+files, and the consumer witnesses below. AC-03 cut by the operator ruling.
+AC-23: status, decisions and changelog fragment are in this PR. The diary
+entry lands in the session diary PR that follows FR-1094 (operator plan
+item 3).
+
+**Consumer migration (H-3, AC-17).**
+- 11 files drop their `_error` branch: a failed item can no longer reach
+  `collect`. Rows 41 and 47 lose the rewrite into `not_an_incident` /
+  `obsolete`. A strict map now raises at the join before these consumers
+  run (AC-06, AC-19 witnesses), so no per-consumer fixture exists: the
+  consumers no longer have a failed-item path.
+- `corpus_census`, `person_profile_census`, `cap_journey_census` turn
+  `findings_failures` records into the same failed ledger row as before.
+  Witness: `test_failures_channel_becomes_failed_row`.
+- `repo_census` and `pattern_model_census` raise on any
+  `*_findings_failures` record, tolerated or not. Witnesses:
+  `test_tolerated_failure_still_rejected` (both suites).
+- `ocr_cleanup/tools/merger.py` builds its `SkipReport` from
+  `map_results_failures`. Witness: `tests/unit/test_fr1073_ocr_skip_report.py`.
+- Four tests that fed hand-built `_error` envelopes to removed branches
+  were deleted (`test_style_convert`, `test_fr776_vision_fallback` ×2,
+  `test_abstraction_span_separation`).
+
+**Graph edits (H-1, H-2, AC-18).** Brief
+`feature-requests/authoring-briefs/fr-1073-map-migration.md`, run through
+`scripts/author.sh`. Rows 2, 5, 6, 7, 10, 50, 59 move `on_error` (and
+`max_retries`) into the sub-node. Row 27 adds `min_success: 2`. Lint: no
+new errors; `book_translator` keeps its E303 (`human_review.resume_key`),
+present on main before this change. Smoke: `map-timeout` run from its own
+graph, recorded in `examples/demos/map-timeout/demo-output.log`: two
+results, one non-tolerated `TimeoutError` in `results_failures`, verdict
+met, no raise. LLM graphs: compile check only, no live run (H-4).
+
+**Deviations from the plan.**
+- `MapFailure.index`, not `_map_index`.
+- `key` cut (operator ruling); the dispatch token is a UUID per dispatch.
+- The join raises without committing its verdict; checkpoint inspection
+  after the raise still sees the finished results (AC-06).
+- The FR-944 barrier node is dropped: the join is the barrier.
+- The map `Send` branch in `routing.py` is deleted; the dispatch router
+  owns fan-out. It re-resolves `over` and checks the count against the
+  dispatch record (AC-11).
+- The `Send` payload carries `_map_dispatch` so each branch reports its
+  token.
+- `tests/fixtures/interrupt_loop_end.yaml` had a `passthrough` sub-node
+  inside a map, which never worked: it failed on every item with an
+  `rsplit` error that the old contract hid as an `_error` result. The
+  fixture now uses a python tool (`tests/fixtures/interrupt_loop_tools.py`).
+  This is the FR's thesis, witnessed by the repository's own fixture.
+- `yamlgraph/schemas/graph-v1.json` unchanged: it does not list
+  `timeout` or `flatten_output` either and admits extra node keys.
+
+**Gate bypass (operator decision, 2026-09-25).** The GREEN commit ran with
+`SKIP=demo-proof-check`. The gate asks for a fresh `demo-output.log` for
+12 LLM demos whose tool code changed: book-summary, cap_journey_census,
+corpus_census, pattern_model_census, person_profile_census,
+philosopher_book, ramp_doctrine, ramp_incidents, repo_census,
+req_witness_audit, salvage_classify, session-shapes. The gate is right
+that their behaviour changed. The operator chose unit witnesses over 12
+live runs (cost, gh/azure credentials): each changed branch has a unit
+test, and the full unit suite passed. Their committed logs predate
+FR-1073. `map-timeout` is the one demo with a fresh log, produced by its
+own graph.
 
 ## Related
 

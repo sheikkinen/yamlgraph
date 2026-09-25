@@ -40,13 +40,13 @@ nodes:
       type: llm
       prompt: enrich_prompt
       state_key: enriched
+      on_error: skip
+      max_retries: 1
       variables:
         style: "{state.style}"
         concept: "{state.concept}"
     collect: prompts
     flatten_output: true
-    on_error: skip
-    max_retries: 1
     max_items: 20
 
 edges:

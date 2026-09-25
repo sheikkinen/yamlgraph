@@ -11,10 +11,18 @@ from concurrent.futures import ThreadPoolExecutor
 from typing import Any
 
 from langgraph.graph import StateGraph
-from langgraph.types import Send
 
+from yamlgraph.compile.map_contract import (
+    branch_failure,
+    classify_result,
+    make_dispatch_node,
+    make_dispatch_router,
+    make_join_node,
+    success_accounting,
+)
 from yamlgraph.config import DEFAULT_MAX_MAP_ITEMS
 from yamlgraph.constants import NodeType
+from yamlgraph.models.schemas import ErrorType, PipelineError
 from yamlgraph.node_factory import (
     create_node_function,
     create_subgraph_node,
@@ -119,11 +127,15 @@ def wrap_for_reducer(
     state_key: str,
     flatten_output: bool = False,
     timeout: float | None = None,
+    *,
+    map_name: str,
+    failures_key: str,
 ) -> Callable[[dict], dict]:
     """Wrap sub-node output for Annotated reducer aggregation.
 
-    Handles error propagation: if a map branch fails, the error is
-    included in the result with the _map_index for tracking.
+    FR-1073: successes go to `collect_key`; failures go to `failures_key`
+    as typed `MapFailure` records and never enter `collect_key`. Every
+    branch appends one `MapAccounting` row for the join.
 
     Args:
         node_fn: The original node function
@@ -131,77 +143,48 @@ def wrap_for_reducer(
         state_key: Key to extract from node result
         flatten_output: If True, merge _map_xxx_sub contents into items (FR-052)
         timeout: Optional per-branch timeout in seconds (FR-069)
+        map_name: Owning map node name
+        failures_key: State key where failures are collected
 
     Returns:
         Wrapped function that outputs in reducer-compatible format
     """
+    sub_node_name = f"_map_{map_name}_sub"
 
     def wrapped(state: dict) -> dict:
         try:
             result = _execute_node_fn(node_fn, state, timeout)
         except concurrent.futures.TimeoutError as e:
-            from yamlgraph.models import PipelineError
-            from yamlgraph.models.schemas import ErrorType
-
-            error_result = {
-                "_map_index": state.get("_map_index", 0),
-                "_error": f"Branch timed out after {timeout}s",
-                "_error_type": "TimeoutError",
-            }
-            return {
-                collect_key: [error_result],
-                "errors": [
-                    PipelineError.from_exception(
-                        e,
-                        node="map_subnode",
-                        error_type=ErrorType.TIMEOUT_ERROR,
-                    )
-                ],
-            }
+            # A wrapper timeout is never tolerated: on_error never saw it.
+            return branch_failure(
+                map_name,
+                state,
+                failures_key,
+                "TimeoutError",
+                f"Branch timed out after {timeout}s",
+                False,
+                PipelineError.from_exception(
+                    e, node=sub_node_name, error_type=ErrorType.TIMEOUT_ERROR
+                ),
+            )
         except Exception as e:
-            # Propagate error with map index
-            from yamlgraph.models import PipelineError
+            return branch_failure(
+                map_name,
+                state,
+                failures_key,
+                type(e).__name__,
+                str(e),
+                False,
+                PipelineError.from_exception(e, node=sub_node_name),
+            )
 
-            error_result = {
-                "_map_index": state.get("_map_index", 0),
-                "_error": str(e),
-                "_error_type": type(e).__name__,
-            }
-            return {
-                collect_key: [error_result],
-                "errors": [PipelineError.from_exception(e, node="map_subnode")],
-            }
+        failure = classify_result(map_name, state, failures_key, result)
+        if failure is not None:
+            return failure
 
-        # Handle non-dict returns (e.g. python sub-nodes returning str/int)
-        if not isinstance(result, dict):
-            extracted = result
-
-            # Convert Pydantic models to dicts
-            if hasattr(extracted, "model_dump"):
-                extracted = extracted.model_dump()
-
-            # Include _map_index if present for ordering
-            if "_map_index" in state:
-                if isinstance(extracted, dict):
-                    extracted = {"_map_index": state["_map_index"], **extracted}
-                else:
-                    extracted = {"_map_index": state["_map_index"], "value": extracted}
-
-            return {collect_key: [extracted]}
-
-        # Check if result contains an error
-        if "errors" in result or "error" in result:
-            error_result = {
-                "_map_index": state.get("_map_index", 0),
-                "_error": str(result.get("errors") or result.get("error")),
-            }
-            # Preserve errors in output
-            output = {collect_key: [error_result]}
-            if "errors" in result:
-                output["errors"] = result["errors"]
-            return output
-
-        extracted = result.get(state_key, result)
+        extracted = (
+            result.get(state_key, result) if isinstance(result, dict) else result
+        )
 
         # Convert Pydantic models to dicts
         if hasattr(extracted, "model_dump"):
@@ -220,7 +203,10 @@ def wrap_for_reducer(
             if flattened:
                 extracted = flattened[0]
 
-        return {collect_key: [extracted]}
+        return {
+            collect_key: [extracted],
+            "_map_accounting": success_accounting(map_name, state),
+        }
 
     return wrapped
 
@@ -234,11 +220,12 @@ def compile_map_node(
     graph_path: Any | None = None,
     python_tools: dict[str, Callable] | None = None,
     tools: dict[str, Any] | None = None,
-) -> tuple[Callable[[dict], list[Send]], str]:
+) -> tuple[Callable[[dict], Any], str]:
     """Compile type: map node using LangGraph Send.
 
-    Creates a sub-node and returns a map edge function that fans out
-    to the sub-node for each item in the list.
+    FR-1073: adds three nodes to the builder: `<name>` (dispatch),
+    `_map_<name>_sub` and `_map_<name>_join`, wired dispatch -> sub ->
+    join. Callers route INTO `<name>` and OUT OF the join.
 
     Args:
         name: Name of the map node
@@ -250,7 +237,7 @@ def compile_map_node(
         python_tools: Optional python tools registry for python sub-nodes
 
     Returns:
-        Tuple of (map_edge_function, sub_node_name)
+        Tuple of (dispatch_router, join_node_name)
     """
     over_expr = config["over"]
     item_var = config["as"]
@@ -326,13 +313,22 @@ def compile_map_node(
             sub_node_name, sub_node_config, defaults, graph_path=graph_path
         )
 
+    failures_key = config.get("failures") or f"{collect_key}_failures"
     wrapped_node = wrap_for_reducer(
-        sub_node, collect_key, state_key, flatten_output, timeout=config.get("timeout")
+        sub_node,
+        collect_key,
+        state_key,
+        flatten_output,
+        timeout=config.get("timeout"),
+        map_name=name,
+        failures_key=failures_key,
     )
-    builder.add_node(sub_node_name, wrapped_node)
+    join_name = f"_map_{name}_join"
+    max_items = config.get(
+        "max_items", defaults.get("max_map_items", DEFAULT_MAX_MAP_ITEMS)
+    )
 
-    # Create fan-out edge function using Send
-    def map_edge(state: dict) -> list[Send]:
+    def resolve_items(state: dict, warn: bool) -> list:
         try:
             items = resolve_state_expression(over_expr, state)
         except KeyError as e:
@@ -348,21 +344,25 @@ def compile_map_node(
             )
 
         # FR-027: Cap fan-out to prevent unbounded Send() calls
-        max_items = config.get(
-            "max_items", defaults.get("max_map_items", DEFAULT_MAX_MAP_ITEMS)
-        )
         if len(items) > max_items:
-            logger.warning(
-                "Map node '%s': truncating %d items to %d",
-                name,
-                len(items),
-                max_items,
-            )
+            if warn:
+                logger.warning(
+                    "Map node '%s': truncating %d items to %d",
+                    name,
+                    len(items),
+                    max_items,
+                )
             items = items[:max_items]
+        return items
 
-        return [
-            Send(sub_node_name, {**state, item_var: item, "_map_index": i})
-            for i, item in enumerate(items)
-        ]
+    # FR-1073: dispatch -> sub -> join
+    builder.add_node(name, make_dispatch_node(name, resolve_items))
+    builder.add_node(sub_node_name, wrapped_node)
+    builder.add_node(join_name, make_join_node(name, config.get("min_success")))
+    map_edge = make_dispatch_router(
+        name, sub_node_name, join_name, item_var, resolve_items
+    )
+    builder.add_conditional_edges(name, map_edge, [sub_node_name, join_name])
+    builder.add_edge(sub_node_name, join_name)
 
-    return map_edge, sub_node_name
+    return map_edge, join_name

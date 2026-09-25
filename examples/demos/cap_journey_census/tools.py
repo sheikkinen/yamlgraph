@@ -20,6 +20,8 @@ from typing import Any, Literal
 import yaml
 from pydantic import BaseModel, Field
 
+from yamlgraph.models.map_results import MapFailure
+
 REPO_ROOT = Path(__file__).resolve().parents[3]
 HERE = Path(__file__).resolve().parent
 if str(REPO_ROOT) not in sys.path:
@@ -282,13 +284,22 @@ def _canary_gate(path: str | None, rows: list[CapRow]) -> list[str]:
     return misses
 
 
+def _failures_as_findings(failures: Any) -> list[dict[str, Any]]:
+    """FR-1073: tolerated judge failures arrive on the map's failures channel."""
+    records = [MapFailure.model_validate(f) for f in failures or []]
+    return [{"_map_index": f.index, "_error": f.message} for f in records]
+
+
 def reduce_cap_ledger(
     state: dict[str, Any] | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     state = state or {}
     items = state.get("items") or []
     contents = state.get("contents") or []
-    findings = state.get("findings") or []
+    findings = [
+        *(state.get("findings") or []),
+        *_failures_as_findings(state.get("findings_failures")),
+    ]
     output_path = _require(state, "output_path")
     catalog, wedges = _load_catalog(
         state.get("journeys_path") or str(HERE / "journeys.yaml")

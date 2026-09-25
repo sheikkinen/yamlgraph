@@ -7,7 +7,7 @@ Demonstrates `timeout` on map nodes (FR-069).
 - Per-branch timeout enforcement on `type: map` nodes
 - Fast and medium tasks complete normally
 - Slow task (5s delay) is terminated after 1s timeout
-- Timed-out branches return structured error results with `_error_type: TimeoutError`
+- Timed-out branches land in `results_failures` as `MapFailure` records with `error_type: TimeoutError` (FR-1073); `min_success: 2` lets the run finish with two of three
 
 ## Usage
 

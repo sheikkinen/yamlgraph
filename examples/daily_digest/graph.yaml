@@ -79,13 +79,13 @@ nodes:
     node:
       type: llm
       prompt: analyze_article
+      on_error: skip
       variables:
         title: "{state.article.title}"
         url: "{state.article.url}"
         content: "{state.article.content}"
         topics: "{state.topics}"
     collect: analyzed
-    on_error: skip
 
   rank_stories:
     type: llm

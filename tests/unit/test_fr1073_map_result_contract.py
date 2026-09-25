@@ -80,7 +80,7 @@ TOOLS_SRC = textwrap.dedent(
 
 
     def passthrough(state):
-        return {"touched": True}
+        return {}
     '''
 )
 
@@ -92,7 +92,6 @@ state:
   items: list
   results: list
   seen: list
-  touched: bool
 
 tools:
   sub:

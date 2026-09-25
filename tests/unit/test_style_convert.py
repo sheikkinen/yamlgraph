@@ -258,7 +258,12 @@ class TestMapOutputCompatibility:
                 return {"converted_one": self._FakeConverted(f"{_t} :: styled")}
 
             wrapped = wrap_for_reducer(
-                node_fn, "prompts", "converted_one", flatten_output=True
+                node_fn,
+                "prompts",
+                "converted_one",
+                flatten_output=True,
+                map_name="convert_styles",
+                failures_key="prompts_failures",
             )
             out = wrapped({"_map_index": i})
             collected.extend(out["prompts"])
@@ -309,36 +314,24 @@ class TestFailurePathSurfacesError:
             raise RuntimeError("mistral rejected the prompt")
 
         wrapped = wrap_for_reducer(
-            failing_node, "prompts", "converted_one", flatten_output=True
+            failing_node,
+            "prompts",
+            "converted_one",
+            flatten_output=True,
+            map_name="convert_styles",
+            failures_key="prompts_failures",
         )
         out = wrapped({"_map_index": 2})
 
         # Error surfaces on the errors channel (not swallowed).
         assert out.get("errors"), "branch failure must surface on state.errors"
-        # The failed branch is collected as an _error marker — which the
-        # validate_conversions gate then rejects (see end-to-end test below).
-        entries = out["prompts"]
-        assert len(entries) == 1
-        assert entries[0].get("_error"), "failed entry must carry _error marker"
-        assert "prompt_text" not in entries[0], (
+        # FR-1073: the failed branch is a MapFailure, never a collected entry.
+        assert "prompts" not in out, (
             "a failed branch must not masquerade as a converted prompt"
         )
-
-    def test_validate_node_raises_on_error_marker(self):
-        # R-3/C-4 unit: the gate rejects an _error marker before save runs.
-        from examples.style_convert.nodes.validate_conversions import (
-            validate_conversions_node,
-        )
-
-        state = {
-            "source_prompts": ["a", "b"],
-            "prompts": [
-                {"_map_index": 0, "prompt_text": "a in style"},
-                {"_map_index": 1, "_error": "boom", "_error_type": "RuntimeError"},
-            ],
-        }
-        with pytest.raises(ValueError, match="conversions failed"):
-            validate_conversions_node(state)
+        [failure] = out["prompts_failures"]
+        assert failure.index == 2
+        assert "mistral rejected" in failure.message
 
     def test_validate_node_raises_on_count_mismatch(self):
         from examples.style_convert.nodes.validate_conversions import (
@@ -442,9 +435,11 @@ class TestStyleConvertEndToEnd:
     def test_branch_failure_aborts_before_any_file_written(self, tmp_path):
         # R-3/C-4 end-to-end: one failing conversion aborts the whole run so
         # NO prompt file is ever written — "N in == N out or nothing written".
+        # FR-1073: the strict map join raises before the consumer runs.
         from unittest.mock import patch
 
         from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
+        from yamlgraph.models.map_results import MapCompletenessError
 
         infile = tmp_path / "prompts_in.txt"
         infile.write_text("a cat\na dog\n", encoding="utf-8")
@@ -469,7 +464,7 @@ class TestStyleConvertEndToEnd:
                 "examples.image_pipeline.nodes.save_prompts.OUTPUT_BASE",
                 outputs,
             ),
-            pytest.raises(ValueError, match="conversions failed"),
+            pytest.raises(MapCompletenessError, match="convert_styles"),
         ):
             graph.invoke({"input_file": str(infile), "target_style": "waterhouse"})
 

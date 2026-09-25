@@ -385,7 +385,6 @@ def compile_graph(config: GraphConfig) -> StateGraph:
         config.loop_exits,
         interrupt_nodes=interrupt_nodes,
         subgraph_interrupt_nodes=subgraph_interrupt_nodes,
-        map_nodes=map_nodes,
         map_fanout_sources=map_fanout_sources,
     )
 

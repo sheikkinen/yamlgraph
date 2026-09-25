@@ -16,6 +16,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, ValidationError
 
+from yamlgraph.models.map_results import MapFailure
+
 PUBLIC_DEMO_ORG = "sheikkinen"
 AZURE_VARS = ("AZURE_AI_ENDPOINT", "AZURE_AI_API_KEY", "AZURE_MODEL")
 DEFAULT_ACTIVITY_WINDOW_DAYS = 180
@@ -109,8 +111,6 @@ def _build_rows(
     for finding in findings:
         if not isinstance(finding, dict):
             raise ValueError("finding must be a dict")
-        if "_error" in finding:
-            raise ValueError(f"finding carries map error: {finding['_error']}")
         index = _finding_index(finding, len(items))
         if index in seen:
             raise ValueError(f"duplicate finding for repo index {index}")
@@ -206,6 +206,14 @@ def reduce_repo_ledger(
         raise ValueError("findings must be a list")
     if not isinstance(output_path, str) or not output_path.strip():
         raise ValueError("output_path must be a non-empty string")
+    # FR-1073: a tolerated (skipped) judge failure still blocks this ledger.
+    failures = effective.get("findings_failures") or []
+    if failures:
+        first = MapFailure.model_validate(failures[0])
+        raise ValueError(
+            f"{len(failures)} finding(s) failed; first at index "
+            f"{first.index}: {first.message}"
+        )
     window_days = int(
         effective.get("activity_window_days") or DEFAULT_ACTIVITY_WINDOW_DAYS
     )
