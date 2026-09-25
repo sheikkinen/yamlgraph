@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** SPLIT — [judgement](FR-1083-exit-code-reflects-errors.judgement.md); the non-stream completed-result exit code and the streaming error-event exit code must each re-enter as separate FRs. No implementation authority.
 **Effort:** 1 day
 **Requested:** 2026-09-25
 **First consumer / first event:** any script or CI job running

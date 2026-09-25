@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug (demo)
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1087-safety-guards-demo-repair.judgement.md)); authority gated on folding the required revisions. No implementation authority yet.
 **Effort:** 0.25 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the README quick start,

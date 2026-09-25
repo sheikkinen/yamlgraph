@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1084-reject-undeclared-cli-vars.judgement.md)); authority gated on folding the required revisions. No implementation authority yet.
 **Human decision (2026-09-25, operator):** suggested default accepted — graph `variables:` keys missing from the schema are out of scope here and get their own FR.
 **Effort:** 1 day
 **Requested:** 2026-09-25
