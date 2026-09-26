@@ -41,7 +41,7 @@ class TestMapMaxItems:
 
     @pytest.mark.req("REQ-YG-055")
     def test_map_edge_truncates_items_to_max_items(self):
-        """When items list exceeds max_items, truncate + warn."""
+        """FR-939: explicit on_overflow: truncate keeps the first max_items."""
         # Build a minimal graph + config
         from langgraph.graph import StateGraph
 
@@ -58,6 +58,7 @@ class TestMapMaxItems:
             "as": "item",
             "collect": "results",
             "max_items": 3,
+            "on_overflow": "truncate",
             "node": {"type": "llm", "prompt": "test", "state_key": "result"},
         }
 
@@ -76,8 +77,12 @@ class TestMapMaxItems:
         assert len(sends) == 3
 
     @pytest.mark.req("REQ-YG-055")
-    def test_map_edge_respects_graph_level_default(self):
-        """Graph-level max_map_items used when node has no max_items."""
+    def test_defaults_max_map_items_is_not_a_cap_seam(self):
+        """FR-939 C-4: the graph cap is config.max_map_items, not defaults.
+
+        The end-to-end witness for config.max_map_items lives in
+        test_fr939_map_overflow_policy.py; this pins the retired seam.
+        """
         from langgraph.graph import StateGraph
 
         from yamlgraph.compile.map_compiler import compile_map_node
@@ -106,8 +111,8 @@ class TestMapMaxItems:
         state = {"items": list(range(20)), "results": [], "current_step": ""}
         sends = self._route(builder, map_edge, state)
 
-        # Should cap at graph-level default of 5
-        assert len(sends) == 5
+        # defaults.max_map_items is ignored; the built-in cap of 100 applies
+        assert len(sends) == 20
 
     @pytest.mark.req("REQ-YG-055")
     def test_map_edge_no_truncation_within_limit(self):
@@ -143,8 +148,9 @@ class TestMapMaxItems:
         assert len(sends) == 3
 
     @pytest.mark.req("REQ-YG-055")
-    def test_map_edge_default_100_cap(self):
-        """Without explicit config, default cap is 100."""
+    @pytest.mark.parametrize("policy", ["truncate", None])
+    def test_map_edge_default_100_cap(self, policy):
+        """Without explicit config, default cap is 100; FR-939 default errors."""
         from langgraph.graph import StateGraph
 
         from yamlgraph.compile.map_compiler import compile_map_node
@@ -159,9 +165,11 @@ class TestMapMaxItems:
             "over": "{items}",
             "as": "item",
             "collect": "results",
-            # No max_items, no defaults.max_map_items
+            # No max_items, no graph cap
             "node": {"type": "llm", "prompt": "test", "state_key": "result"},
         }
+        if policy:
+            config["on_overflow"] = policy
 
         map_edge, _sub = compile_map_node(
             "test_map",
@@ -171,6 +179,10 @@ class TestMapMaxItems:
         )
 
         state = {"items": list(range(200)), "results": [], "current_step": ""}
+        if policy is None:
+            with pytest.raises(ValueError, match=r"'test_map'.*exceed.*100"):
+                self._route(builder, map_edge, state)
+            return
         sends = self._route(builder, map_edge, state)
 
         # Default cap should be 100

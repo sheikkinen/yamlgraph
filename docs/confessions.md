@@ -293,7 +293,7 @@ Test suppressions are acceptable when they enable testing patterns that conflict
 - **Penance**: Test file needs to import from scripts/ which is not a package.
 
 ### CONF-020
-- **File**: [tests/unit/test_fr027_execution_safety.py](../tests/unit/test_fr027_execution_safety.py#L811)
+- **File**: [tests/unit/test_fr027_execution_safety.py](../tests/unit/test_fr027_execution_safety.py#L823)
 - **Code**: E731 (do not assign a lambda expression)
 - **Sin**: Lambda assigned to variable for signal handler test.
 - **Penance**: Lambda is cleaner than def for trivial no-op handler in test fixture. Accepted for test code.
