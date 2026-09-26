@@ -225,7 +225,7 @@ From the judgement's revised criteria. Witness file:
   are separate commits; RED fails on the missing FR-1088 behavior, not on
   an import, missing fixture, malformed YAML, or unmerged FR-1073
   implementation.
-- [ ] AC-12: `changelog/unreleased/fr-1088-innovation-matrix-repair.md`,
+- [x] AC-12: `changelog/unreleased/fr-1088-innovation-matrix-repair.md`,
   this FR's implementation record, and one `docs/diary/` reflection with
   `Seed:` record the delivered repair and any honest validation limitation.
 - [x] AC-13: The implementation diff contains none of the not-authorized

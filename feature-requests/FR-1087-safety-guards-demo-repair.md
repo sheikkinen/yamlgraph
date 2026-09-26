@@ -132,7 +132,7 @@ once. The README's lint and run commands describe what actually happens.
 - [x] AC-08: `tmp/draft-authoring-report.md` contains the required
   `Artifacts`, `Precedent`, `Validation`, `Repairs`, and `Blocked validation`
   headings and identifies the FR-1087 brief and authored paths.
-- [ ] AC-09: one `changelog/unreleased/` fragment names FR-1087; FR-1087
+- [x] AC-09: one `changelog/unreleased/` fragment names FR-1087; FR-1087
   records implementation decisions and completed status; one `docs/diary/`
   entry names FR-1087 and contains `Seed:`.
 
