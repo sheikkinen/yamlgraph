@@ -277,9 +277,9 @@ reference/getting-started.md	110	graph.yaml	--var	name	EXCLUDED	unresolvable-gra
 reference/getting-started.md	113	graph.yaml	--var	name	EXCLUDED	unresolvable-graph	-
 reference/getting-started.md	121	examples/demos/reflexion/graph.yaml	--var	topic	PASS	-	-
 reference/graph-yaml.md	330	graph.yaml	--var	topic	EXCLUDED	unresolvable-graph	-
-reference/graph-yaml.md	1648	examples/demos/corpus_census/graph.yaml	--var	source	EXCLUDED	illustrative --tool manifest does not exist	FR-1101
-reference/graph-yaml.md	1648	examples/demos/corpus_census/graph.yaml	--var	rubric	EXCLUDED	illustrative --tool manifest does not exist	FR-1101
-reference/graph-yaml.md	1648	examples/demos/corpus_census/graph.yaml	--var	output_path	EXCLUDED	illustrative --tool manifest does not exist	FR-1101
+reference/graph-yaml.md	1668	examples/demos/corpus_census/graph.yaml	--var	source	EXCLUDED	illustrative --tool manifest does not exist	FR-1101
+reference/graph-yaml.md	1668	examples/demos/corpus_census/graph.yaml	--var	rubric	EXCLUDED	illustrative --tool manifest does not exist	FR-1101
+reference/graph-yaml.md	1668	examples/demos/corpus_census/graph.yaml	--var	output_path	EXCLUDED	illustrative --tool manifest does not exist	FR-1101
 reference/langsmith-tools.md	204	graph.yaml	--var	topic	EXCLUDED	unresolvable-graph	-
 reference/langsmith-tools.md	208	graph.yaml	--var	topic	EXCLUDED	unresolvable-graph	-
 reference/map-nodes.md	346	examples/storyboard/animated-character-graph.yaml	--var	concept	PASS	-	-
