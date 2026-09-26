@@ -6,7 +6,7 @@ Validates that GitHub Actions workflows have been hardened with:
 - Workflow naming improvements
 - Version validation on tags
 - Security scan resilience (retry mechanism)
-- Python version matrix (3.11, 3.13 — FR-918 floor + ceiling bracket)
+- Python version matrix (3.11, 3.14 — FR-1104 floor + ceiling bracket)
 - Preserved existing behavior
 
 Test layers:
@@ -270,10 +270,10 @@ class TestSecurityScanRetry:
 
 @pytest.mark.req("REQ-YG-277")
 class TestPythonVersionMatrix:
-    """AC-06: Test matrix includes Python 3.11 and 3.13."""
+    """AC-06: Test matrix includes Python 3.11 and 3.14."""
 
     def test_workflow_yml_has_python_matrix(self) -> None:
-        """workflow.yml should test against Python 3.11 and 3.13 in matrix."""
+        """workflow.yml should test against Python 3.11 and 3.14 in matrix."""
         workflow = _load_workflow("workflow.yml")
 
         # Look for matrix strategy with python-version
@@ -293,7 +293,7 @@ class TestPythonVersionMatrix:
             "workflow.yml should have a matrix strategy with python-version"
         )
         assert "3.11" in python_versions, "Matrix should include Python 3.11"
-        assert "3.13" in python_versions, "Matrix should include Python 3.13"
+        assert "3.14" in python_versions, "Matrix should include Python 3.14"
 
 
 # ── AC-07: Preserve Job Dependencies ──────────────────────────────────────
