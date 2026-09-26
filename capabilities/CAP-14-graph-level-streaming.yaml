@@ -31,4 +31,10 @@ requirements:
       `run_graph_streaming_native()` for real-time token output to stdout
     modules:
       - cli
+  - id: REQ-YG-694
+    description: >
+      `graph run --stream` exits 1 after printing an error event to stderr,
+      else 0; no final-state tally or exit 3 in streaming (FR-1098)
+    modules:
+      - cli
 fr: FR-633

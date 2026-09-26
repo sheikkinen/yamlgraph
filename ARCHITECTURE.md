@@ -346,7 +346,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 11 | CAP-11 Subgraph & Map | `map_compiler`, `map_compiler.wrap_for_reducer`, `node_factory/subgraph_nodes` | REQ-YG-040 – 042, 692, 699 |
 | 12 | CAP-12 Utilities | `config`, `constants`, `node_factory/base`, `schema_loader`, … | REQ-YG-043 – 046 |
 | 13 | CAP-13 LangSmith Tracing | `cli/graph_commands`, `utils/tracing` | REQ-YG-047, 547 |
-| 14 | CAP-14 Graph-Level Streaming | `executor_async` | REQ-YG-048 – 049, 065, 480 |
+| 14 | CAP-14 Graph-Level Streaming | `executor_async` | REQ-YG-048 – 049, 065, 480, 694 |
 | 15 | CAP-15 Expression Language | `utils/conditions`, `utils/expressions`, `utils/parsing` | REQ-YG-051 – 052 |
 | 16 | CAP-16 Linter Cross-Reference | `linter/checks`, `linter/checks_contracts`, `linter/checks_semantic`, `linter/graph_linter`, … | REQ-YG-053 – 054, 069, 114, 408 |
 | 17 | CAP-17 Execution Safety Guards | `cli/__init__`, `cli/graph_commands`, `config`, `executor`, … | REQ-YG-055 – 062, 064, 113, 683 |
@@ -771,6 +771,7 @@ Stream LLM tokens through the compiled graph pipeline using LangGraph astream(st
 | REQ-YG-049 | Streaming with multi-turn: `run_graph_streaming_native()` accepts `Command(resume=...)`, config with thread_id for checkpoint-based resume | `executor_async` |
 | REQ-YG-065 | Native LangGraph streaming: `run_graph_streaming_native()` uses `astream(stream_mode="messages")` to stream from ALL LLM nodes, with optional `node_filter` | `executor_async` |
 | REQ-YG-480 | CLI streaming: `yamlgraph graph run --stream` uses `run_graph_streaming_native()` for real-time token output to stdout | `cli` |
+| REQ-YG-694 | `graph run --stream` exits 1 after printing an error event to stderr, else 0; no final-state tally or exit 3 in streaming (FR-1098) | `cli` |
 
 ### 15. CAP-15 Expression Language
 
