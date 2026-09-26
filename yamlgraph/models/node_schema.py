@@ -222,6 +222,7 @@ class NodeConfig(BaseModel):
     max_items: int | None = Field(
         default=None, description="Maximum items to process in map node"
     )
+    on_overflow: Literal["error", "truncate"] | None = None  # FR-939 map policy
     # FR-1073: map result contract (validated in validate_map_node)
     failures: str | None = Field(default=None, description="Map failures key")
     min_success: Any = Field(default=None, description="Map int/fraction floor")

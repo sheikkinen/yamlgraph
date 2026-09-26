@@ -277,7 +277,8 @@ def test_ac07_truncate_end_to_end_runs_only_the_prefix(tmp_path):
     path = _write(tmp_path, node_extra={"max_items": 3, "on_overflow": "truncate"})
     result = _run(path, ITEMS)
     assert _CALLS == 3
-    assert sorted(result["results"]) == sorted(ITEMS[:3])
+    ordered = sorted(result["results"], key=lambda r: r["_map_index"])
+    assert [r["value"] for r in ordered] == ITEMS[:3]
 
 
 # ---------------------------------------------------------------------------

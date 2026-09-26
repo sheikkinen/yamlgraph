@@ -221,6 +221,9 @@ def compile_map_node(
     graph_path: Any | None = None,
     python_tools: dict[str, Callable] | None = None,
     tools: dict[str, Any] | None = None,
+    *,
+    graph_max_items: int = DEFAULT_MAX_MAP_ITEMS,
+    graph_on_overflow: str | None = None,
 ) -> tuple[Callable[[dict], Any], str]:
     """Compile type: map node using LangGraph Send.
 
@@ -236,6 +239,8 @@ def compile_map_node(
         tools_registry: Optional tools registry for tool_call sub-nodes
         graph_path: Path to graph YAML file (for relative prompt resolution)
         python_tools: Optional python tools registry for python sub-nodes
+        graph_max_items: FR-939 graph cap (`config.max_map_items`)
+        graph_on_overflow: FR-939 graph policy (`defaults.on_overflow`)
 
     Returns:
         Tuple of (dispatch_router, join_node_name)
@@ -325,9 +330,10 @@ def compile_map_node(
         failures_key=failures_key,
     )
     join_name = f"_map_{name}_join"
-    max_items = config.get(
-        "max_items", defaults.get("max_map_items", DEFAULT_MAX_MAP_ITEMS)
-    )
+    # FR-939: cap node > graph > 100; policy node > graph > "error"
+    node_cap = config.get("max_items")
+    max_items = graph_max_items if node_cap is None else node_cap
+    on_overflow = config.get("on_overflow") or graph_on_overflow or "error"
 
     def resolve_items(state: dict, warn: bool) -> list:
         try:
@@ -344,11 +350,18 @@ def compile_map_node(
                 f"Map 'over' must resolve to list, got {type(items).__name__}"
             )
 
-        # FR-027: Cap fan-out to prevent unbounded Send() calls
+        # FR-027 cap; FR-939: fail by default, truncate only when declared
         if len(items) > max_items:
+            if on_overflow != "truncate":
+                raise ValueError(
+                    f"Map node '{name}': {len(items)} items exceed "
+                    f"max_items={max_items} (on_overflow: error). Raise the "
+                    f"cap or declare on_overflow: truncate."
+                )
             if warn:
                 logger.warning(
-                    "Map node '%s': truncating %d items to %d",
+                    "Map node '%s': truncating %d items to max_items=%d "
+                    "(on_overflow: truncate)",
                     name,
                     len(items),
                     max_items,

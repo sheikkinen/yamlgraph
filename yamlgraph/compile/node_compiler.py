@@ -180,6 +180,8 @@ def _compile_map_node(ctx: NodeCompileContext) -> tuple[str, Any]:
         graph_path=ctx.config.source_path,
         python_tools=ctx.python_tools,
         tools=ctx.tools,
+        graph_max_items=ctx.config.max_map_items,
+        graph_on_overflow=ctx.config.defaults.get("on_overflow"),
     )
     return (ctx.node_name, (map_edge_fn, join_name))
 
