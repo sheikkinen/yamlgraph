@@ -120,8 +120,8 @@ class TestCiMatrixOnMergeGroup:
         test_job = _load(CI_PATH)["jobs"]["test"]
         assert test_job["strategy"]["matrix"]["python-version"] == [
             "3.11",
-            "3.13",
-        ], "Required contexts are `test (3.11)` and `test (3.13)`"
+            "3.14",
+        ], "Required contexts are `test (3.11)` and `test (3.14)` (FR-1104)"
 
     def test_changes_gate_short_circuits_non_pr_events(self) -> None:
         changes = _load(CI_PATH)["jobs"]["changes"]

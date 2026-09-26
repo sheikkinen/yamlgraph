@@ -65,7 +65,7 @@ board flags an unlocked main with its age.
 |------|---------|-----------|
 | Require pull request | Enabled (0 approvals) | Non-admin pushes and bots |
 | Squash merge only | Merge commits and rebase disabled | All PRs; PR title = commit message (Conventional Commits) |
-| Required status checks | `commitlint`, `test (3.11)`, `test (3.13)` | Report on both `pull_request` and `merge_group` events |
+| Required status checks | `commitlint`, `test (3.11)`, `test (3.14)` | Report on both `pull_request` and `merge_group` events |
 | Require up to date | Enabled (strict) | PRs must be current with `main` |
 | `enforce_admins` | **Disabled** | Admin direct pushes bypass everything |
 

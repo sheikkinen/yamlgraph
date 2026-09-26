@@ -3,6 +3,7 @@
 **Priority:** MEDIUM
 **Type:** Bug
 **Status:** Proposed
+**Superseded in part:** [FR-1104](FR-1104-ci-dedup-core-test-and-python-314.md) retired the `core-test` job; its missing-`otel` claim now lives on the lean `test (3.14)` leg. Read every `core-test` below as that leg.
 **Effort:** 1 day
 **Requested:** 2026-09-02
 **First consumer / first event:** a contributor who ran `pip install -e ".[dev]"` — the documented minimum — runs `pytest tests/unit/ -m "not slow"` for the first time and reads a result they can act on, instead of 18 failures naming third-party modules they were never told to install.
