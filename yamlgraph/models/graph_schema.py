@@ -124,6 +124,16 @@ class GraphConfigSchema(BaseModel):
         return self
 
     @model_validator(mode="after")
+    def validate_defaults_on_overflow(self) -> "GraphConfigSchema":
+        """FR-939: graph map overflow policy is error or truncate."""
+        v = self.defaults.get("on_overflow")
+        if "on_overflow" in self.defaults and v not in ("error", "truncate"):
+            raise ValueError(
+                f"defaults.on_overflow must be 'error' or 'truncate', got {v!r}"
+            )
+        return self
+
+    @model_validator(mode="after")
     def validate_router_targets(self) -> "GraphConfigSchema":
         """Validate router routes point to existing nodes."""
         for node_name, node in self.nodes.items():

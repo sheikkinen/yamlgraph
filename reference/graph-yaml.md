@@ -239,7 +239,7 @@ config:
 | Property | Type | Default | Description |
 |----------|------|---------|-------------|
 | `recursion_limit` | `int` | `50` | Maximum LangGraph recursion depth. Prevents infinite loops in cyclic graphs. |
-| `max_map_items` | `int` | `100` | Default fan-out cap for map nodes. Can be overridden per-node with `max_items`. |
+| `max_map_items` | `int` | `100` | Default fan-out cap for map nodes. Can be overridden per-node with `max_items`. An over-cap list raises unless the map's `on_overflow` (or `defaults.on_overflow`) is `truncate` (FR-939). |
 | `max_tokens` | `int` | provider default | Default max output tokens for LLM calls. Can be overridden per-node. |
 | `timeout` | `int` | none | Global execution timeout in seconds. Covers the entire graph run including interrupt loops. |
 | `max_concurrency` | `int` ≥ 1 | none | FR-984. Whole-invocation cap on how many parallel branches (every `map` node's `Send` tasks, and any parallel fan-out edges) run at once. Passed straight through as LangGraph `RunnableConfig["max_concurrency"]`; yamlgraph adds no scheduler. Absent → no key is passed and LangGraph's default thread-pool width applies. Booleans, strings, fractions, `0` and negatives fail at load. Distinct from `max_map_items`, which bounds how many items a map *has*, not how many run together. |
@@ -692,6 +692,7 @@ nodes:
 | `node` | `object` | Yes | Sub-node definition (llm, router, or python) |
 | `collect` | `string` | Yes | State key where results are collected |
 | `max_items` | `int` | No | Maximum fan-out items (overrides `config.max_map_items`) |
+| `on_overflow` | `error` \| `truncate` | No | FR-939. What happens when `over` has more items than the cap. Overrides `defaults.on_overflow`; default `error`: the dispatch raises `ValueError` naming the node, the item count and the cap before any `Send` or sub-node runs. `truncate` keeps exactly the first *cap* items and logs one WARNING with the same numbers. Other values fail at load. |
 | `timeout` | `float` | No | Per-branch timeout in seconds (FR-069). Each branch must complete within this limit. A timeout is never tolerated. |
 | `failures` | `string` | No | State key for failed branches (FR-1073). Default: `<collect>_failures`. |
 | `min_success` | `int` or `float` | No | Successes plus tolerated failures required (FR-1073): an `int` count, or a `float` fraction of dispatched items in `[0, 1]`. Default: every dispatched item (strict). |
@@ -699,6 +700,25 @@ nodes:
 The map compiler does not read a map-level `on_error`. Put `on_error: skip`
 (or `retry` with `max_retries`) on the sub-node; a failure it skips is
 *tolerated*.
+
+**Overflow (FR-939):** the cap resolves node `max_items` > graph
+`config.max_map_items` > 100. The policy resolves node `on_overflow` > graph
+`defaults.on_overflow` > `error`. Under `error` an over-cap list raises
+`ValueError` naming the node, the item count and the cap, and no branch runs.
+Sampling a prefix is opt-in:
+
+```yaml
+defaults:
+  on_overflow: truncate     # graph-wide; a node can still set error
+nodes:
+  sample:
+    type: map
+    over: "{state.rows}"
+    as: row
+    max_items: 20           # keep rows[:20]; one WARNING names node, count, cap
+    node: {type: python, tool: score, state_key: score}
+    collect: scores
+```
 
 **How it works (FR-1073):**
 1. Dispatch: the map node records a dispatch token and item count, then sends each item with `Send()`
