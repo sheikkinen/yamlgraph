@@ -4,6 +4,8 @@
 errors) and FR-1098 (`--stream` exits 1 on an error event), enforced in one
 worktree. FR-1098 ran without a judgement by operator decision.
 
+## What happened
+
 The FR-1097 judgement required every initial `state.errors` entry to pass
 `PipelineError.model_validate`. That is the right boundary. `--import-state`
 is where outside data comes in, and an entry that is not a real error can't
@@ -31,6 +33,8 @@ because raising a limit in the same session that trips it is
 sibling test's tempdir leak check under xdist. The sibling globs the shared
 `$TMPDIR`, so my test now gets its own `TMPDIR`. Both fixes kept an existing
 gate intact.
+
+## Heuristic
 
 **Heuristic:** when a new validation guards an import boundary, test it
 against the real export, not a hand-written fixture. The two boundaries are
