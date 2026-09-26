@@ -1,9 +1,9 @@
-# Feature Request: One resolved `max_concurrency` for every run entry point
+# Feature Request: One resolved `max_concurrency` at the six managed run boundaries
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1085-default-max-concurrency.judgement.md)); authority gated on folding the required revisions. No implementation authority yet.
-**Human decision (2026-09-25, operator):** suggested default accepted — one fixed built-in width of 8 for every provider and entry point, re-confirming the FR-1068 / PR #691 answer.
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1085-default-max-concurrency.judgement.md)); R-1–R-4 folded 2026-09-26. Authority active (2026-09-26): C-1 satisfied (R-1–R-4 folded); human review recorded — operator instruction 'proceed with all fr changes' (2026-09-26).
+**Human decision (2026-09-25, operator):** one fixed built-in width of 8 for every provider and managed entry point, re-confirming the FR-1068 / PR #691 answer. Accepted risks: a provider quota below 8 may return 429s until overridden; on a 2-CPU host the sync width rises from 6 to 8. See "Human decisions".
 **Effort:** 0.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next `innovation_matrix` run
@@ -24,10 +24,9 @@ the FR-984 / FR-985 width runs.
 it. Answers to each objection:
 - R-1 (research): five solution classes are compared below, including the
   four the judgement names, with precedent, dissent and `is_this_a_graph`.
-- R-2 (human default-risk decision): not decided here. See
-  "Human decision needed". FR-1068's header records an operator answer of
-  width 8 (commit `d2564be2`, PR #691). This FR asks the operator to confirm
-  it against two facts found after that answer (Problem, points 3 and 4).
+- R-2 (human default-risk decision): decided. The operator confirmed 8 on
+  2026-09-25 with both risks found after the PR #691 answer (Problem,
+  points 3 and 4) accepted; see "Human decisions".
 - R-2 (entry points, precedence, errors): the Proposed Solution names every
   entry point, the full precedence order, and the error for each bad input.
 - AC-03 (measure peak in-flight branches, not the config dict): AC-01..AC-04
@@ -45,17 +44,22 @@ it is kept as dissent, not chosen.
 
 ## Summary
 
-Resolve `max_concurrency` once, in one place, for every way a graph runs:
-the CLI (sync, `--async`, `--stream`), `run_graph_async`,
-`run_graph_streaming_native` and `invoke_graph`. The order is: explicit run
-value, then the graph's `config.max_concurrency`, then an environment
-variable, then a built-in default. The value of the built-in default is a
-human decision.
+Resolve `max_concurrency` once, in one place, at six managed run
+boundaries: CLI sync, CLI `--async`, CLI `--stream`, `invoke_graph`,
+`run_graph_async` and `run_graph_streaming_native`. The order is: explicit
+run value, then the graph's `config.max_concurrency`, then
+`YAMLGRAPH_MAX_CONCURRENCY`, then the built-in default 8. Callers that use
+the public `load_and_compile(...).compile()` pattern and call
+`invoke`/`ainvoke` themselves
+([yamlgraph/__init__.py#L11](../yamlgraph/__init__.py#L11),
+[README.md#L123-L127](../README.md#L123-L127)) are not changed: they must
+still pass `max_concurrency` themselves.
 
 ## Value Statement
 
 A graph author can say how many provider requests a run opens at once
-without knowing the host's CPU count or which entry point the caller used.
+without knowing the host's CPU count or which of the six managed boundaries
+the caller used.
 
 ## Problem
 
@@ -68,7 +72,7 @@ without knowing the host's CPU count or which entry point the caller used.
    `run_graph_streaming_native`
    ([executor_async.py#L318](../yamlgraph/executor_async.py#L318)) and
    `invoke_graph`
-   ([graph_loader.py#L417](../yamlgraph/compile/graph_loader.py#L417)).
+   ([graph_loader.py#L416](../yamlgraph/compile/graph_loader.py#L416)).
    A graph that sets `config.max_concurrency: 4`
    ([person_profile_census/graph.yaml#L18](../examples/demos/person_profile_census/graph.yaml#L18))
    is capped from the CLI and not capped from the API. The reference calls
@@ -87,16 +91,19 @@ without knowing the host's CPU count or which entry point the caller used.
 4. **A fixed default can raise width on small hosts.** On a 2-CPU container
    the sync pool today is 6. A default of 8 raises it to 8.
 5. **The rejected FR's RED test would not move the pool.** It patched
-   `os.cpu_count`. Python 3.13 reads `os.process_cpu_count` (checked on
-   3.13.5). The test must patch the function the running Python reads.
+   `os.cpu_count`, which only Python 3.11 and 3.12 read; Python 3.13 reads
+   `os.process_cpu_count` (checked on 3.13.5). The project supports all three
+   ([pyproject.toml#L10](../pyproject.toml#L10)), so the test must patch the
+   function the running interpreter reads.
 6. **Almost no graph sets the value.** 1 of 202 graphs sets
    `max_concurrency` (plan §2 D6).
 
 ## Ideal Result
 
-For any graph and any entry point, the number of branches in flight at once
-is a declared value: the caller's, the graph's, the deployment's, or a
-documented default. Never the host's CPU count, never "unbounded".
+For any graph run through one of the six managed boundaries, the number of
+branches in flight at once is capped by a declared value: the caller's, the
+graph's, the deployment's, or the documented default 8. Never the host's CPU
+count, never "unbounded". Raw compiled-app calls stay caller-owned.
 
 ## Proposed Solution
 
@@ -107,37 +114,47 @@ documented default. Never the host's CPU count, never "unbounded".
    2. the graph's `config.max_concurrency`
       ([graph_loader.py#L91-L93](../yamlgraph/compile/graph_loader.py#L91-L93));
    3. `YAMLGRAPH_MAX_CONCURRENCY` from the environment;
-   4. the built-in default (value: human decision below).
-2. **Every entry point calls it.** The CLI (`_build_run_config`),
-   `run_graph_async`, `run_graph_streaming_native` and `invoke_graph`. For
-   `run_graph_async`, the compiled app carries the graph's value the same
-   way it already carries `_yamlgraph_graph_name`
-   ([executor_async.py#L253](../yamlgraph/executor_async.py#L253)).
-3. **Errors at the boundary.** Every level must be a positive integer.
+   4. the built-in default `8`.
+2. **Each managed boundary calls it.** The CLI (`_build_run_config`, which
+   serves sync, `--async` and `--stream`), `invoke_graph`, `run_graph_async`
+   and `run_graph_streaming_native`. For `run_graph_async`, the compiled app
+   carries the graph's value the same way it already carries
+   `_yamlgraph_graph_name`
+   ([executor_async.py#L253](../yamlgraph/executor_async.py#L253)). An app
+   without that value resolves caller → environment → 8; the cap is never
+   silently omitted. The resolver works on a copy: every other
+   `RunnableConfig` field (`configurable`, callbacks, tracing metadata)
+   survives, and the caller's mapping is not modified.
+3. **Errors at the boundary.** Every level must be a positive integer, and a
+   bad value raises before any node runs.
    The CLI already rejects `0` and negatives at parse time
    ([cli/__init__.py#L125-L134](../yamlgraph/cli/__init__.py#L125-L134)).
    The YAML value already fails at load
-   ([validators.py#L209-L221](../yamlgraph/utils/validators.py#L209-L221)).
-   New: a caller config value that is not a positive integer raises
-   `ValueError` before the graph runs. `YAMLGRAPH_MAX_CONCURRENCY` that is
-   empty-but-set, non-integer, `0`, negative or a boolean word raises at
-   first resolve, naming the variable and the value. This follows the
-   `LLM_REQUEST_TIMEOUT` pattern
-   ([llm_bounds.py#L34-L53](../yamlgraph/utils/llm_bounds.py#L34-L53)).
-4. **Documentation.** `reference/graph-yaml.md` (the `max_concurrency` row)
-   states the order and that the cap applies to every entry point.
-   `reference/development-operations.md` (Key Environment Variables) lists
-   `YAMLGRAPH_MAX_CONCURRENCY` and the default.
+   ([validators.py#L237-L249](../yamlgraph/utils/validators.py#L237-L249)).
+   New: a caller config value that is a boolean, string, fraction, `0` or
+   negative raises `ValueError`, matching the YAML rule.
+   `YAMLGRAPH_MAX_CONCURRENCY` that is empty-but-set, non-integer, `0`,
+   negative or a boolean word raises at first resolve, naming the variable
+   and the value. This is modelled on `LLM_REQUEST_TIMEOUT`
+   ([llm_bounds.py#L34-L53](../yamlgraph/utils/llm_bounds.py#L34-L53)),
+   except that an empty value is an error here, not "unset".
+4. **Documentation.** `reference/graph-yaml.md` (the `max_concurrency` row,
+   [#L245](../reference/graph-yaml.md#L245)) and
+   `reference/development-operations.md` (Key Environment Variables) state
+   the order, the default 8, the six managed boundaries, the validation rules,
+   and that raw compiled `app.invoke`/`ainvoke` is not covered.
 
-### Human decision needed
+## Human decisions
 
-**Question for the operator:** may the runtime apply one fixed width to
-every provider and every API caller when nothing else sets it? If yes, what
-value?
+**2026-09-25, operator — built-in default: 8.** One fixed width for every
+provider and managed boundary when nothing else sets it, re-confirming the
+FR-1068 / PR #691 answer (commit `d2564be2`). Accepted risks:
 
-**Suggested default: 8**, the value FR-1068's header already records as an
-operator answer (PR #691, accepted risk: a quota below 8 yields 429s until
-overridden). The suggestion rests on this evidence:
+- a provider quota below 8 may return 429s until the caller, graph or
+  environment overrides the width;
+- on a 2-CPU host the sync width rises from 6 to 8 (Problem 4).
+
+Evidence behind the value:
 
 | Witness | Width | Result |
 |---|---|---|
@@ -153,49 +170,88 @@ What the evidence does not show:
 - The Azure quota is one deployment's. It bore width 2. A default of 8 fails
   on it, as does today's unset width.
 
-**What changed since the recorded answer:** the async path is not bounded
-by the CPU count (Problem 3), and a default of 8 raises width on hosts with
-fewer than 4 CPUs (Problem 4). The operator confirms 8, picks another value,
-or answers "no global default". If the answer is "no global default", this FR
-keeps steps 1–3 without level 4. The resolver then leaves the width unset,
-as today, and the docs say so.
+**2026-09-26, operator — advisory judgement reviewed.** Instruction:
+"proceed with all fr changes". R-1–R-4 folded the same day.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 (RED): a fixture graph maps over 40 items. Each branch is a
-  python node that records how many branches are in flight at once. With no
-  width set and the CPU function Python reads patched to 64 (`os.process_cpu_count`
-  on 3.13), the recorded peak on current code is above the default, for the
-  CLI sync path, CLI `--async`, `run_graph_async` and `invoke_graph`. The
-  test records each path's measured peak, including the async one.
-- [ ] AC-02 (GREEN): the same fixture peaks at exactly the default on every
-  path in AC-01 and on `run_graph_streaming_native`, at patched CPU counts of
-  2 and 64.
-- [ ] AC-03: precedence. Four cases, each asserting the measured peak: caller
-  value beats graph value beats env value beats default. The CLI flag counts
-  as the caller value.
-- [ ] AC-04: a graph with `config.max_concurrency: 3` peaks at 3 through
-  `run_graph_async` and `invoke_graph` with a caller config that has no
-  width. On current code this fails (Problem 1).
-- [ ] AC-05: `YAMLGRAPH_MAX_CONCURRENCY` set to `""`, `abc`, `0`, `-1`, `2.5`
-  or `true` raises `ValueError` naming the variable and the value. A caller
-  config value of `0` or `"4"` raises `ValueError` before any node runs.
-- [ ] AC-06: the human decision is recorded in this FR's header with the
-  chosen value (or "no global default") and the accepted quota risk, before
-  GREEN.
-- [ ] AC-07: `reference/graph-yaml.md` and
-  `reference/development-operations.md` state the order, the default and
-  the entry points covered.
-- [ ] AC-08: new REQ in a capability file, tests tagged,
-  `python scripts/req_coverage.py --strict` passes, changelog fragment, FR
-  implementation record, diary entry.
+- [ ] AC-01 (RED): a generated 40-item map fixture records peak in-flight
+  branches. On current code, CLI sync, CLI `--async`, `run_graph_async` and
+  `invoke_graph` each exceed 8 when the interpreter's ThreadPoolExecutor CPU
+  source is patched to 64; the test records each measured peak. Python
+  3.11/3.12 patch `os.cpu_count`; Python 3.13 patches `os.process_cpu_count`.
+- [ ] AC-02 (GREEN): with no configured width, resolver tests select exactly
+  `8`, and the same behavioural fixture records `1 <= peak <= 8` through CLI
+  sync, CLI `--async`, CLI `--stream`, `invoke_graph`, `run_graph_async` and
+  `run_graph_streaming_native`, at patched CPU counts 2 and 64.
+- [ ] AC-03: precedence tests populate all four levels with conflicting
+  values and assert exact resolution of caller over graph over
+  `YAMLGRAPH_MAX_CONCURRENCY` over built-in `8`; the CLI flag is the CLI
+  caller value. Behavioural cases record a peak no greater than the selected
+  value.
+- [ ] AC-04: a graph with `config.max_concurrency: 3` resolves to 3 and
+  records `peak <= 3` through `run_graph_async` and `invoke_graph` when
+  caller width is absent; a caller width of 2 resolves to 2 and records
+  `peak <= 2`.
+- [ ] AC-05: environment values `""`, `abc`, `0`, `-1`, `2.5` and `true`,
+  and caller values `True`, `False`, `"4"`, `2.5`, `0` and `-1`, raise
+  `ValueError` naming the source and offending value before any node runs.
+  Positive integers from caller and environment are accepted.
+- [ ] AC-06: the FR header records built-in width 8 and accepts both
+  documented risks: provider quotas below 8 may 429 until overridden, and a
+  2-CPU sync host can rise from width 6 to 8. No undecided-default or
+  no-global-default branch remains.
+- [ ] AC-07: each programmatic boundary preserves unrelated
+  `RunnableConfig` fields and does not mutate the caller-owned mapping. A
+  `run_graph_async` app lacking graph-width metadata still follows caller →
+  environment → built-in 8.
+- [ ] AC-08: `reference/graph-yaml.md` and
+  `reference/development-operations.md` state the exact precedence, fixed
+  default 8, six managed boundaries, validation behaviour, and explicit
+  exclusion of raw compiled `app.invoke/ainvoke`.
+- [ ] AC-09: a new requirement in a capability file covers every production
+  branch; every test is tagged; `python scripts/req_coverage.py --strict`
+  passes.
+- [ ] AC-10: the changelog fragment, FR implementation record and diary
+  entry describe the narrowed managed-boundary contract and cite the
+  behavioural peak witnesses.
+
+All fixture graphs are generated under `tmp_path` or built in the test; no
+committed example or production graph is edited.
+
+## Scope (frozen by judgement)
+
+| Deliverable | Surface |
+|---|---|
+| D-1 | One typed shared resolver for caller value → graph value → `YAMLGRAPH_MAX_CONCURRENCY` → built-in `8`, with positive-integer validation |
+| D-2 | Resolver integration at CLI sync, CLI `--async`, CLI `--stream`, `invoke_graph`, `run_graph_async` and `run_graph_streaming_native` |
+| D-3 | Async compiled-app metadata sufficient for `run_graph_async` to recover the graph-level value when loaded through `load_and_compile_async` |
+| D-4 | Behavioural and resolver tests for precedence, caps, invalid values, config preservation and Python 3.11–3.13 CPU seams |
+| D-5 | `reference/graph-yaml.md` and `reference/development-operations.md` documentation |
+| D-6 | Requirement capability, tagged tests, changelog fragment, FR implementation record and diary entry |
+
+Not authorized: changing any graph's own `max_concurrency`; committed
+fixture/example graph edits; changing `load_and_compile` or raw compiled
+`app.invoke/ainvoke`; per-map concurrency; provider/model admission
+semaphores; rate limiting; retry or timeout changes; benchmark, graph-tool
+or subgraph-runner refactors; provider-specific defaults; any yamlgraph
+scheduler.
+
+## Conditions for enforcement
+
+Gates C-1 to C-5 in the
+[judgement](FR-1085-default-max-concurrency.judgement.md#conditions-for-enforcement)
+apply: revisions folded before GREEN (C-1), scheduling only through
+LangGraph's `RunnableConfig["max_concurrency"]` (C-2), no change outside
+the six managed boundaries (C-3), behavioural occupancy witnesses on every
+boundary (C-4), caller config unmutated with unrelated fields kept (C-5).
 
 ## Alternatives Considered
 
 Solution classes (chosen: 1):
 
-1. **One run-level resolver with a fixed default, applied at every entry
-   point.** Chosen. It uses the key LangGraph already honours, so yamlgraph
+1. **One run-level resolver with a fixed default, applied at every managed
+   boundary.** Chosen. It uses the key LangGraph already honours, so yamlgraph
    adds no scheduler (the FR-984 design, [graph-yaml.md#L245](../reference/graph-yaml.md#L245)).
    It also closes the API gap in Problem 1, which exists with or without a
    default. Precedent: FR-984's CLI-over-YAML order, extended by one level.
@@ -234,9 +290,11 @@ deterministic lookup at the run boundary, not a model decision.
 
 Per-map concurrency fields (FR-030). Provider-level admission (class 4) and
 rate limiting (class 5). Retry and timeout behaviour
-([FR-1079](FR-1079-retry-ownership.md), FR-708). Changing any graph's own
-`max_concurrency` value, including the census graph's `4` → `2` noted in
-FR-984; that is a graph edit through `scripts/author.sh`.
+([FR-1079](FR-1079-retry-ownership.md), FR-708). Raw compiled-app
+`invoke`/`ainvoke` and `load_and_compile`; benchmark execution, graph tools
+and subgraph invocation. Changing any graph's own `max_concurrency` value,
+including the census graph's `4` → `2` noted in FR-984; that is a graph edit
+through `scripts/author.sh`.
 
 ## Related
 

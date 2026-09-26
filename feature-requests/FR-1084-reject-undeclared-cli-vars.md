@@ -2,8 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1084-reject-undeclared-cli-vars.judgement.md)); authority gated on folding the required revisions. No implementation authority yet.
-**Human decision (2026-09-25, operator):** suggested default accepted — graph `variables:` keys missing from the schema are out of scope here and get their own FR.
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1084-reject-undeclared-cli-vars.judgement.md)); R-1–R-3 folded 2026-09-26. Authority active (2026-09-26): C-1 human review recorded — operator instruction 'proceed with all fr changes' (2026-09-26).
+**Human decision (2026-09-25, operator):** suggested default accepted — graph `variables:` keys missing from the schema are out of scope here and are filed as [FR-1091](FR-1091-graph-variables-reach-state.md) (Parked). See "Human decisions".
 **Effort:** 1 day
 **Requested:** 2026-09-25
 **First consumer / first event:** the next
@@ -32,7 +32,7 @@ matches: the gate runs only when the flag is set
 So there is no contradiction to resolve. FR-677 blocks on static findings
 when asked. This FR refuses bad runtime input always. It does not change the
 gate.
-REQ-YG-069 (E007, [ARCHITECTURE.md#L786](../ARCHITECTURE.md#L786)). The
+REQ-YG-069 (E007, [ARCHITECTURE.md#L788](../ARCHITECTURE.md#L788)). The
 static counterpart: `{state.X}` refers to an undeclared field
 ([checks_semantic.py#L176-L194](../yamlgraph/linter/checks_semantic.py#L176-L194)).
 [FR-269](FR-269-cli-inter-run-state-chaining.md) (Implemented).
@@ -44,8 +44,9 @@ merged into the initial state as the lowest layer.
 refusing bad CLI input before any token is spent
 ([graph_commands.py#L156](../yamlgraph/cli/graph_commands.py#L156)).
 [FR-1088](FR-1088-innovation-matrix-repair.md) (Proposed, refile of FR-1070).
-Declares `domain` in `pipeline.yaml`; the first consumer's run passes this
-check once it lands.
+Declares `domain` in `pipeline.yaml`. FR-1084 neither waits for FR-1088 nor
+edits its graph; the census records the innovation-matrix invocation as
+`PASS` or as `EXCLUDED` with FR-1088 (AC-10).
 
 ## Summary
 
@@ -69,7 +70,7 @@ plausible.
    fields, `state:`, `data_files`, and node-derived keys such as `state_key`
    and map `collect`
    ([state_builder.py#L174-L213](../yamlgraph/models/state_builder.py#L174-L213),
-   [#L64-L91](../yamlgraph/models/state_builder.py#L64-L91)).
+   [#L65-L92](../yamlgraph/models/state_builder.py#L65-L92)).
 3. LangGraph drops input keys that are not in that schema. Probe, 2026-09-25,
    on a throwaway graph with `state: {declared: str}`, a node with
    `state_key: inferred_sk`, and graph `variables: {gv: …}`:
@@ -85,8 +86,9 @@ plausible.
    initial state
    ([graph_run_helpers.py#L129-L131](../yamlgraph/cli/graph_run_helpers.py#L129-L131)),
    but `build_state_class` does not add them to the schema. A `variables:`
-   key that is not also declared elsewhere is dropped (probe: `gv`). See
-   "Human decision needed".
+   key that is not also declared elsewhere is dropped (probe: `gv`). Filed
+   as [FR-1091](FR-1091-graph-variables-reach-state.md) (Parked); see
+   "Human decisions".
 
 ## Ideal Result
 
@@ -108,51 +110,127 @@ accepted keys. The same holds in sync, `--async` and `--stream` modes.
 3. **Which keys.** `file_vars` and `cli_vars` only. Not `imported_state`
    (FR-269: a prior run's full state, often from another graph). Not graph
    `variables:` or `data_files` (authored in the graph, not user input).
-4. **Message.** To `error_stream`
-   ([#L118](../yamlgraph/cli/graph_commands.py#L118)), then exit 1:
-   `❌ --var 'domain' is not a state key of pipeline.yaml; declare it under state: or use one of: …`.
-   The list omits names that start with `_`.
+4. **Algorithm and message.**
+   1. Take the union of the keys in `file_vars` and `cli_vars`.
+   2. Subtract the property names of `app.get_input_jsonschema()`.
+   3. If anything is left, sort it lexicographically and fail once, naming
+      every unknown key.
+   4. The accepted-key list in the message is sorted lexicographically and
+      omits names that start with `_`. This hides them from display only;
+      they are still accepted.
+   5. If the schema cannot be read or has no `properties`, the run fails
+      loudly through the existing CLI error path. There is no fallback to a
+      separately built field set.
+
+   Frozen message, for both sources:
+   `❌ Unknown --var/--var-file state key(s) for <graph file name>: <unknown keys>; accepted keys: <accepted keys>`,
+   for example
+   `❌ Unknown --var/--var-file state key(s) for pipeline.yaml: domain, typo; accepted keys: declared, inferred_sk`.
+   Lists are comma-separated. The message goes to `error_stream`
+   ([#L118](../yamlgraph/cli/graph_commands.py#L118)): stdout in human
+   mode; stderr in `--json` mode, where stdout stays empty. Exit code 1.
 5. **Census of documented invocations.** A deterministic extractor collects
-   every `yamlgraph graph run <path> … --var k=…` / `--var-file` from
-   `README.md`, `reference/**/*.md`, `examples/**/README.md` and
-   `examples/demos/demo.sh`, joining `\` line continuations. It compiles each
-   graph and checks each key. Size today: about 251 lines mention
-   `graph run` and about 306 mention `--var` in that scope (grep count,
-   2026-09-25; the extractor gives the exact number). Each failure is either
-   fixed in the same PR, or listed in a committed exclusion file with a
-   reason and the FR number of a separately filed defect. No blanket-pass
-   claim.
+   every `yamlgraph graph run` invocation in `README.md`,
+   `reference/**/*.md`, `examples/**/README.md` and `examples/demos/demo.sh`.
+   Size today: about 251 lines mention `graph run` and about 306 mention
+   `--var` in that scope (grep count, 2026-09-25; the extractor gives the
+   exact number).
+   - **Row shape.** One row per (invocation, key): source file, line of the
+     `yamlgraph graph run` token, graph path, source kind (`--var` or
+     `--var-file`), key, and `PASS` or `EXCLUDED`.
+   - **Line continuations.** A trailing `\` joins the next line before
+     parsing.
+   - **Repeated `--var`.** A key given twice in one invocation is one row.
+     Only keys are checked, never values.
+   - **`--var-file`.** The path is resolved from the repository root. If the
+     file exists, its keys are read with the CLI's own `load_var_file`, one
+     row per key. If it does not exist: one row with key `-`, `EXCLUDED`,
+     reason `missing-var-file`.
+   - **Placeholders and shell variables.** A graph path or key containing
+     `<`, `>`, `...` or `…` is `EXCLUDED`, reason `placeholder`; one
+     containing `$` is `EXCLUDED`, reason `shell-variable`.
+   - **Unresolvable graph.** A graph path that does not exist is `EXCLUDED`,
+     reason `unresolvable-graph`.
+   - The four reasons above mark unresolvable rows; they carry no FR number.
+     Every other `EXCLUDED` row (an unknown key, or a graph that fails to load
+     or compile) records a reason and the number of a filed FR.
+   - **Repairs.** The only repair allowed under this FR is a documentation
+     key typo where the compiled schema makes the intended key unambiguous;
+     the row then becomes `PASS`. Any finding that needs a graph, prompt,
+     runtime or semantic change is excluded and filed separately.
+   - The extracted rows and the exclusion manifest are committed under
+     `tests/fixtures/fr1084/`; the test regenerates both and compares them
+     byte-for-byte, so stale evidence fails.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 (RED): fixture graph with `state: {declared: str}`, a node with
-  `state_key: inferred_sk`, graph `variables: {gv_declared: …}` where
-  `gv_declared` is also in `state:`, and an LLM node whose client is mocked.
-  `graph run --var unknown=x` exits 1, prints the message naming `unknown`,
-  and the mock records zero calls.
-- [ ] AC-02: the same unknown key in a `--var-file` gives the same exit and
-  message.
-- [ ] AC-03: `--var declared=a --var inferred_sk=b --var gv_declared=c`
-  passes the check, and the final state holds all three values. Run in sync,
-  `--async` and `--stream` modes.
-- [ ] AC-04: a witness test shows the accepted-key set equals the keys kept by
-  `invoke` and `ainvoke`: every schema key passed in is present in the
-  result, and a non-schema key is absent.
-- [ ] AC-05: `--import-state` with a JSON holding `declared` and a foreign key
-  `other_graph_key` runs without error. `declared` reaches state;
-  `other_graph_key` is dropped as today (FR-269 behaviour kept).
-- [ ] AC-06: `--var gv_only=x`, where `gv_only` is a graph `variables:` key
-  that is not a schema key, is refused. The message says it is not a state
-  key.
-- [ ] AC-07: census test over the corpus in Proposed Solution item 5. Every
-  extracted invocation passes, or appears in the committed exclusion file with
-  a reason and a filed defect FR number. The extracted list is committed with
-  the test.
-- [ ] AC-08: once `innovation_matrix/pipeline.yaml` declares `domain`
-  (FR-1088), `--var domain=x` passes the check. Before that, it is refused.
-- [ ] AC-09: new REQ in a capability file, tests tagged,
-  `python scripts/req_coverage.py --strict` passes, changelog fragment, FR
-  implementation record, diary entry.
+- [ ] AC-01 (RED): a temporary fixture graph with `state: {declared: str}`,
+  a node with `state_key: inferred_sk`, graph `variables: {gv_declared: …}`
+  where `gv_declared` is also in `state:`, and a mocked LLM client exits 1
+  for `--var unknown=x`; the exact diagnostic names `unknown`, lists the
+  sorted visible accepted keys, and the mock records zero calls.
+- [ ] AC-02: unknown keys split across `--var-file` and `--var` are unioned,
+  deduplicated, sorted, reported in one diagnostic, and exit 1 before
+  `_build_run_config` or graph invocation.
+- [ ] AC-03: in human mode the frozen diagnostic is written to the existing
+  `error_stream`; with `--json`, stdout is empty and stderr contains exactly
+  the diagnostic.
+- [ ] AC-04: `--var declared=a --var inferred_sk=b --var gv_declared=c`
+  passes validation and the final state contains all three values in
+  synchronous, `--async` and `--stream` runs.
+- [ ] AC-05: on the same fixture, `app.get_input_jsonschema()["properties"]`
+  equals the keys retained when all schema keys plus one non-schema key are
+  supplied through `invoke`, `ainvoke` and `astream(stream_mode="values")`;
+  the non-schema key is absent in every mode.
+- [ ] AC-06: `--import-state` containing `declared` and `other_graph_key` is
+  not validated as user variables; the run succeeds, `declared` reaches
+  state, and the foreign key is absent from the result.
+- [ ] AC-07: `--var gv_only=x`, where `gv_only` exists only under graph
+  `variables:`, exits 1 as an unknown state key; an underscore-prefixed
+  schema key remains accepted but is omitted from the displayed accepted-key
+  list.
+- [ ] AC-08: the deterministic census covers `README.md`,
+  `reference/**/*.md`, `examples/**/README.md` and `examples/demos/demo.sh`,
+  joins shell continuations, emits the frozen row shape, and exactly matches
+  the committed extracted list and exclusion manifest.
+- [ ] AC-09: every resolvable census row is `PASS` or has a reasoned
+  `EXCLUDED` record with a filed FR number; only an unambiguous documentation
+  key typo may be repaired under this FR.
+- [ ] AC-10: the innovation-matrix `--var domain=...` row is `PASS` if the
+  checkout's compiled schema contains `domain`; otherwise it is `EXCLUDED`
+  with FR-1088 and `domain` recorded as the unknown key. No innovation-matrix
+  artifact changes under FR-1084.
+- [ ] AC-11: a new capability/REQ entry governs CLI variable validation;
+  every new or changed test function carries its requirement marker;
+  `python scripts/req_coverage.py --strict` passes; and the changelog
+  fragment, FR implementation record and diary entry are present.
+
+## Scope (frozen by judgement)
+
+| Deliverable | Surface |
+|---|---|
+| D-1 | `yamlgraph/cli/graph_commands.py`: one compiled-input-schema validator called after `app = graph.compile(...)` and before `_build_run_config` |
+| D-2 | Focused FR-1084 CLI tests using temporary graph and variable-file fixtures for unknown, accepted, imported, graph-variable, sync, async, stream and JSON-output behaviour |
+| D-3 | Deterministic documented-invocation census test, committed extracted list and committed exclusion manifest under `tests/fixtures/fr1084/` |
+| D-4 | Capability/REQ traceability, changelog fragment, FR implementation record and diary distillation |
+
+Not authorized: changes to graph or prompt artifacts, including
+`innovation_matrix`; global strict-state behaviour; expression strictness;
+the E007 implementation or `--gate` default; validation of
+`--import-state`; adding graph `variables:` to the state schema;
+`graph bench`; LangGraph patches, shims or a duplicated accepted-key
+registry; repairs to census findings beyond an unambiguous
+documentation-only key typo.
+
+## Conditions for enforcement
+
+Gates C-1 to C-7 in the
+[judgement](FR-1084-reject-undeclared-cli-vars.judgement.md#conditions-for-enforcement)
+apply: human review (C-1, recorded below), the compiled input schema as the
+only key source (C-2), validating only `--var`/`--var-file` at the stated
+point (C-3), exit before any invocation or LLM call (C-4), census cannot
+widen scope (C-5), no dependency on FR-1088 (C-6), RED before GREEN with
+strict REQ coverage (C-7).
 
 ## Answers to the FR-1067 judgement
 
@@ -160,10 +238,10 @@ accepted keys. The same holds in sync, `--async` and `--stream` modes.
 |---|---|
 | R-1: four-to-six-class disposition, precedent, dissent, `is_this_a_graph` | Alternatives Considered: six classes, cited precedent, dissent kept (class 2), graph-fit answer. |
 | R-1: disposition FR-677's E-level claim in the refile itself | Prior art: FR-677's claim is scoped to `--gate` and opt-in by its own decision (#L224); code agrees (#L128-L130). |
-| R-2: prove the accepted-key source for sync and async | Problem finding 3 (probe); AC-03 and AC-04 make it a test. Source changed from "input channels" to the input schema. |
-| R-2: fixture with `state:`, inferred keys, `variables`, `--var-file`, unknown key | AC-01, AC-02, AC-03, AC-06. |
-| R-2: imported state exempt only if its fields are kept | AC-05. |
-| R-2 / AC-03: no "listed as defects" beside a blanket pass | Proposed Solution item 5 and AC-07: fix, or exclusion with reason and filed defect FR. |
+| R-2: prove the accepted-key source for sync and async | Problem finding 3 (probe); AC-04 and AC-05 make it a test. Source changed from "input channels" to the input schema. |
+| R-2: fixture with `state:`, inferred keys, `variables`, `--var-file`, unknown key | AC-01, AC-02, AC-04, AC-07. |
+| R-2: imported state exempt only if its fields are kept | AC-06. |
+| R-2 / AC-03: no "listed as defects" beside a blanket pass | Proposed Solution item 5, AC-08 and AC-09: pass, or exclusion with reason and filed FR. |
 | C-1: no implementation under FR-1067 | This FR is the new vehicle; FR-1067 stays Rejected. |
 | C-2: no global missing-expression error | Out of scope; Alternatives class 6 rejected. |
 
@@ -199,20 +277,23 @@ Solution classes (chosen: 1):
 The census of documented invocations is a deterministic parse of shell lines,
 not a model judgement.
 
-## Human decision needed
+## Human decisions
 
-- **Graph `variables:` keys that are not schema keys are dropped** (Problem
-  finding 4). FR-688 meant them to reach state. Suggested default: not fixed
-  here, because they are graph-authored, not CLI input. File it as its own FR
-  (for example: `build_state_class` adds `variables:` keys as `Any` fields,
-  or `graph lint` reports them). This FR's fixtures use only `variables:`
-  keys that are also declared, so they do not depend on the choice.
+- **2026-09-25, operator — graph `variables:` keys that are not schema keys
+  are dropped** (Problem finding 4). FR-688 meant them to reach state.
+  Decision: not fixed here, because they are graph-authored, not CLI input.
+  Filed as [FR-1091](FR-1091-graph-variables-reach-state.md) (Parked). This
+  FR's fixtures use only `variables:` keys that are also declared, so they do
+  not depend on that FR.
+- **2026-09-26, operator — advisory judgement reviewed** (C-1). Instruction:
+  "proceed with all fr changes". R-1–R-3 folded the same day.
 
 ## Out of scope
 
-Expression strictness for missing `{state.X}` (C-2). Changing the `--gate`
-default. Strict state for non-CLI callers (class 2). Graph `variables:` keys
-missing from the schema (Human decision needed). `graph bench`, which merges
+Expression strictness for missing `{state.X}` (FR-1067 judgement C-2).
+Changing the `--gate` default. Strict state for non-CLI callers (class 2).
+Graph `variables:` keys missing from the schema (FR-1091). Any edit to
+`innovation_matrix` (FR-1088). `graph bench`, which merges
 vars the same way
 ([bench_commands.py#L284-L286](../yamlgraph/cli/bench_commands.py#L284-L286)).
 Checking `--import-state` keys.

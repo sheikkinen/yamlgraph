@@ -2,8 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1088-innovation-matrix-repair.judgement.md)); authority gated on folding the required revisions. No implementation authority yet.
-**Human decision (2026-09-25, operator):** H-1 floor of 3 entries per dimension accepted; H-2 AC-09 uses the rerun FR-1073's H-4 already authorized.
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1088-innovation-matrix-repair.judgement.md)); R-1–R-3 folded 2026-09-26. Authority active (2026-09-26): human review recorded — operator instruction 'proceed with all fr changes' (2026-09-26). Not implemented; lands after FR-1073 is merged (judgement C-2).
 **Effort:** 0.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next
@@ -25,9 +24,9 @@ refile. How each judgement objection is answered:
   is the six-class table below, with precedent, dissent and a graph-fit
   answer.
 - *R-2, grid bound:* FR-1070 asked for `max_items` to equal a product
-  computed at run time. `map_edge` reads `max_items` as a plain config
-  value and compares it to the item count
-  (`yamlgraph/compile/map_compiler.py#L351-L361`), and `NodeConfig` types it
+  computed at run time. `compile_map_node` reads `max_items` as a plain
+  config value and `resolve_items` compares it to the item count
+  (`yamlgraph/compile/map_compiler.py#L328-L356`), and `NodeConfig` types it
   `int | None` (`yamlgraph/models/node_schema.py#L222-L224`). A state
   expression or a node return cannot occupy it. This FR keeps the static
   `max_items: 25` and bounds the grid where the model output enters: the
@@ -84,13 +83,14 @@ produce.
   capabilities and 5 constraints" (`prompts/generate_dimensions.yaml#L53`);
   the schema fields are plain `list[str]` (`#L8-L13`).
 - **Cap truncates silently.** `max_items: 25` (`pipeline.yaml#L30`). A 5 × 6
-  answer gives 30 pairs; `map_edge` logs a warning and keeps the first 25
-  (`map_compiler.py#L354-L361`).
+  answer gives 30 pairs; `resolve_items` logs a warning and keeps the first 25
+  (`map_compiler.py#L347-L356`).
 - **Synthesis states a count it does not check.** `synthesize.yaml` says
   "25" at L3, L18, L27 and L43. It renders each expansion as-is
-  (`#L29-L35`). An expansion from this map is a dict holding `_map_index`
-  and `value` (`map_compiler.py#L211-L215`, from source reading), so the
-  prompt sees no cell ID, capability or constraint.
+  (`#L29-L35`). `expand_cell` has no schema, so an expansion from this map
+  is a dict holding `_map_index` and `value`
+  (`map_compiler.py#L194-L199`), and the prompt sees no cell ID,
+  capability or constraint.
 - **Stale "25" elsewhere.** `pipeline.yaml#L3`, `#L12`;
   `nodes/cartesian.py#L3`, `#L10`.
 - **Demo proof placement.** `demo-output.log` was produced by `graph.yaml`,
@@ -106,13 +106,19 @@ given.
 
 ## Proposed Solution
 
-All graph and prompt edits go through `scripts/author.sh` with a committed
-brief under `feature-requests/authoring-briefs/`
-(`.github/skills/graph-authoring/doctrine.md`, FR-767). The PreToolUse guard
-does not match the file name `pipeline.yaml`
-(`.github/hooks/scripts/pre-command-guard.sh#L165-L173`), so for that file
-the route is held by doctrine, not by the hook. `cartesian.py` is Python and
-changes under TDD on the same branch.
+All graph and prompt edits go through
+`scripts/author.sh feature-requests/authoring-briefs/fr-1088-innovation-matrix-repair-brief.md`
+([brief](authoring-briefs/fr-1088-innovation-matrix-repair-brief.md);
+`.github/skills/graph-authoring/doctrine.md`, FR-767). The brief is the
+artifact boundary: it names the three YAML files the run edits, the files
+it only reads (`cartesian.py`, the focused test), the files produced after
+it (`demo-output-pipeline.log`, the local authoring report), the
+`persona_scenarios` precedent, the lint command, the deterministic render
+smoke and the live command. The PreToolUse guard does not match the file
+name `pipeline.yaml` (`.github/hooks/scripts/pre-command-guard.sh#L165-L173`),
+so for that file the route is held by doctrine, not by the hook. A route
+failure is not permission for a direct edit (judgement C-3). `cartesian.py`
+is Python and changes under TDD on the same branch.
 
 1. **State.** `pipeline.yaml` declares `domain: str` in a `state:` block.
 2. **Bound at the model boundary.** In `prompts/generate_dimensions.yaml`,
@@ -122,7 +128,9 @@ changes under TDD on the same branch.
    Precedent: `examples/demos/persona_scenarios/prompts/analyze_product.yaml#L8-L13`.
    The floor of 3 keeps at least 9 cells for a "top 5" ranking (**H-1**).
 3. **Static cap, pinned.** `max_items: 25` stays as a literal int, the only
-   form `NodeConfig` accepts. A unit test reads both YAML files and asserts
+   form `NodeConfig` accepts. A unit test in
+   `tests/unit/test_fr1088_innovation_matrix_repair.py` reads both YAML
+   files and asserts
    `max_length(capabilities) × max_length(constraints) == max_items`, so a
    later edit to one cannot drift from the other.
 4. **IDs from lengths.** `cartesian.py` builds
@@ -131,10 +139,18 @@ changes under TDD on the same branch.
    `ValueError`, naming both lengths, if either list is empty.
 5. **Synthesis.** `synthesize` also receives `pairs`. The prompt:
    - states "{{ expansions | length }} of {{ pairs | length }} cells";
-   - lists every pair's ID, capability and constraint, with its expansion
-     looked up by `_map_index`;
-   - marks a pair with no expansion as `MISSING`;
+   - iterates `pairs` in list order and takes each pair's zero-based
+     position as its expected `_map_index`;
+   - selects the expansion rows whose `_map_index` equals that position;
+   - with exactly one match, renders the pair's ID, capability,
+     constraint and the row's `value`;
+   - with no match, renders the pair's ID, capability, constraint and
+     `MISSING`;
+   - with more than one match, renders `DUPLICATE` for that pair and
+     shows neither row's value;
    - contains no literal "25".
+   Attribution is by `_map_index`, never by list position after filtering
+   (judgement C-5).
    Under FR-1073's strict default the two counts are equal whenever
    `synthesize` runs. The `MISSING` marker is what keeps the prompt honest
    if a later edit adds `min_success` to this map.
@@ -142,44 +158,78 @@ changes under TDD on the same branch.
    `cartesian.py` docstrings become count-free.
 7. **Proof.** The pipeline run log is committed as
    `demo-output-pipeline.log`, next to the `graph.yaml` log it does not
-   replace.
+   replace. The run's short domain text is committed as
+   `examples/demos/innovation_matrix/domain-brief.md`, and the run uses
+   `LLM_REQUEST_TIMEOUT=120` and `--full` (AC-09).
 
 Ordering: lands after FR-1073 is merged. Without it, a failed branch still
 reaches `synthesize` as a dict holding `_error`.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 (RED): `cartesian_product` with 4 capabilities × 3 constraints
-  returns 12 pairs with unique IDs `C1S1 … C4S3`, each carrying its own
-  capability and constraint. Fails today (IDs use `// 5`).
-- [ ] AC-02 (RED): the model built from `generate_dimensions.yaml`'s schema
-  rejects 6 capabilities and rejects 2 constraints with a `ValidationError`;
-  it accepts 5 × 5 and 3 × 4. An above-cap grid is therefore refused before
-  `cartesian` and before any `Send`.
-- [ ] AC-03: the pin test from item 3 passes, and fails when
-  `max_items` is edited to 24 in a temporary copy.
-- [ ] AC-04: `cartesian_product` with an empty list raises `ValueError`
-  naming both lengths.
-- [ ] AC-05: rendering `synthesize.yaml` with 12 pairs and 11 expansions
-  (index 7 absent) shows all 12 IDs, marks `C3S2` as `MISSING`, and states
-  "11 of 12". With 12 of 12 no `MISSING` appears. Deterministic, no provider.
-- [ ] AC-06: after authoring, `synthesize.yaml` contains no `25`;
-  `pipeline.yaml` contains `25` only in `max_items`.
+From the judgement's revised criteria. Witness file:
+`tests/unit/test_fr1088_innovation_matrix_repair.py`.
+
+- [ ] AC-01: RED first: `cartesian_product` with four capabilities and
+  three constraints returns 12 entries with unique ordered IDs `C1S1`
+  through `C4S3`, and every entry carries the corresponding capability and
+  constraint. Fails today (IDs use `// 5`).
+- [ ] AC-02: The model built from `generate_dimensions.yaml` rejects six
+  capabilities and two constraints with `ValidationError`, and accepts
+  5-by-5 and 3-by-4 inputs.
+- [ ] AC-03: A YAML pin test asserts
+  `capabilities.max_length * constraints.max_length == expand_all.max_items`;
+  changing only `max_items` to 24 in the test fixture makes the assertion
+  fail.
+- [ ] AC-04: `cartesian_product` with either dimension empty raises
+  `ValueError`, and the asserted message values include both observed
+  lengths.
+- [ ] AC-05: Deterministic prompt rendering (no provider) joins pairs to
+  expansions by zero-based `_map_index`, over 12 pairs (4 × 3):
+  12 of 12 renders every ID with no `MISSING`; absent index 7 renders
+  every ID, marks only `C3S2` `MISSING`, and states `11 of 12`; duplicate
+  index 7 marks `C3S2` `DUPLICATE` and shows neither duplicate value,
+  rather than selecting one row.
+- [ ] AC-06: `synthesize.yaml` contains no literal `25`; `pipeline.yaml`
+  contains `25` only as `expand_all.max_items`; count-bearing descriptions
+  and Cartesian docstrings are count-free.
 - [ ] AC-07: `yamlgraph graph lint examples/demos/innovation_matrix/pipeline.yaml`
-  reports 0 errors; E007 no longer reports `domain`.
-- [ ] AC-08: the authoring report from `scripts/author.sh` exists
-  (`tmp/draft-authoring-report.md`), and its lint and smoke records are for
-  `pipeline.yaml` itself.
-- [ ] AC-09 (live, non-gating, needs spend: **H-2**): one run with a short
-  `--var domain=@brief.md` and `LLM_REQUEST_TIMEOUT` set explicitly
-  (FR-708). Read the raw output. Record one quoted dimension line that
-  names the brief's domain, and the list of cell IDs `synthesize` received.
-  Committed as `demo-output-pipeline.log`. If a branch fails, the run
-  raises at FR-1073's join; that outcome is recorded as is, not retried
-  until it passes.
-- [ ] AC-10: new REQ ID on the new tests,
-  `python scripts/req_coverage.py --strict` passes, a changelog fragment,
-  this FR's implementation record, and a diary entry with a `Seed:`.
+  reports zero errors and no E007 finding for `domain`.
+- [ ] AC-08: The committed
+  [`fr-1088-innovation-matrix-repair-brief.md`](authoring-briefs/fr-1088-innovation-matrix-repair-brief.md)
+  names the full artifact boundary and exact validations; running
+  `scripts/author.sh feature-requests/authoring-briefs/fr-1088-innovation-matrix-repair-brief.md`
+  produces a substantive local `tmp/draft-authoring-report.md` whose
+  `Artifacts`, `Precedent`, `Validation`, `Repairs` and
+  `Blocked validation` sections, and lint/smoke records, concern
+  `pipeline.yaml`. The report stays uncommitted; its exact commands and
+  outcomes are copied into this FR's implementation record.
+- [ ] AC-09 (live, non-gating): after FR-1073 is merged and its
+  deterministic acceptance passes, the one already authorized provider run
+  (FR-1073 H-4) is
+  `LLM_REQUEST_TIMEOUT=120 yamlgraph graph run examples/demos/innovation_matrix/pipeline.yaml --var domain=@examples/demos/innovation_matrix/domain-brief.md --full`.
+  `demo-output-pipeline.log` records the command, one quoted
+  domain-specific dimension, all pair IDs presented to synthesis, and the
+  run outcome, without retrying a failed branch until it passes. If FR-1073
+  H-4 has already been consumed, this criterion is recorded as blocked for
+  lack of spend authority and does not authorize another run.
+- [ ] AC-10: `capabilities/CAP-278-innovation-matrix-demo.yaml` defines
+  `REQ-YG-690` and `fr: FR-1088`; the requirement states the full contract
+  (declared `domain`, 3 to 5 entries per dimension, cap equals the schema
+  product, dimension-derived unique IDs, index-grounded synthesis that
+  renders every pair and marks missing expansions); every new test in
+  `tests/unit/test_fr1088_innovation_matrix_repair.py` carries
+  `@pytest.mark.req("REQ-YG-690")`; `ARCHITECTURE.md` is regenerated;
+  `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-11: The focused deterministic test file passes, and RED and GREEN
+  are separate commits; RED fails on the missing FR-1088 behavior, not on
+  an import, missing fixture, malformed YAML, or unmerged FR-1073
+  implementation.
+- [ ] AC-12: `changelog/unreleased/fr-1088-innovation-matrix-repair.md`,
+  this FR's implementation record, and one `docs/diary/` reflection with
+  `Seed:` record the delivered repair and any honest validation limitation.
+- [ ] AC-13: The implementation diff contains none of the not-authorized
+  surfaces below.
 
 ## Alternatives Considered
 
@@ -197,18 +247,18 @@ Solution classes (chosen: 1; preserved dissent: 2):
    of yielding a valid 4 × 5 grid. It also keeps the ID math coupled to a
    constant that a prompt edit can break, which is the D9 defect itself.
 3. **Dynamic cap: `max_items` from a state expression.** Rejected. It is a
-   compiler change (`map_compiler.py#L351-L353` reads a config value) for
+   compiler change (`map_compiler.py#L328-L330` reads a config value) for
    one consumer, and a cap computed from the data it caps is no cost guard.
    FR-1070 judgement R-2 requires a separately judged contract for it.
 4. **`cartesian` truncates or pads to 5 × 5.** Rejected: a silent fallback
-   (Commandment 6). Truncation is the exact failure `map_edge` has today.
+   (Commandment 6). Truncation is the exact failure `resolve_items` has today.
 5. **`cartesian` refuses above a Python constant.** Rejected. The refusal
    comes after the same paid `generate_dimensions` call as class 1, the
    bound lives in code instead of config, and the constant duplicates
    `max_items` without the schema's validation-feedback path (FR-1079
    item 5).
 6. **Rely on FR-939 `on_overflow: error` alone.** Rejected as the only
-   mechanism. FR-939 is not implemented (`map_compiler.py#L354-L361` still
+   mechanism. FR-939 is not implemented (`map_compiler.py#L347-L356` still
    truncates). Even with it, a 5 × 6 grid would fail at dispatch instead of
    being bounded at the model output. It composes as a second line once it
    lands.
@@ -221,26 +271,49 @@ Precedent: `persona_scenarios` bounds a generated list with
 schema bound, deterministic ID math and a prompt render; no new LLM stage,
 no new graph.
 
-**Human decision needed:**
-- **H-1:** the floor per dimension. Suggested default: 3 (at least 9 cells
-  for a top-5 ranking). Alternative: 5, which is class 2.
-- **H-2:** the AC-09 spend. FR-1073's H-4 authorized one rerun after
-  FR-1073's own deterministic acceptance. Suggested default: sequence that
-  one rerun after this FR also lands, so one run witnesses both FRs (and
-  FR-1079's AC-08 if it is judged by then). If FR-1073's rerun happens
-  first, AC-09 needs its own approval.
+## Human decisions
 
-## Out of scope
+- **H-1 (2026-09-25, operator):** floor of 3 entries per dimension
+  (at least 9 cells for a top-5 ranking). The alternative, 5, was class 2.
+- **H-2 (2026-09-25, operator):** AC-09 uses the one rerun FR-1073's H-4
+  already authorized, sequenced after this FR also lands so one run
+  witnesses both. No second paid run.
+- **Review (2026-09-26, operator):** judgement and folded revisions
+  reviewed; authority activated by the instruction "proceed with all fr
+  changes".
 
-Map result and failure channel (FR-1073). Retries and timeouts (FR-1079,
-FR-708). Overflow policy (FR-939). Rejecting undeclared `--var` (FR-1067).
-E007 missing the map sub-node's variables. `graph.yaml`, `drill-down.yaml`
-and `select_cells.yaml`/`generate_matrix.yaml`. Editing the demo under this
-FR before it is judged.
+## Scope (frozen by judgement)
+
+Deliverables (judgement D-1–D-8):
+
+| # | Surface |
+|---|---|
+| D-1 | This FR; [`authoring-briefs/fr-1088-innovation-matrix-repair-brief.md`](authoring-briefs/fr-1088-innovation-matrix-repair-brief.md) |
+| D-2 | `examples/demos/innovation_matrix/pipeline.yaml`: `state.domain`, `pairs` to `synthesize`, literal `max_items: 25`, count-free descriptions |
+| D-3 | `examples/demos/innovation_matrix/prompts/generate_dimensions.yaml` (bounds), `.../prompts/synthesize.yaml` (index join, no literal count) |
+| D-4 | `examples/demos/innovation_matrix/nodes/cartesian.py`: IDs from lengths, empty-dimension refusal, count-free docstrings |
+| D-5 | `tests/unit/test_fr1088_innovation_matrix_repair.py` |
+| D-6 | `capabilities/CAP-278-innovation-matrix-demo.yaml` (`REQ-YG-690`), regenerated `ARCHITECTURE.md`, `changelog/unreleased/fr-1088-innovation-matrix-repair.md` |
+| D-7 | Local `tmp/draft-authoring-report.md`; committed `examples/demos/innovation_matrix/demo-output-pipeline.log` and its input `examples/demos/innovation_matrix/domain-brief.md`; this FR's implementation record |
+| D-8 | One `docs/diary/` reflection with `Seed:` |
+
+Not authorized: changes to `yamlgraph/` runtime, compiler, schema loader,
+executor, linter, CLI, hooks, authoring or judge doctrine; map result and
+failure semantics (FR-1073); retry or timeout ownership (FR-1079, FR-708);
+map overflow policy (FR-939); undeclared-variable policy (FR-1067);
+`graph.yaml`, `drill-down.yaml`, `select_cells.yaml`,
+`generate_matrix.yaml`; E007 coverage of map sub-node variables; a second
+paid run; unrelated demo cleanup; any capability or architecture change
+beyond CAP-278 and REQ-YG-690.
+
+Enforcement conditions C-1–C-8 are in the
+[judgement](FR-1088-innovation-matrix-repair.judgement.md#conditions-for-enforcement);
+all are GATE.
 
 ## Related
 
 - Refiles: [FR-1070](FR-1070-innovation-matrix-repair.md) ([judgement](FR-1070-innovation-matrix-repair.judgement.md))
+- Authoring brief: [fr-1088-innovation-matrix-repair-brief.md](authoring-briefs/fr-1088-innovation-matrix-repair-brief.md)
 - Depends on: [FR-1073](FR-1073-map-result-contract.md)
 - Composes with: [FR-1079](FR-1079-retry-ownership.md), [FR-939](FR-939-map-overflow-policy.md)
 - Plan: [docs/issues-2026-09-24.md](../docs/issues-2026-09-24.md) §1, §2 D5, D9, §7 H
