@@ -90,9 +90,20 @@ jobs:
           python -m pip install --upgrade pip
           pip install -e ".[dev,digest,websearch,fsm,verify,rag,replicate,openai-proxy,examples-dungeon-master,otel,vision]"
 
+      - name: Lock governed roots (FR-1094)
+        # Run the suite with the same FR-889 write lock as the local main
+        # checkout, so a test that writes into a governed root fails here.
+        if: needs.changes.outputs.code == 'true'
+        run: scripts/worktree.sh lock-main
+
       - name: Run tests
         if: needs.changes.outputs.code == 'true'
         run: pytest tests/unit/ -v --cov=yamlgraph --cov-fail-under=80
+
+      - name: Unlock governed roots (FR-1094)
+        # ruff writes .ruff_cache inside nested fixture projects under tests/.
+        if: needs.changes.outputs.code == 'true'
+        run: scripts/worktree.sh unlock-main
 
       - name: Run linter
         if: needs.changes.outputs.code == 'true'

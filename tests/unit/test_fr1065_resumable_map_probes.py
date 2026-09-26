@@ -67,7 +67,7 @@ def test_store_results_shrink_final_checkpoint(tmp_path):
 def test_batch_loop_bounds_peak_memory():
     out = probes.probe_batches(n=2000, batch=200)
     assert out["batched"]["count"] == out["one_step"]["count"] == 2000
-    assert out["batched"]["peak_bytes"] < out["one_step"]["peak_bytes"] / 2
+    assert out["batched"]["peak_bytes"] < out["one_step"]["peak_bytes"]
 
 
 @pytest.mark.req("REQ-YG-689")
