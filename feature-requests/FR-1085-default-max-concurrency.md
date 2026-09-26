@@ -330,7 +330,7 @@ Commits on `feat/fr1085-max-concurrency`: RED `887b354c`, GREEN
   Key Environment Variables.
 - **D-6** CAP-281 / REQ-YG-698; changelog
   `changelog/unreleased/fr-1085-default-max-concurrency.md`; diary
-  `docs/diary/diary-2026-09-26-the-mock-width.md`.
+  `docs/diary/diary-2026-09-26-reflection-fr-1085-the-mock-width.md`.
 
 **Behavioural peaks** (40-item map, 50 ms sync Python worker, no width
 set):

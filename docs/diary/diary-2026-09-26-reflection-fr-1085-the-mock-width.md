@@ -34,6 +34,8 @@ Two smaller choices from this enforcement:
   the peak table records the executor ceiling rather than calling 6 a
   resolver result.
 
+## Heuristic and seed
+
 **Heuristic:** a bare `MagicMock` standing in for a typed config answers
 every attribute read with a truthy object. Any new code that reads a new
 field from that config inherits a fake value that passes type-blind code
