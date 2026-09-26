@@ -701,6 +701,25 @@ The map compiler does not read a map-level `on_error`. Put `on_error: skip`
 (or `retry` with `max_retries`) on the sub-node; a failure it skips is
 *tolerated*.
 
+**Overflow (FR-939):** the cap resolves node `max_items` > graph
+`config.max_map_items` > 100. The policy resolves node `on_overflow` > graph
+`defaults.on_overflow` > `error`. Under `error` an over-cap list raises
+`ValueError` naming the node, the item count and the cap, and no branch runs.
+Sampling a prefix is opt-in:
+
+```yaml
+defaults:
+  on_overflow: truncate     # graph-wide; a node can still set error
+nodes:
+  sample:
+    type: map
+    over: "{state.rows}"
+    as: row
+    max_items: 20           # keep rows[:20]; one WARNING names node, count, cap
+    node: {type: python, tool: score, state_key: score}
+    collect: scores
+```
+
 **How it works (FR-1073):**
 1. Dispatch: the map node records a dispatch token and item count, then sends each item with `Send()`
 2. Process: the sub-node (`_map_<name>_sub`) runs per item with `{state.<as>}` available

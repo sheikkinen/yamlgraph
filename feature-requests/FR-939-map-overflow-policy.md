@@ -2,7 +2,8 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** In progress — enforcing. Judged APPROVED WITH REVISIONS
+**Status:** Implemented (branch `feat/fr939-map-overflow`, 2026-09-26).
+Judged APPROVED WITH REVISIONS
 (`FR-939-map-overflow-policy.judgement.md`, 2026-08-31). Revisions R-1–R-4
 folded below and into the research record. Human review recorded —
 operator instruction "worktree enforce 939, 1084, 1085" (2026-09-26);
@@ -139,6 +140,51 @@ See the research record. Rejected: mandatory field with no default
 while default `error` already delivers the safety; log-only warning
 hardening — leaves the contract out-of-band; deleting the cap — removes
 the cost guard FR-027 correctly installed.
+
+## Implementation Record (2026-09-26)
+
+Commits: `71e27513` RED (28 failed / 78 passed on unchanged code, every
+failure a missing schema field or `DID NOT RAISE`), `abc27b50` GREEN.
+
+| AC | Evidence |
+|----|----------|
+| AC-01 | Research record (pre-existing, five classes, `is_this_a_graph`). |
+| AC-02 | `NodeConfig.on_overflow: Literal["error","truncate"] \| None`; `GraphConfigSchema.validate_defaults_on_overflow`. `test_ac02_*` load real YAML; `"warn"`, `"ERROR"`, `""`, `1`, `True`, `["error"]` rejected at both levels. |
+| AC-03 | `test_ac03_*`: implicit `error`, defaults `truncate`, node overrides default in both directions. |
+| AC-04 | `node_compiler._compile_map_node` passes `GraphConfig.max_map_items` as `graph_max_items`; `test_ac04_config_max_map_items_*` go through `load_graph_config` + `compile_graph`; node cap overrides graph cap; built-in 100. |
+| AC-05 | `resolve_items` raises under `error`; the FR-1073 dispatch node calls it before the router builds any `Send`. `test_ac05_overflow_raises_before_any_sub_node_runs` counts zero sub-node calls end to end. |
+| AC-06 | Message `Map node '<name>': <n> items exceed max_items=<cap> (on_overflow: error)…`; asserted as values. |
+| AC-07 | Exact prefix at the Send level and end to end (3 sub-node calls); exactly one WARNING (dispatch node only; the router resolves with `warn=False`). |
+| AC-08 | 0, 1 and cap-sized inputs × {implicit, error, truncate}: one Send per item in order, no warning. |
+| AC-09 | FR-027 `TestMapMaxItems`: truncation declared explicitly; `test_defaults_max_map_items_is_not_a_cap_seam` pins the retired seam; `test_map_edge_default_100_cap[None]` pins fail-by-default. |
+| AC-10 | REQ-YG-699 in CAP-11; `req_coverage.py --strict` 424/424. |
+| AC-11 | Separate RED and GREEN commits (above). |
+| AC-12 | Focused command: 106 passed, 2 skipped. |
+| AC-13 | `reference/graph-yaml.md` (config table, map table, Overflow paragraph with sampling example); changelog `fr-939-map-overflow-policy.md`; diary `diary-2026-09-26-the-inert-cap.md`. |
+| AC-14 | Diff limited to the frozen surfaces plus `vulture_whitelist.py` (framework-invoked validator, sibling convention) and `docs/confessions.md` (hook-regenerated line anchor). |
+
+**Decisions.**
+- The graph policy is passed explicitly as `graph_on_overflow`
+  (from `GraphConfig.defaults`), matching the judgement's "pass the cap
+  and policy explicitly"; `compile_map_node` no longer reads cap from
+  `defaults`.
+- `NodeConfig.on_overflow` is a one-line field: `node_schema.py` sits
+  against the FR-716 `< 400` split gate (now 398).
+- `node_compiler.py` grew 2 lines (448 / 450 cap).
+
+**Deviations.**
+- The RED end-to-end truncate witness compared raw collected values;
+  FR-1073 collects `{_map_index, value}` records, so GREEN corrected the
+  assertion (order by index, compare values). Contract unchanged.
+- `yamlgraph/schemas/graph-v1.json` (hand-maintained IDE schema,
+  `additionalProperties: true`) not updated — outside the frozen scope and
+  it does not reject the new key.
+
+**Behaviour change for existing graphs.** Seven demo graphs declare
+`config.max_map_items` (50–1000). Before this change the value was dropped
+and every map was capped at 100 with a log-only warning; now the declared
+cap applies, and any list over it raises unless the graph opts into
+`truncate`. Demo graphs were not edited (not authorized).
 
 ## Related
 
