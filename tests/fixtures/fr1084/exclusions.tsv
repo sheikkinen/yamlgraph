@@ -10,10 +10,7 @@ examples/demos/forensic-failure-diary/README.md	examples/demos/forensic-failure-
 examples/demos/forensic-failure-diary/README.md	examples/demos/forensic-failure-diary/graph.yaml	worktree_state	graph fails GraphConfigSchema load	FR-1101
 examples/demos/hook_classifier/README.md	examples/demos/hook_classifier/graph.yaml	command	graph fails GraphConfigSchema load	FR-1101
 examples/demos/hook_classifier/README.md	examples/demos/hook_classifier/graph.yaml	tool_name	graph fails GraphConfigSchema load	FR-1101
-examples/demos/innovation_matrix/README.md	examples/demos/innovation_matrix/pipeline.yaml	domain	graph does not declare domain	FR-1088
 examples/demos/python-map/README.md	examples/demos/python-map/graph.yaml	texts	texts is not a state key; map reads data_files sample.texts	FR-1101
-examples/demos/safety-guards/README.md	examples/demos/safety-guards/graph.yaml	topic	graph fails to compile: condition on fan-out edge	FR-1087
-examples/demos/safety-guards/README.md	examples/demos/safety-guards/graph.yaml	topics	graph fails to compile: condition on fan-out edge	FR-1087
 reference/graph-yaml.md	examples/demos/corpus_census/graph.yaml	output_path	illustrative --tool manifest does not exist	FR-1101
 reference/graph-yaml.md	examples/demos/corpus_census/graph.yaml	rubric	illustrative --tool manifest does not exist	FR-1101
 reference/graph-yaml.md	examples/demos/corpus_census/graph.yaml	source	illustrative --tool manifest does not exist	FR-1101

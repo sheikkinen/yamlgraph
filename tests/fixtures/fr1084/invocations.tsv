@@ -106,12 +106,12 @@ examples/demos/innovation_matrix/README.md	32	examples/demos/innovation_matrix/g
 examples/demos/innovation_matrix/README.md	36	examples/demos/innovation_matrix/drill-down.yaml	--var	domain	PASS	-	-
 examples/demos/innovation_matrix/README.md	36	examples/demos/innovation_matrix/drill-down.yaml	--var	capability	PASS	-	-
 examples/demos/innovation_matrix/README.md	36	examples/demos/innovation_matrix/drill-down.yaml	--var	constraint	PASS	-	-
-examples/demos/innovation_matrix/README.md	42	examples/demos/innovation_matrix/pipeline.yaml	--var	domain	EXCLUDED	graph does not declare domain	FR-1088
+examples/demos/innovation_matrix/README.md	42	examples/demos/innovation_matrix/pipeline.yaml	--var	domain	PASS	-	-
 examples/demos/innovation_matrix/README.md	78	examples/demos/innovation_matrix/graph.yaml	--var	domain	PASS	-	-
 examples/demos/innovation_matrix/README.md	81	examples/demos/innovation_matrix/drill-down.yaml	--var	domain	PASS	-	-
 examples/demos/innovation_matrix/README.md	81	examples/demos/innovation_matrix/drill-down.yaml	--var	capability	PASS	-	-
 examples/demos/innovation_matrix/README.md	81	examples/demos/innovation_matrix/drill-down.yaml	--var	constraint	PASS	-	-
-examples/demos/innovation_matrix/README.md	90	examples/demos/innovation_matrix/pipeline.yaml	--var	domain	EXCLUDED	graph does not declare domain	FR-1088
+examples/demos/innovation_matrix/README.md	90	examples/demos/innovation_matrix/pipeline.yaml	--var	domain	PASS	-	-
 examples/demos/innovation_matrix/README.md	98	examples/demos/innovation_matrix/graph.yaml	--var	domain	PASS	-	-
 examples/demos/innovation_matrix/README.md	101	examples/demos/innovation_matrix/graph.yaml	--var	domain	PASS	-	-
 examples/demos/judge/README.md	19	examples/demos/judge/graph.yaml	--var	fr_path	PASS	-	-
@@ -189,8 +189,8 @@ examples/demos/router/prompts/README.md	12	graphs/router-demo.yaml	--var	message
 examples/demos/router/prompts/README.md	15	graphs/router-demo.yaml	--var	message	EXCLUDED	unresolvable-graph	-
 examples/demos/router/prompts/README.md	58	graphs/router-demo.yaml	--var	message	EXCLUDED	unresolvable-graph	-
 examples/demos/router-race-candidates/README.md	13	examples/demos/router-race-candidates/graph.yaml	--var	user_query	PASS	-	-
-examples/demos/safety-guards/README.md	13	examples/demos/safety-guards/graph.yaml	--var	topic	EXCLUDED	graph fails to compile: condition on fan-out edge	FR-1087
-examples/demos/safety-guards/README.md	13	examples/demos/safety-guards/graph.yaml	--var	topics	EXCLUDED	graph fails to compile: condition on fan-out edge	FR-1087
+examples/demos/safety-guards/README.md	14	examples/demos/safety-guards/graph.yaml	--var	topic	PASS	-	-
+examples/demos/safety-guards/README.md	14	examples/demos/safety-guards/graph.yaml	--var	topics	PASS	-	-
 examples/demos/salvage_classify/README.md	17	examples/demos/salvage_classify/graph.yaml	--var	source_repo	PASS	-	-
 examples/demos/salvage_classify/README.md	17	examples/demos/salvage_classify/graph.yaml	--var	source_sha	PASS	-	-
 examples/demos/self-portrait/README.md	89	examples/demos/self-portrait/graph.yaml	--var	db_path	PASS	-	-
