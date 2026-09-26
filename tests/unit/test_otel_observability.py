@@ -421,7 +421,7 @@ async def test_run_graph_async_disabled_needs_no_opentelemetry(monkeypatch):
     result = await run_graph_async(app, {"private": "value"})
 
     assert result == {"result": "unchanged"}
-    app.ainvoke.assert_awaited_once_with({"private": "value"}, {})
+    app.ainvoke.assert_awaited_once_with({"private": "value"}, {"max_concurrency": 8})
 
 
 @pytest.mark.asyncio
@@ -438,7 +438,7 @@ async def test_run_graph_async_disabled_passes_none_to_checkpoint(monkeypatch):
     result = await run_graph_async(app, None, config)
 
     assert result == {"result": "recovered"}
-    app.ainvoke.assert_awaited_once_with(None, config)
+    app.ainvoke.assert_awaited_once_with(None, {**config, "max_concurrency": 8})
 
 
 @requires_otel_sdk
@@ -455,7 +455,7 @@ async def test_run_graph_async_hashes_none_as_canonical_null(in_memory_exporter)
     result = await run_graph_async(app, None)
 
     assert result == {"result": "recovered"}
-    app.ainvoke.assert_awaited_once_with(None, {})
+    app.ainvoke.assert_awaited_once_with(None, {"max_concurrency": 8})
     (run_span,) = in_memory_exporter.get_finished_spans()
     none_hash = "74234e98afe7498fb5daf1f36ac2d78acc339464f950703b8c019892f982b90b"
     empty_hash = "44136fa355b3678a1146ad16f7e8649e94fb4fc21fe77e8310c060f61caaff8a"

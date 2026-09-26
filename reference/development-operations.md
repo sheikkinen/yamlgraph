@@ -130,6 +130,7 @@ report, and the human (or automation policy) decides:
 | `YAMLGRAPH_OTEL_DIR` | Optional directory for per-node copilot OTel files (`<dir>/<node_name>.otel.jsonl`); when set, `_execute_cli` exports `COPILOT_OTEL_FILE_EXPORTER_PATH` per node |
 | `YAMLGRAPH_OTEL_EXPORT` | OpenTelemetry span export (FR-759): `otlp` enables graph-run/node-execution spans (requires `pip install "yamlgraph[otel]"`; fails fast if extra missing). Unset = true no-op. See `reference/otel-observability.md` |
 | `YAMLGRAPH_ROUTE_LOG` | Route decision log opt-in (FR-723): `1` emits one JSON line per routing decision on the public `yamlgraph.route` logger; a file path also appends raw JSONL for `graph export --overlay` |
+| `YAMLGRAPH_MAX_CONCURRENCY` | Default parallel-branch width (FR-1085) when neither the caller nor the graph's `config.max_concurrency` sets one; unset → `8`. Must be a positive integer; any other value (including empty) raises `ValueError` before a managed run starts. See `reference/graph-yaml.md` → `max_concurrency` |
 | `PROVIDER` | Default LLM provider (anthropic/azure/deepseek/google/inception/mistral/openai/replicate/runpod/xai/lmstudio) |
 | `LANGCHAIN_TRACING_V2` | Enable LangSmith observability (true/false) |
 | `LANGCHAIN_API_KEY` | LangSmith API key |

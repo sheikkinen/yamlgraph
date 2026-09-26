@@ -116,7 +116,8 @@ def _run_cli(tmp_path: Path, graph: Path, extra: list[str]) -> None:
         try:
             cmd_graph_run(args)
         except SystemExit as exc:
-            assert exc.code in (0, None), f"CLI exited {exc.code}"
+            if exc.code not in (0, None):
+                raise
 
 
 async def _drain(graph: Path, config: dict | None) -> None:
@@ -195,7 +196,7 @@ def test_ac02_default_width_is_8_at_every_boundary(boundary, cpus, tmp_path):
 
 @pytest.mark.req("REQ-YG-698")
 def test_ac02_resolver_default_is_exactly_8():
-    from yamlgraph.utils.concurrency import resolve_max_concurrency
+    from yamlgraph.utils.validators import resolve_max_concurrency
 
     assert resolve_max_concurrency(None, None) == 8
 
@@ -217,7 +218,7 @@ def test_ac02_resolver_default_is_exactly_8():
     ids=["caller", "graph", "env", "default"],
 )
 def test_ac03_precedence_is_exact(caller, graph, env, expected, monkeypatch):
-    from yamlgraph.utils.concurrency import resolve_max_concurrency
+    from yamlgraph.utils.validators import resolve_max_concurrency
 
     if env is not None:
         monkeypatch.setenv(ENV, env)
@@ -264,7 +265,7 @@ def test_ac04_graph_width_3_reaches_the_api(boundary, caller, expected, tmp_path
 @pytest.mark.req("REQ-YG-698")
 @pytest.mark.parametrize("raw", ["", "abc", "0", "-1", "2.5", "true"])
 def test_ac05_bad_env_raises_naming_variable_and_value(raw, monkeypatch):
-    from yamlgraph.utils.concurrency import resolve_max_concurrency
+    from yamlgraph.utils.validators import resolve_max_concurrency
 
     monkeypatch.setenv(ENV, raw)
     with pytest.raises(ValueError, match=ENV) as exc:
@@ -275,7 +276,7 @@ def test_ac05_bad_env_raises_naming_variable_and_value(raw, monkeypatch):
 @pytest.mark.req("REQ-YG-698")
 @pytest.mark.parametrize("bad", [True, False, "4", 2.5, 0, -1])
 def test_ac05_bad_caller_value_raises_naming_source_and_value(bad):
-    from yamlgraph.utils.concurrency import resolve_max_concurrency
+    from yamlgraph.utils.validators import resolve_max_concurrency
 
     with pytest.raises(ValueError, match="max_concurrency") as exc:
         resolve_max_concurrency(bad, 4)
@@ -284,7 +285,7 @@ def test_ac05_bad_caller_value_raises_naming_source_and_value(bad):
 
 @pytest.mark.req("REQ-YG-698")
 def test_ac05_positive_integers_accepted(monkeypatch):
-    from yamlgraph.utils.concurrency import resolve_max_concurrency
+    from yamlgraph.utils.validators import resolve_max_concurrency
 
     assert resolve_max_concurrency(1, None) == 1
     monkeypatch.setenv(ENV, "12")
@@ -396,9 +397,8 @@ def test_ac07_run_graph_async_without_metadata_uses_env_then_default(monkeypatch
 
 @pytest.mark.req("REQ-YG-698")
 def test_ac07_run_graph_async_reads_graph_width_metadata():
-    from yamlgraph.utils.concurrency import GRAPH_WIDTH_ATTR
-
     from yamlgraph.observability.otel import run_graph_async
+    from yamlgraph.utils.validators import GRAPH_WIDTH_ATTR
 
     spy = _SpyApp()
     setattr(spy, GRAPH_WIDTH_ATTR, 3)
@@ -410,9 +410,8 @@ def test_ac07_run_graph_async_reads_graph_width_metadata():
 
 @pytest.mark.req("REQ-YG-698")
 def test_ac07_streaming_native_preserves_config():
-    from yamlgraph.utils.concurrency import GRAPH_WIDTH_ATTR
-
     import yamlgraph.executor_async as executor_async
+    from yamlgraph.utils.validators import GRAPH_WIDTH_ATTR
 
     spy = _SpyApp()
     setattr(spy, GRAPH_WIDTH_ATTR, 3)
@@ -435,9 +434,8 @@ def test_ac07_streaming_native_preserves_config():
 
 @pytest.mark.req("REQ-YG-698")
 def test_ac07_load_and_compile_async_records_graph_width(tmp_path):
-    from yamlgraph.utils.concurrency import GRAPH_WIDTH_ATTR
-
     from yamlgraph.executor_async import load_and_compile_async
+    from yamlgraph.utils.validators import GRAPH_WIDTH_ATTR
 
     app = asyncio.run(load_and_compile_async(_write_graph(tmp_path, 3), cache=None))
     assert getattr(app, GRAPH_WIDTH_ATTR) == 3

@@ -7,7 +7,7 @@ description: >
   number of branches in flight never depends on the host's CPU count.
   Raw compiled `app.invoke`/`ainvoke` stays caller-owned.
 modules:
-  - yamlgraph/utils/concurrency.py
+  - yamlgraph/utils/validators.py
   - yamlgraph/cli/graph_run_helpers.py
   - yamlgraph/compile/graph_loader.py
   - yamlgraph/executor_async.py
@@ -25,7 +25,7 @@ requirements:
       compiled app for `run_graph_async`; an app without it resolves
       caller → environment → 8.
     modules:
-      - yamlgraph/utils/concurrency.py
+      - yamlgraph/utils/validators.py
       - yamlgraph/cli/graph_run_helpers.py
       - yamlgraph/compile/graph_loader.py
       - yamlgraph/executor_async.py
