@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1088-innovation-matrix-repair.judgement.md)); R-1–R-3 folded 2026-09-26. Authority active (2026-09-26): human review recorded — operator instruction 'proceed with all fr changes' (2026-09-26). Not implemented; lands after FR-1073 is merged (judgement C-2).
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1088-innovation-matrix-repair.judgement.md)); R-1–R-3 folded 2026-09-26. Authority active (2026-09-26): human review recorded — operator instruction 'proceed with all fr changes' (2026-09-26). **Completed 2026-09-26** — see [Implementation](#implementation-2026-09-26). C-2 met: FR-1073 merged as `d9cfb71c` (#702).
 **Effort:** 0.5 days
 **Requested:** 2026-09-25
 **First consumer / first event:** the next
@@ -170,32 +170,32 @@ reaches `synthesize` as a dict holding `_error`.
 From the judgement's revised criteria. Witness file:
 `tests/unit/test_fr1088_innovation_matrix_repair.py`.
 
-- [ ] AC-01: RED first: `cartesian_product` with four capabilities and
+- [x] AC-01: RED first: `cartesian_product` with four capabilities and
   three constraints returns 12 entries with unique ordered IDs `C1S1`
   through `C4S3`, and every entry carries the corresponding capability and
   constraint. Fails today (IDs use `// 5`).
-- [ ] AC-02: The model built from `generate_dimensions.yaml` rejects six
+- [x] AC-02: The model built from `generate_dimensions.yaml` rejects six
   capabilities and two constraints with `ValidationError`, and accepts
   5-by-5 and 3-by-4 inputs.
-- [ ] AC-03: A YAML pin test asserts
+- [x] AC-03: A YAML pin test asserts
   `capabilities.max_length * constraints.max_length == expand_all.max_items`;
   changing only `max_items` to 24 in the test fixture makes the assertion
   fail.
-- [ ] AC-04: `cartesian_product` with either dimension empty raises
+- [x] AC-04: `cartesian_product` with either dimension empty raises
   `ValueError`, and the asserted message values include both observed
   lengths.
-- [ ] AC-05: Deterministic prompt rendering (no provider) joins pairs to
+- [x] AC-05: Deterministic prompt rendering (no provider) joins pairs to
   expansions by zero-based `_map_index`, over 12 pairs (4 × 3):
   12 of 12 renders every ID with no `MISSING`; absent index 7 renders
   every ID, marks only `C3S2` `MISSING`, and states `11 of 12`; duplicate
   index 7 marks `C3S2` `DUPLICATE` and shows neither duplicate value,
   rather than selecting one row.
-- [ ] AC-06: `synthesize.yaml` contains no literal `25`; `pipeline.yaml`
+- [x] AC-06: `synthesize.yaml` contains no literal `25`; `pipeline.yaml`
   contains `25` only as `expand_all.max_items`; count-bearing descriptions
   and Cartesian docstrings are count-free.
-- [ ] AC-07: `yamlgraph graph lint examples/demos/innovation_matrix/pipeline.yaml`
+- [x] AC-07: `yamlgraph graph lint examples/demos/innovation_matrix/pipeline.yaml`
   reports zero errors and no E007 finding for `domain`.
-- [ ] AC-08: The committed
+- [x] AC-08: The committed
   [`fr-1088-innovation-matrix-repair-brief.md`](authoring-briefs/fr-1088-innovation-matrix-repair-brief.md)
   names the full artifact boundary and exact validations; running
   `scripts/author.sh feature-requests/authoring-briefs/fr-1088-innovation-matrix-repair-brief.md`
@@ -204,7 +204,7 @@ From the judgement's revised criteria. Witness file:
   `Blocked validation` sections, and lint/smoke records, concern
   `pipeline.yaml`. The report stays uncommitted; its exact commands and
   outcomes are copied into this FR's implementation record.
-- [ ] AC-09 (live, non-gating): after FR-1073 is merged and its
+- [x] AC-09 (live, non-gating): after FR-1073 is merged and its
   deterministic acceptance passes, the one already authorized provider run
   (FR-1073 H-4) is
   `LLM_REQUEST_TIMEOUT=120 yamlgraph graph run examples/demos/innovation_matrix/pipeline.yaml --var domain=@examples/demos/innovation_matrix/domain-brief.md --full`.
@@ -213,7 +213,7 @@ From the judgement's revised criteria. Witness file:
   run outcome, without retrying a failed branch until it passes. If FR-1073
   H-4 has already been consumed, this criterion is recorded as blocked for
   lack of spend authority and does not authorize another run.
-- [ ] AC-10: `capabilities/CAP-278-innovation-matrix-demo.yaml` defines
+- [x] AC-10: `capabilities/CAP-278-innovation-matrix-demo.yaml` defines
   `REQ-YG-690` and `fr: FR-1088`; the requirement states the full contract
   (declared `domain`, 3 to 5 entries per dimension, cap equals the schema
   product, dimension-derived unique IDs, index-grounded synthesis that
@@ -221,15 +221,75 @@ From the judgement's revised criteria. Witness file:
   `tests/unit/test_fr1088_innovation_matrix_repair.py` carries
   `@pytest.mark.req("REQ-YG-690")`; `ARCHITECTURE.md` is regenerated;
   `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-11: The focused deterministic test file passes, and RED and GREEN
+- [x] AC-11: The focused deterministic test file passes, and RED and GREEN
   are separate commits; RED fails on the missing FR-1088 behavior, not on
   an import, missing fixture, malformed YAML, or unmerged FR-1073
   implementation.
-- [ ] AC-12: `changelog/unreleased/fr-1088-innovation-matrix-repair.md`,
+- [x] AC-12: `changelog/unreleased/fr-1088-innovation-matrix-repair.md`,
   this FR's implementation record, and one `docs/diary/` reflection with
   `Seed:` record the delivered repair and any honest validation limitation.
-- [ ] AC-13: The implementation diff contains none of the not-authorized
+- [x] AC-13: The implementation diff contains none of the not-authorized
   surfaces below.
+
+## Implementation (2026-09-26)
+
+Branch `feat/fr1087-1088-demo-repairs`. RED `ab55afd8`: the 10 tests in
+`tests/unit/test_fr1088_innovation_matrix_repair.py` all failed on missing
+behavior (`// 5` IDs, unbounded schema, no `pairs` in the prompt, literal
+`25`, E007 on `domain`). None failed on an import or fixture. GREEN: 10 passed.
+
+- **Authoring route (AC-08).** The three YAML files were edited only by
+  `./scripts/author.sh feature-requests/authoring-briefs/fr-1088-innovation-matrix-repair-brief.md`.
+  It exited 0 and wrote a substantive `tmp/draft-authoring-report.md`, which
+  was kept locally and not committed. The report records these commands and
+  outcomes:
+  - `yamlgraph graph lint examples/demos/innovation_matrix/pipeline.yaml`:
+    `No issues found`, with no E007 for `domain` (AC-07).
+  - A schema, cap and stale-count script. The 6 × 2 input is rejected, and
+    the 5 × 5 and 3 × 4 inputs are accepted. The product of the two maxima
+    equals `max_items`. `synthesize.yaml` has no `25`, and `pipeline.yaml`
+    has `25` only in `max_items: 25`. Output:
+    `schema bounds, cap product, and stale-count checks passed`.
+  - A deterministic synthesis render with no provider, over 4 × 3 pairs:
+    `complete: 12 of 12, all 12 IDs rendered`;
+    `missing: 11 of 12, only C3S2 marked MISSING`;
+    `duplicate: only C3S2 marked DUPLICATE, duplicate values suppressed`.
+  - Blocked validation: the live run was held for AC-09 (below).
+- **`cartesian.py` (D-4).** Changed under TDD with the editor. The route
+  does not cover Python files. IDs now use `n_constraints = len(constraints)`.
+  An empty dimension raises
+  `ValueError("Innovation Matrix needs both dimensions: got N capabilities and M constraints")`.
+  The docstrings no longer state a count.
+- **Live run (AC-09).** FR-1073 did not use its H-4 authorization: its
+  census rows say "no live run (H-4)". So this is the one authorized run:
+  `LLM_REQUEST_TIMEOUT=120 yamlgraph graph run examples/demos/innovation_matrix/pipeline.yaml --var domain=@examples/demos/innovation_matrix/domain-brief.md --full`.
+  - It ran once, with no retry, and exited 0. The route event shows
+    `fan_out: 25` (a 5 × 5 grid) and `expansions_failures: []`.
+  - It produced 25 expansion rows (`_map_index` 0–24). The 25 pairs `C1S1` …
+    `C5S5` are in state and were passed to `synthesize`.
+  - One quoted dimension that is specific to the domain brief:
+    "Advanced temperature monitoring sensors available".
+  - Every top idea cites its cell, for example
+    "C1S1 — Sensors × Extreme Cold" and "C5S4 — Compliance × Strict Logging".
+  - Log: `examples/demos/innovation_matrix/demo-output-pipeline.log`. Its
+    first line is the command and its last line is the exit status.
+- **Deviation: demo-proof gate.** `scripts/check_demo_proof.sh` (pre-commit)
+  and the CI `Verify demo output logs` step both require
+  `examples/demos/innovation_matrix/demo-output.log` to be in the diff
+  whenever the directory changes.
+  - That log belongs to `graph.yaml`. This FR's frozen scope excludes
+    `graph.yaml` and a second paid run, and D-7 places the proof in
+    `demo-output-pipeline.log`.
+  - With operator approval (2026-09-26), the GREEN commit used
+    `SKIP=demo-proof-check`. The CI demo step is expected to fail on this PR;
+    it is not a required check.
+  - The gate assumes one graph and one log per demo directory. That
+    assumption is outside this FR (hooks are not authorized) and is
+    recorded here.
+  - Also, `demo_log_semantics.sh` would reject the pipeline log. Its greedy
+    `Node .+ failed` pattern matches across one long line of LLM prose
+    ("node" … "struggling with failed ground deliveries"). This is a false
+    positive; the run exited 0.
 
 ## Alternatives Considered
 

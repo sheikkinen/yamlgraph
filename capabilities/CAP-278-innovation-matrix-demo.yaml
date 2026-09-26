@@ -1,0 +1,25 @@
+id: CAP-278
+name: Innovation Matrix Pipeline Demo
+description: >
+  The innovation_matrix pipeline demo takes a declared domain, bounds the
+  generated grid at the model boundary, derives cell IDs from the actual
+  dimension lengths, and gives the synthesis every dispatched cell joined
+  to its expansion by map index.
+modules:
+  - examples/demos/innovation_matrix/pipeline.yaml
+  - examples/demos/innovation_matrix/nodes/cartesian.py
+requirements:
+  - id: REQ-YG-690
+    description: >
+      pipeline.yaml declares domain in state; the generate_dimensions schema
+      accepts 3 to 5 capabilities and 3 to 5 constraints; the expand_all
+      max_items equals the product of the two schema maxima; cartesian_product
+      builds unique ordered IDs from the constraint count and refuses an
+      empty dimension naming both lengths; synthesize renders every pair's ID,
+      capability and constraint, joins expansions by zero-based _map_index,
+      marks a pair with no expansion MISSING and a pair with two DUPLICATE,
+      and states the real counts instead of a literal cell total.
+    modules:
+      - examples/demos/innovation_matrix/nodes/cartesian.py
+      - tests/unit/test_fr1088_innovation_matrix_repair.py
+fr: FR-1088
