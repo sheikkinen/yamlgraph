@@ -589,6 +589,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 273 | CAP-273 DeepSeek Non-Thinking Mode | `yamlgraph/utils/llm_providers.py`, `yamlgraph/utils/llm_factory.py` | REQ-YG-684 |
 | 274 | CAP-274 Prompt Template Dialect Per Message | `yamlgraph/utils/template.py`, `yamlgraph/executor_base.py`, `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py`, … | REQ-YG-686 |
 | 277 | CAP-277 Resumable Map Investigation Witnesses | `tests/fixtures/fr1065/probes.py`, `docs/investigations/fr1065-resumable-map.md` | REQ-YG-689 |
+| 278 | CAP-278 Innovation Matrix Pipeline Demo | `examples/demos/innovation_matrix/pipeline.yaml`, `examples/demos/innovation_matrix/nodes/cartesian.py` | REQ-YG-690 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3348,6 +3349,16 @@ FR-1065 investigation probes on minimal LangGraph fixtures: store concurrency an
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-689 | The FR-1065 report's claims are pinned by executable witnesses: SqliteCache holds under concurrent branches and persists across two processes but gives no lease exclusion (INSERT OR REPLACE), while a UNIQUE-key INSERT lease admits exactly one of two racing processes; store-held results keep the final checkpoint an order of magnitude smaller than a state collect; a bounded batch loop keeps peak memory well below one-step fan-out; SIGKILL mid-superstep re-executes every completed branch on same-thread resume, SIGINT does not; a new thread reuses no earlier result; a node CachePolicy caches only when compile() receives a cache, and no yamlgraph runtime route passes one. | `tests/fixtures/fr1065/probes.py`, `tests/unit/test_fr1065_resumable_map_probes.py` |
+
+### 278. CAP-278 Innovation Matrix Pipeline Demo
+
+The innovation_matrix pipeline demo takes a declared domain, bounds the generated grid at the model boundary, derives cell IDs from the actual dimension lengths, and gives the synthesis every dispatched cell joined to its expansion by map index.
+
+**Feature Request:** FR-1088
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-690 | pipeline.yaml declares domain in state; the generate_dimensions schema accepts 3 to 5 capabilities and 3 to 5 constraints; the expand_all max_items equals the product of the two schema maxima; cartesian_product builds unique ordered IDs from the constraint count and refuses an empty dimension naming both lengths; synthesize renders every pair's ID, capability and constraint, joins expansions by zero-based _map_index, marks a pair with no expansion MISSING and a pair with two DUPLICATE, and states the real counts instead of a literal cell total. | `examples/demos/innovation_matrix/nodes/cartesian.py`, `tests/unit/test_fr1088_innovation_matrix_repair.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
