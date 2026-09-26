@@ -77,7 +77,7 @@ printed first. Nothing else about streaming changes.
       streaming REQ-YG-480. `ARCHITECTURE.md` regenerated;
       `python scripts/req_coverage.py --strict` passes.
 - [x] Changelog fragment (`type: fix`, `scope: cli`, `req: REQ-YG-694`).
-- [x] Diary entry in `docs/diary/` with a **Seed:** (`docs/diary/diary-2026-09-26-the-export-that-could-not-be-imported.md`, shared with FR-1097).
+- [x] Diary entry in `docs/diary/` with a **Seed:** (`docs/diary/diary-2026-09-26-reflection-fr-1097-fr-1098-the-export-that-could-not-be-imported.md`, shared with FR-1097).
 
 ## Scope
 
