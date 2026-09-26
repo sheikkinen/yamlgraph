@@ -27,6 +27,8 @@ and read a stack trace. The frozen scope allowed only typo repairs, so
 every other finding went to an FR (FR-1101) rather than into this diff.
 The census shows the gap without widening the change.
 
+## Heuristic and seed
+
 **Heuristic:** when a boundary check breaks mocked tests, read the break as
 evidence that the mocks encoded the defect. Do not weaken the check to fit
 the mocks. Give each mock the contract the real object has. Tests that no

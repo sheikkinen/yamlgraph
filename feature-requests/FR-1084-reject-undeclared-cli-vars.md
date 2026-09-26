@@ -327,10 +327,14 @@ Checking `--import-state` keys.
   (filed, Proposed). No documentation key typo was found, so no doc was
   repaired (AC-09). [test_fr1084_invocation_census.py](../tests/unit/test_fr1084_invocation_census.py)
   regenerates the list byte-for-byte and fails on stale manifest entries.
+  After the rebase onto #706 (FR-1087/FR-1088 repaired), CI caught the stale
+  census: the innovation-matrix `domain` row and both safety-guards rows now
+  PASS, so their three exclusions were removed and the census regenerated
+  (AC-10's PASS branch).
 - **D-4** [CAP-280](../capabilities/CAP-280-cli-variable-validation.yaml) /
   REQ-YG-697, changelog fragment
   `changelog/unreleased/fr-1084-reject-undeclared-cli-vars.md`, diary entry
-  `docs/diary/diary-2026-09-26-the-census-found-the-docs.md`.
+  `docs/diary/diary-2026-09-26-reflection-fr-1084-the-census-found-the-docs.md`.
 - Local environment note: `tests/unit/test_ramp_installer.py::test_wrapper_delegates`
   fails on this machine on main as well: `scripts/ramp.sh` execs `python3`,
   which resolves to `/usr/local/bin/python3` without PyYAML, not the venv.
