@@ -54,9 +54,7 @@ under `Blocked validation` with the exact blocker:
    sequence, and outcome:
 
    ```bash
-   yamlgraph graph run examples/demos/safety-guards/graph.yaml \
-     --var topic="quantum computing" \
-     --var topics='["physics", "math", "biology"]'
+   yamlgraph graph run examples/demos/safety-guards/graph.yaml --var topic="quantum computing" --var topics='["physics", "math", "biology"]'
    ```
 
    If credentials or a dependency block the run, record the blocker and do
