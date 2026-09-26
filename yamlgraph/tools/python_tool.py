@@ -288,7 +288,6 @@ def create_python_node(
                 node_name=node_name,
                 state_key=state_key,
                 error_message=f"Python node '{node_name}' skipped by pre-guard",
-                state=state,
             )
 
         logger.info(f"🐍 Executing Python node: {node_name} -> {tool_name}")
@@ -345,7 +344,6 @@ def create_python_node(
                     node_name=node_name,
                     state_key=state_key,
                     error_message=str(e),
-                    state=state,
                 )
             else:
                 raise

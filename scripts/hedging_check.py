@@ -62,7 +62,7 @@ ALLOWLIST: dict[str, str] = {
     "yamlgraph/linter/graph_linter.py:129": "CONF-239",
     "yamlgraph/models/node_schema.py:87": "CONF-240",
     "yamlgraph/node_factory/copilot_node.py:83": "CONF-241",
-    "yamlgraph/node_factory/llm_execution.py:159": "CONF-242",
+    "yamlgraph/node_factory/llm_execution.py:163": "CONF-242",
     "yamlgraph/node_factory/llm_nodes.py:130": "CONF-243",
     "yamlgraph/node_factory/llm_nodes.py:131": "CONF-244",
     "yamlgraph/node_factory/llm_nodes.py:166": "CONF-245",

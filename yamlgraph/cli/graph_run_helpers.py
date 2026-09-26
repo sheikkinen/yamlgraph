@@ -7,10 +7,13 @@ import logging
 import sys
 from argparse import Namespace
 from pathlib import Path
+from typing import Any
 
 import yaml
+from pydantic import BaseModel, Field, ValidationError
 
 from yamlgraph.cli.helpers import handle_state_export
+from yamlgraph.models import PipelineError
 from yamlgraph.utils.validators import resolve_max_concurrency
 
 logger = logging.getLogger(__name__)
@@ -69,11 +72,19 @@ def _display_result(result: dict, truncate: bool = True) -> None:
             print(f"  {key}: {value_str}")
 
 
-def _print_json_result(result: dict) -> None:
-    """Print final state as machine-readable JSON to stdout."""
+def _print_json_result(result: dict, tally=None) -> None:
+    """Print final state as machine-readable JSON to stdout.
+
+    FR-1097: the tally keys go on the serialized copy only; ``result`` (and so
+    every export) stays graph state.
+    """
     from yamlgraph.storage.export import _serialize_state
 
-    print(json.dumps(_serialize_state(result), default=str))
+    payload = _serialize_state(result)
+    if tally is not None:
+        payload["_error_count"] = tally.error_count
+        payload["_tolerated_error_count"] = tally.tolerated_error_count
+    print(json.dumps(payload, default=str))
 
 
 def _get_interrupt_message(result: dict) -> str:
@@ -239,10 +250,11 @@ def _emit_success_output(
     timing_tracker,
     *,
     json_mode: bool,
+    tally=None,
 ) -> None:
     """Emit command output for successful execution."""
     if json_mode:
-        _print_json_result(result)
+        _print_json_result(result, tally)
         return
 
     _display_result(result, truncate=not getattr(args, "full", False))
@@ -287,3 +299,74 @@ def _handle_optional_exports(
             quiet=json_mode,
             error_stream=error_stream,
         )
+
+
+# FR-1097: count the errors a non-stream `graph run` invocation appended.
+# `state.errors` is an add-reducer list (checkpoint ⊕ initial ⊕ node deltas);
+# only the suffix above the pre-invocation baseline belongs to this run.
+
+_MAX_LISTED = 3
+
+
+class ErrorTally(BaseModel):
+    """Untolerated and tolerated errors appended by one invocation."""
+
+    error_count: int
+    tolerated_error_count: int
+    first: list[PipelineError] = Field(default_factory=list)
+
+
+def _validate(entry: Any, label: str, index: int) -> PipelineError:
+    try:
+        return PipelineError.model_validate(entry)
+    except ValidationError as e:
+        print(f"❌ invalid {label} errors[{index}]: {e}", file=sys.stderr)
+        sys.exit(1)
+
+
+def normalize_initial_errors(initial_state: dict) -> None:
+    """Replace every initial ``errors`` entry by its model; exit 1 on a malformed one."""
+    entries = initial_state.get("errors")
+    if not entries:
+        return
+    initial_state["errors"] = [
+        _validate(entry, "initial state", i) for i, entry in enumerate(entries)
+    ]
+
+
+def error_baseline(app, config: dict, initial_state: dict) -> int:
+    """Count errors present before this invocation (checkpoint + initial state)."""
+    retained: list = []
+    thread_id = config.get("configurable", {}).get("thread_id")
+    if app.checkpointer is not None and thread_id:
+        retained = app.get_state(config).values.get("errors") or []
+    return len(retained) + len(initial_state.get("errors") or [])
+
+
+def compute_tally(result_errors: list | None, baseline: int) -> ErrorTally:
+    """Tally ``result_errors[baseline:]``; exit 1 on a malformed entry (absolute index)."""
+    entries = list(result_errors or [])
+    suffix = [
+        _validate(entry, "result", baseline + i)
+        for i, entry in enumerate(entries[baseline:])
+    ]
+    untolerated = [e for e in suffix if not e.tolerated]
+    return ErrorTally(
+        error_count=len(untolerated),
+        tolerated_error_count=len(suffix) - len(untolerated),
+        first=untolerated[:_MAX_LISTED],
+    )
+
+
+def report_tally(tally: ErrorTally) -> None:
+    """Print the stderr summary and exit 3 when the run lost untolerated work."""
+    if tally.error_count or tally.tolerated_error_count:
+        print(
+            f"⚠ completed with {tally.error_count} errors "
+            f"({tally.tolerated_error_count} tolerated)",
+            file=sys.stderr,
+        )
+        for error in tally.first:
+            print(f"  {error.node}: {error.message}", file=sys.stderr)
+    if tally.error_count:
+        sys.exit(3)

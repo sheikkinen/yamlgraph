@@ -11,8 +11,9 @@ import pytest
 
 
 @pytest.mark.req("REQ-YG-480")
+@pytest.mark.req("REQ-YG-694")
 def test_stream_flag_prints_tokens(capsys, tmp_path):
-    """--stream should print tokens to stdout as they arrive."""
+    """--stream should print tokens to stdout and return normally (exit 0)."""
     graph_file = tmp_path / "graph.yaml"
     graph_file.write_text(
         """
@@ -112,8 +113,9 @@ edges:
 
 
 @pytest.mark.req("REQ-YG-480")
+@pytest.mark.req("REQ-YG-694")
 def test_stream_error_event_prints_to_stderr(capsys, tmp_path):
-    """StreamEvent errors should print to stderr."""
+    """StreamEvent errors print to stderr, then the command exits 1."""
     from yamlgraph.models.streaming import StreamEvent
 
     graph_file = tmp_path / "graph.yaml"
@@ -161,8 +163,10 @@ edges:
     ):
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
-        cmd_graph_run(args)
+        with pytest.raises(SystemExit) as exc_info:
+            cmd_graph_run(args)
 
+    assert exc_info.value.code == 1
     captured = capsys.readouterr()
     assert "partial" in captured.out
     assert "LLM timeout" in captured.err

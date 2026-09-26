@@ -110,7 +110,7 @@ def _execute_router_race(
                     error_type=ErrorType.TIMEOUT_ERROR
                     if isinstance(exc, TimeoutError)
                     else None,
-                )
+                ).model_copy(update={"tolerated": cfg.on_error == ErrorHandler.SKIP})
             ],
         }
         if route is not None:

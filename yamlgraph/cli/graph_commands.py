@@ -37,26 +37,33 @@ _invoke_graph = _graph_run_helpers._invoke_graph
 _run_graph_until_complete = _graph_run_helpers._run_graph_until_complete
 _emit_success_output = _graph_run_helpers._emit_success_output
 _handle_optional_exports = _graph_run_helpers._handle_optional_exports
+normalize_initial_errors = _graph_run_helpers.normalize_initial_errors
+error_baseline = _graph_run_helpers.error_baseline
+compute_tally = _graph_run_helpers.compute_tally
+report_tally = _graph_run_helpers.report_tally
 
 
-def _run_streaming(graph_path: str, initial_state: dict, config: dict) -> None:
-    """Execute graph in streaming mode, printing tokens to stdout (FR-633)."""
+def _run_streaming(graph_path: str, initial_state: dict, config: dict) -> bool:
+    """Stream tokens to stdout (FR-633); return True if an error event arrived (FR-1098)."""
     import asyncio
 
     from yamlgraph.models.streaming import StreamEvent
 
-    async def _stream():
+    async def _stream() -> bool:
+        saw_error = False
         async for item in run_graph_streaming_native(
             graph_path, initial_state, config=config
         ):
             if isinstance(item, StreamEvent):
                 if item.type == "error":
                     print(f"\n❌ {item.error}", file=sys.stderr)
+                    saw_error = True
             else:
                 print(item, end="", flush=True)
         print()  # Final newline
+        return saw_error
 
-    asyncio.run(_stream())
+    return asyncio.run(_stream())
 
 
 def _run_lint_gate(graph_path: Path, *, json_mode: bool) -> None:
@@ -209,8 +216,13 @@ def cmd_graph_run(args: Namespace) -> None:
 
         # FR-633: Streaming mode — bypass invoke, use native streaming
         if stream_mode:
-            _run_streaming(str(graph_path), initial_state, config)
+            if _run_streaming(str(graph_path), initial_state, config):
+                sys.exit(1)
             return
+
+        # FR-1097: errors present before this invocation never count.
+        normalize_initial_errors(initial_state)
+        baseline = error_baseline(app, config, initial_state)
 
         use_async = getattr(args, "use_async", False)
 
@@ -233,7 +245,7 @@ def cmd_graph_run(args: Namespace) -> None:
             graph_run_span(
                 graph_config.name, initial_state, thread_id=thread_id, run_id=run_id
             ) as run_ctx,
-            route_context,
+            route_context as route_run,
         ):
             try:
                 result = _run_graph_until_complete(
@@ -255,12 +267,18 @@ def cmd_graph_run(args: Namespace) -> None:
             if "__interrupt__" in result:
                 run_ctx.outcome = "interrupted"
 
+            tally = compute_tally(result.get("errors"), baseline)
+            if route_run is not None:
+                route_run.error_count = tally.error_count
+                route_run.tolerated_error_count = tally.tolerated_error_count
+
         _emit_success_output(
             args,
             result,
             tracker,
             timing_tracker,
             json_mode=json_mode,
+            tally=tally,
         )
         _graph_run_helpers._handle_export = _handle_export
         _handle_optional_exports(
@@ -273,6 +291,8 @@ def cmd_graph_run(args: Namespace) -> None:
 
         if not json_mode:
             print()
+
+        report_tally(tally)
 
     except Exception as e:
         print(f"❌ Error: {e}", file=error_stream)

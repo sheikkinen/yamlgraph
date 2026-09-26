@@ -88,6 +88,9 @@ AUTHOR_EXECUTION=1 \
   YAMLGRAPH_AUTHORING_SENTINEL="$SENTINEL" \
   "${YG[@]}" graph run "$GRAPH" --var "task_path=$TASK_PATH" --full
 GRAPH_RC=$?
+# FR-1097: rc 3 = graph completed with untolerated errors; the artifact
+# contract below still decides the verdict.
+case "$GRAPH_RC" in 3) echo "author.sh: graph completed with errors (rc=3)" >&2;; esac
 
 # Artifact contract (verify by artifact, never exit code):
 [ -s "$ARTIFACT" ] || fail "contract violated (graph rc=$GRAPH_RC): $ARTIFACT missing or empty — tmp/draft-authoring-report.md is the proof of authoring" 65

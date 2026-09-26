@@ -424,7 +424,7 @@ def create_race_node(
                             exc,
                             node=node_name,
                             error_type=(ErrorType.TIMEOUT_ERROR if timed_out else None),
-                        )
+                        ).model_copy(update={"tolerated": True})
                     ],
                 }
             raise

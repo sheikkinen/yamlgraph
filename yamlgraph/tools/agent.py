@@ -242,7 +242,6 @@ def create_agent_node(  # noqa: C901
                 node_name=node_name,
                 state_key=state_key,
                 error_message=f"Agent node '{node_name}' skipped by pre-guard",
-                state=state,
             )
 
         # Load prompts - fail fast if missing
