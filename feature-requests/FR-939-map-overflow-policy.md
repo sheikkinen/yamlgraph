@@ -2,10 +2,11 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS
+**Status:** In progress — enforcing. Judged APPROVED WITH REVISIONS
 (`FR-939-map-overflow-policy.judgement.md`, 2026-08-31). Revisions R-1–R-4
-folded below and into the research record; authority activates on human
-review of the judgement.
+folded below and into the research record. Human review recorded —
+operator instruction "worktree enforce 939, 1084, 1085" (2026-09-26);
+gate C-1 satisfied, authority active.
 **Effort:** 1 day
 **Requested:** 2026-08-31
 **First consumer / first event:** the fi-catalog pilot (component D,
