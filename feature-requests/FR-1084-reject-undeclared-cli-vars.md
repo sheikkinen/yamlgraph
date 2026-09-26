@@ -189,14 +189,14 @@ accepted keys. The same holds in sync, `--async` and `--stream` modes.
   `variables:`, exits 1 as an unknown state key; an underscore-prefixed
   schema key remains accepted but is omitted from the displayed accepted-key
   list.
-- [x] AC-08: the deterministic census covers `README.md`,
+- [ ] AC-08 (withdrawn, operator decision 2026-09-26, see D-6): the deterministic census covers `README.md`,
   `reference/**/*.md`, `examples/**/README.md` and `examples/demos/demo.sh`,
   joins shell continuations, emits the frozen row shape, and exactly matches
   the committed extracted list and exclusion manifest.
-- [x] AC-09: every resolvable census row is `PASS` or has a reasoned
+- [ ] AC-09 (withdrawn, see D-6): every resolvable census row is `PASS` or has a reasoned
   `EXCLUDED` record with a filed FR number; only an unambiguous documentation
   key typo may be repaired under this FR.
-- [x] AC-10: the innovation-matrix `--var domain=...` row is `PASS` if the
+- [ ] AC-10 (withdrawn, see D-6): the innovation-matrix `--var domain=...` row is `PASS` if the
   checkout's compiled schema contains `domain`; otherwise it is `EXCLUDED`
   with FR-1088 and `domain` recorded as the unknown key. No innovation-matrix
   artifact changes under FR-1084.
@@ -314,19 +314,19 @@ Checking `--import-state` keys.
   `test_cli_inter_run_state_chaining.py` and
   `test_fr375_graph_run_json_stdout_red.py` now declare the input schema their
   vars need; a `MagicMock` app has no real schema.
-- **D-3** [census.py](../tests/fixtures/fr1084/census.py) extracts every
-  `yamlgraph graph run` line in scope, compiles each graph (with its `--tool`
-  bindings, cwd = repo root) and writes
-  [invocations.tsv](../tests/fixtures/fr1084/invocations.tsv). First run:
+- **D-3** (removed by D-6; last version at `3bd2cade:tests/fixtures/fr1084/`)
+  `census.py` extracted every
+  `yamlgraph graph run` line in scope, compiled each graph (with its `--tool`
+  bindings, cwd = repo root) and wrote `invocations.tsv`. First run:
   229 PASS, 45 mechanical EXCLUDED (placeholder, shell-variable,
-  missing-var-file, unresolvable-graph), 19 findings. The findings are in
-  [exclusions.tsv](../tests/fixtures/fr1084/exclusions.tsv), each with a
+  missing-var-file, unresolvable-graph), 19 findings. The findings were in
+  `exclusions.tsv`, each with a
   filed FR: innovation-matrix `domain` → FR-1088 (AC-10), safety-guards
   compile failure → FR-1087, and five other documented invocations that
   cannot run → [FR-1101](FR-1101-documented-invocations-that-cannot-run.md)
   (filed, Proposed). No documentation key typo was found, so no doc was
-  repaired (AC-09). [test_fr1084_invocation_census.py](../tests/unit/test_fr1084_invocation_census.py)
-  regenerates the list byte-for-byte and fails on stale manifest entries.
+  repaired (AC-09). `test_fr1084_invocation_census.py` regenerated the list
+  byte-for-byte and failed on stale manifest entries.
   After the rebase onto #706 (FR-1087/FR-1088 repaired), CI caught the stale
   census: the innovation-matrix `domain` row and both safety-guards rows now
   PASS, so their three exclusions were removed and the census regenerated
@@ -340,6 +340,16 @@ Checking `--import-state` keys.
   dependency in `pyproject.toml` (already a transitive pydantic
   dependency). Witness `test_state_class_pydantic_json_schema_python311`,
   RED/GREEN verified with `uv run --python 3.11`.
+- **D-6 (deviation, operator decision 2026-09-26)** The census test, its
+  generator and both TSV fixtures are deleted; AC-08–AC-10 are withdrawn.
+  It was a repository-wide golden snapshot in `tests/unit/`: it compiled
+  every documented graph, imported example tool modules and their optional
+  dependencies, and compared doc line numbers byte-for-byte. It broke CI
+  three times in one day (#706 demo repairs, the 3.11 `TypedDict` crash,
+  #711 shifting `reference/graph-yaml.md` by 20 lines) and found no doc key
+  typo. Its one-time findings survive in FR-1101, FR-1087 and FR-1088.
+  Deletion witnessed: full unit suite and `req_coverage --strict` green;
+  REQ-YG-697 stays covered by `test_fr1084_reject_undeclared_cli_vars.py`.
 - **D-4** [CAP-280](../capabilities/CAP-280-cli-variable-validation.yaml) /
   REQ-YG-697, changelog fragment
   `changelog/unreleased/fr-1084-reject-undeclared-cli-vars.md`, diary entry
