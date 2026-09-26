@@ -120,4 +120,4 @@ records), overruled.
 
 **Prior art:** FR-1104-ci-dedup-core-test-and-python-314.md is the FR
 under judgement, not precedent; its own prior art (FR-756, FR-759,
-FR-917, FR-918, FR-934, FR-952) is dispositioned in the FR header.
+FR-918, FR-934, FR-952) is dispositioned in the FR header.

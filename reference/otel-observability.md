@@ -166,8 +166,9 @@ in the current environment. Only the in-memory-exporter tests import
 `opentelemetry.sdk` at module scope; that import is optional
 (`try`/`except ImportError`) and gates just those tests via a
 `skipif` marker, so the disabled and missing-extra tests always
-collect and run. CI's `core-test` job deliberately does not install
-the `otel` extra, giving the disabled/no-op path a real no-extra
+collect and run. CI's `test (3.14)` leg deliberately does not install
+the `otel` extra (FR-1104; formerly the `core-test` job), giving the
+disabled/no-op path a real no-extra
 validation environment rather than relying solely on `sys.modules`
 patching within an environment that has it installed.
 
