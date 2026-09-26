@@ -9,8 +9,9 @@ awaiting judgement.
 **First consumer / first event:** a reader who copies one of the invocations
 below from its README and runs it from the repository root; today each one
 fails before any LLM call, or (python-map) runs without the documented input.
-**Research:** not run; each finding is a mechanical census row in
-`tests/fixtures/fr1084/invocations.tsv` (FR-1084).
+**Research:** not run; each finding was a mechanical row of the FR-1084
+census (`3bd2cade:tests/fixtures/fr1084/invocations.tsv`; the census was
+deleted by FR-1084 D-6).
 **Prior art:**
 - [FR-1084](FR-1084-reject-undeclared-cli-vars.md): the census that found
   these; it may repair only an unambiguous documentation key typo, so these
@@ -43,8 +44,8 @@ two schema failures, make `graph validate` use the same load path as
 
 ## Acceptance Criteria
 
-- [ ] Each row above is `PASS` in the FR-1084 census and its exclusion row is
-  removed from `tests/fixtures/fr1084/exclusions.tsv`.
+- [ ] Each invocation above, run from the repository root as documented,
+  compiles and passes `graph run`'s undeclared-key check (FR-1084).
 
 ## Related
 

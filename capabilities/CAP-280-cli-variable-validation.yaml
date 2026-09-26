@@ -3,8 +3,7 @@ name: CLI Variable Validation
 description: >
   FR-1084: `graph run` refuses `--var` and `--var-file` keys that the
   compiled graph's input schema cannot hold, before any graph invocation
-  or LLM call, and a documented-invocation census pins the repository's
-  own `graph run` examples against that rule.
+  or LLM call.
 modules:
   - yamlgraph/cli/graph_commands.py
 requirements:
@@ -16,10 +15,8 @@ requirements:
       with one sorted diagnostic naming every unknown key and the visible
       accepted keys, in sync, async and stream modes, on stdout in human
       mode and stderr in `--json` mode. `--import-state` and graph
-      `variables:` are not validated. Every documented `graph run`
-      invocation is PASS or a reasoned EXCLUDED row.
+      `variables:` are not validated.
     modules:
       - yamlgraph/cli/graph_commands.py
       - tests/unit/test_fr1084_reject_undeclared_cli_vars.py
-      - tests/unit/test_fr1084_invocation_census.py
 fr: FR-1084

@@ -3365,13 +3365,13 @@ The innovation_matrix pipeline demo takes a declared domain, bounds the generate
 
 ### 280. CAP-280 CLI Variable Validation
 
-FR-1084: `graph run` refuses `--var` and `--var-file` keys that the compiled graph's input schema cannot hold, before any graph invocation or LLM call, and a documented-invocation census pins the repository's own `graph run` examples against that rule.
+FR-1084: `graph run` refuses `--var` and `--var-file` keys that the compiled graph's input schema cannot hold, before any graph invocation or LLM call.
 
 **Feature Request:** FR-1084
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-697 | After compile and before run configuration, `graph run` compares the union of `--var` and `--var-file` keys with `app.get_input_jsonschema()["properties"]`; any unknown key exits 1 with one sorted diagnostic naming every unknown key and the visible accepted keys, in sync, async and stream modes, on stdout in human mode and stderr in `--json` mode. `--import-state` and graph `variables:` are not validated. Every documented `graph run` invocation is PASS or a reasoned EXCLUDED row. | `yamlgraph/cli/graph_commands.py`, `tests/unit/test_fr1084_reject_undeclared_cli_vars.py`, `tests/unit/test_fr1084_invocation_census.py` |
+| REQ-YG-697 | After compile and before run configuration, `graph run` compares the union of `--var` and `--var-file` keys with `app.get_input_jsonschema()["properties"]`; any unknown key exits 1 with one sorted diagnostic naming every unknown key and the visible accepted keys, in sync, async and stream modes, on stdout in human mode and stderr in `--json` mode. `--import-state` and graph `variables:` are not validated. | `yamlgraph/cli/graph_commands.py`, `tests/unit/test_fr1084_reject_undeclared_cli_vars.py` |
 
 ### 281. CAP-281 Resolved Run Concurrency
 
