@@ -56,6 +56,9 @@ fi
 # Sole route: the graph reviews; sentinel exported for the child only.
 REVIEW_EXECUTION=1 "${YG[@]}" graph run "$GRAPH" --var "pr=$PR" --var "fr_path=$FR_PATH" --full
 GRAPH_RC=$?
+# FR-1097: rc 3 = graph completed with untolerated errors; the artifact
+# contract below still decides the verdict.
+case "$GRAPH_RC" in 3) echo "review.sh: graph completed with errors (rc=3)" >&2;; esac
 
 # Artifact contract (verify by artifact, never exit code):
 [ -s "$ARTIFACT" ] || fail "contract violated (graph rc=$GRAPH_RC): $ARTIFACT missing or empty — tmp/draft-review.md is the proof of review" 65

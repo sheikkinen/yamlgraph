@@ -65,7 +65,7 @@ def _serialize_state(state: dict) -> dict:
     for key, value in state.items():
         if isinstance(value, BaseModel):
             result[key] = value.model_dump()
-        elif hasattr(value, "__dict__"):
+        elif isinstance(value, list | tuple) or hasattr(value, "__dict__"):
             result[key] = _serialize_object(value)
         else:
             result[key] = value

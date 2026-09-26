@@ -346,7 +346,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 11 | CAP-11 Subgraph & Map | `map_compiler`, `map_compiler.wrap_for_reducer`, `node_factory/subgraph_nodes` | REQ-YG-040 – 042, 692, 699 |
 | 12 | CAP-12 Utilities | `config`, `constants`, `node_factory/base`, `schema_loader`, … | REQ-YG-043 – 046 |
 | 13 | CAP-13 LangSmith Tracing | `cli/graph_commands`, `utils/tracing` | REQ-YG-047, 547 |
-| 14 | CAP-14 Graph-Level Streaming | `executor_async` | REQ-YG-048 – 049, 065, 480 |
+| 14 | CAP-14 Graph-Level Streaming | `executor_async` | REQ-YG-048 – 049, 065, 480, 694 |
 | 15 | CAP-15 Expression Language | `utils/conditions`, `utils/expressions`, `utils/parsing` | REQ-YG-051 – 052 |
 | 16 | CAP-16 Linter Cross-Reference | `linter/checks`, `linter/checks_contracts`, `linter/checks_semantic`, `linter/graph_linter`, … | REQ-YG-053 – 054, 069, 114, 408 |
 | 17 | CAP-17 Execution Safety Guards | `cli/__init__`, `cli/graph_commands`, `config`, `executor`, … | REQ-YG-055 – 062, 064, 113, 683 |
@@ -592,6 +592,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 278 | CAP-278 Innovation Matrix Pipeline Demo | `examples/demos/innovation_matrix/pipeline.yaml`, `examples/demos/innovation_matrix/nodes/cartesian.py` | REQ-YG-690 |
 | 280 | CAP-280 CLI Variable Validation | `yamlgraph/cli/graph_commands.py` | REQ-YG-697 |
 | 281 | CAP-281 Resolved Run Concurrency | `yamlgraph/utils/validators.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/executor_async.py`, … | REQ-YG-698 |
+| 283 | CAP-283 Completed-Run Error Exit Status | `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/models/schemas.py`, `yamlgraph/utils/route_log.py` | REQ-YG-700 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -771,6 +772,7 @@ Stream LLM tokens through the compiled graph pipeline using LangGraph astream(st
 | REQ-YG-049 | Streaming with multi-turn: `run_graph_streaming_native()` accepts `Command(resume=...)`, config with thread_id for checkpoint-based resume | `executor_async` |
 | REQ-YG-065 | Native LangGraph streaming: `run_graph_streaming_native()` uses `astream(stream_mode="messages")` to stream from ALL LLM nodes, with optional `node_filter` | `executor_async` |
 | REQ-YG-480 | CLI streaming: `yamlgraph graph run --stream` uses `run_graph_streaming_native()` for real-time token output to stdout | `cli` |
+| REQ-YG-694 | `graph run --stream` exits 1 after printing an error event to stderr, else 0; no final-state tally or exit 3 in streaming (FR-1098) | `cli` |
 
 ### 15. CAP-15 Expression Language
 
@@ -3382,6 +3384,16 @@ FR-1085: one resolver sets LangGraph's `max_concurrency` for every run through t
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-698 | The width is resolved in the order caller run value (or `--max-concurrency`) → graph `config.max_concurrency` → `YAMLGRAPH_MAX_CONCURRENCY` → built-in 8. Every level must be a positive integer; a bad caller or environment value raises `ValueError` naming its source and value before any node runs. The resolver works on a copy of the caller's run config, keeping every other field. `load_and_compile_async` records the graph width on the compiled app for `run_graph_async`; an app without it resolves caller → environment → 8. | `yamlgraph/utils/validators.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/executor_async.py`, `yamlgraph/observability/otel.py`, `tests/unit/test_fr1085_default_max_concurrency.py`, `tests/unit/test_fr984_map_max_concurrency.py` |
+
+### 283. CAP-283 Completed-Run Error Exit Status
+
+FR-1097: `yamlgraph graph run` (non-stream) reports a completed run that appended untolerated errors with exit 3, a summary on stderr, and `_error_count` / `_tolerated_error_count` in `--json` output and the `run_end` route-log event. Adapter wrappers name rc 3 and keep their artifact verdict.
+
+**Feature Request:** FR-1097
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-700 | A non-stream `graph run` exits 0 when the invocation appended no untolerated error, 3 when it completed with at least one untolerated error (skip/warn errors are tolerated; a returned guard halt is not), and 1 on raised failures or malformed initial/result error entries. Imported and checkpoint-retained errors never count. JSON stdout and `run_end` carry both counts; exports carry neither. The five adapter wrappers print `graph completed with errors (rc=3)` and keep their artifact-based verdict. | `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/cli/graph_commands.py`, `tests/unit/test_fr1097_completed_errors_exit.py`, `tests/unit/test_fr1097_adapter_rc3.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

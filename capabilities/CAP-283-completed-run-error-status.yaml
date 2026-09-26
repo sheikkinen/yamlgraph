@@ -1,0 +1,30 @@
+id: CAP-283
+name: Completed-Run Error Exit Status
+description: >
+  FR-1097: `yamlgraph graph run` (non-stream) reports a completed run that
+  appended untolerated errors with exit 3, a summary on stderr, and
+  `_error_count` / `_tolerated_error_count` in `--json` output and the
+  `run_end` route-log event. Adapter wrappers name rc 3 and keep their
+  artifact verdict.
+modules:
+  - yamlgraph/cli/graph_run_helpers.py
+  - yamlgraph/cli/graph_commands.py
+  - yamlgraph/models/schemas.py
+  - yamlgraph/utils/route_log.py
+requirements:
+  - id: REQ-YG-700
+    description: >
+      A non-stream `graph run` exits 0 when the invocation appended no
+      untolerated error, 3 when it completed with at least one untolerated
+      error (skip/warn errors are tolerated; a returned guard halt is not),
+      and 1 on raised failures or malformed initial/result error entries.
+      Imported and checkpoint-retained errors never count. JSON stdout and
+      `run_end` carry both counts; exports carry neither. The five adapter
+      wrappers print `graph completed with errors (rc=3)` and keep their
+      artifact-based verdict.
+    modules:
+      - yamlgraph/cli/graph_run_helpers.py
+      - yamlgraph/cli/graph_commands.py
+      - tests/unit/test_fr1097_completed_errors_exit.py
+      - tests/unit/test_fr1097_adapter_rc3.py
+fr: FR-1097

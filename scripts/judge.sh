@@ -88,6 +88,9 @@ JUDGE_EXECUTION=1 "${YG[@]}" graph run "$GRAPH" \
   --var "artifact_path=$ARTIFACT" \
   --full
 GRAPH_RC=$?
+# FR-1097: rc 3 = graph completed with untolerated errors; the artifact
+# contract below still decides the verdict.
+case "$GRAPH_RC" in 3) echo "judge.sh: graph completed with errors (rc=3)" >&2;; esac
 
 # Artifact contract (NC-414: verify by artifact, never exit code):
 [ -s "$ARTIFACT" ] || fail "contract violated (graph rc=$GRAPH_RC): $ARTIFACT missing or empty — the draft artifact is the proof of judgement" 65

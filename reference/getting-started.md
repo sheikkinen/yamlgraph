@@ -122,6 +122,35 @@ YAMLGRAPH_ROUTE_LOG=route.jsonl yamlgraph graph run examples/demos/reflexion/gra
 yamlgraph graph export examples/demos/reflexion/graph.yaml --mermaid --overlay route.jsonl
 ```
 
+### Exit Status (FR-1097)
+
+A non-stream `graph run` exits:
+
+- **0** — completed, and this invocation appended no untolerated error.
+- **3** — completed; stdout, `--export` and `--export-state` are all written,
+  and this invocation appended at least one untolerated error to
+  `state.errors`. stderr prints `⚠ completed with N errors (M tolerated)` and
+  up to three `node: message` lines.
+- **1** — crashed, raised (including `GuardHaltError` from side-effect nodes
+  and `verify`), was refused by the CLI, or met a malformed error entry
+  (`❌ invalid initial state errors[i]` before any node runs;
+  `❌ invalid result errors[i]` before any output).
+
+Tolerated errors are the ones your configuration chose to continue past:
+`on_error: skip` and guard/verify `on_fail: skip` or `warn`. They are counted
+but do not cause exit 3. An LLM/copilot pre-guard `on_fail: halt` that returns
+a `GuardViolation` is untolerated: exit 3.
+
+Only this invocation counts: errors loaded with `--import-state` or retained
+in a `--thread` checkpoint never change the status.
+
+`--json` stdout adds `_error_count` and `_tolerated_error_count`; the
+`run_end` route-log event carries `error_count` and `tolerated_error_count`.
+Exported state carries neither key.
+
+`--stream` (message streaming) exposes no final state, so it never exits 3; it
+exits 1 when an error event arrives (FR-1098).
+
 ### Bench Command
 
 Compare multiple provider/model combinations on the same graph:

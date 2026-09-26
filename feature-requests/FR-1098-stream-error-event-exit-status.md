@@ -2,7 +2,9 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed — split from FR-1083 (judgement SPLIT); awaiting judgement (2026-09-26).
+**Status:** In enforcement without a judgement — operator decision 2026-09-26
+("SIC: enforce 1098"; the judge run was declined). Scope stays deliverable D-2
+as frozen by the FR-1083 judgement.
 **Effort:** 0.5 day
 **Requested:** 2026-09-26
 **First consumer / first event:** any shell script or CI job running
@@ -61,21 +63,21 @@ printed first. Nothing else about streaming changes.
 
 ## Acceptance Criteria
 
-- [ ] AC-S01: A successful message stream exits 0; a stream that emits an
+- [x] AC-S01: A successful message stream exits 0; a stream that emits an
       error event exits 1 after printing the error to stderr; no final-state
       count or exit 3 is claimed.
-- [ ] AC-S02: Documentation scopes the streaming status contract separately
+- [x] AC-S02: Documentation scopes the streaming status contract separately
       from non-stream completed-result status.
-- [ ] RED commit first: `test_stream_error_event_prints_to_stderr` asserts
+- [x] RED commit first: `test_stream_error_event_prints_to_stderr` asserts
       `SystemExit` code 1 and the stderr text; a success-stream test asserts
       normal return. Then the GREEN commit with the production change.
-- [ ] Tests carry `@pytest.mark.req("REQ-YG-694")`, a new requirement
+- [x] Tests carry `@pytest.mark.req("REQ-YG-694")`, a new requirement
       ("`graph run --stream` exits 1 on an error event, else 0") in
       `capabilities/CAP-14-graph-level-streaming.yaml`, home of the CLI
       streaming REQ-YG-480. `ARCHITECTURE.md` regenerated;
       `python scripts/req_coverage.py --strict` passes.
-- [ ] Changelog fragment (`type: fix`, `scope: cli`, `req: REQ-YG-694`).
-- [ ] Diary entry in `docs/diary/` with a **Seed:**.
+- [x] Changelog fragment (`type: fix`, `scope: cli`, `req: REQ-YG-694`).
+- [x] Diary entry in `docs/diary/` with a **Seed:** (`docs/diary/diary-2026-09-26-reflection-fr-1097-fr-1098-the-export-that-could-not-be-imported.md`, shared with FR-1097).
 
 ## Scope
 
@@ -88,3 +90,15 @@ fragment, diary. Not authorized: exit 3 in streaming; any non-stream
 ## Related
 
 - [docs/issues-2026-09-24.md](../docs/issues-2026-09-24.md) §1.2
+
+## Implementation record (2026-09-26)
+
+- `_run_streaming` returns `bool` (error event seen, set after the stderr
+  print); `cmd_graph_run` calls `sys.exit(1)` on `True`
+  (`yamlgraph/cli/graph_commands.py`). `run_graph_streaming_native`, event
+  shapes and interrupt handling untouched.
+- Changed historical expectation: `test_stream_error_event_prints_to_stderr`
+  asserted a normal return (exit 0); it now asserts `SystemExit(1)`.
+- REQ-YG-694 in CAP-14; `reference/streaming.md` "Exit status (FR-1098)";
+  changelog fragment `fr-1098-stream-error-event-exit-status.md`.
+- Deviation: enforced without a judgement by operator decision (see Status).

@@ -87,6 +87,8 @@ class RouteRun:
 
     run_id: str
     dropped_events: int = 0
+    error_count: int | None = None
+    tolerated_error_count: int | None = None
 
 
 def enable_route_log(enabled: bool = True) -> None:
@@ -188,14 +190,16 @@ def route_run_context(
         yield run
     finally:
         if route_log_enabled():
-            _emit_record(
-                {
-                    "event": "run_end",
-                    "run_id": run.run_id,
-                    "ended_at": _timestamp(),
-                    "dropped_events": run.dropped_events,
-                }
-            )
+            end: dict[str, object] = {
+                "event": "run_end",
+                "run_id": run.run_id,
+                "ended_at": _timestamp(),
+                "dropped_events": run.dropped_events,
+            }
+            if run.error_count is not None:
+                end["error_count"] = run.error_count
+                end["tolerated_error_count"] = run.tolerated_error_count
+            _emit_record(end)
         _last_dropped_events = run.dropped_events
         _enabled_var.reset(enabled_token)
         _sink_var.reset(sink_token)

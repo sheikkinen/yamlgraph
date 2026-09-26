@@ -73,6 +73,18 @@ stream automatically — no per-node configuration needed.
 
 `--stream` and `--json` are mutually exclusive.
 
+### Exit status (FR-1098)
+
+| Exit | Meaning |
+|---|---|
+| 0 | The stream ended without an error event |
+| 1 | The stream emitted an error event (printed to stderr first), or the CLI refused/crashed before streaming |
+
+Streaming exits 0 or 1 only. Message streaming exposes tokens, not a final
+state, so there is no recorded-error tally and no exit 3; exit 3 for a
+completed run with untolerated `state.errors` applies to non-stream
+`graph run` only (FR-1097).
+
 ## Collecting Tokens
 
 Collect all tokens into a string:

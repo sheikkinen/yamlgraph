@@ -71,7 +71,7 @@ TOOL_SHA="$(git -C "$REPO_ROOT" rev-parse --short HEAD 2>/dev/null || echo unkno
 # run_one <input-file> <label> [repo pr head_sha] -> prints "verdict s3 s4 report" ; returns 0 only on a validated report
 # repo/pr/head_sha default to the placeholder '-' for non-PR modes (FR-1004 S-3).
 run_one() {
-  local input="$1" label="$2" repo="${3:--}" pr="${4:--}" head_sha="${5:--}" stamp report log
+  local input="$1" label="$2" repo="${3:--}" pr="${4:--}" head_sha="${5:--}" stamp report log graph_rc
   stamp="$(date -u +%Y%m%dT%H%M%SZ)"
   report="$WORKDIR/tmp/outsider-${label}-${stamp}.md"
   log="$WORKDIR/tmp/outsider-${label}-${stamp}.log"
@@ -80,6 +80,9 @@ run_one() {
       --var "input_path=$CHILD_CWD/input.md" --var "report_path=$report" --var "model=$MODEL" \
       --var "repo=$repo" --var "pr=$pr" --var "head_sha=$head_sha" \
       --var "prompt_digest=$PROMPT_DIGEST" --var "tool_sha=$TOOL_SHA" --full ) > "$log" 2>&1
+  graph_rc=$?
+  # FR-1097: rc 3 = graph completed with untolerated errors; the report contract decides.
+  case "$graph_rc" in 3) echo "outsider.sh: graph completed with errors (rc=3)" >> "$log";; esac
   rm -f "$CHILD_CWD/input.md"
   # Verify by artifact and contract, never by exit code. The observation marker
   # must parse and must describe THIS run (repo, pr, head, model, prompt, tool)
