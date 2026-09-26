@@ -45,4 +45,19 @@ requirements:
       - compile/map_contract
       - models/map_results
       - tests/unit/test_fr1073_map_result_contract.py
-fr: legacy, FR-797, FR-1058, FR-1073
+  - id: REQ-YG-699
+    description: >
+      FR-939 map overflow policy. The fan-out cap resolves node
+      `max_items` > graph `config.max_map_items` > 100; the policy
+      resolves node `on_overflow` > graph `defaults.on_overflow` >
+      `error`. Only `error` and `truncate` load. Under `error` an
+      over-cap map raises `ValueError` naming node, count and cap before
+      any `Send` or sub-node runs; under `truncate` it keeps exactly the
+      first cap items and logs one WARNING with the same numbers.
+    modules:
+      - map_compiler
+      - compile/node_compiler
+      - models/node_schema
+      - models/graph_schema
+      - tests/unit/test_fr939_map_overflow_policy.py
+fr: legacy, FR-797, FR-939, FR-1058, FR-1073
