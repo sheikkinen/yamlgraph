@@ -160,7 +160,7 @@ failure a missing schema field or `DID NOT RAISE`), `abc27b50` GREEN.
 | AC-10 | REQ-YG-699 in CAP-11; `req_coverage.py --strict` 424/424. |
 | AC-11 | Separate RED and GREEN commits (above). |
 | AC-12 | Focused command: 106 passed, 2 skipped. |
-| AC-13 | `reference/graph-yaml.md` (config table, map table, Overflow paragraph with sampling example); changelog `fr-939-map-overflow-policy.md`; diary `diary-2026-09-26-the-inert-cap.md`. |
+| AC-13 | `reference/graph-yaml.md` (config table, map table, Overflow paragraph with sampling example); changelog `fr-939-map-overflow-policy.md`; diary `diary-2026-09-26-reflection-fr-939-the-inert-cap.md`. |
 | AC-14 | Diff limited to the frozen surfaces plus `vulture_whitelist.py` (framework-invoked validator, sibling convention) and `docs/confessions.md` (hook-regenerated line anchor). |
 
 **Decisions.**

@@ -37,6 +37,8 @@ Two smaller observations:
   (point `TMPDIR` at `tmp_path` in `_run`) belongs to FR-995's owner, not
   to this diff.
 
+## Heuristic and seed
+
 **Heuristic:** a unit test that injects a config value where the
 consumer reads it proves the consumer, not the plumbing. Every graph-level
 config key needs one witness that goes through `load_graph_config` →
