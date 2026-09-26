@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1084-reject-undeclared-cli-vars.judgement.md)); R-1–R-3 folded 2026-09-26. Authority active (2026-09-26): C-1 human review recorded — operator instruction 'proceed with all fr changes' (2026-09-26).
+**Status:** Implemented (2026-09-26, branch `feat/fr1084-cli-vars`) — see "Implementation record". Judged — APPROVED WITH REVISIONS ([judgement](FR-1084-reject-undeclared-cli-vars.judgement.md)); R-1–R-3 folded 2026-09-26. Authority active (2026-09-26): C-1 human review recorded — operator instruction 'proceed with all fr changes' (2026-09-26).
 **Human decision (2026-09-25, operator):** suggested default accepted — graph `variables:` keys missing from the schema are out of scope here and are filed as [FR-1091](FR-1091-graph-variables-reach-state.md) (Parked). See "Human decisions".
 **Effort:** 1 day
 **Requested:** 2026-09-25
@@ -164,43 +164,43 @@ accepted keys. The same holds in sync, `--async` and `--stream` modes.
 
 ## Acceptance Criteria
 
-- [ ] AC-01 (RED): a temporary fixture graph with `state: {declared: str}`,
+- [x] AC-01 (RED): a temporary fixture graph with `state: {declared: str}`,
   a node with `state_key: inferred_sk`, graph `variables: {gv_declared: …}`
   where `gv_declared` is also in `state:`, and a mocked LLM client exits 1
   for `--var unknown=x`; the exact diagnostic names `unknown`, lists the
   sorted visible accepted keys, and the mock records zero calls.
-- [ ] AC-02: unknown keys split across `--var-file` and `--var` are unioned,
+- [x] AC-02: unknown keys split across `--var-file` and `--var` are unioned,
   deduplicated, sorted, reported in one diagnostic, and exit 1 before
   `_build_run_config` or graph invocation.
-- [ ] AC-03: in human mode the frozen diagnostic is written to the existing
+- [x] AC-03: in human mode the frozen diagnostic is written to the existing
   `error_stream`; with `--json`, stdout is empty and stderr contains exactly
   the diagnostic.
-- [ ] AC-04: `--var declared=a --var inferred_sk=b --var gv_declared=c`
+- [x] AC-04: `--var declared=a --var inferred_sk=b --var gv_declared=c`
   passes validation and the final state contains all three values in
   synchronous, `--async` and `--stream` runs.
-- [ ] AC-05: on the same fixture, `app.get_input_jsonschema()["properties"]`
+- [x] AC-05: on the same fixture, `app.get_input_jsonschema()["properties"]`
   equals the keys retained when all schema keys plus one non-schema key are
   supplied through `invoke`, `ainvoke` and `astream(stream_mode="values")`;
   the non-schema key is absent in every mode.
-- [ ] AC-06: `--import-state` containing `declared` and `other_graph_key` is
+- [x] AC-06: `--import-state` containing `declared` and `other_graph_key` is
   not validated as user variables; the run succeeds, `declared` reaches
   state, and the foreign key is absent from the result.
-- [ ] AC-07: `--var gv_only=x`, where `gv_only` exists only under graph
+- [x] AC-07: `--var gv_only=x`, where `gv_only` exists only under graph
   `variables:`, exits 1 as an unknown state key; an underscore-prefixed
   schema key remains accepted but is omitted from the displayed accepted-key
   list.
-- [ ] AC-08: the deterministic census covers `README.md`,
+- [x] AC-08: the deterministic census covers `README.md`,
   `reference/**/*.md`, `examples/**/README.md` and `examples/demos/demo.sh`,
   joins shell continuations, emits the frozen row shape, and exactly matches
   the committed extracted list and exclusion manifest.
-- [ ] AC-09: every resolvable census row is `PASS` or has a reasoned
+- [x] AC-09: every resolvable census row is `PASS` or has a reasoned
   `EXCLUDED` record with a filed FR number; only an unambiguous documentation
   key typo may be repaired under this FR.
-- [ ] AC-10: the innovation-matrix `--var domain=...` row is `PASS` if the
+- [x] AC-10: the innovation-matrix `--var domain=...` row is `PASS` if the
   checkout's compiled schema contains `domain`; otherwise it is `EXCLUDED`
   with FR-1088 and `domain` recorded as the unknown key. No innovation-matrix
   artifact changes under FR-1084.
-- [ ] AC-11: a new capability/REQ entry governs CLI variable validation;
+- [x] AC-11: a new capability/REQ entry governs CLI variable validation;
   every new or changed test function carries its requirement marker;
   `python scripts/req_coverage.py --strict` passes; and the changelog
   fragment, FR implementation record and diary entry are present.
@@ -297,6 +297,44 @@ Graph `variables:` keys missing from the schema (FR-1091). Any edit to
 vars the same way
 ([bench_commands.py#L284-L286](../yamlgraph/cli/bench_commands.py#L284-L286)).
 Checking `--import-state` keys.
+
+## Implementation record
+
+- **D-1** `_reject_unknown_vars` in
+  [graph_commands.py](../yamlgraph/cli/graph_commands.py): called after
+  `graph.compile(...)` and before `_build_run_config`; the only key source is
+  `app.get_input_jsonschema()["properties"]` (C-2). A schema without
+  `properties` raises instead of passing (Commandment 6).
+- **D-2** [test_fr1084_reject_undeclared_cli_vars.py](../tests/unit/test_fr1084_reject_undeclared_cli_vars.py),
+  10 tests, driven through the real `create_parser()` with an echo chat model
+  patched into the sync and async factories. RED `19e5e41a`, GREEN `177a7acc`.
+  Decision: LLM nodes skip when their `state_key` is already present, so AC-04
+  reads the values through a separate `witness` node that renders all three.
+  Mocked-app tests in `test_graph_commands.py`,
+  `test_cli_inter_run_state_chaining.py` and
+  `test_fr375_graph_run_json_stdout_red.py` now declare the input schema their
+  vars need; a `MagicMock` app has no real schema.
+- **D-3** [census.py](../tests/fixtures/fr1084/census.py) extracts every
+  `yamlgraph graph run` line in scope, compiles each graph (with its `--tool`
+  bindings, cwd = repo root) and writes
+  [invocations.tsv](../tests/fixtures/fr1084/invocations.tsv). First run:
+  229 PASS, 45 mechanical EXCLUDED (placeholder, shell-variable,
+  missing-var-file, unresolvable-graph), 19 findings. The findings are in
+  [exclusions.tsv](../tests/fixtures/fr1084/exclusions.tsv), each with a
+  filed FR: innovation-matrix `domain` → FR-1088 (AC-10), safety-guards
+  compile failure → FR-1087, and five other documented invocations that
+  cannot run → [FR-1101](FR-1101-documented-invocations-that-cannot-run.md)
+  (filed, Proposed). No documentation key typo was found, so no doc was
+  repaired (AC-09). [test_fr1084_invocation_census.py](../tests/unit/test_fr1084_invocation_census.py)
+  regenerates the list byte-for-byte and fails on stale manifest entries.
+- **D-4** [CAP-280](../capabilities/CAP-280-cli-variable-validation.yaml) /
+  REQ-YG-697, changelog fragment
+  `changelog/unreleased/fr-1084-reject-undeclared-cli-vars.md`, diary entry
+  `docs/diary/diary-2026-09-26-the-census-found-the-docs.md`.
+- Local environment note: `tests/unit/test_ramp_installer.py::test_wrapper_delegates`
+  fails on this machine on main as well: `scripts/ramp.sh` execs `python3`,
+  which resolves to `/usr/local/bin/python3` without PyYAML, not the venv.
+  It does not touch FR-1084 surfaces.
 
 ## Related
 
