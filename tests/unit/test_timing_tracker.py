@@ -175,7 +175,7 @@ class TestTimingCLIFlag:
             timing=True,
         )
 
-        mock_config = MagicMock()
+        mock_config = MagicMock(max_concurrency=None)
         mock_config.data = {}
         mock_config.recursion_limit = 50
         mock_config.timeout = None
@@ -208,7 +208,7 @@ class TestTimingCLIFlag:
             timing=False,
         )
 
-        mock_config = MagicMock()
+        mock_config = MagicMock(max_concurrency=None)
         mock_config.data = {}
         mock_config.recursion_limit = 50
         mock_config.timeout = None

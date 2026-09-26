@@ -32,7 +32,7 @@ def test_invoke_graph_calls_pipeline():
     mock_sg = MagicMock()
     mock_sg.compile.return_value = mock_compiled
 
-    mock_config = MagicMock()
+    mock_config = MagicMock(max_concurrency=None)
 
     with (
         patch(
@@ -49,7 +49,9 @@ def test_invoke_graph_calls_pipeline():
     mock_load.assert_called_once_with("/fake/graph.yaml")
     mock_compile.assert_called_once_with(mock_config)
     mock_sg.compile.assert_called_once()
-    mock_compiled.invoke.assert_called_once_with({"name": "World"}, config={})
+    mock_compiled.invoke.assert_called_once_with(
+        {"name": "World"}, config={"max_concurrency": 8}
+    )
     assert result == {"greeting": "Hello!"}
 
 
@@ -64,7 +66,8 @@ def test_invoke_graph_passes_config():
 
     with (
         patch(
-            "yamlgraph.compile.graph_loader.load_graph_config", return_value=MagicMock()
+            "yamlgraph.compile.graph_loader.load_graph_config",
+            return_value=MagicMock(max_concurrency=None),
         ),
         patch("yamlgraph.compile.graph_loader.compile_graph", return_value=mock_sg),
     ):
@@ -73,7 +76,9 @@ def test_invoke_graph_passes_config():
         run_config = {"configurable": {"thread_id": "t1"}}
         invoke_graph("/fake/graph.yaml", {"x": "1"}, config=run_config)
 
-    mock_compiled.invoke.assert_called_once_with({"x": "1"}, config=run_config)
+    mock_compiled.invoke.assert_called_once_with(
+        {"x": "1"}, config={**run_config, "max_concurrency": 8}
+    )
 
 
 @pytest.mark.req("REQ-YG-258")
@@ -89,7 +94,8 @@ def test_invoke_graph_accepts_path_object():
 
     with (
         patch(
-            "yamlgraph.compile.graph_loader.load_graph_config", return_value=MagicMock()
+            "yamlgraph.compile.graph_loader.load_graph_config",
+            return_value=MagicMock(max_concurrency=None),
         ),
         patch("yamlgraph.compile.graph_loader.compile_graph", return_value=mock_sg),
     ):

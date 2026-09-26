@@ -1,0 +1,16 @@
+source	graph	key	reason	fr
+examples/demos/corpus_census/README.md	examples/demos/corpus_census/graph.yaml	brief_path	cwd-relative --tool manifest not found from repo root	FR-1101
+examples/demos/corpus_census/README.md	examples/demos/corpus_census/graph.yaml	brief_rubric	cwd-relative --tool manifest not found from repo root	FR-1101
+examples/demos/corpus_census/README.md	examples/demos/corpus_census/graph.yaml	output_path	cwd-relative --tool manifest not found from repo root	FR-1101
+examples/demos/corpus_census/README.md	examples/demos/corpus_census/graph.yaml	rubric	cwd-relative --tool manifest not found from repo root	FR-1101
+examples/demos/corpus_census/README.md	examples/demos/corpus_census/graph.yaml	source	cwd-relative --tool manifest not found from repo root	FR-1101
+examples/demos/forensic-failure-diary/README.md	examples/demos/forensic-failure-diary/graph.yaml	failure_reason	graph fails GraphConfigSchema load	FR-1101
+examples/demos/forensic-failure-diary/README.md	examples/demos/forensic-failure-diary/graph.yaml	log_files	graph fails GraphConfigSchema load	FR-1101
+examples/demos/forensic-failure-diary/README.md	examples/demos/forensic-failure-diary/graph.yaml	topic_content	graph fails GraphConfigSchema load	FR-1101
+examples/demos/forensic-failure-diary/README.md	examples/demos/forensic-failure-diary/graph.yaml	worktree_state	graph fails GraphConfigSchema load	FR-1101
+examples/demos/hook_classifier/README.md	examples/demos/hook_classifier/graph.yaml	command	graph fails GraphConfigSchema load	FR-1101
+examples/demos/hook_classifier/README.md	examples/demos/hook_classifier/graph.yaml	tool_name	graph fails GraphConfigSchema load	FR-1101
+examples/demos/python-map/README.md	examples/demos/python-map/graph.yaml	texts	texts is not a state key; map reads data_files sample.texts	FR-1101
+reference/graph-yaml.md	examples/demos/corpus_census/graph.yaml	output_path	illustrative --tool manifest does not exist	FR-1101
+reference/graph-yaml.md	examples/demos/corpus_census/graph.yaml	rubric	illustrative --tool manifest does not exist	FR-1101
+reference/graph-yaml.md	examples/demos/corpus_census/graph.yaml	source	illustrative --tool manifest does not exist	FR-1101

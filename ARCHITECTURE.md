@@ -343,7 +343,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 8 | CAP-8 Error Handling | `error_handlers`, `error_handlers.NodeResult`, `error_handlers.build_skip_error_state`, `error_handlers.check_loop_limit`, … | REQ-YG-027 – 031 |
 | 9 | CAP-9 CLI Interface | `cli/__init__`, `cli/__main__`, `cli/deprecation`, `cli/graph_commands`, … | REQ-YG-032 – 035 |
 | 10 | CAP-10 Export & Serialization | `cli/graph_commands.cmd_graph_codegen`, `cli/schema_commands`, `storage/export`, `storage/serializers` | REQ-YG-036 – 039, 553 |
-| 11 | CAP-11 Subgraph & Map | `map_compiler`, `map_compiler.wrap_for_reducer`, `node_factory/subgraph_nodes` | REQ-YG-040 – 042, 692 |
+| 11 | CAP-11 Subgraph & Map | `map_compiler`, `map_compiler.wrap_for_reducer`, `node_factory/subgraph_nodes` | REQ-YG-040 – 042, 692, 699 |
 | 12 | CAP-12 Utilities | `config`, `constants`, `node_factory/base`, `schema_loader`, … | REQ-YG-043 – 046 |
 | 13 | CAP-13 LangSmith Tracing | `cli/graph_commands`, `utils/tracing` | REQ-YG-047, 547 |
 | 14 | CAP-14 Graph-Level Streaming | `executor_async` | REQ-YG-048 – 049, 065, 480 |
@@ -590,6 +590,8 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 274 | CAP-274 Prompt Template Dialect Per Message | `yamlgraph/utils/template.py`, `yamlgraph/executor_base.py`, `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py`, … | REQ-YG-686 |
 | 277 | CAP-277 Resumable Map Investigation Witnesses | `tests/fixtures/fr1065/probes.py`, `docs/investigations/fr1065-resumable-map.md` | REQ-YG-689 |
 | 278 | CAP-278 Innovation Matrix Pipeline Demo | `examples/demos/innovation_matrix/pipeline.yaml`, `examples/demos/innovation_matrix/nodes/cartesian.py` | REQ-YG-690 |
+| 280 | CAP-280 CLI Variable Validation | `yamlgraph/cli/graph_commands.py` | REQ-YG-697 |
+| 281 | CAP-281 Resolved Run Concurrency | `yamlgraph/utils/validators.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/executor_async.py`, … | REQ-YG-698 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -727,7 +729,7 @@ Export results/states in JSON/Markdown, handle serialization for persistence.
 
 Parallel fan-out and nested subgraph execution.
 
-**Feature Request:** legacy, FR-797, FR-1058, FR-1073
+**Feature Request:** legacy, FR-797, FR-939, FR-1058, FR-1073
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
@@ -735,6 +737,7 @@ Parallel fan-out and nested subgraph execution.
 | REQ-YG-041 | Output wrapping for reduction | `map_compiler.wrap_for_reducer` |
 | REQ-YG-042 | Subgraph node creation. FR-1058: `mode: direct` registers the compiled child graph natively (no callable adapter), so the engine owns its checkpoint namespace and interrupts are durable across it; `mode: invoke` runs the child on a derived "<parent>:<node>" thread and strips the parent's checkpoint coordinates (checkpoint_id, checkpoint_ns, checkpoint_map) and internal __pregel_* keys, so a child cannot resume into its parent's checkpoint and two parents invoking the same child do not collide. User `configurable` keys are forwarded; the parent config is never mutated. | `node_factory/subgraph_nodes`, `compile/subgraph_relay`, `tests/unit/test_fr1058_subgraph_config_propagation.py` |
 | REQ-YG-692 | FR-1073 map result contract. A map compiles to a dispatch node, a sub-node and a join. Branch failures never enter `collect`; they land as typed `MapFailure` records in `failures` (default `<collect>_failures`), non-tolerated ones with exactly one `PipelineError`. The join accounts every dispatched index against the exact dispatch token, writes a `MapVerdict` and raises `MapCompletenessError` when `min_success` (strict by default) is unmet; same-map overlap raises `MapAccountingError`. | `map_compiler`, `compile/map_contract`, `models/map_results`, `tests/unit/test_fr1073_map_result_contract.py` |
+| REQ-YG-699 | FR-939 map overflow policy. The fan-out cap resolves node `max_items` > graph `config.max_map_items` > 100; the policy resolves node `on_overflow` > graph `defaults.on_overflow` > `error`. Only `error` and `truncate` load. Under `error` an over-cap map raises `ValueError` naming node, count and cap before any `Send` or sub-node runs; under `truncate` it keeps exactly the first cap items and logs one WARNING with the same numbers. | `map_compiler`, `compile/node_compiler`, `models/node_schema`, `models/graph_schema`, `tests/unit/test_fr939_map_overflow_policy.py` |
 
 ### 12. CAP-12 Utilities
 
@@ -3359,6 +3362,26 @@ The innovation_matrix pipeline demo takes a declared domain, bounds the generate
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-690 | pipeline.yaml declares domain in state; the generate_dimensions schema accepts 3 to 5 capabilities and 3 to 5 constraints; the expand_all max_items equals the product of the two schema maxima; cartesian_product builds unique ordered IDs from the constraint count and refuses an empty dimension naming both lengths; synthesize renders every pair's ID, capability and constraint, joins expansions by zero-based _map_index, marks a pair with no expansion MISSING and a pair with two DUPLICATE, and states the real counts instead of a literal cell total. | `examples/demos/innovation_matrix/nodes/cartesian.py`, `tests/unit/test_fr1088_innovation_matrix_repair.py` |
+
+### 280. CAP-280 CLI Variable Validation
+
+FR-1084: `graph run` refuses `--var` and `--var-file` keys that the compiled graph's input schema cannot hold, before any graph invocation or LLM call, and a documented-invocation census pins the repository's own `graph run` examples against that rule.
+
+**Feature Request:** FR-1084
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-697 | After compile and before run configuration, `graph run` compares the union of `--var` and `--var-file` keys with `app.get_input_jsonschema()["properties"]`; any unknown key exits 1 with one sorted diagnostic naming every unknown key and the visible accepted keys, in sync, async and stream modes, on stdout in human mode and stderr in `--json` mode. `--import-state` and graph `variables:` are not validated. Every documented `graph run` invocation is PASS or a reasoned EXCLUDED row. | `yamlgraph/cli/graph_commands.py`, `tests/unit/test_fr1084_reject_undeclared_cli_vars.py`, `tests/unit/test_fr1084_invocation_census.py` |
+
+### 281. CAP-281 Resolved Run Concurrency
+
+FR-1085: one resolver sets LangGraph's `max_concurrency` for every run through the six managed boundaries (CLI sync, `--async`, `--stream`, `invoke_graph`, `run_graph_async`, `run_graph_streaming_native`), so the number of branches in flight never depends on the host's CPU count. Raw compiled `app.invoke`/`ainvoke` stays caller-owned.
+
+**Feature Request:** FR-1085
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-698 | The width is resolved in the order caller run value (or `--max-concurrency`) → graph `config.max_concurrency` → `YAMLGRAPH_MAX_CONCURRENCY` → built-in 8. Every level must be a positive integer; a bad caller or environment value raises `ValueError` naming its source and value before any node runs. The resolver works on a copy of the caller's run config, keeping every other field. `load_and_compile_async` records the graph width on the compiled app for `run_graph_async`; an app without it resolves caller → environment → 8. | `yamlgraph/utils/validators.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/executor_async.py`, `yamlgraph/observability/otel.py`, `tests/unit/test_fr1085_default_max_concurrency.py`, `tests/unit/test_fr984_map_max_concurrency.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

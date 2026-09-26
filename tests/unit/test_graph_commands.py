@@ -299,7 +299,7 @@ class TestCmdGraphRun:
         """Should invoke graph with parsed vars as initial state."""
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
-        mock_config = MagicMock()
+        mock_config = MagicMock(max_concurrency=None)
         mock_load_config.return_value = mock_config
 
         mock_graph = MagicMock()
@@ -309,6 +309,9 @@ class TestCmdGraphRun:
 
         mock_app = MagicMock()
         mock_app.invoke.return_value = {"result": "success"}
+        mock_app.get_input_jsonschema.return_value = {
+            "properties": {"topic": {}, "style": {}}
+        }
         mock_graph.compile.return_value = mock_app
 
         args = argparse.Namespace(
@@ -338,7 +341,7 @@ class TestCmdGraphRun:
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
         # Setup mocks
-        mock_config = MagicMock()
+        mock_config = MagicMock(max_concurrency=None)
         mock_load_config.return_value = mock_config
 
         mock_graph = MagicMock()
@@ -349,6 +352,7 @@ class TestCmdGraphRun:
 
         mock_app = MagicMock()
         mock_app.invoke.return_value = {"result": "success"}
+        mock_app.get_input_jsonschema.return_value = {"properties": {"input": {}}}
         mock_graph.compile.return_value = mock_app
 
         args = argparse.Namespace(
@@ -379,7 +383,7 @@ class TestCmdGraphRun:
         """Should use checkpointer from graph config even without --thread."""
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
-        mock_config = MagicMock()
+        mock_config = MagicMock(max_concurrency=None)
         mock_load_config.return_value = mock_config
 
         mock_graph = MagicMock()
@@ -390,6 +394,7 @@ class TestCmdGraphRun:
 
         mock_app = MagicMock()
         mock_app.invoke.return_value = {"result": "success"}
+        mock_app.get_input_jsonschema.return_value = {"properties": {"input": {}}}
         mock_graph.compile.return_value = mock_app
 
         args = argparse.Namespace(
@@ -772,7 +777,7 @@ class TestBuildRunConfig:
         """Graph config data should be merged into initial_state."""
         from yamlgraph.cli.graph_commands import _build_run_config
 
-        graph_config = MagicMock()
+        graph_config = MagicMock(max_concurrency=None)
         graph_config.data = {"base_key": "base_val"}
         graph_config.recursion_limit = 25
         graph_config.timeout = None
@@ -796,7 +801,7 @@ class TestBuildRunConfig:
         """CLI --recursion-limit should override YAML config."""
         from yamlgraph.cli.graph_commands import _build_run_config
 
-        graph_config = MagicMock()
+        graph_config = MagicMock(max_concurrency=None)
         graph_config.data = {}
         graph_config.recursion_limit = 25
         graph_config.timeout = None
@@ -819,7 +824,7 @@ class TestBuildRunConfig:
         """YAML recursion_limit should be used when CLI not set."""
         from yamlgraph.cli.graph_commands import _build_run_config
 
-        graph_config = MagicMock()
+        graph_config = MagicMock(max_concurrency=None)
         graph_config.data = {}
         graph_config.recursion_limit = 50
         graph_config.timeout = None
@@ -842,7 +847,7 @@ class TestBuildRunConfig:
         """Thread ID should be set in configurable and initial_state."""
         from yamlgraph.cli.graph_commands import _build_run_config
 
-        graph_config = MagicMock()
+        graph_config = MagicMock(max_concurrency=None)
         graph_config.data = {}
         graph_config.recursion_limit = 25
         graph_config.timeout = None
@@ -866,7 +871,7 @@ class TestBuildRunConfig:
         """Token usage flag should add tracker to callbacks."""
         from yamlgraph.cli.graph_commands import _build_run_config
 
-        graph_config = MagicMock()
+        graph_config = MagicMock(max_concurrency=None)
         graph_config.data = {}
         graph_config.recursion_limit = 25
         graph_config.timeout = None
@@ -894,7 +899,7 @@ class TestBuildRunConfig:
         """CLI vars (initial_state) should override graph_config.data on collision."""
         from yamlgraph.cli.graph_commands import _build_run_config
 
-        graph_config = MagicMock()
+        graph_config = MagicMock(max_concurrency=None)
         graph_config.data = {"topic": "old", "extra": "kept"}
         graph_config.recursion_limit = 25
         graph_config.timeout = None
@@ -1252,6 +1257,9 @@ class TestCmdGraphRunExtended:
 
         mock_app = MagicMock()
         mock_app.invoke.return_value = {"result": "ok"}
+        mock_app.get_input_jsonschema.return_value = {
+            "properties": {"base": {}, "topic": {}}
+        }
         mock_graph.compile.return_value = mock_app
 
         mock_build.return_value = (
