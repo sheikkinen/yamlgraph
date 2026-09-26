@@ -108,4 +108,33 @@ Out of scope: the 3.11 floor, coverage threshold/flags, `-n auto`,
 
 ## Implementation Status
 
-_In progress._
+**Implemented 2026-09-26** — RED `56b97328`, GREEN `68327573`.
+
+AC-01 probe (macOS x86_64, local `python3.14` → Python 3.14):
+`pip install --ignore-requires-python -e ".[<lean extras>]"` OK;
+`pip check` → "No broken requirements found"; `opentelemetry.sdk` and
+`PIL` absent. `cryptography` 50.0.1 built from source (no local cp314
+wheel; Linux CI gets manylinux wheels). Unit suite on 3.14: 12 failed,
+7127 passed, 76 skipped. 8 failures were this FR's RED tests. The other
+4 are not about 3.14: `test_ramp_installer::test_wrapper_delegates`
+fails the same way on 3.13 (`scripts/ramp.sh` execs bare `python3`,
+here `/usr/local/bin/python3` without PyYAML; passes with the venv on
+PATH). The `test_fr995_outsider_wrapper` and `test_vscode_ledger`
+failures passed on three serial 3.14 reruns; `fr995` globs the shared
+system tempdir for `outsider-*`, so concurrent processes can trip it.
+Final AC-01 evidence is the CI `test (3.14)` leg.
+
+AC-02–AC-05, AC-07: done (`test_fr1104_ci_matrix.py` + migrated pins,
+32 passed; fast suite 7073 passed on 3.13 aside from the `ramp.sh` PATH
+case above). AC-06: pending CI. AC-08: operator, pending. AC-09:
+fragment `changelog/unreleased/fr-1104-ci-dedup-py314.md`; diary
+`docs/diary/diary-2026-09-26-the-context-line.md`.
+
+Deviations:
+- Changelog fragment carries no `req:` — REQ-YG-277 belongs to CAP-127;
+  FR-918 (same matrix contract) set this precedent.
+- GREEN used operator-authorized `SKIP=changelog-release-sync`: the gate
+  matched the unchanged context line `version = "0.6.0"`. Filed as
+  [FR-1107](FR-1107-changelog-release-sync-context-false-positive.md).
+- `constraints/dev-py312.txt` comment still names `core-test`; file is
+  out of scope per this FR.
