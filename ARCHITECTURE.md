@@ -590,6 +590,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 274 | CAP-274 Prompt Template Dialect Per Message | `yamlgraph/utils/template.py`, `yamlgraph/executor_base.py`, `yamlgraph/linter/checks_prompts.py`, `yamlgraph/linter/graph_linter.py`, … | REQ-YG-686 |
 | 277 | CAP-277 Resumable Map Investigation Witnesses | `tests/fixtures/fr1065/probes.py`, `docs/investigations/fr1065-resumable-map.md` | REQ-YG-689 |
 | 278 | CAP-278 Innovation Matrix Pipeline Demo | `examples/demos/innovation_matrix/pipeline.yaml`, `examples/demos/innovation_matrix/nodes/cartesian.py` | REQ-YG-690 |
+| 280 | CAP-280 CLI Variable Validation | `yamlgraph/cli/graph_commands.py` | REQ-YG-697 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3359,6 +3360,16 @@ The innovation_matrix pipeline demo takes a declared domain, bounds the generate
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-690 | pipeline.yaml declares domain in state; the generate_dimensions schema accepts 3 to 5 capabilities and 3 to 5 constraints; the expand_all max_items equals the product of the two schema maxima; cartesian_product builds unique ordered IDs from the constraint count and refuses an empty dimension naming both lengths; synthesize renders every pair's ID, capability and constraint, joins expansions by zero-based _map_index, marks a pair with no expansion MISSING and a pair with two DUPLICATE, and states the real counts instead of a literal cell total. | `examples/demos/innovation_matrix/nodes/cartesian.py`, `tests/unit/test_fr1088_innovation_matrix_repair.py` |
+
+### 280. CAP-280 CLI Variable Validation
+
+FR-1084: `graph run` refuses `--var` and `--var-file` keys that the compiled graph's input schema cannot hold, before any graph invocation or LLM call, and a documented-invocation census pins the repository's own `graph run` examples against that rule.
+
+**Feature Request:** FR-1084
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-697 | After compile and before run configuration, `graph run` compares the union of `--var` and `--var-file` keys with `app.get_input_jsonschema()["properties"]`; any unknown key exits 1 with one sorted diagnostic naming every unknown key and the visible accepted keys, in sync, async and stream modes, on stdout in human mode and stderr in `--json` mode. `--import-state` and graph `variables:` are not validated. Every documented `graph run` invocation is PASS or a reasoned EXCLUDED row. | `yamlgraph/cli/graph_commands.py`, `tests/unit/test_fr1084_reject_undeclared_cli_vars.py`, `tests/unit/test_fr1084_invocation_census.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
