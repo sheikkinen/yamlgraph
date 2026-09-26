@@ -128,6 +128,22 @@ class TestBuildStateClass:
         assert "errors" in annotations
         assert "messages" in annotations
 
+    @pytest.mark.req("REQ-YG-697")
+    def test_state_class_pydantic_json_schema_python311(self):
+        """FR-1084: graph run reads keys from the compiled input JSON schema.
+
+        Pydantic refuses typing.TypedDict on Python < 3.12, so the state class
+        must come from typing_extensions or every graph run fails on 3.11.
+        """
+        from pydantic import TypeAdapter
+
+        from yamlgraph.models.state_builder import build_state_class
+
+        State = build_state_class({"nodes": {}, "edges": []})
+
+        schema = TypeAdapter(State).json_schema()
+        assert "thread_id" in schema["properties"]
+
     @pytest.mark.req("REQ-YG-024")
     def test_no_dead_error_singleton_field(self):
         """FR-675: singular 'error' field must not exist in base state."""

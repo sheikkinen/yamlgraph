@@ -7,7 +7,9 @@ the need for state_class coupling between YAML and Python.
 import logging
 from operator import add
 from pathlib import Path
-from typing import Annotated, Any, TypedDict
+from typing import Annotated, Any
+
+from typing_extensions import TypedDict
 
 from yamlgraph.models.map_results import add_by_index, merge_by_key, merge_map_open
 from yamlgraph.models.relay_fields import (

@@ -309,6 +309,9 @@ class TestCmdGraphRun:
 
         mock_app = MagicMock()
         mock_app.invoke.return_value = {"result": "success"}
+        mock_app.get_input_jsonschema.return_value = {
+            "properties": {"topic": {}, "style": {}}
+        }
         mock_graph.compile.return_value = mock_app
 
         args = argparse.Namespace(
@@ -349,6 +352,7 @@ class TestCmdGraphRun:
 
         mock_app = MagicMock()
         mock_app.invoke.return_value = {"result": "success"}
+        mock_app.get_input_jsonschema.return_value = {"properties": {"input": {}}}
         mock_graph.compile.return_value = mock_app
 
         args = argparse.Namespace(
@@ -390,6 +394,7 @@ class TestCmdGraphRun:
 
         mock_app = MagicMock()
         mock_app.invoke.return_value = {"result": "success"}
+        mock_app.get_input_jsonschema.return_value = {"properties": {"input": {}}}
         mock_graph.compile.return_value = mock_app
 
         args = argparse.Namespace(
@@ -1252,6 +1257,9 @@ class TestCmdGraphRunExtended:
 
         mock_app = MagicMock()
         mock_app.invoke.return_value = {"result": "ok"}
+        mock_app.get_input_jsonschema.return_value = {
+            "properties": {"base": {}, "topic": {}}
+        }
         mock_graph.compile.return_value = mock_app
 
         mock_build.return_value = (

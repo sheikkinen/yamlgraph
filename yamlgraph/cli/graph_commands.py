@@ -100,6 +100,30 @@ def _run_lint_gate(graph_path: Path, *, json_mode: bool) -> None:
         sys.exit(1)
 
 
+def _reject_unknown_vars(
+    app, graph_path: Path, user_vars: dict, *, error_stream
+) -> None:
+    """FR-1084: refuse --var/--var-file keys the compiled input schema drops."""
+    if not user_vars:
+        return
+    schema = app.get_input_jsonschema()
+    if not isinstance(schema, dict) or "properties" not in schema:
+        raise ValueError(
+            f"compiled input schema of {graph_path.name} has no properties"
+        )
+    accepted = set(schema["properties"])
+    unknown = sorted(set(user_vars) - accepted)
+    if not unknown:
+        return
+    visible = sorted(key for key in accepted if not key.startswith("_"))
+    print(
+        f"❌ Unknown --var/--var-file state key(s) for {graph_path.name}: "
+        f"{', '.join(unknown)}; accepted keys: {', '.join(visible)}",
+        file=error_stream,
+    )
+    sys.exit(1)
+
+
 def cmd_graph_run(args: Namespace) -> None:
     """Run any graph with provided variables.
 
@@ -173,6 +197,10 @@ def cmd_graph_run(args: Namespace) -> None:
         graph = compile_graph(graph_config)
         checkpointer = get_checkpointer_for_graph(graph_config)
         app = graph.compile(checkpointer=checkpointer)
+
+        _reject_unknown_vars(
+            app, graph_path, {**file_vars, **cli_vars}, error_stream=error_stream
+        )
 
         # Build run configuration (data merge, thread, limits, tracing, tokens, timing)
         initial_state, config, tracker, timeout, tracer, share_flag, timing_tracker = (

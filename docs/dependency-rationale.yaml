@@ -100,6 +100,11 @@ dependencies:
     modules: ["yamlgraph/utils/template.py", "yamlgraph/executor_base.py"]
     added: "0.2.0"
 
+  typing_extensions:
+    rationale: "TypedDict for the dynamic graph state; pydantic refuses typing.TypedDict on Python < 3.12 (FR-1084)"
+    modules: ["yamlgraph/models/state_builder.py"]
+    added: "0.6.0"
+
   # ─── Dev Dependencies ────────────────────────────────────────────────
 
   pytest:
