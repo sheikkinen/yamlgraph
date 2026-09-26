@@ -92,11 +92,13 @@ def _gc(max_concurrency=None) -> MagicMock:
 @patch("yamlgraph.utils.tracing.inject_tracer_config")
 class TestBuildRunConfigMaxConcurrency:
     @pytest.mark.req("REQ-YG-645")
-    def test_absent_everywhere_omits_key(self, _i, _t) -> None:
+    @pytest.mark.req("REQ-YG-698")
+    def test_absent_everywhere_resolves_default(self, _i, _t, monkeypatch) -> None:
         from yamlgraph.cli.graph_run_helpers import _build_run_config
 
+        monkeypatch.delenv("YAMLGRAPH_MAX_CONCURRENCY", raising=False)
         _, config, *_ = _build_run_config(_args(), _gc(), {})
-        assert "max_concurrency" not in config
+        assert config["max_concurrency"] == 8
 
     @pytest.mark.req("REQ-YG-645")
     def test_yaml_value_used_when_cli_absent(self, _i, _t) -> None:

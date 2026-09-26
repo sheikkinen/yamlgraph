@@ -19,6 +19,11 @@ from yamlgraph.streaming_events import check_interrupt, translate_message_event
 from yamlgraph.utils.llm_factory import create_llm
 from yamlgraph.utils.llm_factory_async import invoke_async
 from yamlgraph.utils.route_log import route_thread_id_from_config
+from yamlgraph.utils.validators import (
+    GRAPH_WIDTH_ATTR,
+    graph_width_of,
+    with_max_concurrency,
+)
 
 if TYPE_CHECKING:
     from langgraph.graph.state import CompiledStateGraph
@@ -252,6 +257,7 @@ async def load_and_compile_async(
     compiled = await compile_graph_async(state_graph, config)
     compiled._yamlgraph_graph_name = config.name  # type: ignore[attr-defined]
     compiled._yamlgraph_source_path = str(config.source_path)  # type: ignore[attr-defined]
+    setattr(compiled, GRAPH_WIDTH_ATTR, config.max_concurrency)
 
     if cache is not None:
         cache[path] = compiled
@@ -315,7 +321,7 @@ async def run_graph_streaming_native(
         timeout: Total stream timeout in seconds. None means no timeout.
     """
     app = await load_and_compile_async(graph_path)
-    config = config or {}
+    config = with_max_concurrency(config, graph_width_of(app))
 
     try:
         # FR-723 R-1: route-log thread id contextvar around the streamed run.

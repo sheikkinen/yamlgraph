@@ -279,8 +279,9 @@ async def run_graph_async(
         route_run_context,
         route_thread_id_from_config,
     )
+    from yamlgraph.utils.validators import graph_width_of, with_max_concurrency
 
-    config = config or {}
+    config = with_max_concurrency(config, graph_width_of(app))
     otel_enabled = is_otel_enabled()
     graph_name = getattr(app, "_yamlgraph_graph_name", None)
     if otel_enabled and (not isinstance(graph_name, str) or not graph_name.strip()):

@@ -433,7 +433,7 @@ class TestRecursionLimitWiring:
 
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
-        mock_config = MagicMock()
+        mock_config = MagicMock(max_concurrency=None)
         mock_config.recursion_limit = 25
         mock_config.data = {}
 
@@ -483,7 +483,7 @@ class TestRecursionLimitWiring:
 
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
-        mock_config = MagicMock()
+        mock_config = MagicMock(max_concurrency=None)
         mock_config.recursion_limit = 25  # YAML says 25
         mock_config.data = {}
 
@@ -533,7 +533,7 @@ class TestRecursionLimitWiring:
 
         from yamlgraph.cli.graph_commands import cmd_graph_run
 
-        mock_config = MagicMock()
+        mock_config = MagicMock(max_concurrency=None)
         mock_config.recursion_limit = 50  # Default from GraphConfig
         mock_config.data = {}
 

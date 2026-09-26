@@ -11,6 +11,7 @@ from pathlib import Path
 import yaml
 
 from yamlgraph.cli.helpers import handle_state_export
+from yamlgraph.utils.validators import resolve_max_concurrency
 
 logger = logging.getLogger(__name__)
 
@@ -143,11 +144,10 @@ def _build_run_config(args: Namespace, graph_config, initial_state: dict) -> tup
     config["recursion_limit"] = recursion_limit
 
     # FR-984: CLI over YAML; no key at all when neither supplies one
-    max_concurrency = getattr(args, "max_concurrency", None)
-    if max_concurrency is None:
-        max_concurrency = getattr(graph_config, "max_concurrency", None)
-    if max_concurrency is not None:
-        config["max_concurrency"] = max_concurrency
+    config["max_concurrency"] = resolve_max_concurrency(
+        getattr(args, "max_concurrency", None),
+        getattr(graph_config, "max_concurrency", None),
+    )
 
     timeout = getattr(args, "timeout", None)
     if timeout is None:

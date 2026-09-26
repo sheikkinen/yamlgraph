@@ -399,21 +399,22 @@ def invoke_graph(
 ) -> dict[str, Any]:
     """Load, compile, and invoke a graph synchronously.
 
-    Convenience function combining load_graph_config, compile_graph,
-    and compiled graph invocation.
+    FR-1085: the run config always carries the resolved ``max_concurrency``.
 
     Args:
         path: Path to graph YAML file.
         variables: Input variables / initial state.
-        config: Optional LangGraph run config (thread_id, etc.).
+        config: Optional LangGraph run config (thread_id, etc.); copied.
 
     Returns:
         Result dict from graph invocation.
     """
+    from yamlgraph.utils.validators import with_max_concurrency
+
     graph_config = load_graph_config(path)
-    sg = compile_graph(graph_config)
-    compiled = sg.compile()
-    return compiled.invoke(variables, config=config or {})
+    compiled = compile_graph(graph_config).compile()
+    config = with_max_concurrency(config, graph_config.max_concurrency)
+    return compiled.invoke(variables, config=config)
 
 
 def load_and_compile(path: str | Path) -> StateGraph:

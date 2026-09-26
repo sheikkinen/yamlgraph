@@ -591,6 +591,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 277 | CAP-277 Resumable Map Investigation Witnesses | `tests/fixtures/fr1065/probes.py`, `docs/investigations/fr1065-resumable-map.md` | REQ-YG-689 |
 | 278 | CAP-278 Innovation Matrix Pipeline Demo | `examples/demos/innovation_matrix/pipeline.yaml`, `examples/demos/innovation_matrix/nodes/cartesian.py` | REQ-YG-690 |
 | 280 | CAP-280 CLI Variable Validation | `yamlgraph/cli/graph_commands.py` | REQ-YG-697 |
+| 281 | CAP-281 Resolved Run Concurrency | `yamlgraph/utils/validators.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/executor_async.py`, … | REQ-YG-698 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3371,6 +3372,16 @@ FR-1084: `graph run` refuses `--var` and `--var-file` keys that the compiled gra
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-697 | After compile and before run configuration, `graph run` compares the union of `--var` and `--var-file` keys with `app.get_input_jsonschema()["properties"]`; any unknown key exits 1 with one sorted diagnostic naming every unknown key and the visible accepted keys, in sync, async and stream modes, on stdout in human mode and stderr in `--json` mode. `--import-state` and graph `variables:` are not validated. Every documented `graph run` invocation is PASS or a reasoned EXCLUDED row. | `yamlgraph/cli/graph_commands.py`, `tests/unit/test_fr1084_reject_undeclared_cli_vars.py`, `tests/unit/test_fr1084_invocation_census.py` |
+
+### 281. CAP-281 Resolved Run Concurrency
+
+FR-1085: one resolver sets LangGraph's `max_concurrency` for every run through the six managed boundaries (CLI sync, `--async`, `--stream`, `invoke_graph`, `run_graph_async`, `run_graph_streaming_native`), so the number of branches in flight never depends on the host's CPU count. Raw compiled `app.invoke`/`ainvoke` stays caller-owned.
+
+**Feature Request:** FR-1085
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-698 | The width is resolved in the order caller run value (or `--max-concurrency`) → graph `config.max_concurrency` → `YAMLGRAPH_MAX_CONCURRENCY` → built-in 8. Every level must be a positive integer; a bad caller or environment value raises `ValueError` naming its source and value before any node runs. The resolver works on a copy of the caller's run config, keeping every other field. `load_and_compile_async` records the graph width on the compiled app for `run_graph_async`; an app without it resolves caller → environment → 8. | `yamlgraph/utils/validators.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/executor_async.py`, `yamlgraph/observability/otel.py`, `tests/unit/test_fr1085_default_max_concurrency.py`, `tests/unit/test_fr984_map_max_concurrency.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
