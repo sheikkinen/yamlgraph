@@ -331,6 +331,15 @@ Checking `--import-state` keys.
   census: the innovation-matrix `domain` row and both safety-guards rows now
   PASS, so their three exclusions were removed and the census regenerated
   (AC-10's PASS branch).
+- **D-5 (deviation)** CI run 36249041048 (Python 3.11) failed every FR-1084
+  CLI test: `build_state_class` built the state with `typing.TypedDict`,
+  which pydantic refuses on Python < 3.12, so `get_input_jsonschema()`
+  raised and D-1 would have broken `graph run` for every graph on 3.11.
+  Fixed at the boundary where the class is built: `state_builder.py` now
+  imports `TypedDict` from `typing_extensions`, declared as a core
+  dependency in `pyproject.toml` (already a transitive pydantic
+  dependency). Witness `test_state_class_pydantic_json_schema_python311`,
+  RED/GREEN verified with `uv run --python 3.11`.
 - **D-4** [CAP-280](../capabilities/CAP-280-cli-variable-validation.yaml) /
   REQ-YG-697, changelog fragment
   `changelog/unreleased/fr-1084-reject-undeclared-cli-vars.md`, diary entry
