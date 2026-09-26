@@ -2,7 +2,9 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed — split from FR-1083 (judgement SPLIT); awaiting judgement (2026-09-26).
+**Status:** In enforcement without a judgement — operator decision 2026-09-26
+("SIC: enforce 1098"; the judge run was declined). Scope stays deliverable D-2
+as frozen by the FR-1083 judgement.
 **Effort:** 0.5 day
 **Requested:** 2026-09-26
 **First consumer / first event:** any shell script or CI job running

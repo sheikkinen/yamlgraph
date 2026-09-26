@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed — split from FR-1083 (judgement SPLIT); awaiting judgement (2026-09-26).
+**Status:** Approved with revisions ([judgement](FR-1097-graph-run-completed-errors-exit-3.judgement.md)); R-1 and R-2 folded 2026-09-26; in enforcement.
 **Effort:** 1 day
 **Requested:** 2026-09-26
 **First consumer / first event:** any script or CI job running
@@ -41,8 +41,10 @@ found substantive by its judgement. The chosen class is unchanged.
 
 When a non-stream `graph run` completes and this invocation added at least one
 error to `state.errors` that the author did not tolerate, the CLI exits 3
-after all output and exports are written. A crash or refusal stays exit 1.
-Errors from `on_error: skip`, guard `on_fail: skip` and guard/verify
+after all output and exports are written. A crash, a raised failure or a CLI
+refusal stays exit 1. An LLM/copilot pre-guard `on_fail: halt` that returns a
+`GuardViolation` is a completed run with an untolerated error: exit 3
+(decision 4). Errors from `on_error: skip`, guard `on_fail: skip` and guard/verify
 `on_fail: warn` are marked tolerated where they are built and do not cause
 exit 3. The `--json` stdout object and the `run_end` route-log event carry the
 same two counts; exported state does not.
@@ -87,7 +89,8 @@ The exit status of a non-stream `graph run` is a complete, typed statement
 about this invocation: 0 means nothing was lost, or every loss was one the
 author declared tolerable; 3 means the graph finished, all output and exports
 exist, and at least one untolerated error was created by this run, named on
-stderr; 1 means the run crashed or was refused. `--json` stdout and `run_end`
+stderr (including a returned LLM/copilot guard halt); 1 means the run crashed,
+raised, was refused by the CLI, or left a malformed error entry. `--json` stdout and `run_end`
 carry the same two numbers, exported state carries graph state only, and every
 scripted caller either stops on 3 or handles it by name.
 
@@ -123,8 +126,9 @@ scripted caller either stops on 3 or handles it by name.
    - every entry of `initial_state["errors"]` (any origin, normally
      `--import-state`) is validated with `PipelineError.model_validate` and
      replaced by the model; a malformed entry prints
-     `❌ --import-state: invalid errors[i]: …` and exits 1 before any node
-     runs;
+     `❌ invalid initial state errors[i]: …` and exits 1 before any node
+     runs (R-1: the merged initial state may also come from graph data, a
+     var file or CLI variables);
    - if a checkpointer is set and a thread id is present,
      `app.get_state(config).values.get("errors", [])` gives the retained
      entries;
@@ -137,12 +141,20 @@ scripted caller either stops on 3 or handles it by name.
 4. **One tally.** `ErrorTally {error_count, tolerated_error_count,
    first: list[PipelineError]}` is computed once from
    `result["errors"][baseline:]`: untolerated count, tolerated count, and up to
-   three untolerated entries in list order.
+   three untolerated entries in list order. **R-1:** every suffix entry is
+   first normalized with `PipelineError.model_validate` (a Python node can
+   return arbitrary dicts into the `add`-reducer channel); the normalized list
+   lives in the tally only — `result` and exports are not mutated. A malformed
+   entry prints `❌ invalid result errors[i]: …` (absolute final-list index plus
+   validation detail) and exits 1 before success output, exports or a tally
+   line.
 5. **Exit status.** 0: completed, `error_count == 0`. 3: completed,
    `error_count > 0`. 1: every existing crash/refusal path, unchanged
    (`graph_commands.py#L120-L138`, `#L171-L172`, `#L221-L223`, `#L249-L251`;
    JSON interrupt `graph_run_helpers.py#L209-L217`), plus item 3's malformed
-   import. 2 stays argparse's. Empty input in the text interrupt loop stays 0
+   initial-state entry and item 4's malformed current-run entry. A returned
+   LLM/copilot pre-guard halt violation is untolerated and exits 3
+   (decision 4); a raised `GuardHaltError` (side-effect nodes, verify) stays 1. 2 stays argparse's. Empty input in the text interrupt loop stays 0
    (`graph_run_helpers.py#L224-L225`): the user ended the run.
 6. **Order inside `cmd_graph_run`:**
    1. `_run_graph_until_complete` returns (`graph_commands.py#L211-L220`).
@@ -237,61 +249,24 @@ writes the line to its `$log`. These are enforcement-infrastructure edits
 Each test runs the CLI (`cmd_graph_run` or a subprocess) on a graph with no
 real LLM call (mocked LLM or python/`requires:` paths), in text and `--json`
 modes unless stated. Tests are committed RED before production changes and
-GREEN after, each with `@pytest.mark.req("REQ-YG-XXX")` for the new REQ.
+GREEN after, each with `@pytest.mark.req("REQ-YG-700")` (CAP-283).
+The judgement's revised AC-01..AC-15 are adopted verbatim.
 
-- [ ] AC-01 (map, FR-1073): a two-item map, one success and one
-  non-tolerated python sub-node failure, `min_success: 1` (integer) completes,
-  holds one current-invocation `PipelineError` (`node=_map_<name>_sub`), emits
-  normal output and exports, and exits 3. The same map with absent
-  `min_success` raises `MapCompletenessError`, exits 1, and prints no tally
-  line.
-- [ ] AC-02: P1 (mocked LLM, no `on_error`, call fails) and P5 (LLM node
-  with a missing `requires:` key) each exit 3; stderr names the node and
-  message; JSON reports `_error_count: 1`.
-- [ ] AC-03: **one graph** with a failing LLM `on_error: skip` node and a
-  failing python `on_error: skip` node exits 0, reports `_error_count: 0`,
-  `_tolerated_error_count: 2`, holds exactly two entries; text-mode stderr
-  prints the tolerated count. A guard `on_fail: warn` violation and a verify
-  `on_fail: warn` violation in a clean graph also exit 0 and count as
-  tolerated (decision 2).
-- [ ] AC-04: a graph with one P5 and one python skip failure exits 3, reports
-  counts 1 and 1, and lists only the P5 entry under the stderr detail lines.
-- [ ] AC-05: a top-level python node with default `on_error` (`fail`) that
-  raises, and a top-level LLM node with `on_error: fail`, each exit 1 with no
-  tally line. A completed graph whose configured export raises exits 1.
-- [ ] AC-06: `--json` with an interrupt exits 1; text mode resumed to
-  completion with one P5 error exits 3; text mode ended with empty input
-  exits 0.
-- [ ] AC-07: the AC-02 P5 graph with a configured `exports:` block, `--export`
-  and `--export-state PATH`: stdout (text result or JSON object) is emitted and
-  both files exist before exit 3. Stdout JSON contains `_error_count` and
-  `_tolerated_error_count`; neither the `--export-state` file nor the
-  configured export contains either key.
-- [ ] AC-08: with the route log enabled, `run_end.error_count` and
-  `run_end.tolerated_error_count` equal the JSON keys for the AC-02, AC-03,
-  AC-04 graphs and a clean graph (0 and 0).
-- [ ] AC-09: one P5 error followed by one python skip failure leaves exactly
-  two `state.errors` entries (delta-only `build_skip_error_state`).
-- [ ] AC-10 (history, decision 3): (a) `--import-state` of an export holding
-  one error, into a graph that completes cleanly, exits 0; (b) the same import
-  into the P5 graph exits 3 with `_error_count: 1`; (c) a memory-checkpointer
-  graph run twice on the same `--thread`, first run with one P5 error (exit 3),
-  second run clean, exits 0 on the second run; a second run that adds one new
-  P5 error exits 3 with `_error_count: 1`; (d) an import whose `errors` holds
-  a malformed entry (missing `node`, or unknown `type`) exits 1 before any node
-  runs, naming the offending index.
-- [ ] AC-11: every "handles 3" row in the Caller census is changed and
-  covered: rows 19, 24, 25, 27, 28 by a shell assertion with a stub `YG`
-  exiting 3 that shows the stderr line and the unchanged artifact verdict
-  (pass with a valid artifact, fail 65 without). No other caller is edited.
-- [ ] AC-12: `reference/getting-started.md` documents non-stream 0/1/3, the
-  tolerated rule (skip, warn), the history rule, both JSON keys, and the
-  absence of exit 3 in message streaming.
-- [ ] AC-13: a capability file with the new REQ; `python
-  scripts/req_coverage.py --strict` passes; the full unit suite is green, and
-  any existing test that asserted exit 0 on a graph with recorded errors is
-  changed and listed in the implementation record; changelog fragment, FR
-  implementation record, and diary entry with **Seed:** committed.
+- [ ] AC-01: A two-item map with one success, one non-tolerated Python sub-node failure, and integer `min_success: 1` completes, retains exactly one current-invocation `PipelineError` named `_map_<name>_sub`, emits normal output and exports, and exits 3; absent `min_success` raises `MapCompletenessError`, exits 1, and emits no tally line.
+- [ ] AC-02: P1 (mocked LLM call failure without `on_error`) and P5 (missing LLM `requires:` key) each exit 3 in text and JSON modes; stderr names the node and message; JSON reports `_error_count: 1`.
+- [ ] AC-03: One graph with a failing LLM `on_error: skip` node and a failing Python `on_error: skip` node exits 0, reports `_error_count: 0` and `_tolerated_error_count: 2`, and retains exactly two entries. Guard and verify `on_fail: warn` each exit 0 and increment only the tolerated count.
+- [ ] AC-04: A graph with one P5 error and one Python skip failure exits 3, reports counts 1 and 1, and lists only the P5 entry in stderr details.
+- [ ] AC-05: Top-level Python default/fail and LLM `on_error: fail` exceptions exit 1 with no tally line; a configured export failure exits 1.
+- [ ] AC-06: JSON interrupt exits 1; a text interrupt resumed to a P5 completion exits 3; ending the text interrupt prompt with empty input exits 0.
+- [ ] AC-07: For a completed P5 error with configured export, `--export`, and `--export-state`, stdout and both files exist before exit 3. Stdout JSON contains both tally keys; neither export contains either key.
+- [ ] AC-08: With route logging enabled, `run_end.error_count` and `run_end.tolerated_error_count` equal the JSON projection for untolerated, tolerated, mixed, and clean completed runs.
+- [ ] AC-09: One P5 error followed by one Python skip failure leaves exactly two `state.errors` entries, proving that `build_skip_error_state` returns only its delta.
+- [ ] AC-10: Imported and checkpoint-retained historical errors do not affect this invocation's status: clean second runs exit 0, and second runs adding one P5 error exit 3 with `_error_count: 1`. Malformed initial-state entries exit 1 before node execution and identify their index.
+- [ ] AC-11: A valid serialized `PipelineError` dictionary created during this invocation is normalized and tallied; malformed current-run entries with a missing `node` and an unknown `type` each exit 1 before success output and exports, identify the final-list index, and emit no completed-run tally line.
+- [ ] AC-12: The operator-selected LLM/copilot pre-guard halt policy is asserted in text and JSON modes; the raised side-effect/verify `GuardHaltError` path remains exit 1.
+- [ ] AC-13: Caller-census rows 19, 24, 25, 27, and 28 explicitly report rc 3 and continue to the unchanged artifact verdict. Shell assertions prove pass with a valid artifact and exit 65 without one. No other caller is edited.
+- [ ] AC-14: `reference/getting-started.md` documents non-stream 0/1/3, skip/warn tolerance, the selected guard-halt rule, invocation-only history, malformed-error behavior, both JSON keys, and the absence of exit 3 in message streaming.
+- [ ] AC-15: A capability file defines the new requirement; all new tests carry its `@pytest.mark.req` marker; RED and GREEN commits are separate; strict requirement coverage and the full unit suite pass; changed historical expectations are listed in the FR implementation record; the changelog fragment and diary entry with **Seed:** are committed.
 
 ## Human decisions
 
@@ -310,6 +285,11 @@ Recorded 2026-09-26 by explicit operator answer (judgement R-2, C-2):
    invocation. Baseline captured once, at `graph_commands.py` between
    `#L185` and `#L187` (Proposed Solution item 3); imported entries validated
    there (AC-10).
+4. **Returned LLM/copilot guard halt** (judgement R-2, answered 2026-09-26):
+   completed-error semantics. A pre-guard `on_fail: halt` that returns an
+   untolerated `GuardViolation` completes the run and exits 3 after normal
+   output and exports; exit 1 is reserved for CLI refusals and raised failures.
+   Guard execution semantics are unchanged (AC-12).
 
 ## Scope
 
