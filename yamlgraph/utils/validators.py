@@ -237,16 +237,67 @@ def validate_interactive_tool_node(node_name: str, node_config: dict[str, Any]) 
 def validate_max_concurrency(value: Any) -> int | None:
     """FR-984: `config.max_concurrency` is a positive int or absent.
 
-    `None` means absent (no key reaches RunnableConfig). Booleans are
-    rejected explicitly because Python treats `bool` as `int`.
+    `None` means absent (FR-1085: resolution falls through to the
+    environment, then the default). Booleans are rejected explicitly because
+    Python treats `bool` as `int`.
     """
+    return _positive_int_or_none(value, "config.max_concurrency")
+
+
+def _positive_int_or_none(value: Any, source: str) -> int | None:
     if value is None:
         return None
     if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+        raise ValueError(f"Invalid {source} {value!r}: expected a positive integer")
+    return value
+
+
+# FR-1085: one resolved width for the managed run boundaries.
+DEFAULT_MAX_CONCURRENCY = 8
+MAX_CONCURRENCY_ENV = "YAMLGRAPH_MAX_CONCURRENCY"
+# Set by load_and_compile_async so run_graph_async recovers the graph value.
+GRAPH_WIDTH_ATTR = "_yamlgraph_max_concurrency"
+
+
+def _env_max_concurrency() -> int | None:
+    import os
+
+    raw = os.environ.get(MAX_CONCURRENCY_ENV)
+    if raw is None:
+        return None
+    try:
+        value = int(raw)
+    except ValueError:
+        value = 0
+    if value < 1:
         raise ValueError(
-            f"Invalid config.max_concurrency {value!r}: expected a positive integer"
+            f"{MAX_CONCURRENCY_ENV} must be a positive integer, got {raw!r}"
         )
     return value
+
+
+def resolve_max_concurrency(caller: Any, graph: Any) -> int:
+    """FR-1085: caller run value, then graph config, then environment, then 8."""
+    resolved = _positive_int_or_none(caller, "run config max_concurrency")
+    if resolved is None:
+        resolved = validate_max_concurrency(graph)
+    if resolved is None:
+        resolved = _env_max_concurrency()
+    return DEFAULT_MAX_CONCURRENCY if resolved is None else resolved
+
+
+def with_max_concurrency(config: dict[str, Any] | None, graph: Any) -> dict[str, Any]:
+    """Copy ``config`` with the resolved width; the caller's dict is untouched."""
+    resolved = dict(config or {})
+    resolved["max_concurrency"] = resolve_max_concurrency(
+        resolved.get("max_concurrency"), graph
+    )
+    return resolved
+
+
+def graph_width_of(app: Any) -> int | None:
+    """Graph width recorded on a compiled app by load_and_compile_async."""
+    return vars(app).get(GRAPH_WIDTH_ATTR) if hasattr(app, "__dict__") else None
 
 
 def validate_config(config: dict[str, Any]) -> None:

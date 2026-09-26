@@ -140,7 +140,7 @@ async def test_run_graph_async_executes_graph():
     assert result["output"] == "result"
     mock_app.ainvoke.assert_called_once_with(
         {"input": "test"},
-        {"configurable": {"thread_id": "t1"}},
+        {"configurable": {"thread_id": "t1"}, "max_concurrency": 8},
     )
 
 
@@ -576,7 +576,7 @@ async def test_run_graph_streaming_native_passes_config():
             )
         ]
 
-        assert captured_config == test_config
+        assert captured_config == {**test_config, "max_concurrency": 8}
 
 
 @pytest.mark.asyncio

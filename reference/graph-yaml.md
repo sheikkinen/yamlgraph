@@ -232,7 +232,7 @@ config:
   max_map_items: 100      # Default fan-out cap for map nodes (default: 100)
   max_tokens: 4096        # Default max output tokens for LLM calls (default: provider default)
   timeout: 120            # Global execution timeout in seconds (default: none)
-  max_concurrency: 4      # Cap on parallel map branches per run (default: LangGraph pool width)
+  max_concurrency: 4      # Cap on parallel branches per run (default: YAMLGRAPH_MAX_CONCURRENCY, else 8)
   tool_load_mode: strict  # Python tool loading policy: strict|warn (default: strict)
 ```
 
@@ -242,7 +242,7 @@ config:
 | `max_map_items` | `int` | `100` | Default fan-out cap for map nodes. Can be overridden per-node with `max_items`. An over-cap list raises unless the map's `on_overflow` (or `defaults.on_overflow`) is `truncate` (FR-939). |
 | `max_tokens` | `int` | provider default | Default max output tokens for LLM calls. Can be overridden per-node. |
 | `timeout` | `int` | none | Global execution timeout in seconds. Covers the entire graph run including interrupt loops. |
-| `max_concurrency` | `int` ≥ 1 | none | FR-984. Whole-invocation cap on how many parallel branches (every `map` node's `Send` tasks, and any parallel fan-out edges) run at once. Passed straight through as LangGraph `RunnableConfig["max_concurrency"]`; yamlgraph adds no scheduler. Absent → no key is passed and LangGraph's default thread-pool width applies. Booleans, strings, fractions, `0` and negatives fail at load. Distinct from `max_map_items`, which bounds how many items a map *has*, not how many run together. |
+| `max_concurrency` | `int` ≥ 1 | `8` | FR-984/FR-1085. Whole-invocation cap on how many parallel branches (every `map` node's `Send` tasks, and any parallel fan-out edges) run at once. Passed as LangGraph `RunnableConfig["max_concurrency"]`; yamlgraph adds no scheduler. Resolved per run in the order caller run value (or `--max-concurrency`) → this key → `YAMLGRAPH_MAX_CONCURRENCY` → `8`, so the width never follows the host's CPU count. Applies to CLI `graph run` (sync, `--async`, `--stream`), `invoke_graph`, `run_graph_async` and `run_graph_streaming_native`; a raw compiled `app.invoke`/`ainvoke` stays caller-owned. Booleans, strings, fractions, `0` and negatives fail at load; a bad caller or environment value raises `ValueError` naming its source before any node runs. Distinct from `max_map_items`, which bounds how many items a map *has*, not how many run together. |
 | `tool_load_mode` | `string` | `strict` | Python tool load policy: `strict` fails compilation on import/symbol errors, `warn` logs warnings and compiles with a partial runtime tool registry. |
 
 **CLI overrides:**

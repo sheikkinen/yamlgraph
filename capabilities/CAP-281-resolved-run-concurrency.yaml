@@ -1,0 +1,35 @@
+id: CAP-281
+name: Resolved Run Concurrency
+description: >
+  FR-1085: one resolver sets LangGraph's `max_concurrency` for every run
+  through the six managed boundaries (CLI sync, `--async`, `--stream`,
+  `invoke_graph`, `run_graph_async`, `run_graph_streaming_native`), so the
+  number of branches in flight never depends on the host's CPU count.
+  Raw compiled `app.invoke`/`ainvoke` stays caller-owned.
+modules:
+  - yamlgraph/utils/validators.py
+  - yamlgraph/cli/graph_run_helpers.py
+  - yamlgraph/compile/graph_loader.py
+  - yamlgraph/executor_async.py
+  - yamlgraph/observability/otel.py
+requirements:
+  - id: REQ-YG-698
+    description: >
+      The width is resolved in the order caller run value (or
+      `--max-concurrency`) → graph `config.max_concurrency` →
+      `YAMLGRAPH_MAX_CONCURRENCY` → built-in 8. Every level must be a
+      positive integer; a bad caller or environment value raises
+      `ValueError` naming its source and value before any node runs. The
+      resolver works on a copy of the caller's run config, keeping every
+      other field. `load_and_compile_async` records the graph width on the
+      compiled app for `run_graph_async`; an app without it resolves
+      caller → environment → 8.
+    modules:
+      - yamlgraph/utils/validators.py
+      - yamlgraph/cli/graph_run_helpers.py
+      - yamlgraph/compile/graph_loader.py
+      - yamlgraph/executor_async.py
+      - yamlgraph/observability/otel.py
+      - tests/unit/test_fr1085_default_max_concurrency.py
+      - tests/unit/test_fr984_map_max_concurrency.py
+fr: FR-1085
