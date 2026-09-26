@@ -39,24 +39,27 @@ _emit_success_output = _graph_run_helpers._emit_success_output
 _handle_optional_exports = _graph_run_helpers._handle_optional_exports
 
 
-def _run_streaming(graph_path: str, initial_state: dict, config: dict) -> None:
-    """Execute graph in streaming mode, printing tokens to stdout (FR-633)."""
+def _run_streaming(graph_path: str, initial_state: dict, config: dict) -> bool:
+    """Stream tokens to stdout (FR-633); return True if an error event arrived (FR-1098)."""
     import asyncio
 
     from yamlgraph.models.streaming import StreamEvent
 
-    async def _stream():
+    async def _stream() -> bool:
+        saw_error = False
         async for item in run_graph_streaming_native(
             graph_path, initial_state, config=config
         ):
             if isinstance(item, StreamEvent):
                 if item.type == "error":
                     print(f"\n❌ {item.error}", file=sys.stderr)
+                    saw_error = True
             else:
                 print(item, end="", flush=True)
         print()  # Final newline
+        return saw_error
 
-    asyncio.run(_stream())
+    return asyncio.run(_stream())
 
 
 def _run_lint_gate(graph_path: Path, *, json_mode: bool) -> None:
@@ -209,7 +212,8 @@ def cmd_graph_run(args: Namespace) -> None:
 
         # FR-633: Streaming mode — bypass invoke, use native streaming
         if stream_mode:
-            _run_streaming(str(graph_path), initial_state, config)
+            if _run_streaming(str(graph_path), initial_state, config):
+                sys.exit(1)
             return
 
         use_async = getattr(args, "use_async", False)
