@@ -40,6 +40,9 @@ def _setup_graph_loader_mocks(mock_load_config, mock_compile, mock_get_cp):
     mock_get_cp.return_value = None
     mock_app = MagicMock()
     mock_app.invoke.return_value = {"result": "ok"}
+    mock_app.get_input_jsonschema.return_value = {
+        "properties": dict.fromkeys(("shared", "i", "f", "c", "topic"), {})
+    }
     mock_graph.compile.return_value = mock_app
     return mock_app
 
