@@ -128,7 +128,7 @@ AC-02–AC-05, AC-07: done (`test_fr1104_ci_matrix.py` + migrated pins,
 32 passed; fast suite 7073 passed on 3.13 aside from the `ramp.sh` PATH
 case above). AC-06: pending CI. AC-08: operator, pending. AC-09:
 fragment `changelog/unreleased/fr-1104-ci-dedup-py314.md`; diary
-`docs/diary/diary-2026-09-26-the-context-line.md`.
+`docs/diary/diary-2026-09-26-reflection-fr-1104-the-context-line.md`.
 
 Deviations:
 - Changelog fragment carries no `req:` — REQ-YG-277 belongs to CAP-127;
