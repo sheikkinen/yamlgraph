@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved with revisions ([judgement](FR-1097-graph-run-completed-errors-exit-3.judgement.md)); R-1 and R-2 folded 2026-09-26; in enforcement.
+**Status:** Approved with revisions ([judgement](FR-1097-graph-run-completed-errors-exit-3.judgement.md)); R-1 and R-2 folded 2026-09-26; implemented 2026-09-26 (see [Implementation record](#implementation-record)).
 **Effort:** 1 day
 **Requested:** 2026-09-26
 **First consumer / first event:** any script or CI job running
@@ -252,21 +252,78 @@ modes unless stated. Tests are committed RED before production changes and
 GREEN after, each with `@pytest.mark.req("REQ-YG-700")` (CAP-283).
 The judgement's revised AC-01..AC-15 are adopted verbatim.
 
-- [ ] AC-01: A two-item map with one success, one non-tolerated Python sub-node failure, and integer `min_success: 1` completes, retains exactly one current-invocation `PipelineError` named `_map_<name>_sub`, emits normal output and exports, and exits 3; absent `min_success` raises `MapCompletenessError`, exits 1, and emits no tally line.
-- [ ] AC-02: P1 (mocked LLM call failure without `on_error`) and P5 (missing LLM `requires:` key) each exit 3 in text and JSON modes; stderr names the node and message; JSON reports `_error_count: 1`.
-- [ ] AC-03: One graph with a failing LLM `on_error: skip` node and a failing Python `on_error: skip` node exits 0, reports `_error_count: 0` and `_tolerated_error_count: 2`, and retains exactly two entries. Guard and verify `on_fail: warn` each exit 0 and increment only the tolerated count.
-- [ ] AC-04: A graph with one P5 error and one Python skip failure exits 3, reports counts 1 and 1, and lists only the P5 entry in stderr details.
-- [ ] AC-05: Top-level Python default/fail and LLM `on_error: fail` exceptions exit 1 with no tally line; a configured export failure exits 1.
-- [ ] AC-06: JSON interrupt exits 1; a text interrupt resumed to a P5 completion exits 3; ending the text interrupt prompt with empty input exits 0.
-- [ ] AC-07: For a completed P5 error with configured export, `--export`, and `--export-state`, stdout and both files exist before exit 3. Stdout JSON contains both tally keys; neither export contains either key.
-- [ ] AC-08: With route logging enabled, `run_end.error_count` and `run_end.tolerated_error_count` equal the JSON projection for untolerated, tolerated, mixed, and clean completed runs.
-- [ ] AC-09: One P5 error followed by one Python skip failure leaves exactly two `state.errors` entries, proving that `build_skip_error_state` returns only its delta.
-- [ ] AC-10: Imported and checkpoint-retained historical errors do not affect this invocation's status: clean second runs exit 0, and second runs adding one P5 error exit 3 with `_error_count: 1`. Malformed initial-state entries exit 1 before node execution and identify their index.
-- [ ] AC-11: A valid serialized `PipelineError` dictionary created during this invocation is normalized and tallied; malformed current-run entries with a missing `node` and an unknown `type` each exit 1 before success output and exports, identify the final-list index, and emit no completed-run tally line.
-- [ ] AC-12: The operator-selected LLM/copilot pre-guard halt policy is asserted in text and JSON modes; the raised side-effect/verify `GuardHaltError` path remains exit 1.
-- [ ] AC-13: Caller-census rows 19, 24, 25, 27, and 28 explicitly report rc 3 and continue to the unchanged artifact verdict. Shell assertions prove pass with a valid artifact and exit 65 without one. No other caller is edited.
-- [ ] AC-14: `reference/getting-started.md` documents non-stream 0/1/3, skip/warn tolerance, the selected guard-halt rule, invocation-only history, malformed-error behavior, both JSON keys, and the absence of exit 3 in message streaming.
-- [ ] AC-15: A capability file defines the new requirement; all new tests carry its `@pytest.mark.req` marker; RED and GREEN commits are separate; strict requirement coverage and the full unit suite pass; changed historical expectations are listed in the FR implementation record; the changelog fragment and diary entry with **Seed:** are committed.
+- [x] AC-01: A two-item map with one success, one non-tolerated Python sub-node failure, and integer `min_success: 1` completes, retains exactly one current-invocation `PipelineError` named `_map_<name>_sub`, emits normal output and exports, and exits 3; absent `min_success` raises `MapCompletenessError`, exits 1, and emits no tally line.
+- [x] AC-02: P1 (mocked LLM call failure without `on_error`) and P5 (missing LLM `requires:` key) each exit 3 in text and JSON modes; stderr names the node and message; JSON reports `_error_count: 1`.
+- [x] AC-03: One graph with a failing LLM `on_error: skip` node and a failing Python `on_error: skip` node exits 0, reports `_error_count: 0` and `_tolerated_error_count: 2`, and retains exactly two entries. Guard and verify `on_fail: warn` each exit 0 and increment only the tolerated count.
+- [x] AC-04: A graph with one P5 error and one Python skip failure exits 3, reports counts 1 and 1, and lists only the P5 entry in stderr details.
+- [x] AC-05: Top-level Python default/fail and LLM `on_error: fail` exceptions exit 1 with no tally line; a configured export failure exits 1.
+- [x] AC-06: JSON interrupt exits 1; a text interrupt resumed to a P5 completion exits 3; ending the text interrupt prompt with empty input exits 0.
+- [x] AC-07: For a completed P5 error with configured export, `--export`, and `--export-state`, stdout and both files exist before exit 3. Stdout JSON contains both tally keys; neither export contains either key.
+- [x] AC-08: With route logging enabled, `run_end.error_count` and `run_end.tolerated_error_count` equal the JSON projection for untolerated, tolerated, mixed, and clean completed runs.
+- [x] AC-09: One P5 error followed by one Python skip failure leaves exactly two `state.errors` entries, proving that `build_skip_error_state` returns only its delta.
+- [x] AC-10: Imported and checkpoint-retained historical errors do not affect this invocation's status: clean second runs exit 0, and second runs adding one P5 error exit 3 with `_error_count: 1`. Malformed initial-state entries exit 1 before node execution and identify their index.
+- [x] AC-11: A valid serialized `PipelineError` dictionary created during this invocation is normalized and tallied; malformed current-run entries with a missing `node` and an unknown `type` each exit 1 before success output and exports, identify the final-list index, and emit no completed-run tally line.
+- [x] AC-12: The operator-selected LLM/copilot pre-guard halt policy is asserted in text and JSON modes; the raised side-effect/verify `GuardHaltError` path remains exit 1.
+- [x] AC-13: Caller-census rows 19, 24, 25, 27, and 28 explicitly report rc 3 and continue to the unchanged artifact verdict. Shell assertions prove pass with a valid artifact and exit 65 without one. No other caller is edited.
+- [x] AC-14: `reference/getting-started.md` documents non-stream 0/1/3, skip/warn tolerance, the selected guard-halt rule, invocation-only history, malformed-error behavior, both JSON keys, and the absence of exit 3 in message streaming.
+- [x] AC-15: A capability file defines the new requirement; all new tests carry its `@pytest.mark.req` marker; RED and GREEN commits are separate; strict requirement coverage and the full unit suite pass; changed historical expectations are listed in the FR implementation record; the changelog fragment and diary entry with **Seed:** are committed.
+
+## Implementation record
+
+Branch `feat/fr1097-1098-exit-status` (worktree), shared with FR-1098.
+
+- **RED** `test(cli): FR-1097 RED` — `tests/unit/test_fr1097_completed_errors_exit.py`
+  (34 CLI witnesses, AC-01..AC-12) and `tests/unit/test_fr1097_adapter_rc3.py`
+  (10 shell witnesses, AC-13); CAP-283 / REQ-YG-700. At RED, 27 CLI witnesses
+  failed on exit code, missing tally keys or string-serialized errors, and all
+  10 shell witnesses failed only on the missing rc-3 line (the unchanged
+  artifact verdicts already held).
+- **GREEN** changes:
+  - `PipelineError.tolerated` (`models/schemas.py`); set at LLM skip
+    (`llm_execution.py`), race skip (`race_node.py`), router race when
+    `on_error: skip` (`router_race_node.py`), `build_skip_error_state`,
+    `_build_guard_violation` for `on_fail` skip/warn (not for an invalid guard
+    expression, which halts), and verify warn (`guard_runtime.py`).
+  - `build_skip_error_state` returns only its delta; the `state` parameter is
+    removed from it and its five callers (`tools/agent.py`, `tools/nodes.py`,
+    `tools/python_tool.py`).
+  - Tally in `cli/graph_run_helpers.py` (`ErrorTally`,
+    `normalize_initial_errors`, `error_baseline`, `compute_tally`,
+    `report_tally`), wired into `cmd_graph_run` in the order of Proposed
+    Solution item 6. `RouteRun` gains `error_count` / `tolerated_error_count`,
+    written on `run_end` only when set.
+  - `scripts/author.sh`, `judge.sh`, `research.sh`, `review.sh` print
+    `<script>.sh: graph completed with errors (rc=3)` to stderr;
+    `outsider.sh` writes the same line to its run log. Artifact verdicts are
+    unchanged (outsider's unchanged verdict is exit 1 / `NO VALID REPORT`,
+    not 65). **Needs explicit human review (C-5).**
+  - `reference/getting-started.md` "Exit Status (FR-1097)".
+- **Changed historical expectations:** none. The full unit suite (6990 fast +
+  61 slow) passed without editing an existing test.
+
+### Deviations
+
+1. **Export serialization (out of the frozen text, required by AC-10).** The
+   RED run's raw `--json` output showed `state.errors` serialized as `repr`
+   strings (`"type=<ErrorType.GUARD_ERROR: ...> message=..."`):
+   `storage/export.py::_serialize_state` passed lists through raw and
+   `json.dump(default=str)` stringified each model. A real
+   `--export-state` → `--import-state` chain after a lossy run would then fail
+   item 3's validation and exit 1, contradicting AC-10's "clean second runs
+   exit 0". `_serialize_state` now serializes list/tuple values through
+   `_serialize_object`, so model entries (errors, and LangChain messages)
+   export as dicts. Witness: `test_ac10_real_export_state_chain_does_not_count`.
+   Consequence: export files written before this change that contain errors
+   are rejected by `--import-state` with `invalid initial state errors[i]`
+   (exit 1). No tally key is added to any export.
+2. **No new module.** The tally lives in `cli/graph_run_helpers.py` (372
+   lines) instead of a new `cli/error_tally.py`: a new module pushed the
+   FR-335 module-map budget test to 294 > 293, and widening that gate is not
+   authorized here.
+3. **Test environment.** `tests/unit/test_ramp_installer.py::test_wrapper_delegates`
+   fails when the shell's `python3` resolves outside `.venv` (the wrapper
+   execs `python3`); the suite was run with `.venv/bin` first on `PATH`. Not
+   caused by this change; recorded, not fixed.
 
 ## Human decisions
 

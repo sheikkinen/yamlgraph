@@ -7,7 +7,7 @@ description: >
   `run_end` route-log event. Adapter wrappers name rc 3 and keep their
   artifact verdict.
 modules:
-  - yamlgraph/cli/error_tally.py
+  - yamlgraph/cli/graph_run_helpers.py
   - yamlgraph/cli/graph_commands.py
   - yamlgraph/models/schemas.py
   - yamlgraph/utils/route_log.py
@@ -23,7 +23,7 @@ requirements:
       wrappers print `graph completed with errors (rc=3)` and keep their
       artifact-based verdict.
     modules:
-      - yamlgraph/cli/error_tally.py
+      - yamlgraph/cli/graph_run_helpers.py
       - yamlgraph/cli/graph_commands.py
       - tests/unit/test_fr1097_completed_errors_exit.py
       - tests/unit/test_fr1097_adapter_rc3.py

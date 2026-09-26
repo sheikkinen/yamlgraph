@@ -231,7 +231,6 @@ def build_skip_error_state(
     node_name: str,
     state_key: str,
     error_message: str,
-    state: dict,
 ) -> dict:
     """Build state update dict for skip-on-error pattern.
 
@@ -241,21 +240,20 @@ def build_skip_error_state(
         node_name: Name of the node
         state_key: Key to store (None) output under
         error_message: Error message to record
-        state: Current state (to get existing errors)
 
     Returns:
-        State update dict with error recorded
+        State update dict with only the new, tolerated error: ``errors`` uses
+        an add-reducer, so the delta is appended to the existing list (FR-1097).
     """
-    errors = list(state.get("errors") or [])
-    errors.append(
-        PipelineError(
-            node=node_name,
-            type=ErrorType.UNKNOWN_ERROR,
-            message=error_message,
-        )
-    )
     return {
         state_key: None,
         "current_step": node_name,
-        "errors": errors,
+        "errors": [
+            PipelineError(
+                node=node_name,
+                type=ErrorType.UNKNOWN_ERROR,
+                message=error_message,
+                tolerated=True,
+            )
+        ],
     }

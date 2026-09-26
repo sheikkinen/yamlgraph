@@ -109,7 +109,6 @@ def create_tool_node(
                 node_name=node_name,
                 state_key=state_key,
                 error_message=f"Tool node '{node_name}' skipped by pre-guard",
-                state=state,
             )
 
         # Resolve variables from state
@@ -127,7 +126,6 @@ def create_tool_node(
                     node_name=node_name,
                     state_key=state_key,
                     error_message=result.error or "Tool execution failed",
-                    state=state,
                 )
             else:
                 # on_error == "fail" - raise exception

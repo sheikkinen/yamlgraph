@@ -141,7 +141,11 @@ def handle_error(
             "_loop_counts": loop_counts,
             "_skipped": True,
             "_skip_reason": "error",
-            "errors": [PipelineError.from_exception(error, node=node_name)],
+            "errors": [
+                PipelineError.from_exception(error, node=node_name).model_copy(
+                    update={"tolerated": True}
+                )
+            ],
         }
 
     if cfg.on_error == ErrorHandler.FAIL:

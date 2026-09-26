@@ -64,6 +64,7 @@ def _build_guard_violation(
     actual: Any,
     *,
     message_override: str | None = None,
+    tolerable: bool = True,
 ) -> GuardViolation:
     check = str(rule.get("check", ""))
     on_fail = str(rule.get("on_fail", "halt"))
@@ -81,6 +82,7 @@ def _build_guard_violation(
         check=check,
         actual=repr(actual),
         on_fail=on_fail,
+        tolerated=tolerable and on_fail in ("skip", "warn"),
     )
 
 
@@ -105,6 +107,7 @@ def evaluate_guards_once(
                 rule=rule,
                 actual=f"expression_error:{exc}",
                 message_override=f"Invalid guard expression: {exc}",
+                tolerable=False,
             )
             return GuardDecision(
                 action="halt",
@@ -235,6 +238,7 @@ def create_verify_node(rules: list[Any]) -> Callable[[dict[str, Any]], dict[str,
                     node="__verify__",
                     type=ErrorType.GUARD_ERROR,
                     message=warning.message,
+                    tolerated=True,
                 )
             )
         if decision.action == "halt":

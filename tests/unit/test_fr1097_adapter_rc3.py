@@ -176,6 +176,10 @@ def _run_outsider(tmp_path: Path, *, with_report: bool):
     env = {k: v for k, v in os.environ.items() if k != "OUTSIDER_EXECUTION"}
     env["PATH"] = f"{b}:{env['PATH']}"
     env["OUTSIDER_WORKDIR"] = str(work)
+    # Own TMPDIR: the FR-995 leak check globs the shared tempdir for outsider-*/.
+    child_tmp = tmp_path / "childtmp"
+    child_tmp.mkdir()
+    env["TMPDIR"] = str(child_tmp)
     proc = subprocess.run(
         ["bash", str(OUTSIDER), "--input", str(src)],
         capture_output=True,

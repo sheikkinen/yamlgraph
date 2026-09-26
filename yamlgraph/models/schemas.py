@@ -41,6 +41,10 @@ class PipelineError(BaseModel):
     details: dict[str, Any] = Field(
         default_factory=dict, description="Additional error context"
     )
+    tolerated: bool = Field(
+        default=False,
+        description="The author's configuration chose to continue past this error (FR-1097)",
+    )
 
     @classmethod
     def from_exception(

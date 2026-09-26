@@ -71,6 +71,9 @@ fi
 RESEARCH_EXECUTION=1 "${YG[@]}" graph run "$GRAPH" --var "brief_path=$BRIEF_PATH" \
   ${OVERRIDE[@]+"${OVERRIDE[@]}"} --full
 GRAPH_RC=$?
+# FR-1097: rc 3 = graph completed with untolerated errors; the artifact
+# contract below still decides the verdict.
+case "$GRAPH_RC" in 3) echo "research.sh: graph completed with errors (rc=3)" >&2;; esac
 
 # Artifact contract: verify by schema/shape, never exit code (AC-08).
 [ -s "$ARTIFACT" ] || fail "contract violated (graph rc=$GRAPH_RC): $ARTIFACT missing or empty — tmp/draft-alternatives.md is the proof of research" 65
