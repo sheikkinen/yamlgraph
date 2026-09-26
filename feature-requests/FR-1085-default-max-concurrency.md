@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1085-default-max-concurrency.judgement.md)); R-1–R-4 folded 2026-09-26. Authority active (2026-09-26): C-1 satisfied (R-1–R-4 folded); human review recorded — operator instruction 'proceed with all fr changes' (2026-09-26).
+**Status:** Implemented (2026-09-26, branch `feat/fr1085-max-concurrency`) — see "Implementation record". Judged — APPROVED WITH REVISIONS ([judgement](FR-1085-default-max-concurrency.judgement.md)); R-1–R-4 folded 2026-09-26. Authority active (2026-09-26): C-1 satisfied (R-1–R-4 folded); human review recorded — operator instruction 'proceed with all fr changes' (2026-09-26).
 **Human decision (2026-09-25, operator):** one fixed built-in width of 8 for every provider and managed entry point, re-confirming the FR-1068 / PR #691 answer. Accepted risks: a provider quota below 8 may return 429s until overridden; on a 2-CPU host the sync width rises from 6 to 8. See "Human decisions".
 **Effort:** 0.5 days
 **Requested:** 2026-09-25
@@ -175,44 +175,44 @@ What the evidence does not show:
 
 ## Acceptance Criteria
 
-- [ ] AC-01 (RED): a generated 40-item map fixture records peak in-flight
+- [x] AC-01 (RED): a generated 40-item map fixture records peak in-flight
   branches. On current code, CLI sync, CLI `--async`, `run_graph_async` and
   `invoke_graph` each exceed 8 when the interpreter's ThreadPoolExecutor CPU
   source is patched to 64; the test records each measured peak. Python
   3.11/3.12 patch `os.cpu_count`; Python 3.13 patches `os.process_cpu_count`.
-- [ ] AC-02 (GREEN): with no configured width, resolver tests select exactly
+- [x] AC-02 (GREEN): with no configured width, resolver tests select exactly
   `8`, and the same behavioural fixture records `1 <= peak <= 8` through CLI
   sync, CLI `--async`, CLI `--stream`, `invoke_graph`, `run_graph_async` and
   `run_graph_streaming_native`, at patched CPU counts 2 and 64.
-- [ ] AC-03: precedence tests populate all four levels with conflicting
+- [x] AC-03: precedence tests populate all four levels with conflicting
   values and assert exact resolution of caller over graph over
   `YAMLGRAPH_MAX_CONCURRENCY` over built-in `8`; the CLI flag is the CLI
   caller value. Behavioural cases record a peak no greater than the selected
   value.
-- [ ] AC-04: a graph with `config.max_concurrency: 3` resolves to 3 and
+- [x] AC-04: a graph with `config.max_concurrency: 3` resolves to 3 and
   records `peak <= 3` through `run_graph_async` and `invoke_graph` when
   caller width is absent; a caller width of 2 resolves to 2 and records
   `peak <= 2`.
-- [ ] AC-05: environment values `""`, `abc`, `0`, `-1`, `2.5` and `true`,
+- [x] AC-05: environment values `""`, `abc`, `0`, `-1`, `2.5` and `true`,
   and caller values `True`, `False`, `"4"`, `2.5`, `0` and `-1`, raise
   `ValueError` naming the source and offending value before any node runs.
   Positive integers from caller and environment are accepted.
-- [ ] AC-06: the FR header records built-in width 8 and accepts both
+- [x] AC-06: the FR header records built-in width 8 and accepts both
   documented risks: provider quotas below 8 may 429 until overridden, and a
   2-CPU sync host can rise from width 6 to 8. No undecided-default or
   no-global-default branch remains.
-- [ ] AC-07: each programmatic boundary preserves unrelated
+- [x] AC-07: each programmatic boundary preserves unrelated
   `RunnableConfig` fields and does not mutate the caller-owned mapping. A
   `run_graph_async` app lacking graph-width metadata still follows caller →
   environment → built-in 8.
-- [ ] AC-08: `reference/graph-yaml.md` and
+- [x] AC-08: `reference/graph-yaml.md` and
   `reference/development-operations.md` state the exact precedence, fixed
   default 8, six managed boundaries, validation behaviour, and explicit
   exclusion of raw compiled `app.invoke/ainvoke`.
-- [ ] AC-09: a new requirement in a capability file covers every production
+- [x] AC-09: a new requirement in a capability file covers every production
   branch; every test is tagged; `python scripts/req_coverage.py --strict`
   passes.
-- [ ] AC-10: the changelog fragment, FR implementation record and diary
+- [x] AC-10: the changelog fragment, FR implementation record and diary
   entry describe the narrowed managed-boundary contract and cite the
   behavioural peak witnesses.
 
@@ -303,3 +303,64 @@ through `scripts/author.sh`.
 - Evidence: [FR-985](FR-985-census-coverage-floor-and-population-header.md)
 - Plan: [docs/issues-2026-09-24.md](../docs/issues-2026-09-24.md) §2 D6, §7 D
 - Composes with: [FR-1079](FR-1079-retry-ownership.md)
+
+## Implementation record
+
+Commits on `feat/fr1085-max-concurrency`: RED `887b354c`, GREEN
+`6163d31c`, record (this commit).
+
+- **D-1** `resolve_max_concurrency`, `with_max_concurrency`,
+  `graph_width_of` in
+  [validators.py](../yamlgraph/utils/validators.py), beside FR-984's
+  `validate_max_concurrency`, which now also validates the graph level.
+  Placed there, not in a new module, so the FR-335 module-map line budget
+  is untouched. An empty-but-set `YAMLGRAPH_MAX_CONCURRENCY` is an error.
+- **D-2** `_build_run_config` (CLI sync, `--async`, `--stream`),
+  `invoke_graph`, `run_graph_async`, `run_graph_streaming_native`. Each
+  passes a copy of the caller's config with `max_concurrency` set; scheduling
+  stays with LangGraph (C-2).
+- **D-3** `load_and_compile_async` sets `_yamlgraph_max_concurrency` on the
+  compiled app; `graph_width_of` reads the instance `__dict__` so an app
+  without it (or a mock) resolves caller → environment → 8.
+- **D-4** [test_fr1085_default_max_concurrency.py](../tests/unit/test_fr1085_default_max_concurrency.py):
+  69 tests. The CPU seam patches `os.process_cpu_count` on 3.13+ and
+  `os.cpu_count` on 3.11/3.12.
+- **D-5** [graph-yaml.md](../reference/graph-yaml.md) `max_concurrency`
+  row and [development-operations.md](../reference/development-operations.md)
+  Key Environment Variables.
+- **D-6** CAP-281 / REQ-YG-698; changelog
+  `changelog/unreleased/fr-1085-default-max-concurrency.md`; diary
+  `docs/diary/diary-2026-09-26-the-mock-width.md`.
+
+**Behavioural peaks** (40-item map, 50 ms sync Python worker, no width
+set):
+
+| Boundary | RED, 64 CPUs | GREEN, 64 CPUs | GREEN, 2 CPUs |
+|---|---|---|---|
+| CLI sync | 32 | 8 | 8 |
+| CLI `--async` | 32 | 8 | 6 |
+| CLI `--stream` | 32 | 8 | 6 |
+| `invoke_graph` | 32 | 8 | 8 |
+| `run_graph_async` | 32 | 8 | 6 |
+| `run_graph_streaming_native` | 32 | 8 | 6 |
+
+AC-01 names four RED boundaries; all six measured 32. The 2-CPU async
+peaks of 6 are not the resolver: the fixture's worker is a sync function,
+which LangGraph runs on asyncio's default executor, itself sized
+`min(32, cpus + 4)`. Width 8 is a cap, not a floor.
+
+**Deviations and test changes.**
+- FR-984's `test_absent_everywhere_omits_key` became
+  `test_absent_everywhere_resolves_default` (asserts 8; tagged REQ-YG-698).
+- 17 existing tests passed a bare `MagicMock` as the graph config. Its
+  auto-attribute `max_concurrency` used to flow unchecked into the CLI run
+  config; the resolver now rejects it, so those mocks declare
+  `max_concurrency=None`. Exact-config assertions in
+  `test_invoke_graph.py`, `test_async_executor.py` and
+  `test_otel_observability.py` now include `"max_concurrency": 8`.
+- The RED helper `_run_cli` turned a nonzero CLI exit into
+  `AssertionError`; it now re-raises the `SystemExit`, so AC-05 sees the
+  CLI's exit 1 on a bad environment value. No assertion was weakened.
+- `invoke_graph` imports the resolver inside the function and its
+  docstring was shortened to keep `graph_loader.py` at the 450-line gate.
+  The module sits at the cap; the next change there needs a split.
