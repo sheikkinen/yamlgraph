@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug (demo)
-**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1087-safety-guards-demo-repair.judgement.md)); R-1–R-4 folded 2026-09-26. Authority active (2026-09-26): human review recorded — operator instruction 'proceed with all fr changes' (2026-09-26). Not yet implemented.
+**Status:** Judged — APPROVED WITH REVISIONS ([judgement](FR-1087-safety-guards-demo-repair.judgement.md)); R-1–R-4 folded 2026-09-26. Authority active (2026-09-26): human review recorded — operator instruction 'proceed with all fr changes' (2026-09-26). **Completed 2026-09-26** — see [Implementation](#implementation-2026-09-26).
 **Authoring brief:** [authoring-briefs/fr-1087-safety-guards-demo-repair-brief.md](authoring-briefs/fr-1087-safety-guards-demo-repair-brief.md)
 **Effort:** 0.25 days
 **Requested:** 2026-09-25
@@ -107,29 +107,29 @@ once. The README's lint and run commands describe what actually happens.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `feature-requests/authoring-briefs/fr-1087-safety-guards-demo-repair-brief.md`
+- [x] AC-01: `feature-requests/authoring-briefs/fr-1087-safety-guards-demo-repair-brief.md`
   is committed, cited by FR-1087, names the frozen artifact boundary, and is
   the task passed to `scripts/author.sh`.
-- [ ] AC-02: the complete `graph.yaml` diff changes only `to: [revise, expand]`
+- [x] AC-02: the complete `graph.yaml` diff changes only `to: [revise, expand]`
   to `to: revise` on the `review.score < 0.8` edge.
-- [ ] AC-03: the authoring report records the exact command and successful
+- [x] AC-03: the authoring report records the exact command and successful
   outcome for `load_graph_config` + `compile_graph` + `.compile()` on
   `examples/demos/safety-guards/graph.yaml`.
-- [ ] AC-04: `tests/unit/test_safety_guards_demo.py` deterministically drives
+- [x] AC-04: `tests/unit/test_safety_guards_demo.py` deterministically drives
   review scores below and then at or above `0.8` and asserts the exact node
   sequence `draft, review, revise, review, expand`.
-- [ ] AC-05: the same deterministic witness asserts `revise` runs once,
+- [x] AC-05: the same deterministic witness asserts `revise` runs once,
   `expand` runs exactly once, and no `expand` visit precedes the last
   `review`.
-- [ ] AC-06: the authoring report records the exact lint command and output,
+- [x] AC-06: the authoring report records the exact lint command and output,
   identifies whether the optional z3 check was available, and the README no
   longer promises a clean lint; it documents W803 when that check is
   available.
-- [ ] AC-07: the documented CLI run is attempted with the README variables
+- [x] AC-07: the documented CLI run is attempted with the README variables
   and its exact command, node sequence, and outcome are recorded; if
   credentials or a dependency block it, the report records the exact blocker
   and does not claim success.
-- [ ] AC-08: `tmp/draft-authoring-report.md` contains the required
+- [x] AC-08: `tmp/draft-authoring-report.md` contains the required
   `Artifacts`, `Precedent`, `Validation`, `Repairs`, and `Blocked validation`
   headings and identifies the FR-1087 brief and authored paths.
 - [ ] AC-09: one `changelog/unreleased/` fragment names FR-1087; FR-1087
@@ -166,6 +166,48 @@ changes (C-5).
 - **2026-09-26, operator:** reviewed the advisory judgement and instructed
   "proceed with all fr changes". R-1–R-4 are folded as written and
   authority is active under the frozen scope above.
+
+## Implementation (2026-09-26)
+
+- **Route (AC-01, C-2).** `scripts/author.sh feature-requests/authoring-briefs/fr-1087-safety-guards-demo-repair-brief.md`
+  from the `feat/fr1087-1088-demo-repairs` worktree, exit 0, report verified
+  (all five headings; authored path `examples/demos/safety-guards/graph.yaml`).
+  First attempt stopped at the brief pre-flight: it parsed the
+  backslash-continued README command as the executable `--var`. The brief's
+  command was put on one line (same command); no other brief change.
+- **Graph diff (AC-02, C-3).** Exactly `to: [revise, expand]` → `to: revise`
+  on the `review.score < 0.8` edge. Author precedent cited:
+  `examples/demos/reflexion/graph.yaml` (split score conditions).
+- **Compile (AC-03).** `load_graph_config` + `compile_graph` + `.compile()`
+  printed `compiled_type=CompiledStateGraph`, exit 0.
+- **Lint (AC-06).** `yamlgraph graph lint examples/demos/safety-guards/graph.yaml`:
+  `Found 0 error(s) and 1 warning(s)`, the W803 condition gap at `review`.
+  z3 was available (W803 is emitted only by the z3 check). README line 9
+  now says 0 errors plus W803 when z3 is available.
+- **Deterministic witness (AC-04, AC-05, C-4).**
+  `tests/unit/test_safety_guards_demo.py` patches
+  `llm_nodes.execute_prompt`, scripts review scores 0.3 then 0.9, and reads
+  top-level node updates from `graph.stream(stream_mode="updates")`, counting
+  the map's per-item updates as one `expand` visit. RED at HEAD: 2 failed
+  with the `edge_compiler.py:38` fan-out `ValueError`. GREEN: 2 passed.
+- **Live run (AC-07).** README command attempted with `openai/gpt-4o`.
+  Sequence `draft, review` → route `review.score >= 0.8` → `expand`, then
+  exit 1: `Map 'over' must resolve to list, got str`. The CLI passes
+  `--var topics='[...]'` as a string, so the map cannot fan out. Not fixed:
+  the Out of scope section reserves runtime findings for the report, and
+  C-5 forbids state-schema and runtime changes. The high-score edge was
+  taken first, so the live run did not exercise the repaired edge; the
+  deterministic witness does.
+- **Demo proof.** The `demo-proof-check` hook requires a successful
+  `demo-output.log` for a changed demo. The committed
+  `examples/demos/safety-guards/demo-output.log` is from this `graph.yaml`,
+  run with the README variables in a YAML var file so `topics` arrives as a
+  list: `yamlgraph graph run examples/demos/safety-guards/graph.yaml --var-file <topic + topics list> --full`,
+  exit 0. Sequence `draft, review` → `review.score >= 0.8` → `expand`
+  (fan-out 3). The README's `--var topics='[...]'` form still fails as
+  above; fixing the README command is outside D-3.
+- **Report (AC-08).** `tmp/draft-authoring-report.md` stays local, as
+  doctrine requires; the commands and outcomes above are copied from it.
 
 ## Alternatives Considered
 

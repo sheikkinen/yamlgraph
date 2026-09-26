@@ -79,7 +79,7 @@ edges:
 
   # Cycle: review → revise → review (loop-guarded below)
   - from: review
-    to: [revise, expand]
+    to: revise
     condition: "review.score < 0.8"
 
   - from: review

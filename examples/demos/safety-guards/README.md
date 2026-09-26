@@ -6,7 +6,8 @@ against unbounded execution: runaway loops, fan-out explosions, and stack overfl
 ## Quick Start
 
 ```bash
-# Lint — should pass clean
+# Lint — 0 errors; reports W803 (condition gap at 'review' when
+# review.score is unset) when the optional z3 condition check is available
 yamlgraph graph lint examples/demos/safety-guards/graph.yaml
 
 # Run
