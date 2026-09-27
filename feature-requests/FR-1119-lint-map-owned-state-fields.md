@@ -2,7 +2,7 @@
 
 **Priority:** LOW
 **Type:** Bug
-**Status:** Approved with revisions (folded 2026-09-27)
+**Status:** Implemented (2026-09-27)
 **Effort:** 0.5 day
 **Requested:** 2026-09-27
 **First consumer / first event:** `yamlgraph graph lint` on the
@@ -86,15 +86,15 @@ through `scripts/author.sh` (one-line brief). No other graph changes.
 
 Adopted verbatim from the judgement's revised criteria.
 
-- [ ] AC-01: A graph with a map node that reads `{state._map_verdict.<map>.dispatch}` without declaring `_map_verdict` produces no E007.
-- [ ] AC-02: Separate fixtures reading the default `<collect>_failures` field and an explicit `failures:` field without declaring them produce no E007.
-- [ ] AC-03: A map graph may reference `_map_accounting` and `_map_open` without E007 because both are fields created by the state builder.
-- [ ] AC-04: A graph with no map node that references `_map_accounting`, `_map_open`, or `_map_verdict` receives E007 for each referenced field.
-- [ ] AC-05: For a fixture with two map nodes, one using default failures and one explicit failures, every key returned by `extract_node_fields` for those nodes is present in `_build_known_state_fields`.
-- [ ] AC-06: The map-only derivation handles a malformed map lacking `collect` without raising from `_build_known_state_fields`; existing schema diagnostics remain responsible for reporting the malformed node.
-- [ ] AC-07: `examples/demos/meta_map/graph.yaml` no longer declares `_map_verdict`; the change is produced through `scripts/author.sh`, `yamlgraph graph lint examples/demos/meta_map/graph.yaml` reports no E007, and `tests/unit/test_fr1113_meta_map.py` passes.
-- [ ] AC-08: All new tests carry `@pytest.mark.req("REQ-YG-069")`; REQ-YG-069 in `ARCHITECTURE.md` names map `collect`, failures, accounting, open, and verdict fields; and `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-09: The changelog fragment, folded FR implementation record, and Distill diary entry with a `Seed:` are present.
+- [x] AC-01: A graph with a map node that reads `{state._map_verdict.<map>.dispatch}` without declaring `_map_verdict` produces no E007.
+- [x] AC-02: Separate fixtures reading the default `<collect>_failures` field and an explicit `failures:` field without declaring them produce no E007.
+- [x] AC-03: A map graph may reference `_map_accounting` and `_map_open` without E007 because both are fields created by the state builder.
+- [x] AC-04: A graph with no map node that references `_map_accounting`, `_map_open`, or `_map_verdict` receives E007 for each referenced field.
+- [x] AC-05: For a fixture with two map nodes, one using default failures and one explicit failures, every key returned by `extract_node_fields` for those nodes is present in `_build_known_state_fields`.
+- [x] AC-06: The map-only derivation handles a malformed map lacking `collect` without raising from `_build_known_state_fields`; existing schema diagnostics remain responsible for reporting the malformed node.
+- [x] AC-07: `examples/demos/meta_map/graph.yaml` no longer declares `_map_verdict`; the change is produced through `scripts/author.sh`, `yamlgraph graph lint examples/demos/meta_map/graph.yaml` reports no E007, and `tests/unit/test_fr1113_meta_map.py` passes.
+- [x] AC-08: All new tests carry `@pytest.mark.req("REQ-YG-069")`; REQ-YG-069 in `ARCHITECTURE.md` names map `collect`, failures, accounting, open, and verdict fields; and `python scripts/req_coverage.py --strict` passes.
+- [x] AC-09: The changelog fragment, folded FR implementation record, and Distill diary entry with a `Seed:` are present.
 
 ## Alternatives Considered
 
@@ -114,6 +114,27 @@ defect. A later FR can take that step with its own negative controls.
 
 **`is_this_a_graph`:** no. This is a deterministic lint rule over YAML,
 and no LLM step is involved.
+
+## Implementation record (2026-09-27)
+
+- RED 3725cd7c: `tests/unit/test_fr1119_lint_map_fields.py`, 7 failing,
+  3 negative controls (AC-04) already passing.
+- GREEN 8c35efaa: map-only derivation in `_build_known_state_fields`
+  (AC-01..AC-06). REQ-YG-069 text updated in CAP-16 and regenerated into
+  `ARCHITECTURE.md` (AC-08).
+- `meta_map` (AC-07) via `scripts/author.sh` with
+  `feature-requests/authoring-briefs/fr-1119-meta-map-verdict-brief.md`:
+  one-line removal of `_map_verdict: dict`; lint clean, validate ok,
+  53 tests passed (adapter report).
+
+Decisions and deviations:
+- The +7 lines shifted three existing FB001 allowlist anchors
+  (`scripts/hedging_check.py`, CONF-235..237 links in
+  `docs/confessions.md`) — anchor updates only, no new entries.
+- CAP-16 `fr:` now reads `legacy, FR-110, FR-1119`. The cross-wiring
+  gate requires every FR whose fragment claims REQ-YG-069 to share its
+  capability; FR-110 (the E007 promotion) already claimed it in a
+  released fragment and was implicit under `legacy`.
 
 ## Related
 
