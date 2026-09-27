@@ -203,7 +203,7 @@ article does not trip it.
 | Pin `yamlgraph==0.6.0` in the digest workflow | Rejected. FR-819 made the digest a release canary; a pin turns it into a museum. The defect was silence, not floating. |
 | Per-node structured-output method override (`method: function_calling`) | Rejected. No such graph key exists; adding one is framework scope, and it would hide the untyped field rather than name it. |
 | Nested `fields:` grammar in `schema_loader` so `stories` can be `list[RankedStory]` | Rejected here. Correct long-term, but it is a type-grammar change with its own consumers; FR-905's Python boundary already enforces the element shape. Candidate for a later FR. |
-| Change the framework default `on_error` for `llm` nodes to `fail` | Out of scope. Framework-wide behaviour change; noted for FR-1123's judge. |
+| Change the framework default `on_error` for `llm` nodes to `fail` | Out of scope here; filed as [FR-1124](FR-1124-llm-node-default-on-error.md). |
 | Roll `digest.db` back to the 2026-09-18 commit | Rejected. Recency filtering precedes dedup; nothing older than 24 h re-enters. |
 
 `is_this_a_graph`: the pipeline is already a graph; the fix is one

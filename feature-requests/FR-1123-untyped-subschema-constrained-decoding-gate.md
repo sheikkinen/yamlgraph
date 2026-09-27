@@ -184,8 +184,8 @@ lands first it retypes it and FR-1121 records that.
   own FR; this FR only closes the empty-subschema hole.
 - Changing FR-998's second-attempt policy or adding any fallback.
 - OpenAI strict-mode rules (FR-458 owns them).
-- The framework default `on_error` for `llm` nodes (raised by the
-  FR-1121 research's subtractionist; a separate judgement).
+- The framework default `on_error` for `llm` nodes: filed as
+  [FR-1124](FR-1124-llm-node-default-on-error.md).
 
 ## Acceptance Criteria
 
