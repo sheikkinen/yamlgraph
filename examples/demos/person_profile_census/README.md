@@ -101,7 +101,12 @@ signature are unchanged are neither extracted nor classified.
 Changing the rubric, problem labels, surface labels, model, graph,
 `prompts/classify_pr.yaml`, `tools.py`, or the corpus adapter file
 re-runs all PRs because those inputs are part of the memo signature.
-Delete the `memo_store` file to force a full recompute. For open PRs,
+Delete the `memo_store` file to force a full recompute
+(`rm tmp/person-profile-census.sqlite`). Warning: the signature captures
+the `azure_model` state var, not CLI or environment overrides such as
+`--provider`, `AZURE_AI_ENDPOINT` or a `sed` rewrite of the graph into
+`SMOKE_ONLY.yaml` (the smoke rewrite is not a signature file); use a
+separate `memo_store` per controller configuration. For open PRs,
 base-branch movement can change `base_sha`, additions, deletions, and
 changed-file counts without advancing `updatedAt`; the accepted freshness
 contract is "`updatedAt` unchanged," not "extracted bundle unchanged."

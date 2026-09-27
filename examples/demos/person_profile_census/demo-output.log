@@ -1,4 +1,4 @@
-# FR-1120: lint + validate (live run needs Azure + gh; provider-free witness: tests/unit/test_fr1120_census_memo_graph.py)
+# FR-1120: lint + validate at 92ad255a+README (live run needs Azure + gh; provider-free witness: tests/unit/test_fr1120_census_memo_graph.py)
 ⚠️ graph.yaml
    ⚠ [W026] Prompt 'synthesize_person_brief' (node 'synthesize') declares 5 top-level output fields (>= 4) — it may fuse that many independent judgements into one call; the hardest judgement can starve under load
       Fix: Consider splitting discrimination from bookkeeping (see FR-585 decode pattern) or pushing global cross-unit constraints to a deterministic post-pass.
