@@ -20,6 +20,14 @@ from yamlgraph.node_factory import create_node_function
 pytestmark = pytest.mark.process
 
 
+@pytest.fixture(autouse=True)
+def _non_anthropic_provider(monkeypatch):
+    """FR-1125: these fixtures use GenericReport (open `sections`/`metadata` maps)
+    with no provider; on a host without PROVIDER they resolve to Anthropic and are
+    refused at compile. The LLM is mocked, so the provider is irrelevant here."""
+    monkeypatch.setenv("PROVIDER", "mistral")
+
+
 class TestToneClassificationModel:
     """Tests for ToneClassification-like model in tests.
 
