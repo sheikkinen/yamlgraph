@@ -1,3 +1,4 @@
+# Reused as the FR-1126 showcase proof (README section "Anthropic and open objects (FR-1125)"); run body unchanged from #734.
 # ramp_rtm — live proof after FR-1125 (2026-09-27), claude-haiku-4-5, constrained decoding
 # derive_reqs.yaml in the output_schema form; entries carry req_id, statement, witness_tests, confidence, status.
 # Command: PROVIDER=anthropic yamlgraph graph run examples/demos/ramp_rtm/graph.yaml --var target=tests/fixtures/ramp_target --full
