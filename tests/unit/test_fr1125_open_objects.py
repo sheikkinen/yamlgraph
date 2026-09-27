@@ -23,16 +23,16 @@ import textwrap
 from pathlib import Path
 from typing import Any
 
+import langchain_anthropic
 import pytest
 
-from tests.unit.test_fr1123_untyped_subschema import (  # noqa: F401 (fixtures)
+from tests.unit.test_fr1123_untyped_subschema import (
     STATE,
     STATIC,
     _Fake,
     _FakeAnthropic,
     _graph,
     _model,
-    anthropic_is_fake,
 )
 from yamlgraph.schema_loader import build_pydantic_model_from_json_schema
 from yamlgraph.utils.schema_walk import (
@@ -42,6 +42,12 @@ from yamlgraph.utils.schema_walk import (
 from yamlgraph.utils.structured_output import bind_structured_output
 
 REQ = "REQ-YG-712"
+
+
+@pytest.fixture
+def anthropic_is_fake(monkeypatch):
+    monkeypatch.setattr(langchain_anthropic, "ChatAnthropic", _FakeAnthropic)
+
 
 RANKER_PROPS = {
     "title": {"type": "string"},

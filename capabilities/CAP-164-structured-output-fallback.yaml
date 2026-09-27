@@ -53,11 +53,14 @@ requirements:
       - yamlgraph/node_factory/race_node.py
       - yamlgraph/tools/agent.py
   - id: REQ-YG-712
-    description: Untyped prompt-schema subschemas refused before Anthropic constrained decoding
+    description: Unconstrainable prompt-schema subschemas (untyped or open-object) refused before Anthropic constrained decoding
     text: >
-      yamlgraph/utils/schema_walk.py owns one walker that returns the JSON
-      paths of subschemas lacking type/anyOf/oneOf/allOf/$ref, traversing
-      exactly as Anthropic's strict transform does, and one pure static
+      yamlgraph/utils/schema_walk.py owns one walker that returns typed
+      findings for every subschema constrained decoding cannot express —
+      untyped (lacking type/anyOf/oneOf/allOf/$ref, FR-1123) and open
+      object (type object with no declared properties, which the transform
+      hollows to {} , FR-1125) — traversing exactly as Anthropic's strict
+      transform does, and one pure static
       provider resolver (node, defaults.provider, PROVIDER, "anthropic";
       a {state.x} reference is unresolved) shared by create_llm, compile and
       lint. bind_structured_output raises UnconstrainableSchemaError before

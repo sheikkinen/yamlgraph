@@ -132,22 +132,22 @@ def _concrete_objects(
 
 
 def _at(node: dict, path: tuple[str, ...]) -> dict:
-    for token in path:
-        if token == "$defs":
+    for segment in path:
+        if segment == "$defs":
             node = node["$defs"]
             continue
-        if token == "items":
+        if segment == "items":
             node = node["items"]
             continue
-        if token[-1] == "]" and "[" in token:
-            kw, idx = token[:-1].split("[")
+        if segment[-1] == "]" and "[" in segment:
+            kw, idx = segment[:-1].split("[")
             node = node[kw][int(idx)]
             continue
         # a $defs name or a property name: whichever the current node carries
-        if "properties" in node and token in node["properties"]:
-            node = node["properties"][token]
+        if "properties" in node and segment in node["properties"]:
+            node = node["properties"][segment]
         else:
-            node = node[token]
+            node = node[segment]
     return node
 
 

@@ -27,7 +27,7 @@ def _run(*args: str) -> subprocess.CompletedProcess[str]:
 
     env = {k: v for k, v in os.environ.items() if k != "PROVIDER"}
     env["PYTHONUTF8"] = "1"
-    return subprocess.run(  # noqa: S603  # CONF-FR1125: test drives the repository's own script
+    return subprocess.run(  # noqa: S603  # CONF-492
         [sys.executable, str(SCRIPT), *args],
         capture_output=True,
         text=True,

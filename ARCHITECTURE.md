@@ -2195,7 +2195,7 @@ When with_structured_output() fails (provider rejects response_format), fall bac
 | REQ-YG-464 | Executor falls back to JSON extraction when structured output rejected | `yamlgraph/executor.py` |
 | REQ-YG-465 | Race node falls back to JSON extraction when structured output rejected | `yamlgraph/node_factory/race_node.py` |
 | REQ-YG-664 | Anthropic constrained structured output with typed single fallback | `yamlgraph/utils/structured_output.py`, `yamlgraph/utils/llm_providers.py`, `yamlgraph/executor_base.py`, `yamlgraph/node_factory/race_node.py`, `yamlgraph/tools/agent.py` |
-| REQ-YG-712 | Untyped prompt-schema subschemas refused before Anthropic constrained decoding | `yamlgraph/utils/schema_walk.py`, `yamlgraph/utils/structured_output.py`, `yamlgraph/utils/llm_factory.py`, `yamlgraph/node_factory/llm_nodes.py`, `yamlgraph/linter/checks_prompts.py` |
+| REQ-YG-712 | Unconstrainable prompt-schema subschemas (untyped or open-object) refused before Anthropic constrained decoding | `yamlgraph/utils/schema_walk.py`, `yamlgraph/utils/structured_output.py`, `yamlgraph/utils/llm_factory.py`, `yamlgraph/node_factory/llm_nodes.py`, `yamlgraph/linter/checks_prompts.py` |
 
 ### 165. CAP-165 Watcher2 Baseline Dead Code Removal
 
