@@ -188,6 +188,20 @@ class TestReconcile:
         assert f"claimed {sorted(claimed)}" in message
         assert "parsed [" in message
 
+    @pytest.mark.parametrize(("text", "claimed"), [(PLAIN_GRAPH, []), (MARKDOWN, [])])
+    def test_non_map_source_named_in_message(self, text, claimed):
+        # Smoke read 2026-09-27: "claimed [], parsed []" read as agreement.
+        tools = _tools()
+        with pytest.raises(tools.ClaimMismatchError, match="source has no map nodes"):
+            _reconcile("x", text, claimed)
+
+    def test_untyped_sub_node_recorded_as_runtime_default_llm(self):
+        # map_compiler defaults an untyped sub-node to "llm"; the smoke showed "unknown".
+        text = MAP_GRAPH.replace("      type: python\n", "")
+        assert text != MAP_GRAPH
+        record = _reconcile("g.yaml", text, ["fan"])
+        assert record.map_nodes[0].sub_node_type == "llm"
+
     def test_selection_and_grading_share_one_parse(self, corpus, monkeypatch):
         tools = _tools()
         calls: list[str] = []
