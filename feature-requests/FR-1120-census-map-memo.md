@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Approved with revisions (folded 2026-09-27)
 **Effort:** 1.5 days
 **Requested:** 2026-09-27
 **Depends on:** [FR-1119](FR-1119-lint-map-owned-state-fields.md) (lint knows map-owned state fields)
@@ -12,7 +12,8 @@ with the same rubric, labels and model. It makes zero `gh_pr_extract`
 calls and zero `classify_pr` LLM calls for PRs whose GitHub `updatedAt`
 is unchanged, and it writes a ledger JSONL equal to run 1's.
 **Research:** in-body Alternatives table (the FR-890 equivalent-record
-route), plus the FR-1116 alternatives and the FR-1065 investigation
+route); the `updatedAt` evidence section below (judgement R-1); the
+FR-1116 alternatives; and the FR-1065 investigation
 ([docs/investigations/fr1065-resumable-map.md](../docs/investigations/fr1065-resumable-map.md)).
 **Prior art:**
 - [FR-1116](FR-1116-map-memo-file-corpus.md): the memo this FR extends. It
@@ -30,6 +31,12 @@ route), plus the FR-1116 alternatives and the FR-1065 investigation
 
 - **2026-09-27, operator:** plan the census update and related map
   improvements as FRs; keep changes minimal.
+- **2026-09-27, operator (judgement R-2):** *May repeated census runs
+  knowingly reuse stale `base_sha`, `additions`, `deletions` and
+  `changed_files` for open PRs when the base branch moves without
+  advancing `updatedAt`?* Answer: **Yes.** The limitation stays and is
+  documented in the README. "Unchanged" means "`updatedAt` unchanged",
+  not "extracted bundle unchanged".
 - **Carried from FR-1076 / FR-1116:** a stored failure is carried, not
   re-run, while its identity matches. There is no live pilot and budget
   is $0; witnesses are deterministic.
@@ -74,15 +81,52 @@ FR-1116's memo cannot be used as shipped:
   ([tools.py](../examples/demos/person_profile_census/tools.py#L176-L310)).
   A memo around `judge_items` alone would lack the bundles of reused rows.
 
-GitHub supplies a change marker at discovery time. `gh search prs --json`
-offers `updatedAt` (verified 2026-09-27 against `gh search prs --json`,
-which lists `updatedAt` among its fields). GitHub bumps it on title and
-body edits, label changes, pushes, state changes, comments and reviews.
+GitHub supplies a change marker at discovery time: `updatedAt`. The
+evidence and its limits are in the next section.
+
+## `updatedAt` evidence (judgement R-1)
+
+**Field and shape.** `gh search prs --help` lists `updatedAt` among the
+`--json` fields. The REST form (`gh api repos/{o}/{r}/pulls/{n}`) returns
+it as `updated_at`, an ISO-8601 UTC string, for example PR #719:
+`"updated_at": "2026-09-27T11:31:31Z"`.
+
+**Documentation.** GitHub's search documentation defines the `updated:`
+qualifier as "when an issue or pull request was last updated"
+([docs.github.com: Searching issues and pull requests](https://docs.github.com/en/search-github/searching-on-github/searching-issues-and-pull-requests#search-by-when-an-issue-or-pull-request-was-created-or-last-updated)).
+It does not list the events that count as an update.
+
+**Reproducible probe (2026-09-27).** Command:
+`gh pr view <n> --json updatedAt,mergedAt,comments,reviews,commits`,
+run for PRs 715–719 of this repo.
+
+| PR | last commit | last comment | merged | updatedAt |
+|---|---|---|---|---|
+| 719 | 11:24:24 | — | 11:31:31 | 11:31:31 |
+| 718 | 07:19:49 | — | 07:29:07 | 07:29:08 |
+| 717 | 05:20:42 | 05:25:18 | 05:25:38 | 05:25:38 |
+| 716 | 18:02:39 | — | 18:05:15 | 18:05:15 |
+| 715 | 17:52:34 | — | 17:52:40 | 17:52:41 |
+
+**Witnessed:** merging advances `updatedAt` (5/5). In every sample,
+`updatedAt` is at or after the last commit and the last comment.
+
+**Not witnessed:** title or body edits, label changes, comments or
+reviews made *after* the merge, and pushes to an open PR. A controlled
+probe for these would write to a shared GitHub PR, which this FR does
+not do. The FR therefore claims no invalidation for them. The README
+states the contract as "a PR is re-classified when its `updatedAt`
+changes", with nothing stronger.
+
+**Known non-advancing:** base-branch movement on an open PR can change
+`base_sha` and the size fields without changing `updatedAt` (accepted by
+the operator, above).
 
 ## Ideal Result
 
 Run 2 over an unchanged footprint makes no extract and no classify calls.
-One new PR or one edited PR costs one extract and one classify. Changing
+One new PR, or one PR whose `updatedAt` changed, costs one extract and
+one classify. Changing
 the rubric, the label vocabularies, the model, the prompt or the census
 code re-runs everything. The ledger JSONL for unchanged PRs is
 byte-identical to run 1's. `gh-profiler.yaml` and the corpus/repo
@@ -109,6 +153,8 @@ censuses are untouched.
   the same argv, the same `source`/`visibility` parsing (FR-966), the
   same `MAX_PRS` overflow rule and the same duplicate check. The helper
   requests `repository,number,updatedAt`.
+- The versions adapter rejects a missing, null or empty `updatedAt`
+  rather than storing an unusable version.
 - `discover`'s return value and behaviour are unchanged
   (`tests/unit/test_fr966_authored_pr_visibility.py` stays green
   unmodified).
@@ -147,14 +193,26 @@ preflight → discover (items) → versions (slot, same source/visibility)
 
 ### 4. `pair_executed(state) -> list[dict]`, in `person_profile_census/tools.py`
 
-- For each executed index `i` in `0..len(todo)-1`, it emits
-  `{_map_index: i, bundle: <parsed contents[i]>, finding: <verdict>}`, or
-  `{_map_index: i, bundle, error: <MapFailure.message>}` for a judge
-  failure.
+An index join, never a positional zip (judgement R-3):
+
+1. It validates the extracted bundle channel (`executed_contents`) as an
+   exact cover of integer indices `0..len(todo)-1`, rejecting booleans
+   and missing, duplicate or out-of-range indices.
+2. It validates successful findings (`executed_findings`) plus
+   `executed_findings_failures` as a second exact cover of the same index
+   set, including a duplicate that appears across the success and
+   failure channels.
+3. It parses bundles and joins them to outcomes by `_map_index`, never by
+   list position.
+4. It emits nothing unless both covers validate completely.
+
+Each record is `{_map_index: i, bundle: <parsed bundle>, finding:
+<verdict>}`, or `{_map_index: i, bundle, error: <MapFailure.message>}`
+for a judge failure.
+
 - It drops the LLM-echoed `source_index` from the stored verdict. That
   index belongs to this run's `todo` positions and would be wrong on
   reuse.
-- It raises on a missing, duplicate or out-of-range index.
 - A judge failure is therefore stored as an `ok` memo record that carries
   `error`. It is carried like any outcome until the PR's `updatedAt`
   changes, which is the operator's carried-failure decision. The memo's
@@ -170,25 +228,28 @@ uses. Row construction, rollup, canary and rendering are unchanged.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: Split with `versions` over non-file string items returns every item in `todo` on an empty store, stores the supplied strings as versions after merge, and on a second split with identical versions returns `todo == []`. It reads no item from disk.
-- [ ] AC-02: A changed version for one key puts exactly that key in `todo`. Missing or extra keys, a non-dict `versions`, or a non-string or empty value raise `MapMemoInputError` and create no store. A non-string or empty `store` raises `MapMemoInputError` in both modes. All existing `test_fr1116_map_memo.py` tests pass unmodified.
-- [ ] AC-03: `gh_authored_prs_versions` (with `_gh` stubbed) returns `{ref: updatedAt}` for the same population `discover` returns from the same listing. It raises on overflow, an empty listing, a duplicate ref, or unsatisfiable visibility, with the same messages as discover. `test_fr966_authored_pr_visibility.py` passes unmodified.
-- [ ] AC-04: `pair_executed` emits one record per executed index with bundle plus finding or error, strips `source_index`, and raises on a missing, duplicate or out-of-range index.
-- [ ] AC-05: For the same bundles and findings, `reduce_pr_ledger` given `merged` writes a ledger JSONL byte-identical to the one it writes given `contents`/`findings`/`findings_failures`. The existing census reducer tests pass unmodified.
-- [ ] AC-06: A provider-free test runs the migrated graph three times with stubbed `versions`/`extract` adapters and a stubbed LLM, each with a call counter, over a 5-PR fixture that includes one judge failure. Run 1: 5 extracts and 5 classify calls. Run 2 (same versions): 0 and 0, with a byte-identical ledger JSONL and the judge failure still a `row_failed` row. Run 3 (one `updatedAt` bumped): exactly 1 and 1, for that PR. Changing `azure_model` re-runs all 5.
-- [ ] AC-07: Omitting `memo_store` fails before any extract call.
-- [ ] AC-08: The graph is migrated through `scripts/author.sh`. It lints with no `state:` declarations for `_map_verdict` or `executed_findings_failures` (FR-1119), and its `demo-output.log` is regenerated by the same command as before.
-- [ ] AC-09: The README documents the memo, the `memo_store` variable, that the store contains per-person classifications under the same controller warning, `rm <store>` to reset, and the accepted limitation below. The corp-run and Quickstart commands gain `--tool versions=…` and `--var memo_store=…`.
-- [ ] AC-10: A CAP/REQ entry covers the new behaviour and every new test carries it. `python scripts/req_coverage.py --strict` passes. The changelog fragment, FR implementation record and diary entry are present.
+Adopted verbatim from the judgement's revised criteria (AC-08 carries R-4).
+
+- [ ] AC-01: Split with `versions` over unique non-file string items returns every item in `todo` on an empty store, reads no item path, stores the supplied non-empty string versions after merge, and returns `todo == []` on a second split with identical versions.
+- [ ] AC-02: Changing one supplied version puts exactly that key in `todo`. Missing or extra keys, non-dict `versions`, non-string or empty version values, duplicate/empty/non-string items, and non-string or empty `store` raise `MapMemoInputError` before a store is created. File mode remains unchanged and all existing `test_fr1116_map_memo.py` tests pass unmodified.
+- [ ] AC-03: The committed research evidence satisfies R-1, and the FR records the operator's R-2 decision. The README states the resulting freshness contract without claiming stronger invalidation than the evidence supports.
+- [ ] AC-04: With `_gh` stubbed, `gh_authored_prs_versions` requests `repository,number,updatedAt` and returns `{ref: updatedAt}` for the same fixture population as discover. It rejects missing, null, or empty `updatedAt`, overflow, an empty listing, a duplicate ref, and unsatisfiable visibility; shared failures retain discover's messages. `test_fr966_authored_pr_visibility.py` passes unmodified.
+- [ ] AC-05: `pair_executed` performs the two exact index-cover validations in R-3, joins by index rather than list order, emits one record per todo index with parsed bundle plus finding or error, strips model-supplied `source_index`, and emits no partial result on malformed attribution.
+- [ ] AC-06: For identical bundles and findings, `reduce_pr_ledger` given `merged` writes JSONL byte-identical to its existing `contents`/`findings`/`findings_failures` path, including the exact `row_failed` representation. Existing reducer tests pass unmodified, and malformed merged records retain the current batch-fatal missing/duplicate/out-of-range behavior.
+- [ ] AC-07: A provider-free test runs the migrated graph over five PRs including one judge failure. Run 1 makes five extract and five classify calls. Run 2 with identical versions makes zero of each, writes byte-identical JSONL, and retains the judge failure as `row_failed`. Run 3 with one bumped version makes exactly one extract and one classify call for that PR and produces the same ledger as a clean full recomputation of the run-3 fixture.
+- [ ] AC-08: Independently changing `rubric`, `problem_labels`, `surface_labels`, or `azure_model` re-runs all five items. The graph passes exactly the four frozen signature files, and changing a signature file invalidates all five items.
+- [ ] AC-09: Omitting `memo_store` fails before any extract call and creates no memo store.
+- [ ] AC-10: After FR-1119 is enforced, the graph is migrated through `scripts/author.sh`, lints without declarations for `_map_verdict` or `executed_findings_failures`, and regenerates `demo-output.log` with the exact command recorded in the authoring/implementation record.
+- [ ] AC-11: The README documents the memo, required `memo_store`, controller warning, reset command, operator-selected open-PR policy, and updated Quickstart/corp invocations with the versions tool and memo store.
+- [ ] AC-12: A CAP/REQ entry covers the behavior; every new test carries the REQ marker; `python scripts/req_coverage.py --strict` passes; the changelog fragment, FR implementation record, and diary entry are present.
 
 ## Accepted limitation
 
 For an **open** PR, GitHub may recompute `base_sha`, `additions`,
 `deletions` and `changed_files` when the base branch moves, without
 bumping `updatedAt`. A reused open-PR row can then carry stale size
-fields. Closed and merged PRs are frozen. This is recorded in the README.
-No open-PR special case is added. The alternative (always re-run open
-PRs) is listed below for the judge.
+fields. The operator accepted this on 2026-09-27 (Human decisions). It
+is recorded in the README. No open-PR special case is added.
 
 ## Alternatives Considered
 
@@ -198,7 +259,7 @@ PRs) is listed below for the judge.
 | Change `discover` to return `{ref: updatedAt}` | Rejected. `discover` is a slot whose list-of-refs contract is consumed by `extract` and by FR-966 tests. A second adapter leaves it untouched, and the key-set check covers the race. |
 | Restructure the census into one per-PR subgraph map (extract → judge), as `meta_map` does | Rejected as larger. It re-authors the pipeline and the reducer contract. `pair_executed` gives the same per-PR record with two graph nodes. |
 | Memo stores finished `PRLedgerRow`s | Rejected. The rows depend on reduce-time validation. Storing raw bundle plus finding keeps `reduce_pr_ledger` the single authority. |
-| Always re-run open PRs (version = run-unique token for `state == open`) | Not adopted. It adds a policy branch for a size-field drift on a minority of rows. The judge may require it. |
+| Always re-run open PRs (version = run-unique token for `state == open`) | Rejected by the operator (2026-09-27, judgement R-2): the stale-size-field limitation is accepted. |
 | Also migrate `gh-profiler.yaml` | Out of scope. It is not part of FR-962's enforced scope, and the reducer's unmemoized path keeps it working. |
 | Framework-level map `memo:` key | Still rejected (FR-1116). This FR is the second example consumer that FR-1116 said such a key should wait for. The FR does not propose the key. |
 
