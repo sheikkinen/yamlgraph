@@ -1,0 +1,59 @@
+model: claude-haiku-4-5  (create_llm default for provider=anthropic)
+
+=== A_fields_list_dict / json_schema / rep 0 ===
+wire schema (stories): {"type": "array", "description": "Top 5-8 stories, each with title, url, summary, relevance, reason", "title": "Stories", "items": {"type": "object", "properties": {}, "additionalProperties": false}}
+raw content[:300]: {"stories": []}
+parsed stories count: 0 | first: []
+parsing_error: None
+
+=== A_fields_list_dict / json_schema / rep 1 ===
+wire schema (stories): {"type": "array", "description": "Top 5-8 stories, each with title, url, summary, relevance, reason", "title": "Stories", "items": {"type": "object", "properties": {}, "additionalProperties": false}}
+raw content[:300]: {"stories": []}
+parsed stories count: 0 | first: []
+parsing_error: None
+
+=== A_fields_list_dict / function_calling / rep 0 ===
+wire schema (stories): {"description": "Top 5-8 stories, each with title, url, summary, relevance, reason", "items": {"additionalProperties": true, "type": "object"}, "type": "array"}
+raw content[:300]: [{"id": "toolu_01FWBrCZ9URyJXHqLWuw7d86", "caller": {"type": "direct"}, "input": {"stories": [{"title": "Python 3.15 free-threading becomes default", "url": "https://example.com/py315", "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. 
+raw tool_calls[:300]: [{"name": "RankedStories", "args": {"stories": [{"title": "Python 3.15 free-threading becomes default", "url": "https://example.com/py315", "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true parallelism in Python
+parsed stories count: 3 | first: {"title": "Python 3.15 free-threading becomes default", "url": "https://example.com/py315", "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolu
+parsing_error: None
+
+=== B_fields_list_any / json_schema / rep 0 ===
+wire schema ERROR: ValueError: Schema must have a 'type', 'anyOf', 'oneOf', or 'allOf' field.
+
+=== B_fields_list_any / function_calling / rep 0 ===
+wire schema (stories): {"description": "Top 5-8 stories, each with title, url, summary, relevance, reason", "items": {}, "type": "array"}
+raw content[:300]: [{"id": "toolu_01PFtKUTRzrFmve9iWD3Dtsf", "caller": {"type": "direct"}, "input": {"stories": [{"title": "Python 3.15 free-threading becomes default", "url": "https://example.com/py315", "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. 
+raw tool_calls[:300]: [{"name": "RankedStories", "args": {"stories": [{"title": "Python 3.15 free-threading becomes default", "url": "https://example.com/py315", "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true multi-threaded parall
+parsed stories count: 3 | first: {"title": "Python 3.15 free-threading becomes default", "url": "https://example.com/py315", "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolu
+parsing_error: None
+
+=== C_output_schema_nested / json_schema / rep 0 ===
+wire schema (stories): {"type": "array", "description": "Top 5-8 stories, each with title, url, summary, relevance, reason", "title": "Stories", "items": {"$ref": "#/$defs/RankedStories_stories"}}
+wire $defs: {"RankedStories_stories": {"type": "object", "title": "RankedStories_stories", "properties": {"title": {"type": "string", "title": "Title"}, "url": {"type": "string", "title": "Url"}, "summary": {"type": "string", "title": "Summary"}, "relevance": {"type": "number", "title": "Relevance"}, "reason": {"type": "string", "title": "Reason"}}, "additionalProperties": false, "required": ["title", "url", 
+raw content[:300]: {"stories": [{"title": "Python 3.15 free-threading becomes default", "url": "https://example.com/py315", "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true parallel execution of Python threads without the Global 
+parsed stories count: 3 | first: {"title": "Python 3.15 free-threading becomes default", "url": "https://example.com/py315", "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolu
+parsing_error: None
+
+=== C_output_schema_nested / function_calling / rep 0 ===
+wire schema (stories): {"description": "Top 5-8 stories, each with title, url, summary, relevance, reason", "items": {"properties": {"title": {"type": "string"}, "url": {"type": "string"}, "summary": {"type": "string"}, "relevance": {"type": "number"}, "reason": {"type": "string"}}, "required": ["title", "url", "summary", "relevance", "reason"], "type": "object"}, "type": "array"}
+raw content[:300]: [{"id": "toolu_01Vn31Sx7HfmgMnoQZiUr1Tp", "caller": {"type": "direct"}, "input": {"stories": [{"title": "Python 3.15 free-threading becomes default", "url": "https://example.com/py315", "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. 
+raw tool_calls[:300]: [{"name": "RankedStories", "args": {"stories": [{"title": "Python 3.15 free-threading becomes default", "url": "https://example.com/py315", "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true parallel execution of
+parsed stories count: 3 | first: {"title": "Python 3.15 free-threading becomes default", "url": "https://example.com/py315", "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolu
+parsing_error: None
+
+=== D_fields_dict / json_schema / rep 0 ===
+wire schema (stories): {"type": "object", "description": "map of url -> reason", "title": "Stories", "properties": {}, "additionalProperties": false}
+raw content[:300]: {"stories": {}}
+parsed stories count: 0 | first: {}
+parsing_error: None
+
+=== D_fields_dict / function_calling / rep 0 ===
+wire schema (stories): {"additionalProperties": true, "description": "map of url -> reason", "type": "object"}
+raw content[:300]: [{"id": "toolu_01AA8gLHHf1MTQ2Fm6xyntbW", "caller": {"type": "direct"}, "input": {"stories": {"https://example.com/py315": "Directly matches topic of interest (Python). High relevance (0.8). Breaking news on major language feature (GIL disabled by default in CPython 3.15) - significant for Python de
+raw tool_calls[:300]: [{"name": "RankedStories", "args": {"stories": {"https://example.com/py315": "Directly matches topic of interest (Python). High relevance (0.8). Breaking news on major language feature (GIL disabled by default in CPython 3.15) - significant for Python developers and AI/ML workflows.", "https://examp
+parsed stories count: 3 | first: {"https://example.com/py315": "Directly matches topic of interest (Python). High relevance (0.8). Breaking news on major language feature (GIL disabled by default in CPython 3.15) - significant for Py
+parsing_error: None
+
+results written: C:\src\yamlgraph\docs\spikes\constrained-object-2026-09-27\results.json
