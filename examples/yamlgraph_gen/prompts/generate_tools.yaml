@@ -49,7 +49,7 @@ schema:
   name: GeneratedTools
   fields:
     tools:
-      type: list[Any]
+      type: list[dict]
       description: "List of tool files: [{filename, content, tool_name, description}]. Empty list if only built-in tools."
     uses_builtin_websearch:
       type: bool

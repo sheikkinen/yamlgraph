@@ -16,6 +16,12 @@ from yamlgraph.linter.checks import (
     load_graph,
     resolve_prompts_dir,
 )
+from yamlgraph.utils.schema_walk import (
+    find_untyped_subschemas,
+    node_subject,
+    refusal_message,
+    resolve_static_provider,
+)
 from yamlgraph.utils.template import extract_variables as extract_template_variables
 from yamlgraph.utils.template import (
     is_jinja,
@@ -360,9 +366,61 @@ def check_prompt_complexity(
     return issues
 
 
+_UNTYPED_FIX = (
+    "Declare a concrete type (e.g. list[dict], list[str]) or a nested schema."
+)
+
+
+def check_untyped_subschemas(
+    graph_path: Path, project_root: Path | None = None
+) -> list[LintIssue]:
+    """E016/W028: untyped output-schema paths on Anthropic-bound nodes (FR-1123).
+
+    E016 when the provider is statically Anthropic, W028 when it is a
+    ``{state.x}`` reference, nothing for a known non-Anthropic provider.
+    """
+    from yamlgraph.schema_loader import load_schema_from_yaml
+
+    graph = load_graph(graph_path)
+    prompts_dir = resolve_prompts_dir(
+        graph, graph_path, project_root or graph_path.parent
+    )
+    default_provider = (graph.get("defaults") or {}).get("provider")
+    issues: list[LintIssue] = []
+    for node_name, node in graph.get("nodes", {}).items():
+        if node.get("type", "llm") not in ("llm", "router") or node.get("parse_json"):
+            continue
+        prompt_name = node.get("prompt")
+        prompt_path = get_prompt_path(prompt_name, prompts_dir) if prompt_name else None
+        if prompt_path is None or not prompt_path.exists():
+            continue
+        provider = resolve_static_provider(node.get("provider"), default_provider)
+        if provider not in ("anthropic", None):
+            continue
+        model = load_schema_from_yaml(prompt_path)
+        paths = find_untyped_subschemas(model.model_json_schema()) if model else []
+        subject = node_subject(node_name, prompt_name, node.get("model"))
+        for path in paths:
+            message = refusal_message(subject, [path])
+            if provider is None:
+                message += (
+                    " (provider is chosen at run time; Anthropic would reject it)"
+                )
+            issues.append(
+                LintIssue(
+                    severity="error" if provider else "warning",
+                    code="E016" if provider else "W028",
+                    message=message,
+                    fix=_UNTYPED_FIX,
+                )
+            )
+    return issues
+
+
 __all__ = [
     "check_unanchored_prompt_variables",
     "check_unrenderable_simple_messages",
     "check_simple_fields_in_jinja_messages",
     "check_prompt_complexity",
+    "check_untyped_subschemas",
 ]

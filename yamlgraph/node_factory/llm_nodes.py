@@ -36,6 +36,7 @@ from yamlgraph.utils.guard_runtime import (
     extract_guard_rules,
 )
 from yamlgraph.utils.json_extract import extract_json
+from yamlgraph.utils.schema_walk import refuse_static_anthropic_node
 
 logger = logging.getLogger(__name__)
 
@@ -436,6 +437,7 @@ def create_node_function(
         Node function compatible with LangGraph
     """
     cfg = resolve_llm_node_config(node_name, node_config, defaults, graph_path)
+    refuse_static_anthropic_node(node_name, cfg)  # FR-1123: before any node runs
 
     def node_fn(state: dict) -> dict:
         """Generated node function."""

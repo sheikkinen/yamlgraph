@@ -69,5 +69,5 @@ schema:
   name: GeneratedPrompts
   fields:
     prompts:
-      type: Any
+      type: list[dict]
       description: List of {filename, content, explanation} for each prompt file
