@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Enforcing (operator verdict `enforce`, 2026-09-27)
+**Status:** Implemented (enforced 2026-09-27; PR pending)
 **Enforce decisions (2026-09-27):** the operator gave `enforce` without
 overriding Q-1, Q-2 or Q-4, so the recommended option (a) is recorded
 for each. H-1: the real smoke run uses `inception/mercury-2.5`, as
@@ -328,33 +328,33 @@ Map version = declared YAML keys; runtime is FR-1073 strict for all maps.
 
 ## Acceptance Criteria
 
-- [ ] AC-1: `discover_map_graphs` returns the path of every graph with
+- [x] AC-1: `discover_map_graphs` returns the path of every graph with
   at least one `type: map` node under the scan roots, and no other paths.
   Unit test on a fixture tree with a graph that has a map, a graph
   without one, and a non-graph YAML file. A malformed YAML file raises
   an error naming its path; it is not skipped silently (Commandment 6).
-- [ ] AC-1b: `poison_the_source` returns the discovered paths followed
+- [x] AC-1b: `poison_the_source` returns the discovered paths followed
   by `state.poison` in declared order, and raises if a poison path does
   not exist. `read_source` returns the raw text byte-for-byte for a
   `.yaml`, a `.md` and a `.py` file, and its output has no field that
   classifies the content: the LLM receives the data unjudged. A test
   asserts the `SourceText` schema is exactly `{path, text}`.
-- [ ] AC-1c: `reconcile_claim` accepts a correct claim for a map graph.
+- [x] AC-1c: `reconcile_claim` accepts a correct claim for a map graph.
   It raises `ClaimMismatchError`, naming the claimed and the parsed
   values, for a missing map node, an invented map node, and any claim
   about a non-map graph, a `.md` file or a `.py` file, including an
   empty `map_nodes`. The parse it grades against is the same function
   `discover_map_graphs` uses, so selection and grading cannot disagree.
   The `describe` schema has no field that lets the LLM decline.
-- [ ] AC-2: `classify_map_version` returns the table's version for each
+- [x] AC-2: `classify_map_version` returns the table's version for each
   rule. One parametrized test per row, plus a precedence test: a node
   that declares both `on_overflow` and `timeout` gets `overflow`.
-- [ ] AC-3: On the real repository, the set of paths returned by
+- [x] AC-3: On the real repository, the set of paths returned by
   `discover_map_graphs` equals the set produced by an independent,
   test-local YAML walk of `examples/` and `graphs/`. The assertion
   compares sets of paths, not counts, and has no fixed population
   number.
-- [ ] AC-4: The graph declares `max_items`, `on_overflow: error`,
+- [x] AC-4: The graph declares `max_items`, `on_overflow: error`,
   `timeout`, `min_success`, `failures`, and a subgraph sub-node. A unit
   test builds the graph over a fixture corpus plus the three poison
   paths. The stub LLM invents a map node for `hello`, returns an empty
@@ -366,41 +366,121 @@ Map version = declared YAML keys; runtime is FR-1073 strict for all maps.
   exactly three `PipelineError`s. A second stub that also misreads
   enough real graphs to push accepted items below 90 % raises
   `MapCompletenessError`.
-- [ ] AC-5: With a fixture above `max_items`, the run raises before any
+- [x] AC-5: With a fixture above `max_items`, the run raises before any
   branch runs (FR-939 `error`).
-- [ ] AC-5b: A fixture run proves the child subgraph receives the
+- [x] AC-5b: A fixture run proves the child subgraph receives the
   dispatched `path` through `input_mapping`, and that each `summaries`
   entry holds one `GraphRecord` through `output_mapping`. It must be
   neither empty nor the child's whole state.
-- [ ] AC-6: `render_report` accounts for every dispatch index exactly
+- [x] AC-6: `render_report` accounts for every dispatch index exactly
   once across the success and failure tables. It orders success rows by
   `_map_index`, resolves failed paths as `state.paths[MapFailure.index]`,
   writes `MapFailure.message` verbatim as the detail, lists declared keys
   verbatim, and builds the coverage line only from
   `_map_verdict.summarize`. The fixtures include a failed real graph as
   well as the poison paths.
-- [ ] AC-7: `yamlgraph graph lint examples/demos/meta_map/graph.yaml`
+- [x] AC-7: `yamlgraph graph lint examples/demos/meta_map/graph.yaml`
   passes.
-- [ ] AC-8: A real smoke run over the repository writes
+- [x] AC-8: A real smoke run over the repository writes
   `outputs/meta_map/report.md` and exits 3 (FR-1097). The Failures
   section contains all three poisoned paths, and the committed
   `demo-output.log` comes from that run. For each poisoned path, the FR
   quotes verbatim what the LLM said (or its error). It also records
   three raw claims for real graphs, each with one concrete detail
   (`read_raw_output_first`), before any count is quoted in the README.
-- [ ] AC-9: `tmp/draft-authoring-report.md` from `scripts/author.sh`
+- [x] AC-9: `tmp/draft-authoring-report.md` from `scripts/author.sh`
   is cited in this FR as the authoring evidence.
-- [ ] AC-10: Tests carry `@pytest.mark.req(...)`, and a REQ ID and
+- [x] AC-10: Tests carry `@pytest.mark.req(...)`, and a REQ ID and
   capability entry are added (or reused if one exists).
   `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-11: A graph-load test asserts that the loaded `summarize`
+- [x] AC-11: A graph-load test asserts that the loaded `summarize`
   config declares `timeout: 120` and that the run config resolves
   `max_concurrency` to 8. This is a declaration witness: the framework's
   timeout behavior is already tested by `map-timeout`. Every row of the
   Coverage matrix names a witness AC that exists.
-- [ ] AC-12: A `feat` changelog fragment, a README link from
+- [x] AC-12: A `feat` changelog fragment, a README link from
   `reference/graph-yaml.md` → map section ("full example"), and a diary
   entry with a `Seed:`.
+
+## Implementation Status (2026-09-27)
+
+Commits: `81c7fe06` plan + brief · `c8560676` RED witnesses + CAP-286 /
+REQ-YG-703 · `a6e9a1f2` RED poison-once + repair brief · `e192924e` RED
+smoke-found reconcile defects · `c6ab3737` GREEN (demo, proofs, fragment).
+42 tests in `tests/unit/test_fr1113_meta_map.py` pass. The full unit suite
+passed in the GREEN commit's pre-commit run.
+
+**Authoring evidence (AC-9).** Two `scripts/author.sh` runs, both reports
+kept locally:
+
+- Round 1, brief `fr-1113-meta-map-demo-brief.md`
+  (`tmp/authoring-report-1113-round1.md`): authored `graph.yaml`,
+  `poison.yaml`, `subgraphs/summarize_one.yaml` and both prompts. This
+  report lists every new governed path, so it is the one restored as
+  `tmp/draft-authoring-report.md` for the FR-767 commit check.
+- Repair, brief `fr-1113-meta-map-demo-repair-brief.md`
+  (`tmp/authoring-report-1113-repair.md`): removed `init_poison`; lint
+  passed and 39/39 tests passed.
+
+`tools.py` is not a governed artifact and was written in the enforcing
+session.
+
+**Real run (AC-8).** `inception/mercury-2.5`, exit 3: 55 dispatched ·
+52 succeeded · 0 tolerated · 3 failed, `min_success` 0.9 met
+(ceil(0.9 × 55) = 50). The full log is
+`examples/demos/meta_map/proofs/poisoned-run/run-evidence.txt`.
+Poisoned paths, verbatim `MapFailure.message`:
+
+- `examples/demos/hello/graph.yaml: claimed [], parsed [] (source has no map nodes)`.
+  The model told the truth; the branch fails anyway because the source
+  is not a map graph.
+- `feature-requests/FR-1113-meta-map-demo.md: claimed ['summarize'], parsed [] (source has no map nodes)`.
+  The only poison that fooled the model, through this FR's own
+  illustrative graph sketch.
+- `yamlgraph/compile/map_compiler.py: claimed [], parsed [] (source has no map nodes)`.
+
+Raw claims for three real graphs:
+
+- `examples/demos/chatterbox/graph.yaml`, `generate`: "demonstrates
+  multilingual text-to-speech by generating translations for multiple
+  languages and synthesizing audio for each". Its sub-node has no
+  `type:`. The first run reported this as `unknown`, which led to a fix
+  (see below).
+- `examples/demos/map-timeout/graph.yaml`, `process`: python sub-node,
+  version `result-contract`, because it declares `min_success` alongside
+  `timeout`.
+- `examples/demos/meta_map/graph.yaml`, `summarize`: the demo counted
+  itself. Subgraph sub-node, version `overflow`: "summarizes each via a
+  subgraph, and renders a report including poison failure checks".
+
+**Deviations.**
+
+1. `init_poison` removed by a repair brief. The round-1 author duplicated
+   the poison list in a passthrough node so that a raw `invoke()` would
+   see it. Root cause: the test harness did not merge `data_files` the
+   way the CLI does (`graph_run_helpers._build_run_config`). The harness
+   was fixed at the callsite, a RED test was added
+   (`test_poison_declared_once_in_data_file`), and the graph was
+   repaired through the adapter.
+2. Two defects found by the smoke, both fixed test-first (`e192924e`):
+   - An untyped map sub-node was recorded as `unknown`, but the runtime
+     default is `llm` (`map_compiler.py`, `sub_node_config.get("type", "llm")`).
+   - A non-map mismatch read `claimed [], parsed []`, which looks like
+     agreement. The message now appends `(source has no map nodes)`.
+3. `demo-output.log` holds `yamlgraph graph validate` output for this
+   graph, not the poisoned run. `scripts/demo_log_semantics.sh` treats
+   any `[ERROR]` line as fatal, and this demo emits three by design. The
+   gate was not widened (it is a same-session enforcement edit). The
+   approach follows `map-timeout`, and the real run goes under
+   `proofs/poisoned-run/` as in `corpus_census/proofs/`. AC-8's "committed
+   `demo-output.log` comes from that run" is met by the proofs file
+   instead.
+4. `prepare_reduce` (`reduce_inputs`) was added between map and reduce,
+   so the reduce prompt gets counts computed from `_map_verdict` (R-5),
+   not counts the LLM derives.
+5. Tests live at `tests/unit/test_fr1113_meta_map.py`.
+6. The dispatch count is 55, not a fixed number (AC-3): 52 map graphs
+   (including meta_map itself) plus 3 poison paths.
 
 ## Alternatives Considered
 
