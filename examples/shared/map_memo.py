@@ -5,9 +5,11 @@ match a stored outcome. The caller maps over `todo`, then
 `map_memo_merge` stores the executed outcomes in one SQLite transaction
 and returns the whole current population in FR-1073 shapes. The
 `min_success` threshold is judged after commit, over that population.
-"""
 
-from __future__ import annotations
+No `from __future__ import annotations`: graphs load this file through an
+FR-768 `path`, which leaves it out of `sys.modules`, so Pydantic could not
+resolve string annotations.
+"""
 
 import hashlib
 import json
@@ -304,6 +306,10 @@ def _executed(
 def _write(plan: MemoPlan, outcomes: dict[str, tuple[str, dict[str, Any]]]) -> None:
     store = Path(plan.store)
     versions = {item.key: item.version for item in plan.current}
+    try:
+        store.parent.mkdir(parents=True, exist_ok=True)
+    except OSError as e:
+        raise MapMemoStoreError(f"cannot create {store.parent}: {e}") from e
     db = _connect(store, read_only=False)
     try:
         db.execute("BEGIN IMMEDIATE")
