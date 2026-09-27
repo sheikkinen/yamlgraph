@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Approved with revisions ([judgement](FR-1122-daily-digest-map-contract-migration.judgement.md), 2026-09-27); revisions not yet folded — authority inactive until the fold (C-1)
 **Effort:** 1 day
 **Requested:** 2026-09-27
 **First consumer / first event:** the `sheikkinen/yamlgraph-daily-digest`
