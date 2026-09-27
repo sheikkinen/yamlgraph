@@ -1,6 +1,6 @@
 id: CAP-164
 name: Structured Output JSON Fallback
-fr: FR-464, FR-998
+fr: FR-464, FR-998, FR-1123
 description: >
   When with_structured_output() fails (provider rejects response_format),
   fall back to extract_json() + model_validate(). Extends FR-456 pattern
@@ -52,3 +52,23 @@ requirements:
       - yamlgraph/executor_base.py
       - yamlgraph/node_factory/race_node.py
       - yamlgraph/tools/agent.py
+  - id: REQ-YG-712
+    description: Untyped prompt-schema subschemas refused before Anthropic constrained decoding
+    text: >
+      yamlgraph/utils/schema_walk.py owns one walker that returns the JSON
+      paths of subschemas lacking type/anyOf/oneOf/allOf/$ref, traversing
+      exactly as Anthropic's strict transform does, and one pure static
+      provider resolver (node, defaults.provider, PROVIDER, "anthropic";
+      a {state.x} reference is unresolved) shared by create_llm, compile and
+      lint. bind_structured_output raises UnconstrainableSchemaError before
+      with_structured_output for an actual Anthropic model under effective
+      json_schema; compile refuses a statically Anthropic llm/router node
+      naming node, prompt, model and paths; lint emits E016 for static
+      Anthropic and W028 for an unresolved provider, nothing for a known
+      non-Anthropic provider. No committed prompt schema trips the walker.
+    modules:
+      - yamlgraph/utils/schema_walk.py
+      - yamlgraph/utils/structured_output.py
+      - yamlgraph/utils/llm_factory.py
+      - yamlgraph/node_factory/llm_nodes.py
+      - yamlgraph/linter/checks_prompts.py
