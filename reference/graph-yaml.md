@@ -670,6 +670,11 @@ See [examples/copilot/](../examples/copilot/) for a complete demo.
 
 Process each item in a list in parallel using LangGraph's `Send()` API.
 
+Full example: [examples/demos/meta_map/](../examples/demos/meta_map/README.md)
+uses `max_items` + `on_overflow`, `timeout`, `min_success`, `failures`, a
+subgraph sub-node and `config.max_concurrency` together, and deliberately
+poisons its input to show untolerated failures (FR-1113).
+
 ```yaml
 nodes:
   animate_panels:

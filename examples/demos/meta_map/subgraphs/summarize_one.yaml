@@ -1,0 +1,58 @@
+version: "1.0"
+name: meta-map-summarize-one
+description: Read one source file, ask for a map-graph claim, and reconcile it against the parsed source.
+
+prompts_relative: true
+prompts_dir: ../prompts
+
+defaults:
+  provider: inception
+  model: mercury-2.5
+
+state:
+  path: str
+  source: dict
+  claim: dict
+  graph_record: dict
+
+tools:
+  read_source:
+    type: python
+    module: examples.demos.meta_map.tools
+    function: read_source
+    description: Read the source file byte-for-byte as UTF-8 text.
+  reconcile_claim:
+    type: python
+    module: examples.demos.meta_map.tools
+    function: reconcile_claim
+    description: Parse source text and reject LLM claims that do not match map nodes.
+
+nodes:
+  read_source:
+    type: python
+    tool: read_source
+    state_key: source
+
+  describe:
+    type: llm
+    prompt: describe_graph
+    on_error: fail
+    state_key: claim
+    variables:
+      path: "{state.source.path}"
+      text: "{state.source.text}"
+
+  reconcile:
+    type: python
+    tool: reconcile_claim
+    state_key: graph_record
+
+edges:
+  - from: START
+    to: read_source
+  - from: read_source
+    to: describe
+  - from: describe
+    to: reconcile
+  - from: reconcile
+    to: END

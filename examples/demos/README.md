@@ -42,6 +42,7 @@ Start here and progress in order:
 | [innovation_matrix/](innovation_matrix/) | `map`, `python`, `llm` | 5×5 creativity matrix with parallel expansion |
 | [python-map/](python-map/) | `map`, `python` | Python sub-nodes in map |
 | [map-timeout/](map-timeout/) | `map`, `python` | Per-branch timeout (FR-069) |
+| [meta_map/](meta_map/) | `map`, `subgraph`, `python`, `llm` | Full map feature set with poison inputs (FR-1113) |
 | [safety-guards/](safety-guards/) | `router`, `llm` | Input/output guardrails |
 | [multi-turn/](multi-turn/) | `interrupt` | Multi-turn conversation with memory |
 | [thinking/](thinking/) | `llm` | Extended thinking budget (FR-071) |

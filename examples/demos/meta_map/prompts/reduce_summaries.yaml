@@ -1,0 +1,14 @@
+system: >
+  You synthesize a concise markdown summary from provided graph records and
+  Python-computed counts.
+
+user: |
+  Successful graph records:
+  {records}
+
+  Python-computed counts:
+  {counts}
+
+  Write a few paragraphs of markdown explaining what the repository's map
+  graphs are for, which map versions dominate, and what the failures show.
+  Use the supplied counts verbatim and never recount the records yourself.

@@ -593,6 +593,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 280 | CAP-280 CLI Variable Validation | `yamlgraph/cli/graph_commands.py` | REQ-YG-697 |
 | 281 | CAP-281 Resolved Run Concurrency | `yamlgraph/utils/validators.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/executor_async.py`, … | REQ-YG-698 |
 | 283 | CAP-283 Completed-Run Error Exit Status | `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/models/schemas.py`, `yamlgraph/utils/route_log.py` | REQ-YG-700 |
+| 286 | CAP-286 Meta-Map Demo | `examples/demos/meta_map/tools.py`, `examples/demos/meta_map/graph.yaml`, `examples/demos/meta_map/subgraphs/summarize_one.yaml` | REQ-YG-703 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3394,6 +3395,16 @@ FR-1097: `yamlgraph graph run` (non-stream) reports a completed run that appende
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-700 | A non-stream `graph run` exits 0 when the invocation appended no untolerated error, 3 when it completed with at least one untolerated error (skip/warn errors are tolerated; a returned guard halt is not), and 1 on raised failures or malformed initial/result error entries. Imported and checkpoint-retained errors never count. JSON stdout and `run_end` carry both counts; exports carry neither. The five adapter wrappers print `graph completed with errors (rc=3)` and keep their artifact-based verdict. | `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/cli/graph_commands.py`, `tests/unit/test_fr1097_completed_errors_exit.py`, `tests/unit/test_fr1097_adapter_rc3.py` |
+
+### 286. CAP-286 Meta-Map Demo
+
+FR-1113: `examples/demos/meta_map/` runs a map node over the repository's own map graphs plus three poisoned inputs. Each branch is a subgraph (plain reader, LLM claim, Python reconcile); claims the parse contradicts land as untolerated typed `MapFailure` records, the `min_success` join decides completeness, and a report lists every dispatched path once.
+
+**Feature Request:** FR-1113
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-703 | Discovery returns exactly the YAML files under the scan roots with a top-level `type: map` node and raises on malformed YAML; poison paths are appended in declared order; the reader returns raw text with no classifying field; reconcile raises `ClaimMismatchError` unless the LLM's claimed map nodes equal a non-empty parse from the same function discovery uses; the declared-key version is computed in Python; the report accounts every dispatch index exactly once with failure detail taken verbatim from `MapFailure.message` and coverage from `_map_verdict`. | `examples/demos/meta_map/tools.py`, `tests/unit/test_fr1113_meta_map.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

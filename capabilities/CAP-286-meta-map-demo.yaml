@@ -1,0 +1,29 @@
+id: CAP-286
+name: Meta-Map Demo
+description: >
+  FR-1113: `examples/demos/meta_map/` runs a map node over the
+  repository's own map graphs plus three poisoned inputs. Each branch is
+  a subgraph (plain reader, LLM claim, Python reconcile); claims the
+  parse contradicts land as untolerated typed `MapFailure` records, the
+  `min_success` join decides completeness, and a report lists every
+  dispatched path once.
+modules:
+  - examples/demos/meta_map/tools.py
+  - examples/demos/meta_map/graph.yaml
+  - examples/demos/meta_map/subgraphs/summarize_one.yaml
+requirements:
+  - id: REQ-YG-703
+    description: >
+      Discovery returns exactly the YAML files under the scan roots with a
+      top-level `type: map` node and raises on malformed YAML; poison paths
+      are appended in declared order; the reader returns raw text with no
+      classifying field; reconcile raises `ClaimMismatchError` unless the
+      LLM's claimed map nodes equal a non-empty parse from the same function
+      discovery uses; the declared-key version is computed in Python; the
+      report accounts every dispatch index exactly once with failure detail
+      taken verbatim from `MapFailure.message` and coverage from
+      `_map_verdict`.
+    modules:
+      - examples/demos/meta_map/tools.py
+      - tests/unit/test_fr1113_meta_map.py
+fr: FR-1113
