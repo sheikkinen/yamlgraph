@@ -35,5 +35,16 @@ settles that review debt in the isolated docs worktree, without editing the
 historical judgement or granting runtime implementation authority. The revised
 FR must be judged before implementation; this PR changes documentation only.
 
+## Independent review correction
+
+PR #717's reviewer found two missed boundaries: `on_error: skip` cannot
+witness an untolerated failure, and `gh-profiler.yaml` shares the reducer
+and prompt. The proposal now explicitly changes the migrated classifier to
+`on_error: fail`, retains map `min_success: 0`, and names a new reuse-aware
+reducer while preserving the variant's existing reducer contract. The shared
+prompt cleanup includes its second consumer and a deterministic regression.
+Heuristic: a file's directory is not its consumer boundary; enumerate callers
+before replacing a contract, even when writing only the implementation plan.
+
 **Seed:** Can a single reusable census composition preserve useful work and
 refuse stale answers without turning its result store into a query framework?

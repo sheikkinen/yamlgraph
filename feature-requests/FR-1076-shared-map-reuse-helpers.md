@@ -163,7 +163,7 @@ extract current PR evidence (existing strict map)
   -> judge_items (min_success: 0; todo only)
   -> map_reuse_save (all outcomes, one transaction)
   -> map_reuse_read (the run just saved)
-  -> reduce_pr_ledger (whole-population reconciliation and existing canary)
+  -> reduce_reused_pr_ledger (whole-population reconciliation and existing canary)
   -> existing synthesis
 ```
 
@@ -325,12 +325,14 @@ extract current PR evidence (existing strict map)
   and variables: order is not a semantic input. Do not trust any model
   attribution field. The absolute base directory and explicit computation
   inputs are constructed by this preparation tool (item 2).
-  `judge_items` declares integer `min_success: 0` and keeps failures separate
-  from successes. This preserves branch accounting while allowing save to run
+  `judge_items` declares integer `min_success: 0`, changes its nested LLM
+  node from `on_error: skip` to `on_error: fail`, and keeps failures separate
+  from successes. The map wrapper records an untolerated failure instead of
+  the skip path's tolerated failure. This preserves accounting while allowing save to run
   after any number of classification failures, including all failures.
   It does not loosen extraction: that map remains strict.
-   `reduce_pr_ledger` ([tools.py L392](../examples/demos/person_profile_census/tools.py#L392))
-  reads published successes using save's `run_id`, and save's key-bearing
+  A separately named `reduce_reused_pr_ledger` in the pilot tools reads
+  published successes using save's `run_id`, and save's key-bearing
   new/carried failures. It joins both to the current `items` and prepared
   evidence by stable key. Missing, duplicate, unknown or multiply attributed
   keys raise before ledger output or synthesis. Recompute ledger
@@ -342,6 +344,15 @@ extract current PR evidence (existing strict map)
   is saved and accounted but must not produce a successful synthesis; enforce
   that in the pilot reducer. A downstream rejection does not roll back saved
   work. A canary failure similarly stops synthesis after persistence.
+  Preserve `reduce_pr_ledger` and its `findings`/`findings_failures` contract
+  for the existing two-model `gh-profiler.yaml` consumer. Only `graph.yaml`
+  binds the new reducer; shared row-validation helpers may remain shared.
+  The shared `classify_pr` prompt loses its source-index text for both
+  consumers, but retains its schema. Remove the now-unused `source_index`
+  variable binding from `gh-profiler.yaml` through the same authoring route;
+  do not change that variant's map policy, providers, reducer binding or state
+  contract. A provider-free regression runs that actual variant through its
+  existing reducer and checks correctly attributed rows.
   Tests run the actual migrated graph with patched LLM responses and a call
   counter. No provider is called and no live graph run is authorized. The
   four related mechanisms are not migrated.
@@ -360,7 +371,7 @@ of unpublished branch work.
 | D-2 | `examples/shared/map_reuse_load.tool.yaml`, `map_reuse_save.tool.yaml`, `map_reuse_read.tool.yaml` |
 | D-3 | Focused identity, invalidation, transaction, publication, failure, corruption and read tests; process-boundary tests for separate-process reuse and interrupted unpublished work |
 | D-4 | Removed: no checkpoint-size witness or memory-saving claim |
-| D-5 | `person_profile_census` graph/prompt migration through `scripts/author.sh`; preparation and reducer tools; deterministic identity/failure/invalidation graph witnesses ($0) |
+| D-5 | `person_profile_census/graph.yaml` migration through `scripts/author.sh`: nested `on_error: fail`, map `min_success: 0`, preparation and new `reduce_reused_pr_ledger`; shared prompt source-index removal and corresponding variable removal only in `gh-profiler.yaml`, preserving its existing reducer contract; deterministic graph witnesses ($0) |
 | D-6 | Tool-manifest and `examples/shared/README.md` docs, capability/REQ traceability, changelog fragment, FR implementation record, diary entry |
 
 Not authorized: any change under `yamlgraph/`; map compiler, checkpointer,
@@ -397,9 +408,9 @@ invalidation, not checkpoint size.
 - [ ] AC-10: On the actual migrated graph, changing only `rubric`, only `problem_labels`, or only `surface_labels` invalidates classifications, including carried failures. Each case records exactly the expected classify calls and verifies the new inputs reached them. Changing only synthesis runtime inputs makes zero classify calls. Merely reordering the population does not change item versions or signatures.
 - [ ] AC-11: All three manifests validate through the FR-768 mechanism, resolve `map_reuse.py` relative to the manifests, and expose only the item 1–6 contracts; no `yamlgraph/` file changes.
 - [ ] AC-12: With the merged FR-1073 map, interleaved successes and failures map through dispatch-local indices to the right todo records and stable keys. Missing, duplicate, boolean or out-of-range indices raise and publish nothing. Persisted payloads contain no dispatch-local attribution fields; the pilot neither persists nor trusts model `source_index`.
-- [ ] AC-13: The pilot is migrated through `scripts/author.sh` and linted. Provider-free graph witnesses prove an unchanged second run makes zero classify calls and produces the same complete key-to-classification ledger. A third run reorders inputs, removes one successful key, changes one item, adds one item and carries one failure: only changed/new items classify, and exactly one correctly attributed ledger row represents every current key. Current source indices are recomputed, not replayed.
+- [ ] AC-13: The pilot is migrated through `scripts/author.sh` and linted. Provider-free graph witnesses prove an unchanged second run makes zero classify calls and produces the same complete key-to-classification ledger. A third run reorders inputs, removes one successful key, changes one item, adds one item and carries one failure: only changed/new items classify, and exactly one correctly attributed ledger row represents every current key. Current source indices are recomputed, not replayed. A separate provider-free `gh-profiler.yaml` regression reaches its unchanged `reduce_pr_ledger` binding with the existing state contract and verifies row attribution after the shared prompt/variable cleanup; it does not require a reuse store.
 - [ ] AC-14: A new capability/REQ entry (IDs picked after enumerating main and open PRs) governs the helpers; every new test carries its marker; `python scripts/req_coverage.py --strict` passes; `reference/graph-yaml.md` §Tool Manifests and `examples/shared/README.md` document the contracts and errors; changelog fragment, FR implementation record and diary entry are present.
-- [ ] AC-15: In the migrated graph, one untolerated classification failure does not prevent save: `min_success: 0` allows publication, read returns successes, and the ledger includes that failure. On rerun it remains in the whole-population denominator despite an empty todo list. All-failed and canary-failed runs save outcomes but stop before synthesis. Trace node order and publication, not only final state. Duplicate, missing or unknown ledger keys fail before synthesis; failure rows remain visibly failed, never classified successes.
+- [ ] AC-15: In the migrated graph, the nested classifier uses `on_error: fail`; inject a classifier exception and assert the map wrapper records an untolerated failure. Integer `min_success: 0` then allows save, read returns successes, and `reduce_reused_pr_ledger` includes that failure. On rerun it remains in the whole-population denominator despite an empty todo list. All-failed and canary-failed runs save outcomes but stop before synthesis. Trace node order and publication, not only final state. Duplicate, missing or unknown ledger keys fail before synthesis; failure rows remain visibly failed, never classified successes.
 
 Test surfaces: `tests/unit/test_fr1076_map_reuse.py` for pure models and
 store operations in test-owned temporary paths;
