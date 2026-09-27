@@ -44,3 +44,25 @@ def test_ac08_tampered_ledger_fails_the_check(tmp_path, tamper) -> None:
     bad = tmp_path / "ledger.md"
     bad.write_text("\n".join(lines), encoding="utf-8")
     assert _inventory_module().check(REPO, bad) == 1
+
+
+@pytest.mark.req("REQ-YG-715")
+@pytest.mark.parametrize(
+    ("klass", "declared", "rc"),
+    [("A", "fail", 0), ("A", "skip", 1), ("B", "skip", 0), ("B", "fail", 1)],
+)
+def test_ac08_row_leaves_inventory_only_by_declaring_its_class_policy(
+    tmp_path, klass, declared, rc
+) -> None:
+    graph = tmp_path / "examples" / "g.yaml"
+    graph.parent.mkdir()
+    graph.write_text(
+        f"nodes:\n  n:\n    type: llm\n    prompt: p\n    on_error: {declared}\n",
+        encoding="utf-8",
+    )
+    ledger = tmp_path / "ledger.md"
+    ledger.write_text(
+        f"| `examples/g.yaml` | `n` | `k` | -> END | {klass} | ev | policy |\n",
+        encoding="utf-8",
+    )
+    assert _inventory_module().check(tmp_path, ledger) == rc
