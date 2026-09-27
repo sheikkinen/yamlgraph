@@ -310,3 +310,15 @@ load and compile time; no model is consulted and nothing fans out.
 - `anthropic/lib/_parse/_transform.py` line 112 (SDK 1.3.0), the
   oracle.
 - FR-1121 (the production incident), FR-1122 (digest map migration).
+
+### Deviation recorded 2026-09-27 (FR-1125)
+
+`list[dict]` was chosen under judgement C-7 on the witness "the Anthropic
+SDK transform does not raise". The spike `docs/spikes/constrained-object-2026-09-27/`
+shows that transform rewrites an object with no declared properties into
+`properties: {}` + `additionalProperties: false`, so the ranker answered
+`{"stories": []}` on its first run on 0.6.1 (digest run 36335550129) and
+the FR-905 boundary refused it. The schema is retyped to the FR-1054
+`output_schema` form with declared item properties under FR-1125; the
+FR-1121 witnesses become content witnesses there. Nothing in FR-1121's
+loud-failure work is reverted: the loudness is what exposed the hollow form.

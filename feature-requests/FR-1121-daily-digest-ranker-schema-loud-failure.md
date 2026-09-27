@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved with revisions ([judgement](FR-1121-daily-digest-ranker-schema-loud-failure.judgement.md), 2026-09-27); R-1..R-5 folded 2026-09-27 (see [Judgement fold](#judgement-fold-2026-09-27)); authority active, not yet enforced
+**Status:** Implemented (2026-09-27) — yamlgraph #726 (`d7890517`), digest #4 (`0648fbd8`); production witness pending the next scheduled run (see [Implementation record](#implementation-record))
 **Effort:** 1 day
 **Requested:** 2026-09-27
 **First consumer / first event:** the `sheikkinen/yamlgraph-daily-digest`
@@ -283,3 +283,77 @@ gates. `list[dict]` is the whole schema change (C-7).
 - `yamlgraph/utils/structured_output.py` (FR-998 binder),
   `yamlgraph/node_factory/llm_execution.py` (`handle_error` fallthrough).
 - FR-1122 (map migration), FR-1123 (framework gate).
+
+## Implementation record
+
+**Verdict folded:** R-1..R-5 on 2026-09-27; enforced the same day.
+
+### This repository (`sheikkinen/yamlgraph`, PR #726, squash `d7890517`)
+
+| Step | Commit | Evidence |
+|---|---|---|
+| RED | `9395d50c` | `tests/unit/test_fr1121_ranker_loud_failure.py`: three failures. The execution-path witness's RED log reproduced the incident: `Node rank_stories failed`, then `Executing Python node: format_email`, then `send_email`. |
+| Authoring | route run 2026-09-27 16:35Z | `scripts/author.sh feature-requests/authoring-briefs/fr-1121-example-ranker-brief.md`, `AUTHOR_WORKDIR` = this checkout. Authored paths: `examples/daily_digest/graph.yaml` (+`on_error: fail` on `rank_stories`), `examples/daily_digest/prompts/rank_stories.yaml` (`list[Any]` → `list[dict]`). Precedent cited by the report: `examples/demos/corpus_census/graph.yaml` (explicit `on_error: fail`), `examples/demos/corpus_census/prompts/synthesize_brief.yaml` (`list[dict]`). Validation in the report: lint before/after, validate, `pytest -k fr1121` (3 passed). No smoke, by brief. Blocked validation: the paid full-pipeline run, by brief. Repairs: none. |
+| GREEN | `02df97a6` | witnesses pass; changelog fragment `changelog/unreleased/fr-1121-daily-digest-ranker-loud-failure.md`. |
+| Distill | `fa0bc67d` | `docs/diary/diary-2026-09-27-reflection-fr-1121-the-green-run-that-published-nothing.md`. |
+| Gate fix | `1cd1e85b` | FR-1121 registered on CAP-164 so the fragment may cite `REQ-YG-664` (changelog cross-wiring gate). |
+
+Lint identity sets (AC-07), same command before and after
+(`yamlgraph graph lint examples/daily_digest/graph.yaml`): `W013 analyze_all`,
+`W806`, `W021 rank_stories` — identical. W021 (`skip_if_exists` on a list
+field) pre-dates this FR and is not caused by it.
+
+### Digest repository (`sheikkinen/yamlgraph-daily-digest`, PR #4, squash `0648fbd8`)
+
+| Step | Commit | Evidence |
+|---|---|---|
+| RED | `9c5c88f` | `tests/test_fr1121_ranker_loud_failure.py`: four failures (transform, declaration, propagation with `format_markdown` executing after the failed ranker, runner printing the no-op line and exiting 0 with two recorded errors). |
+| Authoring | route run 2026-09-27 16:39Z | `scripts/author.sh feature-requests/authoring-briefs/fr-1121-digest-ranker-brief.md`, `AUTHOR_WORKDIR=C:/src/yamlgraph-daily-digest`. Authored paths: `graph.yaml`, `prompts/rank_stories.yaml`; same two edits. Validation in the report: lint before/after in the digest checkout, `git diff` of the two files. No smoke, by brief. Repairs: none. |
+| GREEN | `4721e70` | `run_digest.py` error guard (exit 2, every `PipelineError` to stderr, before any status handling); FR-905's `test_prompt_schema_is_untouched` replaced by the transform witness; 54 of 55 tests pass locally (see note). |
+
+Lint identity sets, `yamlgraph graph lint graph.yaml` in the digest
+checkout, before and after: `E601 gate`, `W013 analyze_all`, `W806`,
+`W021 rank_stories`, `W022 analyze_all`, `W017 analyze_all` — identical;
+none points at `rank_stories`'s policy or schema. E601/W013/W017/W022 are
+FR-1122's.
+
+### Deviations and route defects
+
+- **Adapter report location and path format.** Both authoring runs edited
+  exactly the briefed files and wrote complete reports, yet
+  `scripts/author.sh` exited 65 each time: the Copilot backend lists
+  artifacts with Windows backslashes (the wrapper's grep needs `/`), and for
+  the external target it wrote the report under the launcher's `tmp/`
+  instead of `AUTHOR_WORKDIR`'s. The reports were verified by hand and
+  copied aside (`tmp/author-report-fr1121-example.md`,
+  `tmp/author-report-fr1121-digest.md`, transient). Filed as a follow-up
+  task against `scripts/author.sh`; not fixed here (judgement C-8).
+- **Adapter lint claims.** Both reports state "complete output was empty"
+  for lint before and after; the same commands run by the enforcer show the
+  sets above. The adapter's subprocess capture dropped the output; the
+  enforcer's recorded sets are the AC-07 evidence.
+- **Windows-only local failure.** `test_vendored_copy_matches_its_recorded_digest`
+  fails on a `core.autocrlf=true` checkout (raw-byte hash of a CRLF file);
+  the LF-normalised hash equals the recorded one. Untouched; passes on the
+  Linux runner.
+- **Judge in the author's session.** The judgement was rendered by the sole
+  route from the same session that authored the FR; the adapter's model
+  had its own context. Recorded as a doctrine tension, not hidden.
+
+
+### Deviation recorded 2026-09-27 (FR-1125)
+
+`list[dict]` was chosen under judgement C-7 on the witness "the Anthropic
+SDK transform does not raise". The spike `docs/spikes/constrained-object-2026-09-27/`
+shows that transform rewrites an object with no declared properties into
+`properties: {}` + `additionalProperties: false`, so the ranker answered
+`{"stories": []}` on its first run on 0.6.1 (digest run 36335550129) and
+the FR-905 boundary refused it. The schema is retyped to the FR-1054
+`output_schema` form with declared item properties under FR-1125; the
+FR-1121 witnesses become content witnesses there. Nothing in FR-1121's
+loud-failure work is reverted: the loudness is what exposed the hollow form.
+
+### Production witness (AC-11)
+
+Pending: the first scheduled run after digest #4 (06:00 UTC, 2026-09-28).
+Record here its run id and which of the three outcomes it proved.

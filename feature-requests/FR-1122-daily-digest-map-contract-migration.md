@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved with revisions ([judgement](FR-1122-daily-digest-map-contract-migration.judgement.md), 2026-09-27); R-1..R-5 folded and Q-1 answered 2026-09-27 (see [Judgement fold](#judgement-fold-2026-09-27)); authority active, not yet enforced
+**Status:** Enforced (2026-09-27) — digest PR #5 merged 1b130e62; merge gated on the first PyPI release carrying FR-1073/FR-939 (judgement C-2; v0.6.1 tagged 2026-09-27) (see [Implementation record](#implementation-record))
 **Effort:** 1 day
 **Requested:** 2026-09-27
 **First consumer / first event:** the `sheikkinen/yamlgraph-daily-digest`
@@ -320,3 +320,48 @@ gates.
 - Digest lint output and compile check, 2026-09-27, in the research
   record's witnessed incidents.
 - FR-1121 (ranker), FR-1123 (framework gate).
+
+## Implementation record
+
+**Verdict folded:** R-1..R-5 and Q-1 (authorised) on 2026-09-27; enforced the same day.
+
+### Digest repository (`sheikkinen/yamlgraph-daily-digest`, PR #5, merged 1b130e62)
+
+| Step | Commit | Evidence |
+|---|---|---|
+| RED | `d0b41a3` | `tests/test_fr1122_map_contract.py`, fourteen witnesses through the real compiled graph with tools and LLM stubbed. RED log: map-level `on_error: skip` unread, the poisoned branch untolerated (`accepted 2/3 (succeeded=2, tolerated=0, failed=1)`), `MapCompletenessError` at the join; 101 items raise `on_overflow: error`; the ranker template reaches `item._map_analyze_all_sub`; lint carries E601/W013/W017/W022; the runner has no verdict line. |
+| Authoring | route run 2026-09-27 16:46Z | `scripts/author.sh feature-requests/authoring-briefs/fr-1122-daily-digest-map-contract-migration-brief.md`, `AUTHOR_WORKDIR=C:/src/yamlgraph-daily-digest`. Authored paths: `graph.yaml` (sub-node `on_error: skip`, `state_key: analysis`; map `max_items: 100`, `on_overflow: truncate`, `timeout: 120`, `failures: analysis_failures`; `config.max_concurrency: 8`; `gate.output.digest_status`), `prompts/rank_stories.yaml` (flat `item.*`). Validation in the report: lint before/after, validate, `graph info` with the collector bound, the compile witness (account and join nodes present), the fourteen witnesses (14 passed). Smoke deferred to the authorised post-merge `workflow_dispatch`, by brief. Repairs: none. |
+| GREEN | `668ca5e` | `run_digest.py` validates `MapVerdict`/`MapFailure` and prints `Analysed N of M - K skipped` after the FR-1121 guard; a missing verdict raises. 68 of 69 tests pass locally (CRLF note as in FR-1121). |
+
+Lint identity sets, same command before and after: removed `E601`,
+`W013`, `W017`, `W022`; remaining `W806`, `W021 rank_stories` (unchanged).
+
+### Release gate (C-2, AC-09)
+
+Isolated `yamlgraph==0.6.0` install against the branch: `graph validate`
+passes, but the witnesses cannot even collect
+(`ModuleNotFoundError: yamlgraph.models.map_results`) and `run_digest.py`
+would fail on the same import after the graph completes. Merging before a
+release carrying FR-1073 is therefore wrong, as the judge said.
+`v0.6.1` was tagged on 2026-09-27 and contains FR-1073 (`d9cfb71c`) and
+FR-939 (`4f389233`); once it is on PyPI the final commit pins
+`yamlgraph>=0.6.1` in `.github/workflows/digest.yml`, the witnesses are
+re-run on an isolated 0.6.1 install, and #5 merges. Record the version,
+the run, and the merge SHA here.
+
+### Q-1 smoke and production witness (AC-13)
+
+Authorised 2026-09-27. Pending: one manual `workflow_dispatch` after #5
+merges; then the next scheduled run. Record run ids and the
+`Analysed N of M` lines here.
+
+### Deviations and route defects
+
+- Same adapter defects as FR-1121 (backslash artifact paths; report
+  written under the launcher's `tmp/` for an external target; lint output
+  not captured by the adapter's subprocess). Reports verified by hand and
+  copied aside (`tmp/author-report-fr1122-digest.md`, transient). Filed as
+  a follow-up task against `scripts/author.sh`.
+- No changelog fragment in this repository: no code here changed (S-5).
+- Judge rendered from the author's session via the sole route; recorded
+  as in FR-1121.
