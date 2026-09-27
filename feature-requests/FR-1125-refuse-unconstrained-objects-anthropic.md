@@ -2,8 +2,8 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
-**Effort:** 2 days (framework 1 day; prompt disposition and digest retype 1 day)
+**Status:** Approved with revisions ([judgement](FR-1125-refuse-unconstrained-objects-anthropic.judgement.md), 2026-09-27); R-1..R-6 and the R-1 human dispositions folded 2026-09-27 (see [Judgement fold](#judgement-fold-2026-09-27)); authority active, not yet enforced
+**Effort:** 2.5 days (framework and parity 1 day; linter extraction 0.5 day; nine ledger rows across six briefs plus the external digest 1 day)
 **Requested:** 2026-09-27
 **First consumer / first event:** `sheikkinen/yamlgraph-daily-digest` at
 its next 06:00 UTC run, at the moment `rank_stories` is bound under
@@ -115,27 +115,35 @@ declared for a provider that supports it or refused, never hollowed.
 
 ## Proposed Solution
 
-### S-1: One walker, two rules
+### S-1: One walker, one typed finding, two rules (R-2)
 
-`yamlgraph/utils/schema_walk.py` gains, beside `find_untyped_subschemas`:
+`yamlgraph/utils/schema_walk.py` gains one immutable typed result and
+one unified entry point:
 
 ```python
-def find_open_objects(schema: dict) -> list[str]:
-    """JSON paths of `type: object` subschemas with no declared `properties`.
+class SchemaFinding(NamedTuple):
+    path: str
+    kind: Literal["untyped", "open_object"]
 
-    Constrained decoding turns them into `properties: {}` +
-    `additionalProperties: false`; the only instance is `{}`.
-    """
+def find_unconstrainable(schema: dict) -> list[SchemaFinding]: ...
 ```
 
-Same traversal as `_walk` (`$defs`, `$ref` stop, compositions,
-`properties`, `items`), same order. A subschema with `type: object` and
-an empty or absent `properties` mapping is flagged regardless of its
-`additionalProperties` value. `find_unconstrainable(schema)` returns
-both rule sets as typed findings (`path`, `kind ∈ {untyped,
-open_object}`) so the three surfaces call one function.
+Traversal is the existing deterministic `_walk` order, each path
+emitted once: `$defs` entries under canonical `$defs.<name>...` paths,
+a `$ref` occurrence is a stop and never a second finding, compositions
+branch, then `properties` and `items`. `untyped` keeps FR-1123's rule
+and paths exactly. `open_object` is exactly a concrete subschema whose
+`type == "object"` and whose `properties` is absent or an empty
+mapping, regardless of `additionalProperties`; an object with at least
+one declared property is never open. `find_untyped_subschemas` and a
+new `find_open_objects` remain only as tested projections of
+`find_unconstrainable` for existing callers and focused tests.
 
-`refusal_message` is rewritten per kind. For `open_object`:
+`refusal_message` is per kind, and one error may carry several
+findings, each keeping its own path and fix. The untyped fix no longer
+recommends `dict` or `list[dict]`. The open-object fix names the path,
+the hollowing (`{}` is the only instance), the `output_schema`
+properties cure, and the provider alternative:
 
 ```
 Prompt 'rank_stories' (node 'rank_stories', model 'provider default'):
@@ -146,64 +154,105 @@ answer empty. Declare its properties with the output_schema form
 accepts open objects.
 ```
 
-The `list[dict]` recommendation is removed from both kinds' messages.
+### S-2: The three surfaces, and the linter extracted (R-5)
 
-### S-2: The three surfaces, unchanged in shape
+`bind_structured_output` (an actual Anthropic model under effective
+`json_schema`), `refuse_static_anthropic_node` (compile) and the linter
+consume `find_unconstrainable`. Non-Anthropic providers and explicit
+`function_calling` are untouched; FR-1123's static resolution decides
+scope (C-2).
 
-`bind_structured_output` (Anthropic and `CONSTRAINED_METHOD`),
-`refuse_static_anthropic_node` (compile) and the linter check call
-`find_unconstrainable`. Lint reports `open_object` under new codes
-**E017** (statically Anthropic) / **W029** (provider chosen at run
-time), so the two classes are distinguishable in a lint report; E016/W028
-keep their meaning. Non-Anthropic providers are untouched; the FR-1123
-static resolution decides scope.
+`yamlgraph/linter/checks_prompts.py` is 426 lines on `main`, against
+the 450 maximum. The FR-1123 constrainability check and this FR's
+extension move to a new `yamlgraph/linter/checks_schema.py` exporting
+one `check_unconstrainable_schemas`, wired from `graph_linter.py`;
+prompt rendering and complexity checks stay in `checks_prompts.py`,
+which ends below 400 lines. E016/W028 keep their issue contract
+byte-for-byte for `untyped`; **E017** (statically Anthropic) and
+**W029** (provider chosen at run time) identify `open_object` only.
+An import-boundary witness and a linter-registration witness prove the
+extraction cannot silently drop either class.
 
-### S-3: Parity on content, not on raising
+### S-3: Parity on content, reference-aware and bounded (R-3)
 
-`tests/unit/test_fr1123_sdk_parity.py` (the one module importing the
-SDK's private transform) gains a second oracle: for every fixture and
-every committed prompt schema, run `transform_schema`; for each path the
-walker flags as `open_object`, assert the transformed subschema at that
-path is `{type: object, properties: {}, additionalProperties: false}`;
-for every object path the walker does *not* flag, assert the
-transformed subschema keeps every declared property. Fixtures: the
-spike's four forms plus FR-1123's set. A schema whose transform raises
-is the `untyped` class and stays under the existing oracle.
+In `tests/unit/test_fr1123_sdk_parity.py`, the only module importing
+the SDK's private transform:
 
-### S-4: Disposition of the 32 fields in 26 files
+1. Run the existing missing-keyword oracle first; if `transform_schema`
+   raises that exact error, compare only `untyped` findings as FR-1123
+   does.
+2. For a successful transform, enumerate concrete object nodes of the
+   source schema by canonical path: `$defs` under `$defs.<name>`, stop
+   at `$ref`, never dereference a reference into a second synthetic
+   path (C-5).
+3. For each source object with absent or empty `properties`, the
+   transformed object at the same canonical path must equal
+   `{"type": "object", "properties": {}, "additionalProperties": false}`.
+4. For each source object with declared properties, the transformed
+   object at the same canonical path must preserve exactly the source
+   property-name set; transform-added `title`, `required` and
+   `additionalProperties` are ignored except where item 3 requires them.
 
-A deterministic script (`scripts/fr1125_open_object_census.py`, no
-LLM) walks every committed graph, resolves each `llm`/`router` node's
-static provider with `resolve_static_provider`, loads its prompt
-schema, and lists every `open_object` path with the graph, node,
-provider and whether the provider is Anthropic. The ledger is committed
-as `docs/issues-<date>-fr1125-census.md`. Disposition:
+Fixtures: root objects, nested properties, array items, absent versus
+empty `properties`, every supported composition branch, `$defs` plus
+`$ref`, `additionalProperties: true`, dict-valued `additionalProperties`,
+the spike's four forms, FR-1123's fixtures, and every committed prompt
+schema. Any unrelated SDK exception propagates. No production code
+imports the private module.
 
-- **Anthropic-bound (static):** retype to `output_schema` with declared
-  `properties`, one `scripts/author.sh` brief per example directory
-  under `feature-requests/authoring-briefs/`. The properties come from
-  the prompt's own description of the object; where a description names
-  no keys, the brief says so and the judge decides between a declared
-  minimal shape and moving that node to a non-Anthropic provider.
-- **Run-time provider (`{state.x}`):** W029 stands; listed, not edited.
-- **Non-Anthropic (static):** listed with the provider; not edited.
-  FR-1123's R4 census table is updated to whatever those nine fields
-  become.
+### S-4: The frozen migration ledger (R-1)
 
-### S-5: The digest
+`scripts/fr1125_open_object_census.py` (deterministic: every committed
+graph under `examples/`, `graphs/`, `.github/`; top-level `llm`/`router`
+nodes and map sub-nodes; FR-1123's static provider resolution with the
+`PROVIDER` environment variable ignored so the ledger is host-independent;
+prompt schema loaded as the linter loads it) produced
+[docs/issues-2026-09-27-fr1125-census.md](../docs/issues-2026-09-27-fr1125-census.md)
+on 2026-09-27: **41 rows in 33 prompt files — 9 anthropic, 3 runtime,
+29 other, 0 errors**. The ledger's mechanical section is reproduced by
+the script and checked by a test (AC-08); its dispositions section is
+frozen here and in the ledger:
+
+| class | rows | disposition |
+|---|---|---|
+| anthropic | 9 | 8 × option 1 (declare properties verbatim from the field's description) through five briefs; 1 × option 2 (`questionnaire#classify` → `provider: mistral`; keys are field ids, unknown ahead of time; operator decision 2026-09-27 per C-7) |
+| runtime | 3 | W029 stands; not edited |
+| other | 29 | not edited; listed |
+
+Briefs, all committed under `feature-requests/authoring-briefs/`:
+`fr-1125-book-translator-properties-brief.md` (3 prompts),
+`fr-1125-yamlgraph-gen-properties-brief.md` (3 prompts),
+`fr-1125-req-witness-audit-properties-brief.md` (1 prompt),
+`fr-1125-example-ranker-properties-brief.md` (1 prompt),
+`fr-1125-questionnaire-provider-brief.md` (1 graph node), and, for the
+external digest, `fr-1125-digest-ranker-properties-brief.md`. Each
+brief freezes the exact target schema, consumers and validation
+commands; a prompt with more than one consumer (none in the anthropic
+class) may be edited only after the ledger shows the narrowed schema
+valid for every consumer. FR-1123's R4 census table is updated to the
+final types of its retyped rows.
+
+### S-5: The digest and the production gate (R-4)
 
 `sheikkinen/yamlgraph-daily-digest/prompts/rank_stories.yaml` is retyped
 to the `output_schema` form with `title`, `url`, `summary`, `relevance`,
-`reason` on each item (the spike's form C, which returned three full
-stories), through `scripts/author.sh` with
-`feature-requests/authoring-briefs/fr-1125-digest-ranker-properties-brief.md`
-and `AUTHOR_WORKDIR` at that checkout; `examples/daily_digest/prompts/rank_stories.yaml`
-here is retyped identically under its own brief. The digest's FR-1121
-transform witness is replaced by a content witness (the transformed
-item schema carries the five properties); the FR-905 `RankedStory`
-boundary stays. Production witness: the next scheduled run archives and
-sends a bulletin whose `Analysed N of M` line and story count are both
-non-zero.
+`reason` on each item (the spike's form C) through `scripts/author.sh`
+with `fr-1125-digest-ranker-properties-brief.md` and `AUTHOR_WORKDIR` at
+that checkout; `examples/daily_digest/prompts/rank_stories.yaml` is
+retyped identically under its own brief. The digest's FR-1121 raise-only
+transform witness becomes a content witness (the transformed `$defs`
+item keeps exactly the five keys and requires all five); the FR-905
+`RankedStory` boundary stays.
+
+Production witness: the **first post-merge scheduled run that invokes
+`rank_stories` with one or more analysed articles**. Recorded in the
+digest repository's implementation record and copied here: run id,
+analysed count, the content witness, the archived-bulletin line, the
+sent-bulletin line, and a non-zero story count. A scheduled run with no
+articles is recorded as a legitimate no-input run and does not satisfy
+the gate; a ranker-invoking run that returns zero or fails is a failed
+gate (C-8). It is supporting operational proof, never a substitute for
+the offline content-parity and graph-path tests.
 
 ### S-6: Records
 
@@ -224,50 +273,23 @@ CAP-164 and reuses `REQ-YG-712`.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: RED first: `find_open_objects` returns `["stories.items"]`
-  for the digest's committed `list[dict]` schema and `["stories"]` for
-  `dict`, `[]` for the spike's form C; fails on `main` (function
-  absent); separate GREEN commit.
-- [ ] AC-02: `bind_structured_output` on an Anthropic chat model under
-  `json_schema` raises `UnconstrainableSchemaError` naming the path and
-  the `output_schema` fix for `list[dict]` and `dict`; on a
-  non-Anthropic model it does not call the walker; the message contains
-  no `list[dict]` recommendation for either kind.
-- [ ] AC-03: `compile_graph` on a fixture Anthropic graph with a
-  `list[dict]` prompt raises the same error naming node, prompt and
-  path; `graph run` exits non-zero before any node executes.
-- [ ] AC-04: lint reports E017 for the static-Anthropic fixture, W029
-  for a `{state.x}` provider, nothing for `provider: mistral`, nothing
-  for the `output_schema` form with declared properties; E016/W028
-  behaviour unchanged.
-- [ ] AC-05: the parity test asserts, over the spike's four forms,
-  FR-1123's fixtures and every committed prompt schema, that each
-  `open_object` path is hollowed by the transform and each unflagged
-  object path keeps its declared properties; the private SDK module is
-  imported only there.
-- [ ] AC-06: the census script and committed ledger list every
-  `open_object` path in every committed graph with node, provider and
-  class; every static-Anthropic path is retyped through the sole
-  authoring route with a committed brief; every other path is listed
-  with its reason; `yamlgraph graph lint` over the committed graphs
-  reports no E017.
-- [ ] AC-07: FR-1123's R4 census expectations are updated to the
-  retyped forms and its test passes.
-- [ ] AC-08: both ranker prompts (digest, example) use the
-  `output_schema` form with the five item properties; the digest's
-  content witness proves the transformed item schema keeps all five;
-  every FR-905 and FR-1121 test other than the replaced raise-only
-  witness passes unchanged.
-- [ ] AC-09: the digest's next scheduled run after merge archives and
-  sends a bulletin with a non-zero story count; run id and lines
-  recorded in this FR.
-- [ ] AC-10: FR-1121 and FR-1123 implementation records carry the
-  deviation entry; FR-1125 is on CAP-164; new tests carry
-  `@pytest.mark.req("REQ-YG-712")`; `python scripts/req_coverage.py
-  --strict` passes.
-- [ ] AC-11: `schema_walk.py` and `checks_prompts.py` stay under the
-  module ceiling or are split; `lint-imports` passes; changelog
-  fragment; Distill diary entry with a `**Seed:**`.
+The judgement's revised list is binding; it replaces the original
+AC-01..AC-11.
+
+- [ ] AC-01: Before production implementation, FR-1125 folds R-1 through R-6, commits `docs/issues-2026-09-27-fr1125-census.md`, resolves every static-Anthropic row to one exact human-approved disposition, names every required authoring brief, and updates its effort estimate.
+- [ ] AC-02 (RED): a commit preceding production implementation proves exact `SchemaFinding` results for root `dict`, nested `dict`, `list[dict]`, absent versus empty properties, the five-property ranker schema, `$defs`/`$ref`, compositions, and both `additionalProperties` forms; the failure is missing open-object detection, not import or fixture setup. GREEN lands in a later commit.
+- [ ] AC-03: unified findings are deterministic and duplicate-free; projections preserve all existing `find_untyped_subschemas` paths; the untyped message contains no `dict`/`list[dict]` recommendation; the open-object message names the path, hollowing behavior, `output_schema` property cure, and provider alternative.
+- [ ] AC-04: `bind_structured_output` raises `UnconstrainableSchemaError` before `with_structured_output` for an actual Anthropic model under effective `json_schema`, with every finding and fix represented. Spies prove no unified walker call for non-Anthropic models or explicit `function_calling`.
+- [ ] AC-05: compiling a static-Anthropic fixture with an open object fails before any node executes and names node, prompt, model, path, and kind; `graph run` exits non-zero. A state-derived provider compiles and is protected by the runtime binder.
+- [ ] AC-06: lint emits `E016`/`W028` only for untyped findings and `E017`/`W029` only for open-object findings; fixtures cover static Anthropic, unresolved provider, explicit Mistral, both defect kinds in one schema, and a declared-property `output_schema`. Existing FR-1123 linter assertions pass unchanged.
+- [ ] AC-07: `tests/unit/test_fr1123_sdk_parity.py` implements the R-3 canonical-path oracle over all named fixtures and every committed prompt schema; no declared property is lost, every flagged open object becomes the exact hollow triple, unrelated SDK errors propagate, and the private SDK import remains confined to that module.
+- [ ] AC-08: the census script reproduces the committed ledger exactly from every committed `llm`/`router` graph and reports graph, node, prompt, path, provider resolution, class, and disposition. A mismatch, undocumented row, or static-Anthropic open object fails the census test.
+- [ ] AC-09: every graph or prompt edit in the frozen ledger is produced through `scripts/author.sh` from its exact committed brief; each run yields a verified non-empty transient `tmp/draft-authoring-report.md`, and the FR records authored paths, precedent, before/after lint identities, smoke result or exact blocked reason, and repairs.
+- [ ] AC-10: both ranker prompts have the exact five-property schema frozen in their briefs; their transformed `$defs` object preserves exactly those five keys and requires all five; FR-905's typed boundary stays unchanged; every retained FR-905 and FR-1121 test passes.
+- [ ] AC-11: FR-1123's R4 type assertions are replaced by the exact final types from the folded ledger, and all FR-1123 walker, provider, compile, lint, parity, and census tests remain green without weakened assertions.
+- [ ] AC-12: the first qualifying standalone-digest run satisfies R-4 with a non-zero story count and archived/sent evidence; a no-input run does not complete this criterion.
+- [ ] AC-13: `checks_prompts.py` is below 400 lines after the R-5 extraction, each affected module remains below 400 lines, `ruff check` on changed Python files, focused FR-1123/FR-1125 tests, the full unit suite, `python scripts/req_coverage.py --strict`, and `lint-imports` all exit 0.
+- [ ] AC-14: CAP-164 / REQ-YG-712 names both unconstrainable finding kinds; FR-1121 and FR-1123 record the evidenced deviation; linter/reference documentation, changelog fragment, FR implementation record with RED/GREEN SHAs and exact validation results, and a Distill entry with `**Seed:**` are present.
 
 ## Alternatives Considered
 
@@ -284,6 +306,34 @@ CAP-164 and reuses `REQ-YG-712`.
 walk with static provider resolution and no model call, so it is a
 script; declaring properties per prompt is authoring under briefs, not
 a fan-out.
+
+## Judgement fold (2026-09-27)
+
+[Judgement](FR-1125-refuse-unconstrained-objects-anthropic.judgement.md):
+APPROVED WITH REVISIONS. Folded the same day:
+
+- **R-1** → S-4: the census was run at planning time and committed as
+  `docs/issues-2026-09-27-fr1125-census.md` (41 rows; 9 anthropic); every
+  anthropic row has one frozen disposition; the one row whose keys are
+  unknown (`questionnaire#classify`, `corrections`) takes option 2,
+  `provider: mistral`, by operator decision; six briefs named; effort
+  updated.
+- **R-2** → S-1: `SchemaFinding`, `find_unconstrainable`, canonical
+  traversal, projections, per-kind messages without the `list[dict]`
+  recommendation.
+- **R-3** → S-3: content parity by canonical concrete-object path, `$ref`
+  as a stop, hollow triple for open objects, property-set preservation
+  otherwise, bounded fixture set.
+- **R-4** → S-5: the production gate is the first ranker-invoking run,
+  not the next run.
+- **R-5** → S-2: `checks_schema.py` extraction with import-boundary and
+  registration witnesses; E017/W029 for open objects only.
+- **R-6** → AC list replaced by AC-01..AC-14; CAP-164 / REQ-YG-712
+  extended to both finding kinds, no new capability.
+
+Scope frozen to the judgement's D-1..D-9; conditions C-1..C-8 are
+gates. Judge rendered from the author's session via the sole route,
+as recorded for FR-1121..FR-1124.
 
 ## Related
 
