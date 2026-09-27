@@ -84,6 +84,7 @@ defaults:
   thinking_budget: 8000   # Extended thinking budget (Anthropic: ≥1024; Google/Vertex: any positive int or -1 for auto, FR-071/FR-230)
   prompts_relative: true  # Resolve prompts relative to graph file
   prompts_dir: path/to   # Explicit prompts directory (optional)
+  on_error: fail          # Error policy for top-level llm nodes (FR-1124)
 ```
 
 | Property | Type | Default | Description |
@@ -93,6 +94,7 @@ defaults:
 | `thinking_budget` | `int` | `None` | Extended thinking tokens. `anthropic`: `0` or `≥1024`, forces `temperature=1` (FR-071). `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). `deepseek`: only `0` is meaningful — it disables thinking; omitted keeps the API default (thinking on, effort `high`); other accepted values are ignored and `≥1024` raises (FR-1056). |
 | `prompts_relative` | `bool` | `false` | Resolve prompts relative to graph file |
 | `prompts_dir` | `string` | `prompts/` | Explicit prompts directory path |
+| `on_error` | `string` | `fail` | FR-1124. Error policy for top-level `type: llm` nodes that do not set their own `on_error`: `skip`, `retry`, `fail` or `fallback`. Priority: node `on_error` > `defaults.on_error` > `fail`. Other values fail at load; `fallback` fails at load if an inheriting node has no `fallback.provider`. Router, race and map sub-nodes are not affected. |
 
 **Supported Providers:**
 
@@ -269,6 +271,7 @@ Each node in the `nodes` section defines a processing step.
 | `variables` | `object` | `{}` | Template variable mappings |
 | `state_key` | `string` | node name | State key to store result |
 | `requires` | `list[str]` | `[]` | Required state keys before execution |
+| `on_error` | `string` | `fail` for top-level `llm`; see each type | Error policy (`skip`, `retry`, `fail`, `fallback`). For a top-level `llm` node: node value > `defaults.on_error` > `fail` (FR-1124). See [Error Handling Properties](#error-handling-properties). |
 | `temperature` | `float` | from defaults | LLM temperature |
 | `provider` | `string` | from defaults | LLM provider |
 | `max_tokens` | `int` | from config | Maximum output tokens for this node's LLM call |
@@ -1183,6 +1186,13 @@ nodes:
 | `retry` | Retry up to `max_retries` times |
 | `fail` | Raise exception, halt pipeline |
 | `fallback` | Try `fallback.provider` on failure |
+
+**Default (FR-1124):** a top-level `type: llm` node without `on_error`
+uses `defaults.on_error`, and `fail` when that is also absent: the original
+exception propagates and downstream nodes do not run. A graph that should
+continue past a failed LLM call declares `on_error: skip` on the node (or
+`defaults.on_error: skip`); the error is then recorded as tolerated with
+the skip markers. An unset policy never silently continues.
 
 ### Verification Gates (FR-164)
 
