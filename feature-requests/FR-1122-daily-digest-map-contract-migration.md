@@ -358,8 +358,9 @@ merges; then the next scheduled run. Record run ids and the
 ### Deviations and route defects
 
 - Same adapter defects as FR-1121 (backslash artifact paths; report
-  written under the launcher's `tmp/` for an external target; lint output
-  not captured by the adapter's subprocess). Reports verified by hand and
+  written under the launcher's `tmp/` for an external target; lint
+  "empty" because a PATH shim was opened as text instead of run, corrected
+  under FR-1125). Reports verified by hand and
   copied aside (`tmp/author-report-fr1122-digest.md`, transient). Filed as
   a follow-up task against `scripts/author.sh`.
 - No changelog fragment in this repository: no code here changed (S-5).

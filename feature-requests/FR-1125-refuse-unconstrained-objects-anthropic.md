@@ -392,3 +392,17 @@ id, analysed count, archived and sent lines, and story count here.
   unrelated, passes on CI.
 - `test_ac07_private_sdk_import_lives_in_one_test_module` fails on this
   host on path separators only (task filed); passes on CI.
+
+### Demo proof (req_witness_audit)
+
+The CI demo-proof gate requires a fresh `demo-output.log` for a changed
+demo. The constructor (`scripts/req_audit_questions.py`) needs a
+`.coverage` database this host lacks, so the narrowest honest smoke was
+run instead: one hand-built batch of two real requirements
+(REQ-YG-712, REQ-YG-664) through the demo graph on `claude-haiku-4-5`
+under constrained decoding with the retyped `audit_batch.yaml`. The run
+completed and every verdict carries `req_id`, `witnessed`, `gap` and
+`suggestion`; the first verdict's gap ("AST linkage … omits
+checks_schema.py, which is declared as a module for this requirement")
+is a real observation about this very PR. The previous log was a
+postponement marker (FR-1073); this one is a run.
