@@ -65,25 +65,35 @@ def ledger_rows(ledger: Path) -> list[tuple[str, str, str]]:
     return rows
 
 
-def _declares_skip(repo: Path, graph: str, node: str) -> bool:
+_CLASS_POLICY = {"A": "fail", "B": "skip"}
+
+
+def _declares(repo: Path, graph: str, node: str, policy: str) -> bool:
     path = repo / graph
     if not path.is_file():
         return False
     nodes = yaml.safe_load(path.read_text(encoding="utf-8")).get("nodes") or {}
     cfg = nodes.get(node)
-    return isinstance(cfg, dict) and cfg.get("on_error") == "skip"
+    return isinstance(cfg, dict) and cfg.get("on_error") == policy
 
 
 def check(repo: Path, ledger: Path) -> int:
-    """Ledger identities == inventory; a migrated B row counts once it declares
-    ``on_error: skip``, so the check holds before and after the S-5 edits."""
+    """Ledger identities == inventory; a row leaves the inventory only by
+    declaring its class's policy (B: the S-5 ``skip`` edit; A: an explicit
+    ``fail`` landed after the census), so the check holds across drift."""
     inv = {(g, n) for g, n, _ in inventory(repo)}
     rows = ledger_rows(ledger)
     led = [(g, n) for g, n, _ in rows]
-    migrated = {(g, n) for g, n, c in rows if c == "B" and _declares_skip(repo, g, n)}
+    declared = {
+        (g, n, c)
+        for g, n, c in rows
+        if c in _CLASS_POLICY and _declares(repo, g, n, _CLASS_POLICY[c])
+    }
+    migrated = {(g, n) for g, n, c in declared if c == "B"}
+    settled = {(g, n) for g, n, _ in declared}
     bad_class = sorted((g, n) for g, n, c in rows if c not in ("A", "B"))
     dupes = sorted({i for i in led if led.count(i) > 1})
-    missing, unknown = sorted(inv - set(led)), sorted(set(led) - inv - migrated)
+    missing, unknown = sorted(inv - set(led)), sorted(set(led) - inv - settled)
     for label, items in (
         ("duplicate", dupes),
         ("missing", missing),
@@ -92,7 +102,10 @@ def check(repo: Path, ledger: Path) -> int:
     ):
         for g, n in items:
             print(f"{label}: {g} {n}")
-    print(f"inventory={len(inv)} ledger_rows={len(led)} migrated_b={len(migrated)}")
+    print(
+        f"inventory={len(inv)} ledger_rows={len(led)} migrated_b={len(migrated)}"
+        f" declared_a={len(settled) - len(migrated)}"
+    )
     return 1 if dupes or missing or unknown or bad_class or not led else 0
 
 
