@@ -90,6 +90,7 @@ nodes:
   rank_stories:
     type: llm
     prompt: rank_stories
+    on_error: fail
     variables:
       analyzed: "{state.analyzed}"
       topics: "{state.topics}"
