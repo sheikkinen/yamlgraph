@@ -344,15 +344,17 @@ gates.
 
 ## Implementation Record (2026-09-27)
 
-Branch `featfr1124-llm-default-on-error`, base `5cab655a` (v0.6.1).
+Branch `featfr1124-llm-default-on-error`, base `5cab655a` (v0.6.1), rebased onto `1adbbfc1` (FR-1128, PR #731). SHAs below are post-rebase.
 
 | Step | Commit | Content |
 |---|---|---|
-| RED | `b7adfe37` | `tests/unit/test_fr1124_llm_default_on_error.py` plus REQ-YG-715 in CAP-08, committed with the new-behaviour tests failing |
-| GREEN | `abe8afdb` | `yamlgraph/compile/llm_on_error.py` (`resolve_llm_on_error`, called from `_compile_llm_node`); `GraphConfigSchema.validate_defaults_on_error`; the FR-1097 AC-02 fixture update; two changelog fragments |
-| Docs | `bd2c04f0` | `reference/graph-yaml.md`: `defaults` example and table, common-node `on_error` row, and the Default note under the value table |
-| Inventory + ledger | `17a7dac9` | `scripts/fr1124_inventory.py`, `scripts/fr1124_census/`, `docs/issues-2026-09-27-fr1124-census.md`, `tests/unit/test_fr1124_census_ledger.py`, B brief |
-| B migration | `acc0bd98` | six `examples/novel_fandom/create_*.yaml`, one added line each: `on_error: skip` on `check` |
+| RED | `5f6662e4` | `tests/unit/test_fr1124_llm_default_on_error.py` plus REQ-YG-715 in CAP-08, committed with the new-behaviour tests failing |
+| GREEN | `fb1225b8` | `yamlgraph/compile/llm_on_error.py` (`resolve_llm_on_error`, called from `_compile_llm_node`); `GraphConfigSchema.validate_defaults_on_error`; the FR-1097 AC-02 fixture update; two changelog fragments |
+| Docs | `101e9240` | `reference/graph-yaml.md`: `defaults` example and table, common-node `on_error` row, and the Default note under the value table |
+| Inventory + ledger | `9e0e5dac` | `scripts/fr1124_inventory.py`, `scripts/fr1124_census/`, `docs/issues-2026-09-27-fr1124-census.md`, `tests/unit/test_fr1124_census_ledger.py`, B brief |
+| B migration | `b4d2acd3` | six `examples/novel_fandom/create_*.yaml`, one added line each: `on_error: skip` on `check` |
+| Ledger drift RED | `96f70938` | `test_ac08_row_leaves_inventory_only_by_declaring_its_class_policy` |
+| Ledger drift fix | `34cc673e` | `--check` settles a row whose node declares its class policy (A→`fail`, B→`skip`); module-map budget 294 → 296 |
 
 **Inventory (S-5.1).**
 - Command: `python scripts/fr1124_inventory.py`.
@@ -360,7 +362,8 @@ Branch `featfr1124-llm-default-on-error`, base `5cab655a` (v0.6.1).
 - Exclusions: paths under `prompts/`. Map sub-nodes are nested, so they are never listed.
 - Inclusion: a top-level node whose declared or default type is `llm` and that has no `on_error`.
 - At `bd2c04f0` it found **224 nodes in 134 files**, exactly the filing baseline, so there is no difference to reconcile.
-- After migration (`acc0bd98`) it finds 218. `--check` reconciles: `inventory=218 ledger_rows=224 migrated_b=6`, rc 0.
+- After migration it found 218. `--check` reconciled: `inventory=218 ledger_rows=224 migrated_b=6`, rc 0.
+- **Drift after rebase.** FR-1121 (#726) added `on_error: fail` to `examples/daily_digest/graph.yaml` `rank_stories`, a class-A row. The row left the inventory by declaring the A policy, and the old check reported it as unknown. `--check` now reads: `inventory=217 ledger_rows=224 migrated_b=6 declared_a=1`, rc 0.
 
 **Census and reconciliation (S-5.2/3).**
 - `examples/demos/corpus_census` ran with slot manifests under `scripts/fr1124_census/`, labels `a`/`b`, and model `inception/mercury-2`, in two slices because the map cap is 200.
@@ -379,7 +382,7 @@ Branch `featfr1124-llm-default-on-error`, base `5cab655a` (v0.6.1).
 **Verification.**
 - FR-1124 focused tests (both modules): 30 passed.
 - FR-1097 suite: passes with D-A.
-- Full unit suite including slow: 7369 passed, 80 skipped, 1 xfailed.
+- Full unit suite including slow (post-rebase, `34cc673e`): 7446 passed, 80 skipped, 1 xfailed.
 - `python scripts/req_coverage.py --strict`: rc 0.
 - Inventory lint: 120 of 134 graphs pass (see D-C).
 
@@ -399,7 +402,8 @@ Branch `featfr1124-llm-default-on-error`, base `5cab655a` (v0.6.1).
   - They return the same exit code at base `5cab655a` on the main checkout, so this change did not introduce the failures.
   - Fixing them means editing graphs outside the B ledger, which AC-10 forbids. The files are `codegen/impl-agent`, `demos/forensic-failure-diary`, `demos/hook_classifier` (×2), `dungeon_master/purgatory/plot`, `npc/encounter-{loop,multi,turn}`, `npc/npc-creation`, `rag/graph` and four `yamlgraph_gen/snippets/patterns/*`.
   - They need a separate judged FR. This one does not file it.
-- **D-D: resolver in its own module.** `node_compiler.py` sits at the 450-line gate, so the resolution lives in `yamlgraph/compile/llm_on_error.py`. The module-map budget goes 293 → 294.
+- **D-D: resolver in its own module.** `node_compiler.py` sits at the 450-line gate, so the resolution lives in `yamlgraph/compile/llm_on_error.py`. After the rebase onto FR-1123's `schema_walk.py` (main generates 294 lines), the module adds two map lines (entry + dependency line): budget 294 → 296.
+- **D-F: dependency on FR-1128.** Main at `5cab655a`+#729 carried a spike probe that failed the `inline-llm-check` hook on every commit. FR-1128 (PR #731) renamed it under the FR-599 `probe_` exemption. This branch was rebased onto it.
 - **D-E: census model.** The model was `inception/mercury-2`, not the census default `claude-haiku-4-5`, because the Anthropic key in `.env` returned 401.
 
 ## Related
