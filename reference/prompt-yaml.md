@@ -396,15 +396,30 @@ exempt.
 | E013 | error | A non-Jinja message contains text `str.format` cannot render |
 | E014 | error | A Jinja message contains a bare `{var}` that Jinja will not substitute (supersedes the retired W024) |
 
-### Untyped schema fields on Anthropic (FR-1123)
+### Unconstrainable schema fields on Anthropic (FR-1123, FR-1125)
 
 Anthropic constrained decoding (`json_schema`, the default since FR-998)
-rejects any schema node without a `type`. `type: Any` makes a property with
-no type, and `list[Any]` makes an untyped item (`items: {}`). YAMLGraph
-refuses such a schema **when the graph compiles**, before any node runs,
+cannot express two shapes a prompt schema can declare. YAMLGraph refuses
+both at lint time and **when the graph compiles**, before any node runs,
 naming the prompt, node, model and field path (e.g. `stories.items`).
-Declare a concrete type instead: `list[dict]`, `list[str]`, `dict`, or a
-nested schema. Other providers are not affected.
+Other providers are not affected.
+
+- **Untyped** (FR-1123): `type: Any` makes a property with no type, and
+  `list[Any]` an untyped item (`items: {}`); the provider's SDK rejects
+  the request before it is sent.
+- **Open object** (FR-1125): `dict`, `dict[str, Any]`, `list[dict]`, or an
+  `output_schema` object with no `properties`. The API refuses
+  `additionalProperties: true`, so the SDK rewrites the object to
+  `properties: {}` + `additionalProperties: false`; the call succeeds and
+  the model can only answer `{}` or `[]`.
+
+The cure for both is the same: declare the object's keys with the
+`output_schema` form (see [Nested Objects](#nested-objects)), for array
+items as `items: {type: object, properties: {...}}`. The `fields` form
+can express scalars and lists of scalars (`str`, `list[str]`, …) but not
+a list of objects. A field whose keys are genuinely unknown ahead of time
+cannot run on Anthropic under this policy; run that node on a provider
+that accepts open objects (`provider: mistral` on the node).
 
 | Code | Severity | Fires when |
 |------|----------|-----------|
