@@ -28,7 +28,6 @@ state:
   memo: dict
   summaries: list
   summary_failures: list
-  _map_verdict: dict
   merged: dict
   reduce_input: dict
   overall: str
