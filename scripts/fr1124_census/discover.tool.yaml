@@ -1,0 +1,6 @@
+name: fr1124_discover
+description: "List FR-1124 inventory identities (graph::node) for a start:stop slice as a JSON array."
+runtime:
+  type: python
+  path: tools.py
+  function: discover
