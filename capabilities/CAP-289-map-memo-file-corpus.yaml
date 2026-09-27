@@ -1,0 +1,30 @@
+id: CAP-289
+name: Map Memo For File Corpora
+description: >
+  FR-1116: `examples/shared/map_memo.py` with two FR-768 tool manifests.
+  `map_memo_split` drops file items whose bytes and computation signature
+  match a stored outcome; `map_memo_merge` stores the executed outcomes in
+  one SQLite transaction and returns the whole current population in
+  FR-1073 shapes, judging `min_success` after commit. First consumer:
+  `examples/demos/meta_map`.
+modules:
+  - examples/shared/map_memo.py
+  - examples/shared/map_memo_split.tool.yaml
+  - examples/shared/map_memo_merge.tool.yaml
+requirements:
+  - id: REQ-YG-706
+    description: >
+      Split is read-only and returns in `todo` exactly the file items whose
+      byte hash or computation signature (hashed signature files plus JSON
+      `inputs`) differs from the stored row; stored failures are carried.
+      Merge validates index attribution, dispatch identity, JSON payloads
+      and `min_success` before one write transaction, strips only
+      `_map_index`, returns records, `MapFailure`s and a `MapVerdict` over
+      the whole current population rebound to the supplied dispatch, and
+      raises `MapCompletenessError` only after commit. Store corruption,
+      schema mismatch, locks and failed writes raise `MapMemoStoreError`;
+      a stale writer never yields a false hit.
+    modules:
+      - examples/shared/map_memo.py
+      - tests/unit/test_fr1116_map_memo.py
+fr: FR-1116

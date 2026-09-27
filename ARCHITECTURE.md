@@ -594,6 +594,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 281 | CAP-281 Resolved Run Concurrency | `yamlgraph/utils/validators.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/executor_async.py`, … | REQ-YG-698 |
 | 283 | CAP-283 Completed-Run Error Exit Status | `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/models/schemas.py`, `yamlgraph/utils/route_log.py` | REQ-YG-700 |
 | 286 | CAP-286 Meta-Map Demo | `examples/demos/meta_map/tools.py`, `examples/demos/meta_map/graph.yaml`, `examples/demos/meta_map/subgraphs/summarize_one.yaml` | REQ-YG-703 |
+| 289 | CAP-289 Map Memo For File Corpora | `examples/shared/map_memo.py`, `examples/shared/map_memo_split.tool.yaml`, `examples/shared/map_memo_merge.tool.yaml` | REQ-YG-706 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3405,6 +3406,16 @@ FR-1113: `examples/demos/meta_map/` runs a map node over the repository's own ma
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-703 | Discovery returns exactly the YAML files under the scan roots with a top-level `type: map` node and raises on malformed YAML; poison paths are appended in declared order; the reader returns raw text with no classifying field; reconcile raises `ClaimMismatchError` unless the LLM's claimed map nodes equal a non-empty parse from the same function discovery uses; the declared-key version is computed in Python; the report accounts every dispatch index exactly once with failure detail taken verbatim from `MapFailure.message` and coverage from `_map_verdict`. | `examples/demos/meta_map/tools.py`, `tests/unit/test_fr1113_meta_map.py` |
+
+### 289. CAP-289 Map Memo For File Corpora
+
+FR-1116: `examples/shared/map_memo.py` with two FR-768 tool manifests. `map_memo_split` drops file items whose bytes and computation signature match a stored outcome; `map_memo_merge` stores the executed outcomes in one SQLite transaction and returns the whole current population in FR-1073 shapes, judging `min_success` after commit. First consumer: `examples/demos/meta_map`.
+
+**Feature Request:** FR-1116
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-706 | Split is read-only and returns in `todo` exactly the file items whose byte hash or computation signature (hashed signature files plus JSON `inputs`) differs from the stored row; stored failures are carried. Merge validates index attribution, dispatch identity, JSON payloads and `min_success` before one write transaction, strips only `_map_index`, returns records, `MapFailure`s and a `MapVerdict` over the whole current population rebound to the supplied dispatch, and raises `MapCompletenessError` only after commit. Store corruption, schema mismatch, locks and failed writes raise `MapMemoStoreError`; a stale writer never yields a false hit. | `examples/shared/map_memo.py`, `tests/unit/test_fr1116_map_memo.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
