@@ -255,3 +255,12 @@ if __name__ == "__main__":
             violations = scan_directory(Path(tmpdir))
             assert len(violations) == 1
             assert "bad.py" in violations[0][0].name
+
+    @pytest.mark.req("REQ-YG-073")
+    def test_repository_has_no_inline_llm_violations(self):
+        """FR-1128: the tracked tree itself is clean, so CI catches a new violation."""
+        from scripts.lint_inline_llm import scan_directory
+
+        repo_root = Path(__file__).resolve().parents[2]
+        violations = scan_directory(repo_root)
+        assert violations == []

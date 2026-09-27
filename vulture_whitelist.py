@@ -136,6 +136,7 @@ PostGuardRule.validate_retry_fields
 VerificationConfig.validate_on_fail
 DefaultsConfig.validate_defaults_thinking_budget
 GraphConfig.validate_defaults_on_overflow
+GraphConfig.validate_defaults_on_error
 GraphConfig.validate_router_targets
 GraphConfig.validate_edge_nodes
 GraphConfig.validate_subgraph_nodes

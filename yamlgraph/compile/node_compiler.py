@@ -13,6 +13,7 @@ from typing import TYPE_CHECKING, Any
 from langgraph.graph import StateGraph
 from langgraph.types import CachePolicy
 
+from yamlgraph.compile.llm_on_error import resolve_llm_on_error
 from yamlgraph.compile.map_compiler import compile_map_node
 from yamlgraph.compile.node_otel import _maybe_wrap_otel, node_config_get
 from yamlgraph.constants import NodeType
@@ -250,7 +251,7 @@ def _compile_subgraph_node(ctx: NodeCompileContext) -> tuple[str, Any] | None:
 def _compile_llm_node(ctx: NodeCompileContext) -> None:
     node_fn = create_node_function(
         ctx.node_name,
-        ctx.node_config,
+        resolve_llm_on_error(ctx.node_config, ctx.effective_defaults),
         ctx.effective_defaults,
         graph_path=ctx.config.source_path,
     )
