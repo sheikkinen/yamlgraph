@@ -330,8 +330,9 @@ FR-1122's.
   task against `scripts/author.sh`; not fixed here (judgement C-8).
 - **Adapter lint claims.** Both reports state "complete output was empty"
   for lint before and after; the same commands run by the enforcer show the
-  sets above. The adapter's subprocess capture dropped the output; the
-  enforcer's recorded sets are the AC-07 evidence.
+  sets above. Corrected under FR-1125: the launcher's PATH carried an
+  extension-less `yamlgraph` shim that PowerShell opened as a text file
+  instead of running; the enforcer's recorded sets are the AC-07 evidence.
 - **Windows-only local failure.** `test_vendored_copy_matches_its_recorded_digest`
   fails on a `core.autocrlf=true` checkout (raw-byte hash of a CRLF file);
   the LF-normalised hash equals the recorded one. Untouched; passes on the

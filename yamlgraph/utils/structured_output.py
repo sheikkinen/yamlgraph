@@ -32,7 +32,7 @@ from yamlgraph.utils.llm_providers import (
 )
 from yamlgraph.utils.schema_walk import (
     UnconstrainableSchemaError,
-    find_untyped_subschemas,
+    find_unconstrainable,
     refusal_message,
 )
 
@@ -47,14 +47,15 @@ def bind_structured_output(
 ) -> Any:
     """Return the structured-output runnable for *llm* under the FR-998 policy.
 
-    FR-1123: an Anthropic model under ``json_schema`` refuses an untyped
-    subschema here, naming every path, instead of inside the SDK transform.
+    FR-1123/FR-1125: an Anthropic model under ``json_schema`` refuses an
+    untyped or open-object subschema here, naming every path and fix, instead
+    of raising inside the SDK transform or answering empty.
     """
     anthropic = is_anthropic_chat_model(llm)
     if method is None and anthropic:
         method = CONSTRAINED_METHOD
     if anthropic and method == CONSTRAINED_METHOD:
-        paths = find_untyped_subschemas(output_model.model_json_schema())
+        paths = find_unconstrainable(output_model.model_json_schema())
         if paths:
             subject = f"Output model '{output_model.__name__}' on {_model_name(llm)}"
             raise UnconstrainableSchemaError(refusal_message(subject, paths))

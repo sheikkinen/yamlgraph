@@ -26,11 +26,11 @@ user: |
   Produce one throughline per major character, walking their events in sequence
   order.
 
-schema:
-  name: Throughlines
-  fields:
+output_schema:
+  type: object
+  properties:
     throughlines:
-      type: "list[dict]"
+      type: array
       description: >
         One throughline per major character. Each is an object with:
         character (str: canon character id),
@@ -38,3 +38,27 @@ schema:
         entries (list[dict]: the emotional walk, in ascending event sequence
         order; each entry has event (str: canon EVENT id), emotion (str),
         delta (str: gain, loss, or none), slack (bool)).
+      items:
+        type: object
+        properties:
+          character:
+            type: string
+          arc_taut:
+            type: boolean
+          entries:
+            type: array
+            items:
+              type: object
+              properties:
+                event:
+                  type: string
+                emotion:
+                  type: string
+                delta:
+                  type: string
+                  enum: [gain, loss, none]
+                slack:
+                  type: boolean
+              required: [event, emotion, delta, slack]
+        required: [character, arc_taut, entries]
+  required: [throughlines]

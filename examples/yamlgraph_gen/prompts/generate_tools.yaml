@@ -45,12 +45,31 @@ user: |
   If the graph uses built-in websearch (type: websearch), don't generate a stub for it.
   If NO custom Python tools are needed, return an empty tools list [].
 
-schema:
-  name: GeneratedTools
-  fields:
+output_schema:
+  type: object
+  properties:
     tools:
-      type: list[dict]
+      type: array
       description: "List of tool files: [{filename, content, tool_name, description}]. Empty list if only built-in tools."
+      items:
+        type: object
+        properties:
+          filename:
+            type: string
+          content:
+            type: string
+          tool_name:
+            type: string
+          description:
+            type: string
+        required:
+          - filename
+          - content
+          - tool_name
+          - description
     uses_builtin_websearch:
-      type: bool
+      type: boolean
       description: True if the graph should use built-in websearch tool
+  required:
+    - tools
+    - uses_builtin_websearch

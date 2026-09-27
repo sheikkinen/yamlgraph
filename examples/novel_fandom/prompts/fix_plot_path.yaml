@@ -23,15 +23,40 @@ user: |
   existing canon entity. Keep the dramatic intent where possible, but never
   invent new entities.
 
-schema:
-  name: PlotPath
-  fields:
-    window: {type: str, description: "The timeline window id"}
+output_schema:
+  type: object
+  properties:
+    window:
+      type: string
+      description: "The timeline window id"
     beats:
-      type: "list[dict]"
+      type: array
       description: >
         Sequence of dramatic beats. Each beat has:
         actors (list[str] — canon entity ids),
         action (str — what happens),
         moves_tension (dict with edge: str, toward: str),
         references (list[str] — all canon entity ids mentioned)
+      items:
+        type: object
+        properties:
+          actors:
+            type: array
+            items:
+              type: string
+          action:
+            type: string
+          moves_tension:
+            type: object
+            properties:
+              edge:
+                type: string
+              toward:
+                type: string
+            required: [edge, toward]
+          references:
+            type: array
+            items:
+              type: string
+        required: [actors, action, moves_tension, references]
+  required: [window, beats]

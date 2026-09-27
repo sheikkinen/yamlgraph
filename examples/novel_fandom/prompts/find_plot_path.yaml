@@ -47,15 +47,40 @@ user: |
   Propose 3–5 dramatic beats that traverse these tensions toward resolution.
   Each beat must use only existing canon entities as actors and references.
 
-schema:
-  name: PlotPath
-  fields:
-    window: {type: str, description: "The timeline window id"}
+output_schema:
+  type: object
+  properties:
+    window:
+      type: string
+      description: "The timeline window id"
     beats:
-      type: "list[dict]"
+      type: array
       description: >
         Sequence of dramatic beats. Each beat has:
         actors (list[str] — canon entity ids involved),
         action (str — what happens),
         moves_tension (dict with edge: str actor->target, toward: str resolution direction),
         references (list[str] — all canon entity ids mentioned)
+      items:
+        type: object
+        properties:
+          actors:
+            type: array
+            items:
+              type: string
+          action:
+            type: string
+          moves_tension:
+            type: object
+            properties:
+              edge:
+                type: string
+              toward:
+                type: string
+            required: [edge, toward]
+          references:
+            type: array
+            items:
+              type: string
+        required: [actors, action, moves_tension, references]
+  required: [window, beats]

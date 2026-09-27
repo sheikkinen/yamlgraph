@@ -19,17 +19,34 @@ user: |
 
   Propose candidate themes for this chunk.
 
-schema:
-  name: ChunkThemes
-  fields:
+output_schema:
+  type: object
+  properties:
     chunk_id:
-      type: str
+      type: string
       description: The chunk id exactly as given.
     themes:
-      type: list[dict]
+      type: array
       description: >
         2-8 candidate themes. Each is an object with EXACTLY these
         keys: name (str, 2-5 words), arc (str, one sentence describing
         the workstream's pain and direction), fr_ids (list of str, ids
         copied verbatim from the [brackets]).
       default: []
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+          arc:
+            type: string
+          fr_ids:
+            type: array
+            items:
+              type: string
+        required:
+          - name
+          - arc
+          - fr_ids
+  required:
+    - chunk_id

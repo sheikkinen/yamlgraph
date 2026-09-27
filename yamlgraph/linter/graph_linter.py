@@ -43,9 +43,9 @@ from yamlgraph.linter.checks_prompts import (
     check_simple_fields_in_jinja_messages,
     check_unanchored_prompt_variables,
     check_unrenderable_simple_messages,
-    check_untyped_subschemas,
 )
 from yamlgraph.linter.checks_providers import check_thinking_budget
+from yamlgraph.linter.checks_schema import check_unconstrainable_schemas
 from yamlgraph.linter.checks_semantic import (
     check_cross_references,
     check_edge_types,
@@ -142,8 +142,8 @@ def lint_graph(
     all_issues.extend(check_unrenderable_simple_messages(graph_path, project_root))
     all_issues.extend(check_simple_fields_in_jinja_messages(graph_path, project_root))
     all_issues.extend(check_prompt_complexity(graph_path, project_root))
-    # FR-1123: E016/W028 untyped subschemas on Anthropic-bound nodes
-    all_issues.extend(check_untyped_subschemas(graph_path, project_root))
+    # FR-1123/FR-1125: E016/W028 untyped, E017/W029 open-object on Anthropic-bound nodes
+    all_issues.extend(check_unconstrainable_schemas(graph_path, project_root))
     all_issues.extend(check_edge_coverage(graph_path))
     all_issues.extend(check_node_types(graph_path))
 

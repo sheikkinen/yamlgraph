@@ -31,19 +31,33 @@ user: |
   Return the EXACT text strings that mark the START of each new section.
   Copy the text precisely - these will be used for string matching.
 
-schema:
-  name: ChapterMarkers
-  fields:
+output_schema:
+  type: object
+  properties:
     markers:
-      type: list[dict]
+      type: array
       description: |
         List of section boundary markers. Each item should have:
         - marker: exact text string (20-50 chars) from document
         - title: short description of this section
         - estimated_size: approximate character count
+      items:
+        type: object
+        properties:
+          marker:
+            type: string
+            description: "exact text string (20-50 chars) from document"
+          title:
+            type: string
+            description: "short description of this section"
+          estimated_size:
+            type: integer
+            description: "approximate character count"
+        required: [marker, title, estimated_size]
     total_sections:
-      type: int
+      type: integer
       description: Total sections including the first unmarked one
     document_type:
-      type: str
+      type: string
       description: Type of document (e.g., "war diary", "novel", "manual")
+  required: [markers, total_sections, document_type]

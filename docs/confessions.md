@@ -2174,3 +2174,10 @@ The ID ranges are:
 - **Code**: N815
 - **Sin**: `sessionID: str` — the shared base field of the private opencode JSONL event models.
 - **Penance**: FR-1048. The field mirrors the vendor's `--format json` event key verbatim; renaming would require alias plumbing for a private parse-only model (same rationale as CONF-454).
+
+### CONF-492
+
+- **Where:** `tests/unit/test_fr1125_census.py` (`_run`)
+- **Code:** S603
+- **Sin:** `subprocess.run` on the repository's own census script with the test interpreter; the argument list is fixed, nothing user-supplied.
+- **Penance:** the test exists to prove the committed FR-1125 ledger reproduces from the tree; the script path is derived from the test file's own location.

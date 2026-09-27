@@ -18,14 +18,29 @@ user: |
 
   Consolidate into 8-15 final themes.
 
-schema:
-  name: MergedThemes
-  fields:
+output_schema:
+  type: object
+  properties:
     themes:
-      type: list[dict]
+      type: array
       description: >
         8-15 final themes. Each is an object with EXACTLY these keys:
         name (str, 2-5 words), arc (str, 1-2 sentences narrating the
         workstream for a newcomer), merged_from (list of str, candidate
         keys copied verbatim).
       default: []
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+          arc:
+            type: string
+          merged_from:
+            type: array
+            items:
+              type: string
+        required:
+          - name
+          - arc
+          - merged_from

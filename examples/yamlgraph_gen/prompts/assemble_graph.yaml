@@ -198,12 +198,28 @@ user: |
 
   Output the complete graph.yaml content with snippet structures preserved verbatim.
 
-schema:
-  name: AssembledGraph
-  fields:
+output_schema:
+  type: object
+  properties:
     graph_yaml:
-      type: str
+      type: string
       description: Complete graph.yaml content
     node_list:
-      type: list[dict]
+      type: array
       description: List of nodes needing prompts [{name, type, prompt_path}]
+      items:
+        type: object
+        properties:
+          name:
+            type: string
+          type:
+            type: string
+          prompt_path:
+            type: string
+        required:
+          - name
+          - type
+          - prompt_path
+  required:
+    - graph_yaml
+    - node_list

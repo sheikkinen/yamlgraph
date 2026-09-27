@@ -410,6 +410,8 @@ nested schema. Other providers are not affected.
 |------|----------|-----------|
 | E016 | error | An `llm`/`router` node whose provider is statically Anthropic has an output schema with an untyped path |
 | W028 | warning | Same, but the provider comes from `{state.x}` and is only known at run time |
+| E017 | error | An `llm`/`router` node whose provider is statically Anthropic has an output schema with an object that declares no properties (`dict`, `list[dict]`, an `object` without `properties`); constrained decoding reduces it to `{}` (FR-1125) |
+| W029 | warning | Same, but the provider comes from `{state.x}` and is only known at run time |
 
 ## Jinja2 Template Features
 

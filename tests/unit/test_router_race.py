@@ -14,6 +14,14 @@ import pytest
 # =============================================================================
 
 
+@pytest.fixture(autouse=True)
+def _non_anthropic_provider(monkeypatch):
+    """FR-1125: these fixtures use GenericReport (open `sections`/`metadata` maps)
+    with no provider; on a host without PROVIDER they resolve to Anthropic and are
+    refused at compile. The LLM is mocked, so the provider is irrelevant here."""
+    monkeypatch.setenv("PROVIDER", "mistral")
+
+
 def _make_mock_llm(response_text: str, delay: float = 0.0, fail: bool = False):
     """Create a mock LLM that returns a fixed response after optional delay."""
     mock = MagicMock()

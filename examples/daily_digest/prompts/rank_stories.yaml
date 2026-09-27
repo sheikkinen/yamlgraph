@@ -22,9 +22,19 @@ user: |
   - relevance: 0.0-1.0 relevance score
   - reason: Why this story was selected
 
-schema:
-  name: RankedStories
-  fields:
+output_schema:
+  type: object
+  properties:
     stories:
-      type: list[dict]
+      type: array
       description: "Top 5-8 stories, each with title, url, summary, relevance, reason"
+      items:
+        type: object
+        properties:
+          title: {type: string, description: "Article title"}
+          url: {type: string, description: "Article URL"}
+          summary: {type: string, description: "2-3 sentence summary"}
+          relevance: {type: number, description: "0.0-1.0 relevance score"}
+          reason: {type: string, description: "Why this story was selected"}
+        required: [title, url, summary, relevance, reason]
+  required: [stories]

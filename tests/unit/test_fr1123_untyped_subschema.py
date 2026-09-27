@@ -143,7 +143,9 @@ def test_ac03_binder_refuses_anthropic_json_schema(anthropic_is_fake) -> None:
 @pytest.mark.req(REQ)
 def test_ac03_binder_typed_anthropic_binds(anthropic_is_fake) -> None:
     llm = _FakeAnthropic()
-    assert bind_structured_output(llm, _model("list[dict]")) == "bound"
+    assert (
+        bind_structured_output(llm, _model("list[str]")) == "bound"
+    )  # FR-1125: list[dict] is now an open object
     assert llm.bind_calls == [{"method": "json_schema"}]
 
 
@@ -156,7 +158,9 @@ def test_ac03_walker_not_called_off_anthropic_json_schema(
     anthropic_is_fake, llm_cls: type, method: str | None
 ) -> None:
     llm = llm_cls()
-    with patch("yamlgraph.utils.structured_output.find_untyped_subschemas") as walker:
+    with patch(
+        "yamlgraph.utils.structured_output.find_unconstrainable"
+    ) as walker:  # FR-1125: unified walker
         assert (
             bind_structured_output(llm, _model("list[Any]"), method=method) == "bound"
         )
@@ -329,7 +333,7 @@ def test_ac05_state_provider_compiles_then_binder_refuses(
 def test_ac05_typed_schema_compiles(tmp_path) -> None:
     from yamlgraph.compile.graph_loader import load_and_compile
 
-    load_and_compile(_graph(tmp_path, STATIC, field_type="list[dict]"))
+    load_and_compile(_graph(tmp_path, STATIC, field_type="list[str]"))  # FR-1125
 
 
 # AC-06 -----------------------------------------------------------------------

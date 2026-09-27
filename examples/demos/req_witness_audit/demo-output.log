@@ -1,2 +1,49 @@
-✅ Live run postponed until map proven to work (FR-1073, PR #702; operator ruling 2026-09-26).
-This file is not a run log. The previous live run is in git history: git log -p -- examples/demos/req_witness_audit/demo-output.log
+# req_witness_audit — live smoke after FR-1125 (2026-09-27)
+# One hand-built batch (REQ-YG-712, REQ-YG-664) via scripts/req_audit_questions.build_question;
+# the constructor's full run needs a .coverage database this host lacks. Model claude-haiku-4-5,
+# constrained decoding, audit_batch.yaml in the output_schema form. Verdicts carry req_id, witnessed, gap, suggestion.
+# Command: yamlgraph graph run examples/demos/req_witness_audit/graph.yaml --var batches_dir=tmp/req-audit-one/batches --var raw_dir=tmp/req-audit-one/raw --full
+2026-09-27 21:11:09,513 [INFO] yamlgraph.compile.graph_loader: Parsed 2 Python tools: list_batches, write_raw_results
+2026-09-27 21:11:09,515 [INFO] yamlgraph.compile.node_compiler: Added node: list_batches (type=python)
+2026-09-27 21:11:09,525 [INFO] yamlgraph.compile.node_compiler: Added node: audit_batches (type=map)
+2026-09-27 21:11:09,526 [INFO] yamlgraph.compile.node_compiler: Added node: persist_raw (type=python)
+2026-09-27 21:11:09,555 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a0e410-5066-78d6-9f60-7c679fd048c6", "artifact_hash": "sha256:d420c83bfeb6b7cbc14a954140a45dea6542e566d7eba9c35ad4a9e9acb419aa", "graph": "C:/src/yamlgraph/examples/demos/req_witness_audit/graph.yaml", "yamlgraph_version": "0.5.23", "thread_id": null, "started_at": "2026-09-27T18:11:09Z"}
+2026-09-27 21:11:09,768 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: list_batches -> list_batches
+2026-09-27 21:11:09,778 [INFO] yamlgraph.route: {"event": "route", "node": "audit_batches", "value": "map", "target": "_map_audit_batches_sub", "thread_id": null, "ts": "2026-09-27T18:11:09Z", "fan_out": 1}
+2026-09-27 21:11:09,787 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=0.2)
+2026-09-27 21:11:17,613 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_audit_batches_sub completed successfully
+2026-09-27 21:11:17,616 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: persist_raw -> write_raw_results
+2026-09-27 21:11:17,796 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a0e410-5066-78d6-9f60-7c679fd048c6", "ended_at": "2026-09-27T18:11:17Z", "dropped_events": 0, "error_count": 0, "tolerated_error_count": 0}
+
+🚀 Running graph: graph.yaml
+   Variables: {'batches_dir': 'tmp/req-audit-one/batches', 'raw_dir': 'tmp/req-audit-one/raw'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a0e410-5079-71e3-90af-45c7cb0b4375?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: persist_raw
+  batches_dir: tmp/req-audit-one/batches
+  raw_dir: tmp/req-audit-one/raw
+  batch_files: [{'stem': 'batch-001', 'path': 'tmp\\req-audit-one\\batches\\batch-001.json', 'content': '[\n {\n  "req_id": "REQ-YG-712",\n  "req_text": "Unconstrainable prompt-schema subschemas (untyped or open-object) refused before Anthropic constrained decoding",\n  "cap_id": "CAP-164",\n  "cap_name": "Structured output fallback",\n  "declared_modules": [\n   "yamlgraph/utils/schema_walk.py",\n   "yamlgraph/utils/structured_output.py",\n   "yamlgraph/linter/checks_schema.py"\n  ],\n  "tests": [\n   {\n    "test_id": "tests/unit/test_fr1125_open_objects.py::test_ac02_fields_form_findings",\n    "resolution": "ast"\n   },\n   {\n    "test_id": "tests/unit/test_fr1123_sdk_parity.py::test_ac07_content_parity_spike_forms",\n    "resolution": "ast"\n   }\n  ],\n  "resolved_files": [\n   "yamlgraph/utils/schema_walk.py",\n   "yamlgraph/utils/structured_output.py"\n  ],\n  "evidence_depth": "names",\n  "question": "Are requirement, test, and code properly covered \\u2014 what would improve the witness?"\n },\n {\n  "req_id": "REQ-YG-664",\n  "req_text": "Anthropic constrained structured output with typed single fallback",\n  "cap_id": "CAP-164",\n  "cap_name": "Structured output fallback",\n  "declared_modules": [\n   "yamlgraph/utils/structured_output.py",\n   "yamlgraph/utils/llm_providers.py"\n  ],\n  "tests": [\n   {\n    "test_id": "tests/unit/test_fr1121_ranker_loud_failure.py::test_ranker_schema_survives_anthropic_constrained_transform",\n    "resolution": "no-link-unrecorded"\n   }\n  ],\n  "resolved_files": [],\n  "evidence_depth": "names",\n  "question": "Are requirement, test, and code properly covered \\u2014 what would improve the witness?"\n }\n]', 'req_ids': ['REQ-YG-712', 'REQ-YG-664'], 'count': 2}]
+  audit_results: [{'_map_index': 0, 'verdicts': [{'req_id': 'REQ-YG-712', 'witnessed': 'partial', 'gap': 'AST linkage covers schema_walk.py and structured_output.py but omits checks_schema.py, which is declared as a module for this requirement.', 'suggestion': 'Verify that checks_schema.py contains the refusal logic for unconstrainable subschemas and update linkage to include it, or clarify why it is declared but not exercised by the tests.'}, {'req_id': 'REQ-YG-664', 'witnessed': 'partial', 'gap': 'No linkage was recorded for the test, and resolved_files is empty, leaving only the test name as evidence that it addresses Anthropic constrained output with typed fallback.', 'suggestion': 'Re-run the test with linkage instrumentation enabled to establish coverage or AST connections to structured_output.py and llm_providers.py, or provide test body excerpts to confirm the fallback mechanism is exercised.'}]}]
+  raw_files: ['tmp\\req-audit-one\\raw\\batch-001.json']
+  audit_results_failures: []
+
+# Raw verdicts (tmp/req-audit-one/raw/batch-001.json):
+{
+ "verdicts": [
+  {
+   "gap": "AST linkage covers schema_walk.py and structured_output.py but omits checks_schema.py, which is declared as a module for this requirement.",
+   "req_id": "REQ-YG-712",
+   "suggestion": "Verify that checks_schema.py contains the refusal logic for unconstrainable subschemas and update linkage to include it, or clarify why it is declared but not exercised by the tests.",
+   "witnessed": "partial"
+  },
+  {
+   "gap": "No linkage was recorded for the test, and resolved_files is empty, leaving only the test name as evidence that it addresses Anthropic constrained output with typed fallback.",
+   "req_id": "REQ-YG-664",
+   "suggestion": "Re-run the test with linkage instrumentation enabled to establish coverage or AST connections to structured_output.py and llm_providers.py, or provide test body excerpts to confirm the fallback mechanism is exercised.",
+   "witnessed": "partial"
+  }
+ ]
+}

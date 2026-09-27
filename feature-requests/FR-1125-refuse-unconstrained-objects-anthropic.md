@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved with revisions ([judgement](FR-1125-refuse-unconstrained-objects-anthropic.judgement.md), 2026-09-27); R-1..R-6 and the R-1 human dispositions folded 2026-09-27 (see [Judgement fold](#judgement-fold-2026-09-27)); authority active, not yet enforced
+**Status:** Implemented (2026-09-27) — fix PR pending merge; digest #6 pending; production witness pending the first ranker-invoking scheduled run (see [Implementation record](#implementation-record))
 **Effort:** 2.5 days (framework and parity 1 day; linter extraction 0.5 day; nine ledger rows across six briefs plus the external digest 1 day)
 **Requested:** 2026-09-27
 **First consumer / first event:** `sheikkinen/yamlgraph-daily-digest` at
@@ -331,6 +331,33 @@ APPROVED WITH REVISIONS. Folded the same day:
 - **R-6** → AC list replaced by AC-01..AC-14; CAP-164 / REQ-YG-712
   extended to both finding kinds, no new capability.
 
+### Second wave (2026-09-27, same day): the census was host-dependent
+
+The R-1 ledger was produced on a host whose `.env` sets `PROVIDER=deepseek`;
+importing yamlgraph loads that file, so every graph naming no provider
+resolved to a non-Anthropic default locally, while on the Linux runner the
+built-in default (`anthropic`) applies. The first CI run of the fix PR
+therefore found **17 static-Anthropic open-object rows** the ledger had
+classed as **other**. The census script now neutralises `PROVIDER` after
+the import; the regenerated ledger is the record. Dispositions, per C-7,
+with the operator's decisions of 2026-09-27:
+
+| rows | prompts | disposition | brief |
+|---|---|---|---|
+| 2 | `cwe-classifier/reason_cluster.candidates`, `icpc-2-rfe/reason_cluster.candidates` | option 1 ("EXACTLY these keys" named) | `fr-1125-cwe-classifier-properties-brief.md`, `fr-1125-icpc-2-rfe-properties-brief.md` |
+| 2 | `demos/fr-atlas/chunk_themes.themes`, `merge_themes.themes` | option 1 | `fr-1125-fr-atlas-properties-brief.md` |
+| 1 | `demos/ramp_rtm/derive_reqs.entries` | option 1 | `fr-1125-ramp-rtm-properties-brief.md` |
+| 6 | `novel_fandom/{find_plot_path,fix_plot_path}.beats`, `reconcile_threads.{threads,dropped}`, `threads_from_synopsis.threads`, `throughlines.throughlines` | option 1 | `fr-1125-novel-fandom-properties-brief.md` |
+| 1 | `novel_fandom/extract_consequences.ops` (polymorphic) | option 1, **operator decision**: `op` required plus every op-specific field the description names, optional | same |
+| 1 | `novel_fandom/semantic_dedup.merge_map` (map keyed by ids) | option 2, **operator decision**: node `compare` → `provider: mistral` | same |
+| 4 | `api-discovery/prompts/synthesize` `$defs…sample_response`, `steps/schema-extract/{ckan,openapi,unsupported}.sample_response` (free-form) | option 2, **operator decision**: nodes `synthesize`, `summarize_openapi`, `extract_ckan`, `unsupported_family` → `provider: mistral` | `fr-1125-api-discovery-provider-brief.md` |
+
+Also in the second wave, test-only: `tests/unit/test_router.py`,
+`test_issues.py`, `test_router_race.py` compile fixtures against the
+framework's `GenericReport` (open `sections`/`metadata` maps) with no
+provider; they now pin `PROVIDER=mistral` via an autouse fixture. No
+committed graph uses that model. Effort revised: 3 days.
+
 Scope frozen to the judgement's D-1..D-9; conditions C-1..C-8 are
 gates. Judge rendered from the author's session via the sole route,
 as recorded for FR-1121..FR-1124.
@@ -344,3 +371,83 @@ as recorded for FR-1121..FR-1124.
 - Digest run 36335550129; digest PRs #4, #5.
 - `anthropic/lib/_parse/_transform.py` (SDK 1.3.0) and the API's
   `additionalProperties` rule.
+
+## Implementation record
+
+**Enforced 2026-09-27**, branch `fix/fr1125-open-objects`, rebased onto `main` after #730.
+
+| Step | Commit | Evidence |
+|---|---|---|
+| RED | `027e45bc` | `tests/unit/test_fr1125_open_objects.py` (25 failures on behaviour: nothing flagged, no E017/W029, check not extracted), `test_fr1123_sdk_parity.py` content oracle (9 failures: hollowed objects unflagged), `test_fr1125_census.py` (9 Anthropic rows remain). |
+| GREEN framework | `98663e77` | `schema_walk.SchemaFinding`, `find_unconstrainable` + projections, per-kind messages (no `list[dict]` recommendation); binder and compile on unified findings; `linter/checks_schema.py` extracted (`checks_prompts.py` 373 lines); E016/W028 kept, E017/W029 added; content parity by canonical path; CAP-164 / REQ-YG-712 wording; CONF-492. |
+| GREEN lint scope | `19124548` | lint walks map sub-nodes like compile (the baselines showed 1 E017 where the census had 3 Anthropic rows in book_translator); witness `test_ac06_lint_sees_map_sub_nodes`. |
+| Migration | `1f47aff8` | six authoring runs, all wrapper-verified this time (real `yamlgraph.exe` on PATH); nine rows per the ledger; questionnaire `classify` → `provider: mistral`; FR-1123 R4 split into fields-form and declared-property tables; ledger regenerated (33 rows, anthropic 0). |
+| FR-1121 witness | `b4b67712` | the example ranker's transform witness asserts preserved content. |
+
+Lint identity sets before/after each authoring run (same command; my own
+captures): E017 removed from book_translator, yamlgraph_gen,
+questionnaire, daily_digest; req_witness_audit had no top-level
+diagnostic either way (its row was a map sub-node, which lint now sees);
+every other code unchanged. Adapter reports for the six runs list the
+briefed artifacts and ran lint, validate and the focused tests
+themselves (report copies `tmp/author-report-fr-1125-*.md`, transient).
+
+### Digest (`sheikkinen/yamlgraph-daily-digest`, PR #6)
+
+Authored from `fr-1125-digest-ranker-properties-brief.md` with
+`AUTHOR_WORKDIR` at that checkout; the FR-1121 and FR-905 transform
+witnesses now assert the five preserved fields. Suite on an isolated
+`yamlgraph==0.6.1`: 69 passed, 1 Windows-CRLF-only failure (vendored
+hash). Production witness (R-4, C-8): pending the first post-merge
+scheduled run that invokes `rank_stories` with articles; record its run
+id, analysed count, archived and sent lines, and story count here.
+
+### Deviations and route notes
+
+- **The "empty lint output" in every earlier adapter report had one
+  cause, now removed:** an extension-less `yamlgraph` shim script placed
+  first on PATH for the outsider launcher. The adapter runs its
+  validation through PowerShell, which opened the shim in a text editor
+  instead of executing it. The FR-1121 and FR-1122 records are corrected
+  in this commit. With `.venv/Scripts` first on PATH the six FR-1125
+  runs validated correctly and the wrapper passed each time.
+- A first attempt at the chain was stopped when the shim was found; the
+  adapter had edited seven prompt files by then; all were reset with
+  `git checkout -- examples/` before the rerun.
+- `test_fr702_recap_disposition::test_graph_lint_stays_clean` fails on
+  this host because the optional z3 solver is absent (W806 info);
+  unrelated, passes on CI.
+- `test_ac07_private_sdk_import_lives_in_one_test_module` fails on this
+  host on path separators only (task filed); passes on CI.
+
+### Demo proof (req_witness_audit)
+
+The CI demo-proof gate requires a fresh `demo-output.log` for a changed
+demo. The constructor (`scripts/req_audit_questions.py`) needs a
+`.coverage` database this host lacks, so the narrowest honest smoke was
+run instead: one hand-built batch of two real requirements
+(REQ-YG-712, REQ-YG-664) through the demo graph on `claude-haiku-4-5`
+under constrained decoding with the retyped `audit_batch.yaml`. The run
+completed and every verdict carries `req_id`, `witnessed`, `gap` and
+`suggestion`; the first verdict's gap ("AST linkage … omits
+checks_schema.py, which is declared as a module for this requirement")
+is a real observation about this very PR. The previous log was a
+postponement marker (FR-1073); this one is a run.
+
+### Second wave enforcement (2026-09-27)
+
+Six more authoring runs in the worktree, one per brief
+(`cwe-classifier`, `icpc-2-rfe`, `fr-atlas`, `ramp_rtm`, `novel_fandom`,
+`api-discovery`): eleven prompts retyped with declared properties, the
+polymorphic `extract_consequences.ops` as a union with `op` required, and
+five nodes moved to `provider: mistral`. Five runs passed the wrapper; the
+`ramp_rtm` run exited 65 on the known backslash-artifact-path defect with
+the edit correct and verified by hand. The `api-discovery` run also
+regenerated the ledger's mechanical table (outside its brief; the result
+equals the script's output and was regenerated again by the enforcer).
+Host-independent census after both waves: **21 rows, anthropic 0**; CI's
+17 static-Anthropic rows are gone. Lint under the built-in default on
+this host could not reproduce CI's E017 baselines (the worktree's `.env`
+is read by the CLI), so the census, not lint, is the before/after
+record for this wave: 17 → 0. `PROVIDER=mistral` autouse fixtures in
+`test_router.py`, `test_issues.py`, `test_router_race.py`.

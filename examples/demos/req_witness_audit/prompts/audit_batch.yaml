@@ -1,12 +1,29 @@
-schema:
-  name: RequirementWitnessBatch
-  fields:
+output_schema:
+  type: object
+  properties:
     verdicts:
-      type: "list[dict]"
+      type: array
       description: >
         One object per input requirement, in input order. Each object has exactly
         these keys: req_id (copied verbatim), witnessed (yes, partial, or no),
         gap (one sentence), and suggestion (one sentence).
+      items:
+        type: object
+        properties:
+          req_id:
+            type: string
+            description: copied verbatim
+          witnessed:
+            type: string
+            enum: [yes, partial, no]
+          gap:
+            type: string
+            description: one sentence
+          suggestion:
+            type: string
+            description: one sentence
+        required: [req_id, witnessed, gap, suggestion]
+  required: [verdicts]
 
 system: |
   You audit requirement witnesses for YAMLGraph.
