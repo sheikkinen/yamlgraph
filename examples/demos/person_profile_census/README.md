@@ -59,6 +59,7 @@ sed -e 's|provider: azure|provider: anthropic|g' \
 yamlgraph graph run examples/demos/person_profile_census/SMOKE_ONLY.yaml \
   --tool preflight=examples/demos/person_profile_census/smoke_preflight.tool.yaml \
   --tool discover=examples/demos/corpus_census/adapters/gh-authored-prs-discover.tool.yaml \
+  --tool versions=examples/demos/corpus_census/adapters/gh-authored-prs-versions.tool.yaml \
   --tool extract=examples/demos/corpus_census/adapters/gh-pr-extract.tool.yaml \
   --var source='sheikkinen@sheikkinen:2026-08-25' \
   --var visibility='["public"]' \
@@ -66,6 +67,7 @@ yamlgraph graph run examples/demos/person_profile_census/SMOKE_ONLY.yaml \
   --var problem_labels='["doctrine","enforcement","cleanup","infra","research","tests","hotfix","tooling","governance"]' \
   --var surface_labels='["backend","infra","docs","tests","tooling","ci","graphs","hooks","adapters"]' \
   --var rubric='Classify this authored PR by problem_class, change_kind (feat|fix|docs|refactor|chore|infra|ops|test|revert), 1-5 distinct surfaces, one-sentence intent (<=280 chars), and one evidence_span copied verbatim from the title or body_head.' \
+  --var memo_store=tmp/person-profile-census-smoke.sqlite \
   --var output_path=tmp/smoke-ledger.md \
   --var brief_path=tmp/smoke-brief.md \
   --var brief_rubric='Profile this engineer from PR footprint. Themes, surface concentration, cadence, anti-patterns (churn, retitles, phantom-work). Cite PR URLs.'
@@ -88,6 +90,22 @@ smoke stamps that value into the artifact regardless of which model ran.
 Smoke-run model attribution therefore rests on this README, not on the
 artifact. FR-967 AC-13 corrects the reducer to require a resolved model.
 
+## Memo (FR-1120)
+
+`--var memo_store=<path>` is required. Bind
+`--tool versions=examples/demos/corpus_census/adapters/gh-authored-prs-versions.tool.yaml`
+next to `discover`; it supplies the GitHub `updatedAt` marker used as the
+per-PR version. On re-run, PRs whose `updatedAt` and computation
+signature are unchanged are neither extracted nor classified.
+
+Changing the rubric, problem labels, surface labels, model, graph,
+`prompts/classify_pr.yaml`, `tools.py`, or the corpus adapter file
+re-runs all PRs because those inputs are part of the memo signature.
+Delete the `memo_store` file to force a full recompute. For open PRs,
+base-branch movement can change `base_sha`, additions, deletions, and
+changed-file counts without advancing `updatedAt`; the accepted freshness
+contract is "`updatedAt` unchanged," not "extracted bundle unchanged."
+
 ## Invocation (corp run — never committed)
 
 ```bash
@@ -96,6 +114,7 @@ yamlgraph graph run examples/demos/person_profile_census/graph.yaml \
   --max-concurrency 2 \
   --tool preflight=examples/demos/person_profile_census/preflight.tool.yaml \
   --tool discover=examples/demos/corpus_census/adapters/gh-authored-prs-discover.tool.yaml \
+  --tool versions=examples/demos/corpus_census/adapters/gh-authored-prs-versions.tool.yaml \
   --tool extract=examples/demos/corpus_census/adapters/gh-pr-extract.tool.yaml \
   --var source='<author>@<owner>:<since>' \
   --var visibility='["private"]' \
@@ -104,6 +123,7 @@ yamlgraph graph run examples/demos/person_profile_census/graph.yaml \
   --var surface_labels='[...]' \
   --var rubric='...' \
   --var canary='{"item_ref":"...","surface_family":[...]}' \
+  --var memo_store=tmp/person-profile-census.sqlite \
   --var output_path=tmp/person-profile.md \
   --var brief_path=tmp/person-profile.brief.md \
   --var brief_rubric='...'

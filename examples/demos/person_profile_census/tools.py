@@ -389,16 +389,117 @@ def _failures_as_findings(failures: Any) -> list[dict[str, Any]]:
     return [{"_map_index": f.index, "_error": f.message} for f in records]
 
 
+def memo_prepare(state: dict[str, Any] | None = None, **kwargs: Any) -> dict[str, Any]:
+    """FR-1120: require memo_store; build the memo signature inputs and query."""
+    state = state or {}
+    store = state.get("memo_store")
+    if not isinstance(store, str) or not store.strip():
+        raise ValueError("memo_store required: path of the census memo SQLite file")
+    return {
+        "memo_inputs": {
+            key: state.get(key)
+            for key in ("rubric", "problem_labels", "surface_labels", "azure_model")
+        },
+        "memo_query": {
+            "source": state.get("source"),
+            "visibility": state.get("visibility"),
+        },
+        "executed_contents": [],
+    }
+
+
+def _cover(entries: list[tuple[Any, Any]], size: int, what: str) -> dict[int, Any]:
+    covered: dict[int, Any] = {}
+    for index, value in entries:
+        if type(index) is not int or not 0 <= index < size:
+            raise ValueError(f"{what} index {index!r} does not point into todo")
+        if index in covered:
+            raise ValueError(f"duplicate {what} for index {index}")
+        covered[index] = value
+    if len(covered) != size:
+        missing = sorted(set(range(size)) - set(covered))
+        raise ValueError(f"{what} missing for todo indices: {missing}")
+    return covered
+
+
+def pair_executed(state: dict[str, Any] | None = None, **kwargs: Any) -> dict[str, Any]:
+    """FR-1120: join executed bundles with judge outcomes by exact index covers."""
+    state = state or {}
+    size = len(state["memo"]["result"]["todo"])
+    bundles = _cover(
+        [
+            (e.get("_map_index") if isinstance(e, dict) else None, e)
+            for e in state.get("executed_contents") or []
+        ],
+        size,
+        "bundle",
+    )
+    outcomes = _cover(
+        [
+            *(
+                (f.get("_map_index") if isinstance(f, dict) else None, ("finding", f))
+                for f in state.get("executed_findings") or []
+            ),
+            *(
+                (failure.index, ("error", failure.message))
+                for failure in (
+                    MapFailure.model_validate(raw)
+                    for raw in state.get("executed_findings_failures") or []
+                )
+            ),
+        ],
+        size,
+        "outcome",
+    )
+    paired: list[dict[str, Any]] = []
+    for index in range(size):
+        blob = _blob_by_index([bundles[index]])[index]
+        kind, value = outcomes[index]
+        if kind == "finding":
+            value = {
+                k: v
+                for k, v in value.items()
+                if k not in ("_map_index", "source_index")
+            }
+        paired.append({"_map_index": index, "bundle": blob, kind: value})
+    return {"paired": paired}
+
+
+def _from_merged(merged: Any, size: int) -> tuple[list[Any], list[dict[str, Any]]]:
+    """FR-1120: rebuild live-path contents/findings from memo-merged records."""
+    records = merged["result"]["records"]
+    by_index = _cover(
+        [(r.get("_map_index") if isinstance(r, dict) else None, r) for r in records],
+        size,
+        "merged record",
+    )
+    contents: list[Any] = []
+    findings: list[dict[str, Any]] = []
+    for index in range(size):
+        record = by_index[index]
+        if not isinstance(record.get("bundle"), dict):
+            raise ValueError(f"merged record {index} lacks a bundle")
+        contents.append({"_map_index": index, "value": record["bundle"]})
+        if "error" in record:
+            findings.append({"_map_index": index, "_error": record["error"]})
+        else:
+            findings.append({"_map_index": index, **record["finding"]})
+    return contents, findings
+
+
 def reduce_pr_ledger(
     state: dict[str, Any] | None = None, **kwargs: Any
 ) -> dict[str, Any]:
     state = state or {}
     items = state.get("items") or []
-    contents = state.get("contents") or []
-    findings = [
-        *(state.get("findings") or []),
-        *_failures_as_findings(state.get("findings_failures")),
-    ]
+    if state.get("merged") is not None:
+        contents, findings = _from_merged(state["merged"], len(items))
+    else:
+        contents = state.get("contents") or []
+        findings = [
+            *(state.get("findings") or []),
+            *_failures_as_findings(state.get("findings_failures")),
+        ]
     problem_labels = _parse_json_list(state.get("problem_labels"), "problem_labels")
     surface_labels = _parse_json_list(state.get("surface_labels"), "surface_labels")
     output_path = state.get("output_path")
@@ -464,6 +565,7 @@ def reduce_pr_ledger(
     if len(rows) != len(items):
         missing = set(range(len(items))) - {r.source_index for r in rows}
         raise ValueError(f"missing findings for indices: {sorted(missing)}")
+    rows.sort(key=lambda r: r.source_index)
 
     rollup = _mechanical_rollup(rows)
     _canary_gate(state.get("canary"), rows)
