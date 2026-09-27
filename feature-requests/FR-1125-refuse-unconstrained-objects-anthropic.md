@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Implemented (2026-09-27) — fix PR pending merge; digest #6 pending; production witness pending the first ranker-invoking scheduled run (see [Implementation record](#implementation-record))
+**Status:** Implemented (2026-09-27) — yamlgraph #732 (`2b62085e`), digest #6 (`9594d910`); production witness pending the first ranker-invoking scheduled run (see [Implementation record](#implementation-record))
 **Effort:** 2.5 days (framework and parity 1 day; linter extraction 0.5 day; nine ledger rows across six briefs plus the external digest 1 day)
 **Requested:** 2026-09-27
 **First consumer / first event:** `sheikkinen/yamlgraph-daily-digest` at
@@ -374,7 +374,7 @@ as recorded for FR-1121..FR-1124.
 
 ## Implementation record
 
-**Enforced 2026-09-27**, branch `fix/fr1125-open-objects`, rebased onto `main` after #730.
+**Enforced 2026-09-27**, branch `fix/fr1125-open-objects`, rebased onto `main` after #730; squash-merged as `2b62085e` (#732). The two second-wave demo-proof commits landed after the auto-merge fired and follow in their own docs PR.
 
 | Step | Commit | Evidence |
 |---|---|---|
