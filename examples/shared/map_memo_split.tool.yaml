@@ -1,12 +1,17 @@
 # Tool manifest (FR-768) — map memo split (FR-1116, CAP-289).
 # First committed manifest consumer: examples/demos/meta_map (FR-1116).
 #
-# Contract: map_memo_split(items, signature_files, store, inputs=None) -> dict
-#   items:           distinct paths of readable regular files; the key is the
-#                    path exactly as given, the version is sha256 of its bytes
+# Contract: map_memo_split(items, signature_files, store, inputs=None,
+#                          versions=None) -> dict
+#   items:           without `versions`: distinct paths of readable regular
+#                    files; the key is the path exactly as given, the version
+#                    is sha256 of its bytes. With `versions` (FR-1120):
+#                    distinct non-empty string keys; no item path is read
+#   versions:        optional object whose key set equals `items`, each value
+#                    a non-empty string version (e.g. GitHub updatedAt)
 #   signature_files: non-empty list of files whose bytes define the per-item
 #                    computation (graph, subgraph, prompt, tools)
-#   store:           SQLite file; relative paths resolve against the cwd
+#   store:           non-empty SQLite path; relative paths resolve against cwd
 #   inputs:          optional JSON object for anything else that affects the
 #                    computation. CLI and environment overrides (provider,
 #                    model) are NOT captured unless passed here.

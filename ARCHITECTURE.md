@@ -595,6 +595,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 283 | CAP-283 Completed-Run Error Exit Status | `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/models/schemas.py`, `yamlgraph/utils/route_log.py` | REQ-YG-700 |
 | 286 | CAP-286 Meta-Map Demo | `examples/demos/meta_map/tools.py`, `examples/demos/meta_map/graph.yaml`, `examples/demos/meta_map/subgraphs/summarize_one.yaml` | REQ-YG-703 |
 | 289 | CAP-289 Map Memo For File Corpora | `examples/shared/map_memo.py`, `examples/shared/map_memo_split.tool.yaml`, `examples/shared/map_memo_merge.tool.yaml` | REQ-YG-706 |
+| 292 | CAP-292 Census Map Memo With Caller-Supplied Versions | `examples/shared/map_memo.py`, `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/tools.py`, `examples/demos/person_profile_census/graph.yaml` | REQ-YG-709 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3418,6 +3419,16 @@ FR-1116: `examples/shared/map_memo.py` with two FR-768 tool manifests. `map_memo
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-706 | Split is read-only and returns in `todo` exactly the file items whose byte hash or computation signature (hashed signature files plus JSON `inputs`) differs from the stored row; stored failures are carried. Merge validates index attribution, dispatch identity, JSON payloads and `min_success` before one write transaction, strips only `_map_index`, returns records, `MapFailure`s and a `MapVerdict` over the whole current population rebound to the supplied dispatch, and raises `MapCompletenessError` only after commit. Store corruption, schema mismatch, locks and failed writes raise `MapMemoStoreError`; a stale writer never yields a false hit. | `examples/shared/map_memo.py`, `tests/unit/test_fr1116_map_memo.py` |
+
+### 292. CAP-292 Census Map Memo With Caller-Supplied Versions
+
+FR-1120: `map_memo_split` accepts caller-supplied `versions` for non-file items; the person-profile census wraps both maps in split/merge with GitHub `updatedAt` as the per-PR version, so a re-run extracts and classifies only new or updated PRs.
+
+**Feature Request:** FR-1120
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-709 | Split with `versions` takes each item's version from a dict whose key set equals the unique non-empty string items, reads no item path, and rejects bad versions, items or `store` with `MapMemoInputError` before any store exists. `gh_authored_prs_versions` returns `{ref: updatedAt}` over discover's population with discover's failure messages and rejects unusable `updatedAt`. `pair_executed` joins bundles and judge outcomes by two exact index covers and emits nothing on malformed attribution; `reduce_pr_ledger` given `merged` writes JSONL byte-identical to its live path. The census re-run makes zero extract and classify calls for unchanged `updatedAt`, one per bumped PR, and re-runs everything when rubric, labels, model or a signature file changes; a missing `memo_store` fails before extraction. | `examples/shared/map_memo.py`, `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/tools.py`, `tests/unit/test_fr1120_map_memo_versions.py`, `tests/unit/test_fr1120_authored_pr_versions.py`, `tests/unit/test_fr1120_census_pair_reduce.py`, `tests/unit/test_fr1120_census_memo_graph.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

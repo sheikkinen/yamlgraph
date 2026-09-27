@@ -242,14 +242,10 @@ def _parse_visibility(state: dict[str, Any]) -> list[str]:
     return canonical
 
 
-def gh_authored_prs_discover(state: dict[str, Any]) -> list[str]:
-    """Enumerate PRs authored by <author> in <owner> since <since>.
-
-    source: '<author>@<owner>:<since>' — e.g. 'sheikkinen@sheikkinen:2026-06-01'
-    visibility: JSON list from {"public","private","internal"} (required, R-5)
-    Overflow-detecting (R-1): queries MAX_PRS+1 and rejects on 501.
-    Returns sorted, deduplicated list of item refs '<owner>/<repo>#<number>'.
-    """
+def _search_authored_prs(
+    state: dict[str, Any], fields: str
+) -> list[tuple[str, dict[str, Any]]]:
+    """Run the authored-PR search; return validated (ref, entry) pairs."""
     author, owner, since = _parse_pr_source(_require(state, "source"))
     visibility = _parse_visibility(state)
     argv: list[str] = [
@@ -264,7 +260,7 @@ def gh_authored_prs_discover(state: dict[str, Any]) -> list[str]:
         "--limit",
         str(MAX_PRS + 1),
         "--json",
-        "repository,number",
+        fields,
     ]
     for vis in visibility:
         argv.extend(["--visibility", vis])
@@ -280,13 +276,37 @@ def gh_authored_prs_discover(state: dict[str, Any]) -> list[str]:
             f"gh_authored_prs_discover: population exceeded MAX_PRS={MAX_PRS} "
             f"(got {len(listing)}); narrow `since` or split the query"
         )
-    refs_set: set[str] = set()
+    pairs: dict[str, dict[str, Any]] = {}
     for entry in listing:
         ref = f"{entry['repository']['nameWithOwner']}#{entry['number']}"
-        if ref in refs_set:
+        if ref in pairs:
             raise ValueError(f"gh_authored_prs_discover: duplicate item ref {ref!r}")
-        refs_set.add(ref)
-    return sorted(refs_set)
+        pairs[ref] = entry
+    return sorted(pairs.items())
+
+
+def gh_authored_prs_discover(state: dict[str, Any]) -> list[str]:
+    """Enumerate PRs authored by <author> in <owner> since <since>.
+
+    source: '<author>@<owner>:<since>' — e.g. 'sheikkinen@sheikkinen:2026-06-01'
+    visibility: JSON list from {"public","private","internal"} (required, R-5)
+    Overflow-detecting (R-1): queries MAX_PRS+1 and rejects on 501.
+    Returns sorted, deduplicated list of item refs '<owner>/<repo>#<number>'.
+    """
+    return [ref for ref, _ in _search_authored_prs(state, "repository,number")]
+
+
+def gh_authored_prs_versions(state: dict[str, Any]) -> dict[str, str]:
+    """FR-1120: {ref: updatedAt} over the same population as discover."""
+    versions: dict[str, str] = {}
+    for ref, entry in _search_authored_prs(state, "repository,number,updatedAt"):
+        updated = entry.get("updatedAt")
+        if not isinstance(updated, str) or not updated:
+            raise ValueError(
+                f"gh_authored_prs_versions: unusable updatedAt for {ref!r}: {updated!r}"
+            )
+        versions[ref] = updated
+    return versions
 
 
 def _parse_pr_item(item: str) -> tuple[str, str, int]:

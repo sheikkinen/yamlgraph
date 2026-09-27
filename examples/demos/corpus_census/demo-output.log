@@ -1,2 +1,9 @@
-✅ Live run postponed until map proven to work (FR-1073, PR #702; operator ruling 2026-09-26).
-This file is not a run log. The previous live run is in git history: git log -p -- examples/demos/corpus_census/demo-output.log
+# FR-1120: adapters changed (gh_authored_prs_versions added), graph unchanged; lint + validate of this graph. Live run still postponed (FR-1073 ruling 2026-09-26).
+✅ graph.yaml - No issues found
+
+✅ All graphs passed linting
+
+✅ graph.yaml (corpus-census) - VALID
+
+   Nodes: 8
+   Edges: 9
