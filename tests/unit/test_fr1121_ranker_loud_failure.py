@@ -31,27 +31,40 @@ from unittest.mock import patch
 import pytest
 import yaml
 
-from yamlgraph.schema_loader import build_pydantic_model
-
 REPO = Path(__file__).resolve().parents[2]
 EXAMPLE = REPO / "examples" / "daily_digest"
 PROMPT = EXAMPLE / "prompts" / "rank_stories.yaml"
 GRAPH = EXAMPLE / "graph.yaml"
 
 
-def _ranker_schema() -> dict:
-    return yaml.safe_load(PROMPT.read_text(encoding="utf-8"))["schema"]
+RANKER_FIELDS = {"title", "url", "summary", "relevance", "reason"}
+
+
+def _ranker_model() -> type:
+    """The committed prompt's model, whichever schema form it uses."""
+    from yamlgraph.schema_loader import load_schema_from_yaml
+
+    model = load_schema_from_yaml(PROMPT)
+    assert model is not None, "rank_stories.yaml must declare an output schema"
+    return model
 
 
 @pytest.mark.req("REQ-YG-664")
 def test_ranker_schema_survives_anthropic_constrained_transform() -> None:
-    """The committed schema must be one the constrained decoder can express."""
+    """Content witness (FR-1125): the transformed item schema still carries every story field.
+
+    FR-1121's first witness only asserted the transform does not raise; `list[dict]`
+    passed it and the model answered `[]`. The assertion is now preservation.
+    """
     transform_schema = pytest.importorskip("anthropic").transform_schema
-    model = build_pydantic_model(_ranker_schema())
-    json_schema = model.model_json_schema()
-    # RED on list[Any]: items == {} -> "Schema must have a 'type', ..."
-    transform_schema(copy.deepcopy(json_schema))
-    assert json_schema["properties"]["stories"]["items"]["type"] == "object"
+    json_schema = _ranker_model().model_json_schema()
+    transformed = transform_schema(copy.deepcopy(json_schema))
+    items = transformed["properties"]["stories"]["items"]
+    if "$ref" in items:
+        items = transformed["$defs"][items["$ref"].rsplit("/", 1)[-1]]
+    assert set(items["properties"]) == RANKER_FIELDS
+    assert set(items.get("required", [])) == RANKER_FIELDS
+    assert items.get("additionalProperties") is False
 
 
 @pytest.mark.req("REQ-YG-664")
