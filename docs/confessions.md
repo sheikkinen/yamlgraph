@@ -2177,7 +2177,7 @@ The ID ranges are:
 
 ### CONF-492
 
-- **Where:** `tests/unit/test_fr1125_census.py` (`_run`)
-- **Code:** S603
-- **Sin:** `subprocess.run` on the repository's own census script with the test interpreter; the argument list is fixed, nothing user-supplied.
-- **Penance:** the test exists to prove the committed FR-1125 ledger reproduces from the tree; the script path is derived from the test file's own location.
+- **File**: [tests/unit/test_fr1125_census.py](../tests/unit/test_fr1125_census.py#L30)
+- **Code**: S603
+- **Sin**: `subprocess.run` on the repository's own census script with the test interpreter; the argument list is fixed, nothing user-supplied.
+- **Penance**: the test exists to prove the committed FR-1125 ledger reproduces from the tree; the script path is derived from the test file's own location.

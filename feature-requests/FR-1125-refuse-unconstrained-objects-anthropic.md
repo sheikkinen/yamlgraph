@@ -404,6 +404,11 @@ id, analysed count, archived and sent lines, and story count here.
 
 ### Deviations and route notes
 
+- Release 0.6.2 preparation: the strict confession hook could not parse
+  CONF-492's `Where:` and bold-colon field labels. Normalized the existing
+  entry to the established `File` link and `Code` format; no suppression or
+  checker change. `python scripts/noqa_coverage.py --strict` then reported
+  259 suppressions, 347 documented entries, and zero undocumented suppressions.
 - **The "empty lint output" in every earlier adapter report had one
   cause, now removed:** an extension-less `yamlgraph` shim script placed
   first on PATH for the outsider launcher. The adapter runs its

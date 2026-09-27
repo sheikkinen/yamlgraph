@@ -8,6 +8,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.2]
+
+### Added
+- **FR-1124 Graph-level `defaults.on_error`**: `defaults.on_error` (`skip|retry|fail|fallback`) sets the error policy for top-level `llm` nodes; a node's own `on_error` wins. Invalid values fail graph load, and `defaults.on_error: fallback` is refused when an inheriting node has no `fallback.provider`. Router, race and map sub-nodes are unaffected. (REQ-YG-715)
+
+### Removed
+- **FR-1124 LLM record-and-continue default removed**: A top-level `llm` node without `on_error` no longer records the failure and continues with an absent `state_key`; the original exception now propagates (`fail`). Graphs that relied on continuation declare `on_error: skip` on the node or `defaults.on_error: skip`. (REQ-YG-715)
+
+### Fixed
+- **FR-1128 Spike probe inline-LLM exemption name**: The #729 spike probe is renamed to `probe_constrained_object.py` so that the existing `probe_` exemption covers it. A new unit test asserts the repository has no inline-LLM violations, so a future violation fails in CI on its own PR instead of blocking every later commit through the whole-tree hook. (REQ-YG-073)
+- **FR-1125 Refuse unconstrained objects on Anthropic-bound nodes**: an output-schema object with no declared `properties` (`dict`, `dict[str, Any]`, `list[dict]`, or an `output_schema` object without `properties`) is refused at lint (E017 static Anthropic, W029 run-time provider), compile and bind time on Anthropic-bound nodes, because constrained decoding rewrites it to `{}` and the model can only answer empty (the digest's zero-story run on 0.6.1). `schema_walk` returns typed `SchemaFinding`s for both kinds; the refusal message points at the `output_schema` form with declared item properties instead of `list[dict]`; the SDK parity test compares transformed content by canonical path; the linter check moved to `checks_schema.py`. The repository's nine Anthropic-bound open-object fields are retyped with declared properties, and `questionnaire#classify` runs on Mistral. (REQ-YG-712)
+- **FR-1123 Refuse untyped subschemas before Anthropic constrained decoding**: an output schema containing `Any` or `list[Any]` on an Anthropic node now fails at graph compile (and in `bind_structured_output`) with the prompt, node, model and field path, instead of failing at call time and silently nulling the state key. Lint adds E016 (static Anthropic provider) and W028 (`{state.x}` provider). The nine affected example prompts (daily_digest, book_translator, yamlgraph_gen, codegen) now declare concrete types. (REQ-YG-712)
+- **FR-1121 daily_digest ranker survives constrained decoding and fails loudly**: `examples/daily_digest/prompts/rank_stories.yaml` types `stories` as `list[dict]` instead of `list[Any]`, whose untyped items the Anthropic SDK's constrained-decoding transform rejects since FR-998; `rank_stories` declares `on_error: fail`, so a ranker failure propagates instead of continuing into formatting with an absent result. Three offline witnesses: SDK transform on the committed prompt model, the declaration, and a compiled-graph run proving the original exception propagates and `format_email` never runs. (REQ-YG-664)
+
 ## [0.6.1]
 
 ### Added
