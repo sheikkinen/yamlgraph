@@ -2188,7 +2188,7 @@ Add status: retired support to capability YAML files. req_coverage.py excludes r
 
 When with_structured_output() fails (provider rejects response_format), fall back to extract_json() + model_validate(). Extends FR-456 pattern from agent.py to executor.py and race_node.py. FR-998 adds the provider policy in front of it: Anthropic models are asked with constrained decoding (method="json_schema") from one shared module, with exactly one typed forced-tool-call second attempt when the model rejects output_config.
 
-**Feature Request:** FR-464, FR-998
+**Feature Request:** FR-464, FR-998, FR-1121
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
