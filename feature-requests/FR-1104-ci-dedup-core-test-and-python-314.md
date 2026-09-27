@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged — operator override of SPLIT (2026-09-26)
+**Status:** Implemented (2026-09-26, #714 `28ec0daf`) — judged with operator override of SPLIT
 **Effort:** 0.5 days
 **Requested:** 2026-09-26
 **First consumer / first event:** every PR author at the first push
@@ -78,20 +78,20 @@ forces this). Nothing else merges between the PATCH and this merge.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: 3.14 probe — lean-leg extras install on Python 3.14,
+- [x] AC-01: 3.14 probe — lean-leg extras install on Python 3.14,
       `pip check` clean, unit suite green; recorded in Implementation
       Status. A wheel gap or red suite blocks the FR (no extra dropped,
       no test skipped).
-- [ ] AC-02: no `core-test` job; matrix emits exactly `test (3.11)`,
+- [x] AC-02: no `core-test` job; matrix emits exactly `test (3.11)`,
       `test (3.14)`.
-- [ ] AC-03: 3.14 extras exclude `otel` and `vision`; 3.11 extras
+- [x] AC-03: 3.14 extras exclude `otel` and `vision`; 3.11 extras
       include both.
-- [ ] AC-04: `requires-python = ">=3.11,<3.15"`; classifiers 3.11–3.14.
-- [ ] AC-05: `tests/unit/test_fr1104_ci_matrix.py` RED then GREEN.
-- [ ] AC-06: both CI legs green at the existing `--cov-fail-under=80`.
-- [ ] AC-07: docs updated; FR-952 pointer added.
-- [ ] AC-08: branch protection migrated; before/after readback recorded.
-- [ ] AC-09: changelog fragment; diary entry.
+- [x] AC-04: `requires-python = ">=3.11,<3.15"`; classifiers 3.11–3.14.
+- [x] AC-05: `tests/unit/test_fr1104_ci_matrix.py` RED then GREEN.
+- [x] AC-06: both CI legs green at the existing `--cov-fail-under=80`.
+- [x] AC-07: docs updated; FR-952 pointer added.
+- [x] AC-08: branch protection migrated; before/after readback recorded.
+- [x] AC-09: changelog fragment; diary entry.
 
 Out of scope: the 3.11 floor, coverage threshold/flags, `-n auto`,
 `constraints/dev-py312.txt`, other workflow pins, merge queue.
@@ -126,9 +126,20 @@ Final AC-01 evidence is the CI `test (3.14)` leg.
 
 AC-02–AC-05, AC-07: done (`test_fr1104_ci_matrix.py` + migrated pins,
 32 passed; fast suite 7073 passed on 3.13 aside from the `ramp.sh` PATH
-case above). AC-06: pending CI. AC-08: operator, pending. AC-09:
+case above). AC-09:
 fragment `changelog/unreleased/fr-1104-ci-dedup-py314.md`; diary
 `docs/diary/diary-2026-09-26-reflection-fr-1104-the-context-line.md`.
+
+AC-06: CI run 36260556870 on PR head `89925e7c` — `test (3.11)` and
+`test (3.14)` both green at `--cov-fail-under=80`.
+
+AC-08: branch protection on `main` (required status checks), readback:
+- BEFORE `{"contexts":["commitlint","test (3.11)","test (3.13)"],"strict":true}`
+- AFTER `{"contexts":["commitlint","test (3.11)","test (3.14)"],"strict":true}`
+
+Merged #714 as `28ec0daf` by operator-authorized admin squash while
+the head's checks were still pending; run 36260556870 then passed.
+Open PRs must rebase onto `main` to emit `test (3.14)`.
 
 Deviations:
 - Changelog fragment carries no `req:` — REQ-YG-277 belongs to CAP-127;
