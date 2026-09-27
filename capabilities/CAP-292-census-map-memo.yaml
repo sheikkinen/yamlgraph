@@ -1,0 +1,36 @@
+id: CAP-292
+name: Census Map Memo With Caller-Supplied Versions
+description: >
+  FR-1120: `map_memo_split` accepts caller-supplied `versions` for non-file
+  items; the person-profile census wraps both maps in split/merge with
+  GitHub `updatedAt` as the per-PR version, so a re-run extracts and
+  classifies only new or updated PRs.
+modules:
+  - examples/shared/map_memo.py
+  - examples/demos/corpus_census/adapters/corpus_adapters.py
+  - examples/demos/person_profile_census/tools.py
+  - examples/demos/person_profile_census/graph.yaml
+requirements:
+  - id: REQ-YG-709
+    description: >
+      Split with `versions` takes each item's version from a dict whose key
+      set equals the unique non-empty string items, reads no item path, and
+      rejects bad versions, items or `store` with `MapMemoInputError` before
+      any store exists. `gh_authored_prs_versions` returns `{ref: updatedAt}`
+      over discover's population with discover's failure messages and
+      rejects unusable `updatedAt`. `pair_executed` joins bundles and judge
+      outcomes by two exact index covers and emits nothing on malformed
+      attribution; `reduce_pr_ledger` given `merged` writes JSONL
+      byte-identical to its live path. The census re-run makes zero extract
+      and classify calls for unchanged `updatedAt`, one per bumped PR, and
+      re-runs everything when rubric, labels, model or a signature file
+      changes; a missing `memo_store` fails before extraction.
+    modules:
+      - examples/shared/map_memo.py
+      - examples/demos/corpus_census/adapters/corpus_adapters.py
+      - examples/demos/person_profile_census/tools.py
+      - tests/unit/test_fr1120_map_memo_versions.py
+      - tests/unit/test_fr1120_authored_pr_versions.py
+      - tests/unit/test_fr1120_census_pair_reduce.py
+      - tests/unit/test_fr1120_census_memo_graph.py
+fr: FR-1120

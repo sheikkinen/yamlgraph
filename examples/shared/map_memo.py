@@ -206,22 +206,59 @@ def _read_rows(store: Path, keys: list[str]) -> dict[str, _Row]:
         db.close()
 
 
+def _supplied_versions(items: Any, versions: Any) -> dict[str, str]:
+    """FR-1120: item versions from the caller; no item path is read."""
+    if not isinstance(items, list) or not items:
+        raise MapMemoInputError("items must be a non-empty list of keys")
+    if len(set(map(repr, items))) != len(items):
+        raise MapMemoInputError("items contain a duplicate")
+    for key in items:
+        if not isinstance(key, str) or not key:
+            raise MapMemoInputError(f"item must be a non-empty string: {key!r}")
+    if not isinstance(versions, dict):
+        raise MapMemoInputError("versions must be an object keyed by item")
+    if set(versions) != set(items):
+        missing = sorted(set(items) - set(versions))
+        extra = sorted(map(str, set(versions) - set(items)))
+        raise MapMemoInputError(
+            f"versions keys must equal items: missing {missing}, extra {extra}"
+        )
+    for key in items:
+        value = versions[key]
+        if not isinstance(value, str) or not value:
+            raise MapMemoInputError(
+                f"version for {key!r} must be a non-empty string: {value!r}"
+            )
+    return {key: versions[key] for key in items}
+
+
 def map_memo_split(
     items: list[str],
     signature_files: list[str],
     store: str,
     inputs: dict[str, Any] | None = None,
+    versions: dict[str, str] | None = None,
 ) -> dict[str, Any]:
-    """Return the memo plan: current items, the keys to run, and the hits."""
-    versions = _hash_files(items, "item")
+    """Return the memo plan: current items, the keys to run, and the hits.
+
+    Without `versions`, each item is a file path versioned by its SHA-256.
+    With `versions` (FR-1120), each item is an opaque key versioned by the
+    caller-supplied string; no item path is read.
+    """
+    if not isinstance(store, str) or not store:
+        raise MapMemoInputError(f"store must be a non-empty path string: {store!r}")
+    if versions is None:
+        item_versions = _hash_files(items, "item")
+    else:
+        item_versions = _supplied_versions(items, versions)
     signature = _signature(signature_files, inputs)
     store_path = Path(store).resolve()
-    rows = _read_rows(store_path, list(versions))
+    rows = _read_rows(store_path, list(item_versions))
 
     current: list[MemoItem] = []
     todo: list[str] = []
     hits: dict[str, dict[str, Any]] = {}
-    for index, (key, version) in enumerate(versions.items()):
+    for index, (key, version) in enumerate(item_versions.items()):
         row = rows.get(key)
         if row is not None and (row.version, row.signature) == (version, signature):
             hits[key] = row.payload

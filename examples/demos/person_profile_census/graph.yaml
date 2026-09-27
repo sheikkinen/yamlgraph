@@ -1,10 +1,8 @@
 version: "1.0"
 name: person-profile-census
 description: >
-  GitHub authored-PR person profile census with Azure-pinned LLM calls.
-  Discovery, extraction, and preflight are bound at invocation time through
-  FR-892 tool slots; the local reducer owns mechanical ledger fields and
-  output rendering.
+  GitHub authored-PR person profile census memoizes extract + classify per PR
+  keyed by GitHub `updatedAt`; `memo_store` is required.
 
 prompts_relative: true
 prompts_dir: prompts
@@ -30,14 +28,23 @@ state:
   canary: dict
   run_metadata: dict
   preflight_ok: bool
+  memo_store: str
+  memo_inputs: dict
+  memo_query: dict
+  memo_prepared: dict
   items:
     type: list
-  contents:
+  versions: dict
+  memo: dict
+  executed_contents:
     type: list
     reducer: sorted_add
-  findings:
+  executed_findings:
     type: list
     reducer: sorted_add
+  paired:
+    type: list
+  merged: dict
   ledger: dict
   brief_input:
     type: list
@@ -54,11 +61,29 @@ tools:
     contract:
       runtimes: [python]
       args: [source]
+  versions:
+    slot: true
+    contract:
+      runtimes: [python]
   extract:
     slot: true
     contract:
       runtimes: [python]
       args: [item]
+  map_memo_split:
+    manifest: ../../shared/map_memo_split.tool.yaml
+  map_memo_merge:
+    manifest: ../../shared/map_memo_merge.tool.yaml
+  memo_prepare:
+    type: python
+    path: tools.py
+    function: memo_prepare
+    description: "Prepare census memo inputs and require memo_store."
+  pair:
+    type: python
+    path: tools.py
+    function: pair_executed
+    description: "Join executed PR bundles with judge outcomes by map index."
   reduce_ledger:
     type: python
     path: tools.py
@@ -82,6 +107,12 @@ nodes:
     state_key: preflight_ok
     on_error: fail
 
+  memo_prepare:
+    type: python
+    tool: memo_prepare
+    state_key: memo_prepared
+    on_error: fail
+
   discover:
     type: python
     tool: discover
@@ -90,9 +121,33 @@ nodes:
     state_key: items
     on_error: fail
 
+  versions:
+    type: tool_call
+    tool: versions
+    args:
+      state: "{state.memo_query}"
+    state_key: versions
+    on_error: fail
+
+  memo_split:
+    type: tool_call
+    tool: map_memo_split
+    on_error: fail
+    state_key: memo
+    args:
+      items: "{state.items}"
+      versions: "{state.versions.result}"
+      store: "{state.memo_store}"
+      inputs: "{state.memo_inputs}"
+      signature_files:
+        - examples/demos/person_profile_census/graph.yaml
+        - examples/demos/person_profile_census/prompts/classify_pr.yaml
+        - examples/demos/person_profile_census/tools.py
+        - examples/demos/corpus_census/adapters/corpus_adapters.py
+
   extract_items:
     type: map
-    over: "{state.items}"
+    over: "{state.memo.result.todo}"
     as: item
     max_items: 500
     node:
@@ -100,11 +155,11 @@ nodes:
       tool: extract
       state_key: content
       on_error: fail
-    collect: contents
+    collect: executed_contents
 
   judge_items:
     type: map
-    over: "{state.contents}"
+    over: "{state.executed_contents}"
     as: judged_content
     max_items: 500
     node:
@@ -121,7 +176,29 @@ nodes:
         source_index: "{state.judged_content._map_index}"
         problem_labels: "{state.problem_labels}"
         surface_labels: "{state.surface_labels}"
-    collect: findings
+    collect: executed_findings
+
+  pair:
+    type: python
+    tool: pair
+    state_key: paired
+    on_error: fail
+
+  memo_merge:
+    type: tool_call
+    tool: map_memo_merge
+    on_error: fail
+    state_key: merged
+    args:
+      plan: "{state.memo.result}"
+      results: "{state.paired}"
+      # Judge failures are stored inside `paired` as `error` records so a
+      # re-run reuses them as row_failed; the reducer's coverage floor remains
+      # the threshold.
+      failures: []
+      map_name: judge_items
+      map_dispatch: "{state._map_verdict.judge_items.dispatch}"
+      min_success: 0
 
   reduce_ledger:
     type: python
@@ -153,12 +230,22 @@ edges:
   - from: START
     to: preflight
   - from: preflight
+    to: memo_prepare
+  - from: memo_prepare
     to: discover
   - from: discover
+    to: versions
+  - from: versions
+    to: memo_split
+  - from: memo_split
     to: extract_items
   - from: extract_items
     to: judge_items
   - from: judge_items
+    to: pair
+  - from: pair
+    to: memo_merge
+  - from: memo_merge
     to: reduce_ledger
   - from: reduce_ledger
     to: prepare_brief_input
