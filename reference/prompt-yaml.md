@@ -396,6 +396,21 @@ exempt.
 | E013 | error | A non-Jinja message contains text `str.format` cannot render |
 | E014 | error | A Jinja message contains a bare `{var}` that Jinja will not substitute (supersedes the retired W024) |
 
+### Untyped schema fields on Anthropic (FR-1123)
+
+Anthropic constrained decoding (`json_schema`, the default since FR-998)
+rejects any schema node without a `type`. `type: Any` makes a property with
+no type, and `list[Any]` makes an untyped item (`items: {}`). YAMLGraph
+refuses such a schema **when the graph compiles**, before any node runs,
+naming the prompt, node, model and field path (e.g. `stories.items`).
+Declare a concrete type instead: `list[dict]`, `list[str]`, `dict`, or a
+nested schema. Other providers are not affected.
+
+| Code | Severity | Fires when |
+|------|----------|-----------|
+| E016 | error | An `llm`/`router` node whose provider is statically Anthropic has an output schema with an untyped path |
+| W028 | warning | Same, but the provider comes from `{state.x}` and is only known at run time |
+
 ## Jinja2 Template Features
 
 When using `template` or when a message contains `{{` or `{%`, Jinja2 mode is activated for that message.

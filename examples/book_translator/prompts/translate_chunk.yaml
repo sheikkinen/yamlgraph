@@ -62,6 +62,6 @@ schema:
       description: Optional notes about translation choices
       optional: true
     difficult_passages:
-      type: list[Any]
+      type: list[dict]
       description: "Passages that were particularly challenging (keys: original, issue)"
       optional: true

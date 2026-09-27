@@ -205,5 +205,5 @@ schema:
       type: str
       description: Complete graph.yaml content
     node_list:
-      type: Any
+      type: list[dict]
       description: List of nodes needing prompts [{name, type, prompt_path}]

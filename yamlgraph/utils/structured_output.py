@@ -30,6 +30,11 @@ from yamlgraph.utils.llm_providers import (
     is_anthropic_chat_model,
     is_anthropic_unsupported_structured_output,
 )
+from yamlgraph.utils.schema_walk import (
+    UnconstrainableSchemaError,
+    find_untyped_subschemas,
+    refusal_message,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,9 +45,19 @@ FORCED_TOOL_CALL_METHOD = "function_calling"
 def bind_structured_output(
     llm: Any, output_model: type, *, method: str | None = None
 ) -> Any:
-    """Return the structured-output runnable for *llm* under the FR-998 policy."""
-    if method is None and is_anthropic_chat_model(llm):
+    """Return the structured-output runnable for *llm* under the FR-998 policy.
+
+    FR-1123: an Anthropic model under ``json_schema`` refuses an untyped
+    subschema here, naming every path, instead of inside the SDK transform.
+    """
+    anthropic = is_anthropic_chat_model(llm)
+    if method is None and anthropic:
         method = CONSTRAINED_METHOD
+    if anthropic and method == CONSTRAINED_METHOD:
+        paths = find_untyped_subschemas(output_model.model_json_schema())
+        if paths:
+            subject = f"Output model '{output_model.__name__}' on {_model_name(llm)}"
+            raise UnconstrainableSchemaError(refusal_message(subject, paths))
     kwargs = {} if method is None else {"method": method}
     return llm.with_structured_output(output_model, **kwargs)
 

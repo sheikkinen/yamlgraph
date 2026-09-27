@@ -77,5 +77,5 @@ schema:
   name: DiscoveryPlan
   fields:
     tasks:
-      type: Any
+      type: list[dict]
       description: "Ordered list of discovery tasks with id, task, tool, args, rationale, priority"
