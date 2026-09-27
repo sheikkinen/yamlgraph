@@ -789,11 +789,13 @@ Value expressions, condition expressions, literal parsing, and resolve_node_vari
 
 Linter cross-reference and semantic checks for edge endpoints, loop limits, state references, and contract warnings.
 
+**Feature Request:** legacy, FR-110, FR-1119
+
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-053 | Linter cross-reference & semantic checks: edge endpoint validation (E006), loop_limits references (E008), passthrough output (E601), tool_call fields (E701/E702), condition syntax (W801), variable prefix (W007), fallback config (E010), conditional edge type (E802) | `linter/checks`, `linter/graph_linter` |
 | REQ-YG-054 | Chaplain audit fixes: `wrap_for_reducer` non-dict return handling, LLM SKIP error recording, linter E011 retry/fallback on tool/python nodes, `prompts_relative` warning | `map_compiler`, `node_factory/llm_nodes`, `linter/checks`, `utils/prompts` |
-| REQ-YG-069 | Linter E007: error when `{state.X}` in node `variables`/`output`/`over`/`args`/`input_mapping` references a field not in known state (declared `state:` + node `state_key` + `BUILTIN_STATE_FIELDS` + `COMMON_INPUT_FIELDS` + `data_files` + map `collect`). Promoted from W014 warning to E007 error (FR-110) | `linter/checks_semantic` |
+| REQ-YG-069 | Linter E007: error when `{state.X}` in node `variables`/`output`/`over`/`args`/`input_mapping` references a field not in known state (declared `state:` + node `state_key` + `BUILTIN_STATE_FIELDS` + `COMMON_INPUT_FIELDS` + `data_files` + map `collect`, failures, `_map_accounting`, `_map_open`, `_map_verdict` (FR-1119)). Promoted from W014 warning to E007 error (FR-110) | `linter/checks_semantic` |
 | REQ-YG-114 | Linter W017: warn when node uses `on_error: skip` — silent fallback that drops failures without trace | `linter/checks_contracts`, `linter/graph_linter` |
 | REQ-YG-408 | hedging_check enforces fallback-token hygiene in production Python by reporting lexical `fallback` usage as FB001, validating confession-backed allowlist mappings (`file:line -> CONF-XXX` with Code=FB001), preserving existing Pattern 1 detection, adding Pattern 2 (`X = expr or fallback`), and running pre-commit scope on both `yamlgraph/` and `scripts/`. | `scripts/hedging_check`, `.pre-commit-config.yaml`, `docs/confessions.md` |
 

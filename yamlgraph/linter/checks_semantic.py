@@ -116,7 +116,8 @@ def _build_known_state_fields(graph: dict) -> set[str]:
     """Build the complete set of known state field names from a parsed graph.
 
     Sources: state: section, node state_key values, BUILTIN_STATE_FIELDS,
-    COMMON_INPUT_FIELDS, data_files keys, map collect keys.
+    COMMON_INPUT_FIELDS, data_files keys, and the fields a map node creates
+    (collect, failures, _map_accounting, _map_open, _map_verdict).
     """
     fields: set[str] = set(graph.get("state", {}).keys())
     fields.update(BUILTIN_STATE_FIELDS)
@@ -126,8 +127,14 @@ def _build_known_state_fields(graph: dict) -> set[str]:
     for node_config in graph.get("nodes", {}).values():
         if "state_key" in node_config:
             fields.add(node_config["state_key"])
-        if collect := node_config.get("collect"):
+        collect = node_config.get("collect")
+        if collect:
             fields.add(collect)
+        if node_config.get("type") == "map":
+            # FR-1119: mirrors state_builder.extract_node_fields for map nodes
+            if isinstance(collect, str) and collect:
+                fields.add(node_config.get("failures") or f"{collect}_failures")
+            fields.update(("_map_accounting", "_map_open", "_map_verdict"))
     return fields
 
 

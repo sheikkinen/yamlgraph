@@ -38,7 +38,8 @@ requirements:
       `variables`/`output`/`over`/`args`/`input_mapping` references a field not
       in known state (declared `state:` + node `state_key` +
       `BUILTIN_STATE_FIELDS` + `COMMON_INPUT_FIELDS` + `data_files` + map
-      `collect`). Promoted from W014 warning to E007 error (FR-110)
+      `collect`, failures, `_map_accounting`, `_map_open`, `_map_verdict`
+      (FR-1119)). Promoted from W014 warning to E007 error (FR-110)
     modules:
       - linter/checks_semantic
   - id: REQ-YG-114
@@ -59,4 +60,4 @@ requirements:
       - scripts/hedging_check
       - .pre-commit-config.yaml
       - docs/confessions.md
-fr: legacy
+fr: legacy, FR-110, FR-1119
