@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Approved with revisions ([judgement](FR-1122-daily-digest-map-contract-migration.judgement.md), 2026-09-27); R-1..R-5 folded and Q-1 answered 2026-09-27 (see [Judgement fold](#judgement-fold-2026-09-27)); authority active, not yet enforced
 **Effort:** 1 day
 **Requested:** 2026-09-27
 **First consumer / first event:** the `sheikkinen/yamlgraph-daily-digest`
@@ -167,36 +167,80 @@ repository.
 Same runtime value, and E601 no longer fires; the graph must lint clean
 on the release it targets (AC-6).
 
-### S-4: The runner reports the verdict
+### S-4: The runner reports the verdict as typed data (R-1)
 
-After `compiled.invoke(...)` in `run_digest.py`:
+The runtime stores a `MapVerdict` at `_map_verdict.<name>` and
+`MapFailure` records in the failures channel
+(`yamlgraph/compile/map_contract.py`, `yamlgraph/models/map_results.py`).
+The runner validates them at its boundary and reads attributes; a
+missing verdict is a loud failure, never a `?`:
 
 ```python
-verdict = (result.get("_map_verdict") or {}).get("analyze_all") or {}
-failures = result.get("analysis_failures") or []
-print(f"✓ Analysed {len(result.get('analyzed', []))} of {verdict.get('dispatched', '?')}"
-      f" — {len(failures)} skipped")
-for f in failures:
-    print(f"  · skipped #{f['index']}: {f['error_type']}: {f['message'][:120]}")
+from yamlgraph.models.map_results import MapFailure, MapVerdict
+
+verdict_raw = (result.get("_map_verdict") or {}).get("analyze_all")
+if verdict_raw is None:
+    raise RuntimeError("analyze_all map verdict is missing")
+verdict = MapVerdict.model_validate(verdict_raw)
+failures = [
+    MapFailure.model_validate(item)
+    for item in (result.get("analysis_failures") or [])
+]
+print(f"Analysed {verdict.succeeded} of {verdict.dispatched} - {len(failures)} skipped")
+for failure in failures:
+    print(f"  skipped #{failure.index}: {failure.error_type}: {failure.message[:120]}")
 ```
 
-Skips are reported, never fatal; an untolerated failure never reaches
-this line because the join raises first and FR-1121's error guard
-catches anything that does.
+This block runs after FR-1121's post-invoke error guard (R-4). Skips are
+reported, never fatal. An untolerated failure raises
+`MapCompletenessError` at the join and never returns a result, so it
+reaches neither this block nor FR-1121's guard; it propagates non-zero
+on its own. The test exercises actual `MapVerdict` and `MapFailure`
+instances as the runtime returns them.
 
-### S-5: Sequencing against the release
+### S-5: Files, sequencing and the smoke (R-3, R-4, R-5)
 
-1. Land the edits behind a workflow floor bump to the first release that
-   carries FR-1073 and FR-939. Until that release exists on PyPI, the PR
-   stays open with the floor named `>=0.6.1` placeholder and AC-7
-   unchecked; the FR's implementation record names the exact version
-   when it ships.
-2. Interim safety (no release yet) is FR-1121: with `on_error: fail` on
-   the ranker and the runner's error guard, a titleless item on 0.6.0
-   produces a ranker drop or a raise, not a silent day.
-3. After merge, one `workflow_dispatch` run is the smoke; the next
-   06:00 UTC run is the production witness, and its log must carry the
-   new "Analysed N of M" line.
+**Surface.** Every implementation path below is in the external
+`sheikkinen/yamlgraph-daily-digest` repository: `graph.yaml`,
+`prompts/rank_stories.yaml`, `run_digest.py`,
+`.github/workflows/digest.yml`, and focused tests under `tests/`. No
+digest checkout, nested repository, generated bulletin or database is
+ever committed into this YAMLGraph repository (the boundary FR-903 and
+FR-905 imposed). This repository owns: the committed authoring brief
+`feature-requests/authoring-briefs/fr-1122-daily-digest-map-contract-migration-brief.md`,
+this FR and its judgement, the implementation record, and the Distill
+entry. A changelog fragment exists in the digest repository only if
+that repository's policy requires one; this repository gets none,
+because no code here changes.
+
+**Authoring.** The canonical route runs from this YAMLGraph checkout
+with `AUTHOR_WORKDIR` set to the digest checkout; the verified
+transient report lives at that target's `tmp/draft-authoring-report.md`
+and its validation outcomes are copied into this FR's implementation
+record.
+
+**Dependency (R-4).** The FR-1122 digest PR is based on the merged
+FR-1121 digest changes: `rank_stories` already carries `on_error: fail`
+and `list[dict]`, and `run_digest.py` already has the post-invoke error
+guard, when this work starts. If the two must stack, the stacked PR
+records the shared `prompts/rank_stories.yaml` and `run_digest.py`
+resolution, and tests prove the FR-1121 guard runs before the typed
+verdict report while raised map joins propagate non-zero.
+
+**Release readiness versus deployment observation (R-4).** Before
+merge: the workflow floor names the exact published minimum yamlgraph
+release carrying FR-1073 and FR-939 (no placeholder), and an isolated
+installation of that release passes AC-03 through AC-08. After merge:
+the next ordinary scheduled run records its run id and its
+`Analysed N of M` line as an operational witness. That witness never
+makes the PR unmergeable.
+
+**Q-1, answered (R-5).** The operator authorised, on 2026-09-27, one
+manual `workflow_dispatch` against the exact target release, including
+provider spend and the digest's normal archive and email side effects.
+It runs after merge, from GitHub Actions; its run id and verdict line
+are recorded in the implementation record (AC-13). The ordinary next
+06:00 UTC run needs no further decision.
 
 ### Not in scope
 
@@ -209,32 +253,22 @@ catches anything that does.
 
 ## Acceptance Criteria
 
-- [ ] AC-1: `analyze_all` carries `max_items`, `on_overflow`, `timeout`
-  and `failures`; its `node:` carries `state_key: analysis` and
-  `on_error: skip`; no map-level `on_error` remains. A test asserts
-  each key by reading `graph.yaml`.
-- [ ] AC-2: `prompts/rank_stories.yaml` contains no `_map_` token; a
-  test renders the template with two flat `ArticleAnalysis` dicts and
-  asserts both titles appear.
-- [ ] AC-3: on the target release, a stubbed sub-node that raises for
-  one of three articles yields `analyzed` of length 2,
-  `analysis_failures` of length 1 with `tolerated: true`, and no raise
-  from the join; on the same stub with `on_error` removed from the
-  sub-node, the join raises `MapCompletenessError`. (This is the
-  H-2 witness: the declaration is read where it is placed.)
-- [ ] AC-4: the runner prints the "Analysed N of M — K skipped" line
-  from `_map_verdict` and lists each skip; a test with a stubbed result
-  proves it.
-- [ ] AC-5: `gate` declares `output`; `yamlgraph graph lint graph.yaml`
-  on the target release reports no E601, no W013, no W017, no W022.
-- [ ] AC-6: `config.max_concurrency: 8` is declared and the compile
-  check on the target release passes with the collector bound.
-- [ ] AC-7: the workflow floor names the exact release that carries
-  FR-1073; the first scheduled run on it logs the verdict line; run id
-  and lines recorded in the implementation record.
-- [ ] AC-8: every graph and prompt edit has a committed authoring brief
-  and adapter report; changelog fragment; FR implementation record;
-  Distill diary entry with a `**Seed:**`.
+The judgement's revised list is binding; it replaces the original
+AC-1..AC-8.
+
+- [ ] AC-01: The external graph's `analyze_all` declares `max_items: 100`, `on_overflow: truncate`, `timeout: 120`, `failures: analysis_failures`; its nested node declares `state_key: analysis` and `on_error: skip`; no map-level `on_error` remains.
+- [ ] AC-02: The external `prompts/rank_stories.yaml` contains no `_map_` token; rendering it with two flat `ArticleAnalysis` dictionaries includes both titles and accesses no generated wrapper.
+- [ ] AC-03: A compiled consumer-graph fixture with three articles and one nested LLM skip returns two flat `analyzed` rows, one `MapFailure(tolerated=true)`, and a met verdict; removing nested `on_error` makes the same branch untolerated and raises `MapCompletenessError`.
+- [ ] AC-04: A compiled consumer-graph fixture with one branch exceeding the configured timeout records `MapFailure(tolerated=false)` and raises `MapCompletenessError` even though the nested node declares `on_error: skip`.
+- [ ] AC-05: A compiled consumer-graph fixture with 101 inputs under `max_items: 100` and `on_overflow: truncate` runs exactly the first 100 and emits exactly one warning naming `analyze_all`, 101, and 100.
+- [ ] AC-06: The runner validates actual `MapVerdict` and `MapFailure` instances, prints `Analysed N of M - K skipped`, lists each failure through typed attributes, and raises loudly when the `analyze_all` verdict is absent.
+- [ ] AC-07: `gate` declares `output`; on the exact target release, `yamlgraph graph lint graph.yaml` reports no E601, W013, W017, or W022.
+- [ ] AC-08: Loading the real external graph retains `config.max_concurrency == 8`; its compile check passes with the collector bound.
+- [ ] AC-09: The external workflow names the exact published minimum yamlgraph release carrying FR-1073 and FR-939; an isolated installation of that release passes AC-03 through AC-08 before merge.
+- [ ] AC-10: FR-1121 is merged beneath this change or the stacked PR records the shared `prompts/rank_stories.yaml` and `run_digest.py` resolution; tests prove the FR-1121 error guard runs before normal post-invoke reporting, while raised map joins propagate non-zero.
+- [ ] AC-11: The committed FR-1122 authoring brief names the external checkout and artifacts; the canonical route produces a non-empty target-local report with the required headings and exact lint/smoke outcomes.
+- [ ] AC-12: RED and GREEN are separate commits; focused external tests pass; the FR records final status, decisions, deviations, exact target version, commit/PR identity, and artifact ownership; the Distill entry contains `**Seed:**`.
+- [ ] AC-13: Q-1 authorised (2026-09-27): one manual workflow run records its run ID and relevant verdict line. After merge, the next ordinary scheduled run records its run ID and `Analysed N of M` line; this post-merge witness does not gate the merge commit.
 
 ## Alternatives Considered
 
@@ -251,6 +285,32 @@ catches anything that does.
 graph's mechanism. The verdict report is presentation of state the graph
 already holds, so it belongs in the runner (the presentation layer), not
 a new node.
+
+## Judgement fold (2026-09-27)
+
+[Judgement](FR-1122-daily-digest-map-contract-migration.judgement.md):
+APPROVED WITH REVISIONS. Folded the same day:
+
+- **R-1** → S-4: the runner validates `MapVerdict` and `MapFailure`
+  with Pydantic and reads attributes; a missing verdict raises.
+- **R-2** → AC-03..AC-05, AC-08: overflow (101 → 100, one warning),
+  timeout (untolerated despite nested skip), skip versus strict, and
+  parsed `max_concurrency == 8` are compiled-graph witnesses, not YAML
+  reads.
+- **R-3** → S-5 Surface: every implementation path is in the external
+  repository; nothing from it is committed here; the brief
+  `fr-1122-daily-digest-map-contract-migration-brief.md` is committed
+  and names the external checkout as `AUTHOR_WORKDIR`; artifact
+  ownership per repository is stated.
+- **R-4** → S-5: FR-1121 beneath FR-1122; corrected causal claim (an
+  untolerated join raises and never reaches FR-1121's guard); release
+  readiness (exact PyPI version, isolated install passes) is separated
+  from the post-merge observation.
+- **R-5 / Q-1** → S-5: the operator authorised the manual
+  `workflow_dispatch` smoke on 2026-09-27.
+
+Scope frozen to the judgement's D-1..D-7; conditions C-1..C-8 are
+gates.
 
 ## Related
 
