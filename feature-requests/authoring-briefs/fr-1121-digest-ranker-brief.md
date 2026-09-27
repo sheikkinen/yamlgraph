@@ -4,10 +4,12 @@ Governing FR: feature-requests/FR-1121-daily-digest-ranker-schema-loud-failure.m
 (judgement D-4; this brief closes the standalone-digest authoring run).
 
 Repository boundary: the **external** repository
-`sheikkinen/yamlgraph-daily-digest`, checked out beside this one. The
+`sheikkinen/yamlgraph-daily-digest`, checked out beside this one; on
+this host the checkout is `C:/src/yamlgraph-daily-digest`. The
 authoring route runs from this YAMLGraph checkout with
-`AUTHOR_WORKDIR` set to that checkout; every path below is relative to
-the digest checkout. Nothing from that checkout is committed here
+`AUTHOR_WORKDIR` set to that checkout, every edit happens there and
+not in the YAMLGraph checkout, and every path below is relative to the
+digest checkout. Nothing from that checkout is committed here
 (judgement C-3): no nested repository, no bulletin, no database.
 
 ## Task
