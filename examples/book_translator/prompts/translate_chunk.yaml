@@ -45,23 +45,32 @@ user: |
   ---
   {% endif %}
 
-schema:
-  name: TranslationOutput
-  fields:
+output_schema:
+  type: object
+  properties:
     text:
-      type: str
+      type: string
       description: The translated text
     original:
-      type: str
+      type: string
       description: Echo the original text for proofreading reference
     confidence:
-      type: float
+      type: number
       description: Confidence score 0.0-1.0 in translation quality
     translator_notes:
-      type: list[str]
+      type: array
+      items:
+        type: string
       description: Optional notes about translation choices
-      optional: true
     difficult_passages:
-      type: list[dict]
+      type: array
       description: "Passages that were particularly challenging (keys: original, issue)"
-      optional: true
+      items:
+        type: object
+        properties:
+          original:
+            type: string
+          issue:
+            type: string
+        required: [original, issue]
+  required: [text, original, confidence]

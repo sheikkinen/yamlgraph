@@ -199,6 +199,8 @@ nodes:
   classify:
     type: llm
     prompt: classify_recap
+    # FR-1125: corrections is an open object (field id -> value); Anthropic constrained decoding cannot express it.
+    provider: mistral
     variables:
       user_message: "{state.user_message}"
     state_key: recap_action

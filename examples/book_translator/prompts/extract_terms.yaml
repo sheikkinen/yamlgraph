@@ -29,9 +29,22 @@ user: |
   Identify 3-10 new terms that should be added to the glossary.
   Provide translations in {{ target_language }}.
 
-schema:
-  name: TermExtraction
-  fields:
+output_schema:
+  type: object
+  properties:
     terms:
-      type: list[dict]
+      type: array
       description: "List of extracted terms, each with keys: source_term, translation, context, importance"
+      items:
+        type: object
+        properties:
+          source_term:
+            type: string
+          translation:
+            type: string
+          context:
+            type: string
+          importance:
+            type: string
+        required: [source_term, translation, context, importance]
+  required: [terms]

@@ -65,9 +65,24 @@ user: |
 
   Output each prompt with its filename (always use .yaml extension, e.g., "classify.yaml", "process_input.yaml").
 
-schema:
-  name: GeneratedPrompts
-  fields:
+output_schema:
+  type: object
+  properties:
     prompts:
-      type: list[dict]
+      type: array
       description: List of {filename, content, explanation} for each prompt file
+      items:
+        type: object
+        properties:
+          filename:
+            type: string
+          content:
+            type: string
+          explanation:
+            type: string
+        required:
+          - filename
+          - content
+          - explanation
+  required:
+    - prompts
