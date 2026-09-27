@@ -17,7 +17,7 @@ parsed output and the wire schema are recorded per run. Model: the default
 yamlgraph resolves for ``provider: anthropic`` with no model named, exactly
 as the digest workflow does.
 
-Run:  python docs/spikes/constrained-object-2026-09-27/probe.py > docs/spikes/constrained-object-2026-09-27/probe-output.txt
+Run:  python docs/spikes/constrained-object-2026-09-27/probe_constrained_object.py > docs/spikes/constrained-object-2026-09-27/probe-output.txt
 """
 
 from __future__ import annotations
@@ -48,7 +48,9 @@ from yamlgraph.schema_loader import (  # noqa: E402
 from yamlgraph.utils.llm_factory import create_llm  # noqa: E402
 
 DIGEST = Path("C:/src/yamlgraph-daily-digest")
-PROMPT = yaml.safe_load((DIGEST / "prompts/rank_stories.yaml").read_text(encoding="utf-8"))
+PROMPT = yaml.safe_load(
+    (DIGEST / "prompts/rank_stories.yaml").read_text(encoding="utf-8")
+)
 OUT = Path(__file__).resolve().parent / "results.json"
 
 ANALYZED = [
@@ -76,9 +78,21 @@ DESC = "Top 5-8 stories, each with title, url, summary, relevance, reason"
 
 FORMS: dict[str, Any] = {
     # A. production today (FR-1121): `fields` form, list[dict]
-    "A_fields_list_dict": ("fields", {"name": "RankedStories", "fields": {"stories": {"type": "list[dict]", "description": DESC}}}),
+    "A_fields_list_dict": (
+        "fields",
+        {
+            "name": "RankedStories",
+            "fields": {"stories": {"type": "list[dict]", "description": DESC}},
+        },
+    ),
     # B. production before FR-1121: list[Any] (expected: transform raises)
-    "B_fields_list_any": ("fields", {"name": "RankedStories", "fields": {"stories": {"type": "list[Any]", "description": DESC}}}),
+    "B_fields_list_any": (
+        "fields",
+        {
+            "name": "RankedStories",
+            "fields": {"stories": {"type": "list[Any]", "description": DESC}},
+        },
+    ),
     # C. FR-1054 JSON-schema form with declared item properties
     "C_output_schema_nested": (
         "output_schema",
@@ -105,7 +119,15 @@ FORMS: dict[str, Any] = {
         },
     ),
     # D. a single unconstrained object field (the other FR-1123 migration target)
-    "D_fields_dict": ("fields", {"name": "RankedStories", "fields": {"stories": {"type": "dict", "description": "map of url -> reason"}}}),
+    "D_fields_dict": (
+        "fields",
+        {
+            "name": "RankedStories",
+            "fields": {
+                "stories": {"type": "dict", "description": "map of url -> reason"}
+            },
+        },
+    ),
 }
 
 
@@ -116,7 +138,9 @@ def build(form: str, spec: dict) -> type:
 
 
 def messages() -> list:
-    user = jinja2.Template(PROMPT["user"]).render(analyzed=ANALYZED, topics=["AI", "Python", "LangGraph"])
+    user = jinja2.Template(PROMPT["user"]).render(
+        analyzed=ANALYZED, topics=["AI", "Python", "LangGraph"]
+    )
     return [SystemMessage(content=PROMPT["system"]), HumanMessage(content=user)]
 
 
@@ -134,17 +158,23 @@ def run_one(llm: Any, method: str, model: type) -> dict:
     tool_calls = getattr(raw, "tool_calls", None)
     parsed = out.get("parsed")
     return {
-        "raw_content": content if isinstance(content, str) else json.dumps(content, default=str),
+        "raw_content": content
+        if isinstance(content, str)
+        else json.dumps(content, default=str),
         "raw_tool_calls": json.dumps(tool_calls, default=str) if tool_calls else None,
         "parsed": parsed.model_dump() if parsed is not None else None,
-        "parsing_error": repr(out.get("parsing_error")) if out.get("parsing_error") else None,
+        "parsing_error": repr(out.get("parsing_error"))
+        if out.get("parsing_error")
+        else None,
         "usage": getattr(raw, "usage_metadata", None),
     }
 
 
 def main() -> int:
     llm = create_llm(provider="anthropic")
-    print(f"model: {DEFAULT_MODELS['anthropic']}  (create_llm default for provider=anthropic)")
+    print(
+        f"model: {DEFAULT_MODELS['anthropic']}  (create_llm default for provider=anthropic)"
+    )
     results: dict[str, Any] = {"model": DEFAULT_MODELS["anthropic"], "runs": []}
     for name, (form, spec) in FORMS.items():
         Model = build(form, spec)
@@ -155,10 +185,15 @@ def main() -> int:
                 print(f"\n=== {name} / {method} / rep {rep} ===")
                 try:
                     ws = wire_schema(method, Model)
-                    rec["wire_schema_stories"] = copy.deepcopy(ws.get("properties", {}).get("stories"))
+                    rec["wire_schema_stories"] = copy.deepcopy(
+                        ws.get("properties", {}).get("stories")
+                    )
                     if "$defs" in ws:
                         rec["wire_defs"] = ws["$defs"]
-                    print("wire schema (stories):", json.dumps(rec["wire_schema_stories"])[:400])
+                    print(
+                        "wire schema (stories):",
+                        json.dumps(rec["wire_schema_stories"])[:400],
+                    )
                     if "$defs" in ws:
                         print("wire $defs:", json.dumps(ws["$defs"])[:400])
                 except Exception as e:  # the transform itself may raise (list[Any])
@@ -173,7 +208,17 @@ def main() -> int:
                     print("raw content[:300]:", (rec["raw_content"] or "")[:300])
                     if rec["raw_tool_calls"]:
                         print("raw tool_calls[:300]:", rec["raw_tool_calls"][:300])
-                    print("parsed stories count:", n, "| first:", json.dumps(stories[0] if isinstance(stories, list) and stories else stories, default=str)[:200])
+                    print(
+                        "parsed stories count:",
+                        n,
+                        "| first:",
+                        json.dumps(
+                            stories[0]
+                            if isinstance(stories, list) and stories
+                            else stories,
+                            default=str,
+                        )[:200],
+                    )
                     print("parsing_error:", rec["parsing_error"])
                 except Exception as e:
                     rec["invoke_error"] = f"{type(e).__name__}: {e}"
