@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** In Progress
+**Status:** Implemented
 **Effort:** 1 day
 **Requested:** 2026-09-27
 **Supersedes:** [FR-1076](FR-1076-shared-map-reuse-helpers.md) (never implemented; its revised scope was never re-judged)
@@ -224,18 +224,18 @@ TTL; automatic retry policy; branch-level writes; live runs.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: Split over a missing store returns every item in `todo`, creates no file, and leaves an existing store byte-identical.
-- [ ] AC-02: Run 1 over five files, then run 2 in a separate process with one file's bytes changed, executes exactly that file. Merge returns five records with `_map_index` 0..4 in current order and counts `executed_ok=1, reused_ok=4`.
-- [ ] AC-03: Changing one byte in any signature file, or changing `inputs`, re-runs every item. The same inputs produce the same signature in a separate process.
-- [ ] AC-04: A failed item from run 1 is carried in run 2 without executing. It appears in `failures` with its current index and the supplied `map_dispatch`, counts toward `reused_failed` and `verdict.failed` over the whole population, and `verdict.dispatch == map_dispatch`. Changing its bytes re-runs it.
-- [ ] AC-05: Merge judges `min_success` over the whole current population. It raises `MapCompletenessError` only after commit, and the next split then reuses the stored outcomes. An all-reused run with a threshold miss also raises; it is not treated as met because nothing was dispatched. Invalid `min_success` values (booleans, negatives, non-finite or out-of-range floats, strings) raise `MapMemoInputError` and write nothing.
-- [ ] AC-06: Merge rejects results and failures whose indices together miss, duplicate or exceed 0..len(todo)−1, or are non-integer (including booleans), or whose failures carry another map name or dispatch. It writes nothing in that case. A stored success drops only `_map_index` and keeps every other field, including one named `dispatch`; a stored failure validates as `StoredFailure` (no map, dispatch or index).
-- [ ] AC-07: Non-string, empty, duplicate, missing or non-file items and signature files raise `MapMemoInputError` before any map branch runs.
-- [ ] AC-08: A non-SQLite file, a wrong `schema_version`, a malformed or model-invalid row, and a failed write each raise `MapMemoStoreError`; none returns a miss.
-- [ ] AC-08a: Stale writer: plan A split over version 1 and plan B over version 2; merge B, then merge A. A following split over version 2 is a miss, never a false hit, and neither merge writes a partial row. (Kill-before-merge needs no separate witness: split is read-only, AC-01.)
-- [ ] AC-09: Both manifests validate through FR-768 loading, resolve `map_memo.py`, and require no `yamlgraph/` change.
-- [ ] AC-10: `meta_map` is migrated through `scripts/author.sh`, and its report records lint and a deterministic smoke run. A provider-free test runs the migrated graph twice on a fixture corpus plus the poison, with a call counter. Run 1 makes one `describe` call per path. Run 2 makes zero, writes the same report table and failures table, and still has the three poison paths failing with `ClaimMismatchError`. Editing one fixture file makes run 3 call `describe` exactly once.
-- [ ] AC-11: A new capability/REQ governs the helpers, every new test carries its marker, and `python scripts/req_coverage.py --strict` passes. The shared README, manifest contract comments, changelog fragment, FR implementation record and diary entry are present.
+- [x] AC-01: Split over a missing store returns every item in `todo`, creates no file, and leaves an existing store byte-identical.
+- [x] AC-02: Run 1 over five files, then run 2 in a separate process with one file's bytes changed, executes exactly that file. Merge returns five records with `_map_index` 0..4 in current order and counts `executed_ok=1, reused_ok=4`.
+- [x] AC-03: Changing one byte in any signature file, or changing `inputs`, re-runs every item. The same inputs produce the same signature in a separate process.
+- [x] AC-04: A failed item from run 1 is carried in run 2 without executing. It appears in `failures` with its current index and the supplied `map_dispatch`, counts toward `reused_failed` and `verdict.failed` over the whole population, and `verdict.dispatch == map_dispatch`. Changing its bytes re-runs it.
+- [x] AC-05: Merge judges `min_success` over the whole current population. It raises `MapCompletenessError` only after commit, and the next split then reuses the stored outcomes. An all-reused run with a threshold miss also raises; it is not treated as met because nothing was dispatched. Invalid `min_success` values (booleans, negatives, non-finite or out-of-range floats, strings) raise `MapMemoInputError` and write nothing.
+- [x] AC-06: Merge rejects results and failures whose indices together miss, duplicate or exceed 0..len(todo)−1, or are non-integer (including booleans), or whose failures carry another map name or dispatch. It writes nothing in that case. A stored success drops only `_map_index` and keeps every other field, including one named `dispatch`; a stored failure validates as `StoredFailure` (no map, dispatch or index).
+- [x] AC-07: Non-string, empty, duplicate, missing or non-file items and signature files raise `MapMemoInputError` before any map branch runs.
+- [x] AC-08: A non-SQLite file, a wrong `schema_version`, a malformed or model-invalid row, and a failed write each raise `MapMemoStoreError`; none returns a miss.
+- [x] AC-08a: Stale writer: plan A split over version 1 and plan B over version 2; merge B, then merge A. A following split over version 2 is a miss, never a false hit, and neither merge writes a partial row. (Kill-before-merge needs no separate witness: split is read-only, AC-01.)
+- [x] AC-09: Both manifests validate through FR-768 loading, resolve `map_memo.py`, and require no `yamlgraph/` change.
+- [x] AC-10: `meta_map` is migrated through `scripts/author.sh`, and its report records lint and a deterministic smoke run. A provider-free test runs the migrated graph twice on a fixture corpus plus the poison, with a call counter. Run 1 makes one `describe` call per path. Run 2 makes zero, writes the same report table and failures table, and still has the three poison paths failing with `ClaimMismatchError`. Editing one fixture file makes run 3 call `describe` exactly once.
+- [x] AC-11: A new capability/REQ governs the helpers, every new test carries its marker, and `python scripts/req_coverage.py --strict` passes. The shared README, manifest contract comments, changelog fragment, FR implementation record and diary entry are present.
 
 ## Alternatives Considered
 
@@ -250,6 +250,47 @@ TTL; automatic retry policy; branch-level writes; live runs.
 
 `is_this_a_graph`: no. Split and merge are deterministic I/O with no model
 step, so they are Python tools, as the three-layer rule requires.
+
+## Implementation Record (2026-09-27)
+
+Branch `docsfr1116-map-memo`: RED `7c89060d` → GREEN `2332e906` (helpers,
+manifests, CAP-289 / REQ-YG-706, changelog fragment) → RED `9411f5cb` →
+GREEN fix (two smoke-found defects) → `meta_map` migration through
+`scripts/author.sh` (brief: [authoring-briefs/fr-1116-meta-map-memo-brief.md](authoring-briefs/fr-1116-meta-map-memo-brief.md)).
+
+Witnesses: `tests/unit/test_fr1116_map_memo.py` (AC-01..AC-09, AC-08a),
+`tests/unit/test_fr1113_meta_map.py::TestDemoGraphMemo` (AC-10, provider-free,
+three runs with a call counter).
+
+Deviations and findings:
+
+- **Two defects found only by the adapter's real smoke, not by the unit
+  suite.** (1) `from __future__ import annotations` left Pydantic models
+  unresolvable when the module is loaded through an FR-768 `path` (no
+  `sys.modules` entry). Fixed at the root by removing the import; the
+  adapter's `model_rebuild` shim was not adopted. (2) Merge failed when the
+  store's parent directory did not exist; `_write` now creates it and wraps
+  `OSError` in `MapMemoStoreError`. Both condemned first by
+  `test_manifest_loaded_functions_split_and_merge` and
+  `test_merge_creates_missing_store_directory`. The original unit tests
+  imported the module normally, so they could not see (1): the witness must
+  load through the manifest, as consumers do.
+- **Exit status of a fully reused run is 0, not 3.** Reused failures are not
+  failures of this run, so `report_tally` sees no failed branch. The report's
+  failures table and `Coverage:` line still show all three poison paths.
+  Documented in the demo README. Smoke: run 1 exit 3, 52 executed ok /
+  3 executed failed; run 2 exit 0, 52 reused ok / 3 reused failed; coverage
+  `55 dispatched · 52 succeeded · 3 failed (min_success 0.9, met)` both runs.
+- **`_map_verdict: dict` is declared in `meta_map`'s `state:`** to satisfy
+  lint E007 for the `{state._map_verdict.summarize.dispatch}` reference.
+  Harmless: the state builder lets the node-derived field (with its
+  `merge_by_key` reducer) override the declaration. This is a linter gap
+  (E007 does not know about framework-owned map fields), not fixed here.
+- **AC-10 poison:** the fixture stub makes the third poison path a provider
+  error (inherited from the FR-1113 test), so run 2 asserts two
+  `ClaimMismatchError` failures plus the stub error, all three reused.
+- **`req_coverage` reads only function/class decorators**, not a
+  module-level `pytestmark`; the new tests carry per-function markers.
 
 ## Related
 

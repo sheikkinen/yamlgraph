@@ -41,6 +41,54 @@ result: ImageResult = generate_image(
 
 **Requirements:** `pip install replicate` + `REPLICATE_API_TOKEN` env var
 
+### `map_memo.py` - Map Memo For File Corpora (FR-1116)
+
+Skip map items whose file bytes and computation are unchanged since the
+last run. `map_memo_split` returns `todo` (the files to run) without
+writing anything; map over `todo`; `map_memo_merge` stores the executed
+outcomes in `store` (SQLite) and returns every current item's record,
+failure and an FR-1073 verdict. Failures are stored and reused too.
+
+```yaml
+tools:
+  map_memo_split:
+    manifest: ../../shared/map_memo_split.tool.yaml
+  map_memo_merge:
+    manifest: ../../shared/map_memo_merge.tool.yaml
+nodes:
+  memo_split:
+    type: tool_call
+    tool: map_memo_split
+    on_error: fail
+    args:
+      items: "{state.paths}"
+      signature_files: [my/graph.yaml, my/prompts/step.yaml]
+      store: outputs/my/memo.sqlite
+    state_key: memo
+  step:
+    type: map
+    over: "{state.memo.result.todo}"
+    min_success: 0          # the real threshold goes to memo_merge
+    # ... as / node / collect: results / failures: step_failures
+  memo_merge:
+    type: tool_call
+    tool: map_memo_merge
+    on_error: fail
+    args:
+      plan: "{state.memo.result}"
+      results: "{state.results}"
+      failures: "{state.step_failures}"
+      map_name: step
+      map_dispatch: "{state._map_verdict.step.dispatch}"
+      min_success: 0.9
+    state_key: merged
+```
+
+The signature covers the bytes of `signature_files` plus the optional
+`inputs` object; CLI or environment provider/model overrides are not
+covered unless passed in `inputs`. Delete the store to force a full run.
+Committed consumer: [demos/meta_map](../demos/meta_map/).
+
 ### `vision_tool.py` - Image Understanding (FR-769)
 
 Multimodal image→text: describe, tag, or QA-check an image with a

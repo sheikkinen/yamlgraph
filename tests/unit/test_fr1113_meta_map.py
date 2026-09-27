@@ -318,27 +318,36 @@ def _failure(index: int, error_type: str, message: str) -> MapFailure:
 
 def _render_state(tmp_path: Path) -> dict:
     paths = ["r/a.yaml", "r/b.yaml", "r/c.yaml", "r/failed_real.yaml", *POISON]
+    verdict = MapVerdict(
+        dispatch="d1",
+        dispatched=7,
+        succeeded=2,
+        tolerated=0,
+        failed=5,
+        accepted=2,
+        min_success=0.9,
+        met=False,
+    )
+    failures = [
+        _failure(4, "ClaimMismatchError", "hello: claimed ['greet'], parsed []"),
+        _failure(1, "TimeoutError", "Branch timed out after 120s"),
+        _failure(3, "ClaimMismatchError", "real: claimed ['x'], parsed ['y']"),
+        _failure(5, "ClaimMismatchError", "fr: claimed [], parsed []"),
+        _failure(6, "ValidationError", "1 validation error for MapClaim"),
+    ]
+    counts = {"executed_ok": 1, "executed_failed": 2, "reused_ok": 1}
     return {
         "paths": paths,
-        "summaries": [_record("r/c.yaml", 2, "timeout"), _record("r/a.yaml", 0)],
-        "summary_failures": [
-            _failure(4, "ClaimMismatchError", "hello: claimed ['greet'], parsed []"),
-            _failure(1, "TimeoutError", "Branch timed out after 120s"),
-            _failure(3, "ClaimMismatchError", "real: claimed ['x'], parsed ['y']"),
-            _failure(5, "ClaimMismatchError", "fr: claimed [], parsed []"),
-            _failure(6, "ValidationError", "1 validation error for MapClaim"),
-        ],
-        "_map_verdict": {
-            "summarize": MapVerdict(
-                dispatch="d1",
-                dispatched=7,
-                succeeded=2,
-                tolerated=0,
-                failed=5,
-                accepted=2,
-                min_success=0.9,
-                met=False,
-            )
+        "merged": {
+            "result": {
+                "records": [
+                    _record("r/c.yaml", 2, "timeout"),
+                    _record("r/a.yaml", 0),
+                ],
+                "failures": [f.model_dump() for f in failures],
+                "verdict": verdict.model_dump(),
+                "counts": {**counts, "reused_failed": 3},
+            }
         },
         "overall": "REDUCED SUMMARY TEXT",
         "output_path": str(tmp_path / "out" / "report.md"),
@@ -354,10 +363,14 @@ class TestRenderReport:
         for path in state["paths"]:
             assert text.count(path) == 1, path
         assert text.index("r/a.yaml") < text.index("r/c.yaml")
-        for failure in state["summary_failures"]:
-            assert failure.message in text
+        for failure in state["merged"]["result"]["failures"]:
+            assert failure["message"] in text
         assert "over, as, node, collect, max_items" in text
         assert "7 dispatched · 2 succeeded · 0 tolerated · 5 failed" in text
+        assert (
+            "Memo: 1 executed ok · 2 executed failed · 1 reused ok"
+            " · 3 reused failed" in text
+        )
         assert "REDUCED SUMMARY TEXT" in text
 
     def test_failed_path_resolved_by_index(self, tmp_path):
@@ -371,13 +384,14 @@ class TestRenderReport:
 
     def test_unaccounted_index_raises(self, tmp_path):
         state = _render_state(tmp_path)
-        state["summary_failures"] = state["summary_failures"][1:]
+        merged = state["merged"]["result"]
+        merged["failures"] = merged["failures"][1:]
         with pytest.raises(ValueError, match=r"index"):
             _tools().render_report(state)
 
     def test_missing_verdict_raises(self, tmp_path):
         state = _render_state(tmp_path)
-        state["_map_verdict"] = {}
+        del state["merged"]["result"]["verdict"]
         with pytest.raises(KeyError):
             _tools().render_report(state)
 
@@ -434,11 +448,13 @@ def _invoke(tmp_path: Path, root: Path, describe, calls: list | None = None):
 
     # The CLI merges data_files into the initial state; a raw invoke must too.
     data = load_graph_config(str(GRAPH)).data
+    memo_config = {**data["memo_config"], "store": str(tmp_path / "memo.sqlite")}
     with patch("yamlgraph.node_factory.llm_nodes.execute_prompt", side_effect=fake):
         app = load_and_compile(str(GRAPH)).compile()
         return app.invoke(
             {
                 **data,
+                "memo_config": memo_config,
                 "scan_roots": [str(root)],
                 "output_path": str(tmp_path / "report.md"),
             }
@@ -460,25 +476,25 @@ class TestDemoGraph:
 
         paths = out["paths"]
         assert paths[-3:] == POISON
-        failures = [MapFailure.model_validate(f) for f in out["summary_failures"]]
+        merged = out["merged"]["result"]
+        failures = [MapFailure.model_validate(f) for f in merged["failures"]]
         by_path = {paths[f.index]: f for f in failures}
         assert set(by_path) == set(POISON)
         assert by_path[POISON[0]].error_type == "ClaimMismatchError"
         assert by_path[POISON[1]].error_type == "ClaimMismatchError"
         assert "stub provider error" in by_path[POISON[2]].message
         assert not any(f.tolerated for f in failures)
-        assert not {r["path"] for r in out["summaries"]} & set(POISON)
+        assert not {r["path"] for r in merged["records"]} & set(POISON)
 
-        verdict = MapVerdict.model_validate(out["_map_verdict"]["summarize"])
+        verdict = MapVerdict.model_validate(merged["verdict"])
         assert (verdict.dispatched, verdict.failed, verdict.tolerated) == (30, 3, 0)
+        assert verdict.min_success == 0.9
         assert verdict.met is True
         pipeline_errors = [e for e in out["errors"] if isinstance(e, PipelineError)]
         assert len(pipeline_errors) == 3 == len(out["errors"])
         assert Path(out["report_path"]).is_file()
 
     def test_below_threshold_raises_completeness_error(self, tmp_path):
-        from yamlgraph.models.map_results import MapCompletenessError
-
         root = tmp_path / "corpus"
         _write_corpus(root, 27)
 
@@ -487,8 +503,11 @@ class TestDemoGraph:
                 return _claim(["invented"])
             return _poison_stub(path)
 
-        with pytest.raises(MapCompletenessError):
+        # FR-1116: memo_merge judges the threshold after commit; tool_call
+        # on_error: fail re-raises MapCompletenessError's message.
+        with pytest.raises(ValueError, match=r"'summarize' incomplete: accepted 26/30"):
             _invoke(tmp_path, root, misreads_one)
+        assert (tmp_path / "memo.sqlite").is_file()
 
     def test_overflow_raises_before_any_branch(self, tmp_path):
         root = tmp_path / "corpus"
@@ -503,8 +522,9 @@ class TestDemoGraph:
         _write_corpus(root, 27)
         out = _invoke(tmp_path, root, _poison_stub)
         fields = set(_tools().GraphRecord.model_fields)
-        assert len(out["summaries"]) == 27
-        for record in out["summaries"]:
+        records = out["merged"]["result"]["records"]
+        assert len(records) == 27
+        for record in records:
             assert set(record) - {"_map_index"} == fields
             assert record["path"] == out["paths"][record["_map_index"]]
 
@@ -515,7 +535,9 @@ class TestDemoGraph:
         assert summarize["max_items"] == 100
         assert summarize["on_overflow"] == "error"
         assert summarize["timeout"] == 120
-        assert summarize["min_success"] == 0.9
+        assert summarize["min_success"] == 0
+        assert summarize["over"] == "{state.memo.result.todo}"
+        assert graph["nodes"]["memo_merge"]["args"]["min_success"] == 0.9
         assert summarize["failures"] == "summary_failures"
         assert summarize["collect"] == "summaries"
         node = summarize["node"]
@@ -529,14 +551,64 @@ class TestDemoGraph:
 
     def test_poison_declared_once_in_data_file(self):
         graph = yaml.safe_load(GRAPH.read_text(encoding="utf-8"))
-        assert graph["data_files"] == {"poison": "poison.yaml"}
+        assert graph["data_files"] == {
+            "poison": "poison.yaml",
+            "memo_config": "memo.yaml",
+        }
         poison = yaml.safe_load((DEMO / "poison.yaml").read_text(encoding="utf-8"))
         assert poison == {"paths": POISON}
         assert list(graph["nodes"]) == [
             "discover",
             "poison_the_source",
+            "memo_split",
             "summarize",
+            "memo_merge",
             "prepare_reduce",
             "reduce",
             "render",
         ]
+
+
+# ---------------------------------------------------------------------------
+# FR-1116 AC-10: the memo through the real demo graph
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.req("REQ-YG-706")
+class TestDemoGraphMemo:
+    def test_second_run_reuses_third_run_reruns_changed_file(self, tmp_path):
+        def report(out) -> list[str]:
+            text = Path(out["report_path"]).read_text(encoding="utf-8")
+            return [line for line in text.splitlines() if not line.startswith("Memo:")]
+
+        root = tmp_path / "corpus"
+        _write_corpus(root, 27)
+        first: list[str] = []
+        out = _invoke(tmp_path, root, _poison_stub, first)
+        assert len(first) == 30
+        assert out["merged"]["result"]["counts"]["executed_failed"] == 3
+        first_report = report(out)
+
+        second: list[str] = []
+        out = _invoke(tmp_path, root, _poison_stub, second)
+        assert second == []
+        merged = out["merged"]["result"]
+        assert merged["counts"] == {
+            "executed_ok": 0,
+            "executed_failed": 0,
+            "reused_ok": 27,
+            "reused_failed": 3,
+        }
+        assert merged["verdict"]["dispatched"] == 30
+        assert merged["verdict"]["met"] is True
+        assert report(out) == first_report
+        poison = [f for f in merged["failures"] if out["paths"][f["index"]] in POISON]
+        assert [f["error_type"] for f in poison[:2]] == ["ClaimMismatchError"] * 2
+        assert len(poison) == 3 and "stub provider error" in poison[2]["message"]
+
+        changed = root / "g005.yaml"
+        changed.write_text(changed.read_text(encoding="utf-8") + "# edit\n")
+        third: list[str] = []
+        out = _invoke(tmp_path, root, _poison_stub, third)
+        assert third == [changed.as_posix()]
+        assert out["merged"]["result"]["counts"]["reused_ok"] == 26

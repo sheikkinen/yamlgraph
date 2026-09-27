@@ -1,0 +1,6 @@
+store: outputs/meta_map/memo.sqlite
+signature_files:
+  - examples/demos/meta_map/graph.yaml
+  - examples/demos/meta_map/subgraphs/summarize_one.yaml
+  - examples/demos/meta_map/prompts/describe_graph.yaml
+  - examples/demos/meta_map/tools.py

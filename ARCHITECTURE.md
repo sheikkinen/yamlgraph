@@ -3405,7 +3405,7 @@ FR-1113: `examples/demos/meta_map/` runs a map node over the repository's own ma
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-703 | Discovery returns exactly the YAML files under the scan roots with a top-level `type: map` node and raises on malformed YAML; poison paths are appended in declared order; the reader returns raw text with no classifying field; reconcile raises `ClaimMismatchError` unless the LLM's claimed map nodes equal a non-empty parse from the same function discovery uses; the declared-key version is computed in Python; the report accounts every dispatch index exactly once with failure detail taken verbatim from `MapFailure.message` and coverage from `_map_verdict`. | `examples/demos/meta_map/tools.py`, `tests/unit/test_fr1113_meta_map.py` |
+| REQ-YG-703 | Discovery returns exactly the YAML files under the scan roots with a top-level `type: map` node and raises on malformed YAML; poison paths are appended in declared order; the reader returns raw text with no classifying field; reconcile raises `ClaimMismatchError` unless the LLM's claimed map nodes equal a non-empty parse from the same function discovery uses; the declared-key version is computed in Python; the report accounts every dispatch index exactly once with failure detail taken verbatim from `MapFailure.message` and coverage from the FR-1116 memo merge verdict over the whole current population. | `examples/demos/meta_map/tools.py`, `tests/unit/test_fr1113_meta_map.py` |
 
 ### 289. CAP-289 Map Memo For File Corpora
 
