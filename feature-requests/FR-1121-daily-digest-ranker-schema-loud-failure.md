@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Approved with revisions ([judgement](FR-1121-daily-digest-ranker-schema-loud-failure.judgement.md), 2026-09-27); R-1..R-5 folded 2026-09-27 (see [Judgement fold](#judgement-fold-2026-09-27)); authority active, not yet enforced
 **Effort:** 1 day
 **Requested:** 2026-09-27
 **First consumer / first event:** the `sheikkinen/yamlgraph-daily-digest`
@@ -136,35 +136,82 @@ braces: a future node without `on_error` cannot masquerade either.
 Tolerated map failures (FR-1073) never enter `errors`, so a skipped
 article does not trip it.
 
-### S-4: Witnesses (digest repository, `tests/test_fr1121_ranker_loud_failure.py`)
+### S-4: Witnesses (R-2, R-3, R-5)
 
-- RED first: build the ranker model with
-  `yamlgraph.schema_loader.build_pydantic_model` from the prompt file and
-  pass `model_json_schema()` through
-  `anthropic.lib._parse._transform.transform_schema`; assert no raise.
-  Fails on `list[Any]`, passes on `list[dict]`. Offline, no key.
-- `rank_stories` in `graph.yaml` declares `on_error: fail`.
-- The runner exits non-zero when the invoke result carries a
-  `PipelineError` and `digest_status == "no_articles"` (stub the
-  compiled graph; assert `SystemExit(2)` and the stderr line).
-- Retire FR-905's `test_prompt_schema_is_untouched` in favour of the
-  transform witness above; the boundary tests in
-  `test_fr905_ranked_validation.py` stay unchanged.
-- Same transform witness added under `tests/unit/` here for
-  `examples/daily_digest/prompts/rank_stories.yaml`, tagged with the
-  REQ ID FR-998 owns.
+Every new test function in this repository carries
+`@pytest.mark.req("REQ-YG-664")`, the requirement FR-998 owns
+(`FR-998-anthropic-constrained-structured-output.md`, implementation
+record); `python scripts/req_coverage.py --strict` must pass. The
+digest repository's tests follow its own convention.
 
-### S-5: Sequencing
+- **RED, transform witness (both repositories):** build the committed
+  ranker prompt's model with `yamlgraph.schema_loader.build_pydantic_model`
+  and pass `model_json_schema()` through
+  `anthropic.lib._parse._transform.transform_schema`. Fails on
+  `list[Any]` because `stories.items` is untyped; the GREEN commit
+  changes `stories` to `list[dict]` and the same transform completes.
+  After GREEN, `stories.items.type == "object"` in both prompt files.
+  Offline, no key.
+- **Declaration assertion (both):** `rank_stories` declares
+  `on_error: fail` in the graph file. Shape only; kept because it is
+  cheap, never sufficient (R-2).
+- **Execution-path witness (both, R-2):** load that repository's real
+  graph configuration, force the `rank_stories` LLM execution to raise
+  through a stub, assert the *original* exception propagates from graph
+  invocation, and assert the downstream formatting node is never
+  invoked. FR-1073 is the precedent for a correctly spelled `on_error`
+  sitting where nothing reads it; this test is what proves the key is
+  read.
+- **Runner guard (digest only):** a stubbed completed invocation
+  carrying at least two real `PipelineError` instances and
+  `digest_status == "no_articles"` makes `run_digest.py` print every
+  error to stderr, print no no-op line, and exit 2 before any later
+  success or no-op handling.
+- **FR-905 retained:** the schema-pin test
+  `test_prompt_schema_is_untouched` is *replaced by* the transform
+  witness; every other FR-905 test passes with no weakened assertion.
+- **Lint, reproducible (R-3):** before each authoring run, the complete
+  diagnostic set of `yamlgraph graph lint <graph>` is recorded in that
+  run's report; after the run the identical command is recorded again.
+  The after set is unchanged or reduced, and no after diagnostic points
+  to `rank_stories` or its prompt schema. Both sets are copied into the
+  implementation record.
 
-1. This repository: example prompt and graph via `scripts/author.sh`;
-   unit witness; changelog fragment.
-2. Digest repository: prompt, graph, runner, tests, via the same route
-   with the brief committed here; PR title
+### S-5: Sequencing (R-1, R-4)
+
+Two committed authoring briefs, one per repository boundary, are the
+durable inputs; the adapter report is transient evidence:
+
+- `feature-requests/authoring-briefs/fr-1121-example-ranker-brief.md`
+  — this repository, `examples/daily_digest/`.
+- `feature-requests/authoring-briefs/fr-1121-digest-ranker-brief.md`
+  — the external `sheikkinen/yamlgraph-daily-digest` checkout, run
+  with `AUTHOR_WORKDIR` pointing at it; nothing from that checkout is
+  committed here.
+
+1. This repository: RED transform witness; example prompt and graph
+   through `scripts/author.sh` from the first brief; GREEN; changelog
+   fragment.
+2. Digest repository: RED witnesses; prompt and graph through
+   `scripts/author.sh` from the second brief; `run_digest.py` guard and
+   tests (Python, not governed); GREEN. PR title
    `fix(digest): FR-1121 ranker schema and loud failure`.
-3. After merge, one `workflow_dispatch` run is the smoke; the next
-   06:00 UTC run is the production witness. Its log must show
-   `Node rank_stories completed successfully`, an archived bulletin and
-   a sent mail, or a non-zero exit with the ranker's error on stderr.
+3. Each authoring run produces and verifies the transient
+   `tmp/draft-authoring-report.md` in its own checkout. The report is
+   not committed; its authored paths, precedent, exact validation
+   commands and outcomes, repairs and blocked validation are copied
+   into this FR's implementation record, separately per repository.
+4. Post-merge production witness (R-4): the first scheduled run after
+   merge records its run id and log lines proving exactly one of three
+   mutually exclusive outcomes:
+   1. `rank_stories` succeeds and the run archives and sends a bulletin;
+   2. no articles reach the ranker, `result["errors"]` is empty, the
+      ranker is never invoked, and the legitimate no-op exits zero; or
+   3. an error is recorded or raised, the runner exits non-zero, no
+      no-op line is printed, and the workflow commit step does not
+      execute.
+   The invariant under test is "no recorded error reaches a green
+   quiet-day result", not whether the feed had articles that morning.
 
 ### Not in scope
 
@@ -177,24 +224,22 @@ article does not trip it.
 
 ## Acceptance Criteria
 
-- [ ] AC-1: the transform witness fails on the committed `list[Any]`
-  schema (RED commit) and passes after S-1 (GREEN commit), in both
-  repositories.
-- [ ] AC-2: `rank_stories` declares `on_error: fail` in both graphs; a
-  test asserts it in each repository.
-- [ ] AC-3: `run_digest.py` exits 2 and prints every recorded error to
-  stderr before any no-op line when `result["errors"]` is non-empty; a
-  test proves it with a stubbed graph.
-- [ ] AC-4: FR-905's schema pin test is replaced, not deleted, and every
-  other FR-905 test passes unchanged.
-- [ ] AC-5: every graph and prompt edit has a committed authoring brief
-  and an adapter report; `yamlgraph graph lint` reports no new
-  diagnostic on either graph.
-- [ ] AC-6: the first scheduled run after merge either archives and
-  sends a bulletin or exits non-zero; its run id and the relevant log
-  lines are recorded in this FR's implementation record.
-- [ ] AC-7: changelog fragment in `changelog/unreleased/`; FR
-  implementation record; Distill diary entry with a `**Seed:**`.
+The judgement's revised list is binding; it replaces the original
+AC-1..AC-7.
+
+- [ ] AC-01: FR-1121 folds R-1 through R-5 before enforcement begins and cites two exact committed authoring briefs under `feature-requests/authoring-briefs/`, each naming its repository boundary and complete artifact/validation surface.
+- [ ] AC-02: In each repository, a separate RED commit adds a transform witness that builds the actual committed ranker prompt model and fails because `stories.items` is untyped; the corresponding GREEN commit changes `stories` to `list[dict]` and the same Anthropic SDK transform completes without raising.
+- [ ] AC-03: In both prompt files, `model_json_schema()` contains `stories.items.type == "object"` after the change; FR-905's Python `RankedStory` boundary and all of its remaining tests are unchanged and pass.
+- [ ] AC-04: `rank_stories` declares `on_error: fail` in both graphs, and a configuration assertion proves the declaration in each repository.
+- [ ] AC-05: A behavioral test in each repository loads that repository's graph configuration, forces `rank_stories` execution to raise, proves the original exception propagates from graph invocation, and proves the downstream formatting node is not invoked.
+- [ ] AC-06: In the standalone digest, a stubbed completed invocation carrying at least two real `PipelineError` instances and `digest_status == "no_articles"` makes `run_digest.py` print every error to stderr, print no no-op line, and exit 2 before any later success/no-op handling.
+- [ ] AC-07: Before and after each authoring run, the same `yamlgraph graph lint <graph>` command is recorded with its complete diagnostic identity set; the after set is unchanged or reduced, and no after diagnostic points to the modified ranker node or prompt schema.
+- [ ] AC-08: Each repository's graph and prompt edits are produced through `scripts/author.sh` from its named committed brief. Each run produces a non-empty `tmp/draft-authoring-report.md` satisfying the required headings and artifact checks; the report remains transient, while its paths, precedent, commands, outcomes, repairs, and blocked validation are copied into FR-1121's implementation record.
+- [ ] AC-09: Every new YAMLGraph-repository test function carries `@pytest.mark.req("REQ-YG-664")`; the focused tests and `python scripts/req_coverage.py --strict` pass.
+- [ ] AC-10: Every FR-905 test other than the replaced schema-pin test passes without weakened assertions; the schema-pin test is replaced by, not merely deleted in favor of, the transform witness.
+- [ ] AC-11: The first scheduled run after merge records its run ID and logs proving exactly one outcome: successful ranker plus archived/sent bulletin; legitimate no-input no-op with zero recorded errors and no ranker invocation; or non-zero failure with the error on stderr, no no-op line, and no workflow commit step.
+- [ ] AC-12: No framework, map, formatting-boundary, collection, dedup, dependency-floor, workflow-policy, CI, hook, or doctrine surface listed as not authorized is changed.
+- [ ] AC-13: This repository receives one scoped changelog fragment and one Distill diary entry containing `**Seed:**`; FR-1121 records RED/GREEN commits for both repositories, exact validation results, the production witness, implementation status, decisions, and deviations.
 
 ## Alternatives Considered
 
@@ -208,6 +253,28 @@ article does not trip it.
 
 `is_this_a_graph`: the pipeline is already a graph; the fix is one
 prompt schema, one node key, and one runner guard. No new graph.
+
+## Judgement fold (2026-09-27)
+
+[Judgement](FR-1121-daily-digest-ranker-schema-loud-failure.judgement.md):
+APPROVED WITH REVISIONS. Folded the same day:
+
+- **R-1** → S-5: two exact committed briefs named
+  (`fr-1121-example-ranker-brief.md`, `fr-1121-digest-ranker-brief.md`);
+  the adapter report is transient and only its content is copied into
+  the implementation record.
+- **R-2** → S-4: an execution-path witness per repository (original
+  exception propagates, formatting node never runs) beside the shape
+  assertion.
+- **R-3** → S-4: lint before/after with recorded diagnostic sets.
+- **R-4** → S-5 item 4: the production witness is an error/no-error
+  invariant with three mutually exclusive outcomes; a legitimate
+  no-article day stays green.
+- **R-5** → S-4: `REQ-YG-664` on every new test here;
+  `req_coverage.py --strict`.
+
+Scope frozen to the judgement's D-1..D-7; conditions C-1..C-8 are
+gates. `list[dict]` is the whole schema change (C-7).
 
 ## Related
 
