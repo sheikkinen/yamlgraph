@@ -52,8 +52,8 @@ def check_unconstrainable_schemas(
     )
     default_provider = (graph.get("defaults") or {}).get("provider")
     issues: list[LintIssue] = []
-    for node_name, node in graph.get("nodes", {}).items():
-        if node.get("type", "llm") not in ("llm", "router") or node.get("parse_json"):
+    for node_name, node in _llm_nodes(graph.get("nodes", {})):
+        if node.get("parse_json"):
             continue
         prompt_name = node.get("prompt")
         prompt_path = get_prompt_path(prompt_name, prompts_dir) if prompt_name else None
@@ -68,6 +68,26 @@ def check_unconstrainable_schemas(
         for finding in findings:
             issues.append(_issue(subject, finding, static=provider is not None))
     return issues
+
+
+def _llm_nodes(nodes: dict) -> list[tuple[str, dict]]:
+    """Top-level ``llm``/``router`` nodes and map sub-nodes (named ``<map>/node``).
+
+    A map's ``node:`` block is compiled through the same LLM factory and is
+    refused there at compile time; lint must see the same set (FR-1125).
+    """
+    out: list[tuple[str, dict]] = []
+    for name, node in nodes.items():
+        if not isinstance(node, dict):
+            continue
+        kind = node.get("type", "llm")
+        if kind in ("llm", "router"):
+            out.append((name, node))
+        elif kind == "map" and isinstance(node.get("node"), dict):
+            sub = node["node"]
+            if sub.get("type", "llm") in ("llm", "router"):
+                out.append((f"{name}/node", sub))
+    return out
 
 
 def _issue(subject: str, finding: SchemaFinding, *, static: bool) -> LintIssue:

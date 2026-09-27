@@ -409,6 +409,31 @@ def test_ac06_e016_unchanged_for_untyped(tmp_path) -> None:
     assert "list[dict]" not in issues[0][1]
 
 
+@pytest.mark.req(REQ)
+def test_ac06_lint_sees_map_sub_nodes(tmp_path) -> None:
+    """Compile refuses a map sub-node's open object; lint must report the same node."""
+    path = _graph(tmp_path, STATIC, "list[dict]")
+    text = path.read_text(encoding="utf-8").replace(
+        """  rank_stories:
+    type: llm
+    prompt: rank
+""",
+        """  rank_stories:
+    type: map
+    over: "{state.items}"
+    as: item
+    collect: ranked_all
+    node:
+      type: llm
+      prompt: rank
+""",
+    )
+    path.write_text(text, encoding="utf-8")
+    issues = _codes(path)
+    assert [c for c, _ in issues] == ["E017"]
+    assert "rank_stories/node" in issues[0][1]
+
+
 # AC-13 — linter extraction ----------------------------------------------------
 
 ROOT = Path(__file__).resolve().parents[2]
