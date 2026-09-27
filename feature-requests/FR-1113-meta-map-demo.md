@@ -68,7 +68,8 @@ it over the repository's own map graphs. The graph has five nodes:
    `*.yaml` file, and returns the paths of the graphs that have at least
    one `type: map` node. This step only selects paths.
 2. **Poison the source (Python).** Appends three paths that are known
-   to be wrong, taken from a list declared in the graph YAML:
+   to be wrong, taken from `poison.yaml`, a data file the graph loads
+   through `data_files`:
    - `examples/demos/hello/graph.yaml`: a valid graph with no map node.
    - `feature-requests/FR-1113-meta-map-demo.md`: this FR, which is not
      a graph.

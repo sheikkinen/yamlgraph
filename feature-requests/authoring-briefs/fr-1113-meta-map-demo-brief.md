@@ -7,6 +7,7 @@ Governing FR: feature-requests/FR-1113-meta-map-demo.md
 Author exactly these four artifacts in `examples/demos/meta_map/`:
 
 - `graph.yaml` (parent graph)
+- `poison.yaml` (data file: `paths:` list, loaded via `data_files`)
 - `subgraphs/summarize_one.yaml` (per-branch child graph)
 - `prompts/describe_graph.yaml`
 - `prompts/reduce_summaries.yaml`
@@ -20,8 +21,8 @@ tool contract seems wrong, stop and record it under Blocked validation.
 
 | Function | Reads state | Returns |
 |----------|-------------|---------|
-| `discover_map_graphs` | `scan_roots` (list, default `["examples", "graphs"]`) | `{"paths": list[str]}` |
-| `poison_the_source` | `paths`, `poison` (list) | `{"paths": paths + poison}` |
+| `discover_map_graphs` | `scan_roots` (list; absent → `["examples", "graphs"]`) | `{"paths": list[str]}` |
+| `poison_the_source` | `paths`, `poison` (dict from `poison.yaml`, key `paths`) | `{"paths": paths + poison.paths}` |
 | `read_source` | `path` | `{"source": SourceText}` with fields `path`, `text` |
 | `reconcile_claim` | `path`, `source`, `claim` | `{"graph_record": GraphRecord}`; raises `ClaimMismatchError` |
 | `reduce_inputs` | `summaries`, `summary_failures`, `_map_verdict` | `{"reduce_input": dict}` with `records` (list) and `counts` (dict) |
@@ -32,14 +33,14 @@ tool contract seems wrong, stop and record it under Blocked validation.
 - `defaults`: `provider: inception`, `model: mercury-2.5` (operator
   decision; applies to both prompts), `on_overflow: error`.
 - `config`: `max_concurrency: 8`.
-- `state`: `scan_roots: list` (default `["examples", "graphs"]`),
-  `poison: list` with default, in this order:
-  `examples/demos/hello/graph.yaml`,
+- `data_files`: `poison: poison.yaml`. `poison.yaml` holds `paths:` in
+  this order: `examples/demos/hello/graph.yaml`,
   `feature-requests/FR-1113-meta-map-demo.md`,
-  `yamlgraph/compile/map_compiler.py`;
-  `output_path: str` (default `outputs/meta_map/report.md`);
-  plus `paths`, `summaries`, `summary_failures`, `reduce_input`,
-  `overall`, `report_path`.
+  `yamlgraph/compile/map_compiler.py`.
+- `state` (graph state has no defaults; the tools default absent
+  values): `scan_roots: list`, `output_path: str` (tool default
+  `outputs/meta_map/report.md`), `paths`, `summaries`,
+  `summary_failures`, `reduce_input`, `overall`, `report_path`.
 - Nodes, in order: `discover` → `poison_the_source` → `summarize` →
   `prepare_reduce` → `reduce` → `render`.
   - `summarize`: `type: map`, `over: "{state.paths}"`, `as: path`,
