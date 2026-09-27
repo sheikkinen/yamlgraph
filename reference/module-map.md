@@ -4,7 +4,7 @@
 - source_root: `yamlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 142
+- module count: 143
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
@@ -91,16 +91,18 @@
   - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.utils.guard_evaluator`
 - `yamlgraph/linter/checks_loader_ux.py` - 94 lines; exports: `check_prompt_messages_contract(graph_path, project_root)`, `check_tool_module_graph_local(graph_path)`
   - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.utils.prompts`
-- `yamlgraph/linter/checks_prompts.py` - 426 lines; exports: `check_unanchored_prompt_variables(graph_path, project_root)`, `check_unrenderable_simple_messages(graph_path, project_root)`, `check_simple_fields_in_jinja_messages(graph_path, project_root)`, `check_prompt_complexity(graph_path, project_root, field_threshold)`, `check_untyped_subschemas(graph_path, project_root)`
-  - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.utils.schema_walk`, `yamlgraph.utils.template`
+- `yamlgraph/linter/checks_prompts.py` - 373 lines; exports: `check_unanchored_prompt_variables(graph_path, project_root)`, `check_unrenderable_simple_messages(graph_path, project_root)`, `check_simple_fields_in_jinja_messages(graph_path, project_root)`, `check_prompt_complexity(graph_path, project_root, field_threshold)`
+  - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.utils.template`
 - `yamlgraph/linter/checks_providers.py` - 140 lines; exports: `check_thinking_budget(graph_path)`
   - import dependencies: `yamlgraph.linter.checks`
+- `yamlgraph/linter/checks_schema.py` - 106 lines; exports: `check_unconstrainable_schemas(graph_path, project_root)`
+  - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.utils.schema_walk`
 - `yamlgraph/linter/checks_semantic.py` - 407 lines; exports: `check_cross_references(graph_path)`, `check_passthrough_nodes(graph_path)`, `check_expression_syntax(graph_path)`, `check_error_handling(graph_path)`, `check_edge_types(graph_path)`, `check_unguarded_cycles(graph_path)`, `check_skip_if_exists_in_cycle(graph_path)`, `check_dynamic_map_without_max_items(node_name, node_config, graph_config)`
   - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.models.state_builder`
 - `yamlgraph/linter/checks_tool_call.py` - 89 lines; exports: `check_tool_call_nodes(graph_path)`
   - import dependencies: `yamlgraph.linter.checks`
 - `yamlgraph/linter/graph_linter.py` - 212 lines; exports: `class LintResult`, `check_compile_validation(graph_path)`, `lint_graph(graph_path, project_root)`
-  - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.linter.checks_contracts`, `yamlgraph.linter.checks_loader_ux`, `yamlgraph.linter.checks_prompts`, `yamlgraph.linter.checks_providers`, `yamlgraph.linter.checks_semantic`, `yamlgraph.linter.checks_tool_call`, `yamlgraph.linter.patterns`
+  - import dependencies: `yamlgraph.linter.checks`, `yamlgraph.linter.checks_contracts`, `yamlgraph.linter.checks_loader_ux`, `yamlgraph.linter.checks_prompts`, `yamlgraph.linter.checks_providers`, `yamlgraph.linter.checks_schema`, `yamlgraph.linter.checks_semantic`, `yamlgraph.linter.checks_tool_call`, `yamlgraph.linter.patterns`
 - `yamlgraph/linter/patterns/__init__.py` - 27 lines; exports: _none_
   - import dependencies: `yamlgraph.linter.patterns.agent`, `yamlgraph.linter.patterns.conditions_smt`, `yamlgraph.linter.patterns.copilot`, `yamlgraph.linter.patterns.interrupt`, `yamlgraph.linter.patterns.map`, `yamlgraph.linter.patterns.pipeline`, `yamlgraph.linter.patterns.race`, `yamlgraph.linter.patterns.router`, `yamlgraph.linter.patterns.subgraph`
 - `yamlgraph/linter/patterns/agent.py` - 89 lines; exports: `check_agent_node_tools(node_name, node_config, graph)`, `check_agent_patterns(graph_path, project_root)`
@@ -269,9 +271,9 @@
   - import dependencies: `yamlgraph.models`
 - `yamlgraph/utils/route_log.py` - 354 lines; exports: `class RouteRun`, `enable_route_log(enabled)`, `route_log_enabled()`, `reset_route_log()`, `current_route_thread_id()`, `route_thread_id(thread_id)`, `route_thread_id_from_config(config)`, `route_log_dropped_count()`, `route_run_context(graph_path, *, thread_id, run_id)`, `resolve_regulated_policy(observability, graph)`, `emit_route(node, value, target, fan_out)`
   - import dependencies: `yamlgraph.observability.otel`, `yamlgraph.utils.artifact_hash`, `yamlgraph.utils.regulated_evidence`
-- `yamlgraph/utils/schema_walk.py` - 98 lines; exports: `class UnconstrainableSchemaError`, `resolve_static_provider(node_provider, default_provider)`, `find_untyped_subschemas(schema)`, `refusal_message(subject, paths)`, `node_subject(node, prompt, model)`, `refuse_static_anthropic_node(node, cfg)`
+- `yamlgraph/utils/schema_walk.py` - 154 lines; exports: `class SchemaFinding`, `class UnconstrainableSchemaError`, `resolve_static_provider(node_provider, default_provider)`, `find_unconstrainable(schema)`, `find_untyped_subschemas(schema)`, `find_open_objects(schema)`, `refusal_message(subject, findings)`, `node_subject(node, prompt, model)`, `refuse_static_anthropic_node(node, cfg)`
   - import dependencies: _none_
-- `yamlgraph/utils/structured_output.py` - 146 lines; exports: `bind_structured_output(llm, output_model, *, method)`, `is_second_attempt_error(err)`, `invoke_structured(llm, output_model, messages, *, config)`, `async ainvoke_structured(llm, output_model, messages, *, config, second_attempt_config)`
+- `yamlgraph/utils/structured_output.py` - 147 lines; exports: `bind_structured_output(llm, output_model, *, method)`, `is_second_attempt_error(err)`, `invoke_structured(llm, output_model, messages, *, config)`, `async ainvoke_structured(llm, output_model, messages, *, config, second_attempt_config)`
   - import dependencies: `yamlgraph.utils.llm_providers`, `yamlgraph.utils.schema_walk`
 - `yamlgraph/utils/template.py` - 204 lines; exports: `is_jinja(text)`, `class SimpleFieldScan`, `strip_jinja_raw_blocks(text)`, `scan_simple_fields(text)`, `extract_variables(template)`, `validate_variables(template, provided, prompt_name)`
   - import dependencies: _none_
@@ -290,5 +292,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 57/142
+- mapped modules: 57/143
 - discovered tests: 60

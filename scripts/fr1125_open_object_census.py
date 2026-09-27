@@ -121,10 +121,14 @@ def _llm_nodes(nodes: dict) -> list[tuple[str, dict]]:
 
 
 def census() -> list[dict[str, Any]]:
-    os.environ.pop("PROVIDER", None)  # host-independent ledger
     from yamlgraph.linter.checks import get_prompt_path, resolve_prompts_dir
     from yamlgraph.schema_loader import load_schema_from_yaml
     from yamlgraph.utils.schema_walk import resolve_static_provider
+
+    # Host-independent ledger: importing yamlgraph loads .env, which can set
+    # PROVIDER (this host: deepseek). Neutralise it AFTER the import so a graph
+    # that names no provider resolves to the built-in default, as on CI.
+    os.environ.pop("PROVIDER", None)
 
     rows: list[dict[str, Any]] = []
     consumers: dict[str, set[str]] = {}

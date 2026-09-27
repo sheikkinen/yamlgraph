@@ -1,6 +1,6 @@
 id: CAP-164
 name: Structured Output JSON Fallback
-fr: FR-464, FR-998, FR-1121, FR-1123
+fr: FR-464, FR-998, FR-1121, FR-1123, FR-1125
 description: >
   When with_structured_output() fails (provider rejects response_format),
   fall back to extract_json() + model_validate(). Extends FR-456 pattern

@@ -283,3 +283,8 @@ PythonRuntime._exactly_one_source  # Pydantic @model_validator; invoked by frame
 
 DEFAULT_GRAPH_PATTERNS
 discover_graphs
+
+# FR-1125: tested projections of find_unconstrainable (judgement R-2 keeps them
+# for existing callers and focused tests); production code uses the unified walker.
+find_untyped_subschemas
+find_open_objects
