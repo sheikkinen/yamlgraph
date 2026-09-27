@@ -46,9 +46,7 @@ def _ranker_schema() -> dict:
 @pytest.mark.req("REQ-YG-664")
 def test_ranker_schema_survives_anthropic_constrained_transform() -> None:
     """The committed schema must be one the constrained decoder can express."""
-    transform_schema = pytest.importorskip(
-        "anthropic.lib._parse._transform"
-    ).transform_schema
+    transform_schema = pytest.importorskip("anthropic").transform_schema
     model = build_pydantic_model(_ranker_schema())
     json_schema = model.model_json_schema()
     # RED on list[Any]: items == {} -> "Schema must have a 'type', ..."
