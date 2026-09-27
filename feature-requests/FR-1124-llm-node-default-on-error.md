@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Approved with revisions ([judgement](FR-1124-llm-node-default-on-error.judgement.md), 2026-09-27); R-1..R-3 not yet folded — authority inactive until the fold (C-1)
 **Effort:** 2 days (framework 1 day; migration census and graph edits 1 day)
 **Requested:** 2026-09-27
 **First consumer / first event:** any embedding application that calls
