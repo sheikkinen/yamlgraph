@@ -148,10 +148,19 @@ def census() -> list[dict[str, Any]]:
             consumers.setdefault(rel_prompt, set()).add(f"{rel_graph}#{node_name}")
             try:
                 model = load_schema_from_yaml(prompt_path)
-            except Exception as exc:  # a malformed schema is its own defect, not this census's
-                rows.append({"graph": rel_graph, "node": node_name, "prompt": rel_prompt,
-                             "path": f"(schema load failed: {type(exc).__name__})",
-                             "provider": "?", "class": "error"})
+            except (
+                Exception
+            ) as exc:  # a malformed schema is its own defect, not this census's
+                rows.append(
+                    {
+                        "graph": rel_graph,
+                        "node": node_name,
+                        "prompt": rel_prompt,
+                        "path": f"(schema load failed: {type(exc).__name__})",
+                        "provider": "?",
+                        "class": "error",
+                    }
+                )
                 continue
             if model is None:
                 continue
@@ -164,8 +173,16 @@ def census() -> list[dict[str, Any]]:
             else:
                 klass, shown = "other", provider
             for path in open_objects(model.model_json_schema()):
-                rows.append({"graph": rel_graph, "node": node_name, "prompt": rel_prompt,
-                             "path": path, "provider": shown, "class": klass})
+                rows.append(
+                    {
+                        "graph": rel_graph,
+                        "node": node_name,
+                        "prompt": rel_prompt,
+                        "path": path,
+                        "provider": shown,
+                        "class": klass,
+                    }
+                )
     for row in rows:
         row["consumers"] = ", ".join(sorted(consumers.get(row["prompt"], set())))
     rows.sort(key=lambda r: (r["prompt"], r["path"], r["graph"], r["node"]))
@@ -173,13 +190,27 @@ def census() -> list[dict[str, Any]]:
 
 
 def render(rows: list[dict[str, Any]]) -> str:
-    out = [BEGIN, "", "| # | prompt | schema path | graph#node | static provider | class | all consumers of the prompt |",
-           "|---|---|---|---|---|---|---|"]
+    out = [
+        BEGIN,
+        "",
+        "| # | prompt | schema path | graph#node | static provider | class | all consumers of the prompt |",
+        "|---|---|---|---|---|---|---|",
+    ]
     for i, r in enumerate(rows, 1):
-        out.append(f"| {i} | `{r['prompt']}` | `{r['path']}` | `{r['graph']}#{r['node']}` | {r['provider']} | **{r['class']}** | {r['consumers']} |")
-    counts = {k: sum(1 for r in rows if r["class"] == k) for k in ("anthropic", "runtime", "other", "error")}
-    out += ["", f"Rows: {len(rows)} — anthropic {counts['anthropic']}, runtime {counts['runtime']}, other {counts['other']}, error {counts['error']}. "
-            f"Distinct prompt files: {len({r['prompt'] for r in rows})}.", "", END]
+        out.append(
+            f"| {i} | `{r['prompt']}` | `{r['path']}` | `{r['graph']}#{r['node']}` | {r['provider']} | **{r['class']}** | {r['consumers']} |"
+        )
+    counts = {
+        k: sum(1 for r in rows if r["class"] == k)
+        for k in ("anthropic", "runtime", "other", "error")
+    }
+    out += [
+        "",
+        f"Rows: {len(rows)} — anthropic {counts['anthropic']}, runtime {counts['runtime']}, other {counts['other']}, error {counts['error']}. "
+        f"Distinct prompt files: {len({r['prompt'] for r in rows})}.",
+        "",
+        END,
+    ]
     return "\n".join(out)
 
 
@@ -193,7 +224,7 @@ def main() -> int:
         if BEGIN not in text or END not in text:
             print("ledger lacks census markers", file=sys.stderr)
             return 1
-        committed = text[text.index(BEGIN): text.index(END) + len(END)]
+        committed = text[text.index(BEGIN) : text.index(END) + len(END)]
         if committed.strip() != table.strip():
             print("ledger differs from the current tree; regenerate", file=sys.stderr)
             return 1
