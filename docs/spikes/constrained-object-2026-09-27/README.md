@@ -21,7 +21,7 @@ API constraint?
 
 ## Method
 
-`probe.py`, run once on 2026-09-27 (`probe-output.txt`, `results.json`):
+`probe_constrained_object.py`, run once on 2026-09-27 (`probe-output.txt`, `results.json`):
 
 - The digest's real ranker prompt (`prompts/rank_stories.yaml` as merged in
   digest #5), rendered with three analysed articles.
@@ -121,6 +121,6 @@ Raw API, SDK transform bypassed, `items: {type: object, additionalProperties: tr
 
 ## Files
 
-- `probe.py` — the runs above, reproducible with an `ANTHROPIC_API_KEY`.
+- `probe_constrained_object.py` — the runs above, reproducible with an `ANTHROPIC_API_KEY`.
 - `probe-output.txt` — the console record of the run.
 - `results.json` — wire schemas, raw content, parsed values, usage, per run.
