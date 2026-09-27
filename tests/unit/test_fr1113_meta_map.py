@@ -409,7 +409,7 @@ def _poison_stub(path: str) -> dict:
 
 
 def _invoke(tmp_path: Path, root: Path, describe, calls: list | None = None):
-    from yamlgraph.compile.graph_loader import load_and_compile
+    from yamlgraph.compile.graph_loader import load_and_compile, load_graph_config
 
     def fake(**kwargs):
         if "describe" in str(kwargs["prompt_name"]):
@@ -418,10 +418,16 @@ def _invoke(tmp_path: Path, root: Path, describe, calls: list | None = None):
             return describe(kwargs["variables"]["path"])
         return "REDUCED"
 
+    # The CLI merges data_files into the initial state; a raw invoke must too.
+    data = load_graph_config(str(GRAPH)).data
     with patch("yamlgraph.node_factory.llm_nodes.execute_prompt", side_effect=fake):
         app = load_and_compile(str(GRAPH)).compile()
         return app.invoke(
-            {"scan_roots": [str(root)], "output_path": str(tmp_path / "report.md")}
+            {
+                **data,
+                "scan_roots": [str(root)],
+                "output_path": str(tmp_path / "report.md"),
+            }
         )
 
 
@@ -506,3 +512,17 @@ class TestDemoGraph:
         assert graph["config"]["max_concurrency"] == 8
         assert graph["defaults"]["provider"] == "inception"
         assert graph["defaults"]["model"] == "mercury-2.5"
+
+    def test_poison_declared_once_in_data_file(self):
+        graph = yaml.safe_load(GRAPH.read_text(encoding="utf-8"))
+        assert graph["data_files"] == {"poison": "poison.yaml"}
+        poison = yaml.safe_load((DEMO / "poison.yaml").read_text(encoding="utf-8"))
+        assert poison == {"paths": POISON}
+        assert list(graph["nodes"]) == [
+            "discover",
+            "poison_the_source",
+            "summarize",
+            "prepare_reduce",
+            "reduce",
+            "render",
+        ]
