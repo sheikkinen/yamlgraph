@@ -1,0 +1,22 @@
+# Tool manifest (FR-768) — map memo split (FR-1116, CAP-289).
+# First committed manifest consumer: examples/demos/meta_map (FR-1116).
+#
+# Contract: map_memo_split(items, signature_files, store, inputs=None) -> dict
+#   items:           distinct paths of readable regular files; the key is the
+#                    path exactly as given, the version is sha256 of its bytes
+#   signature_files: non-empty list of files whose bytes define the per-item
+#                    computation (graph, subgraph, prompt, tools)
+#   store:           SQLite file; relative paths resolve against the cwd
+#   inputs:          optional JSON object for anything else that affects the
+#                    computation. CLI and environment overrides (provider,
+#                    model) are NOT captured unless passed here.
+# Returns MemoPlan {store, signature, current, todo, hits}. Map over `todo`.
+# Read-only: never creates or modifies the store. Invalid input raises
+# MapMemoInputError; an unreadable, foreign, locked or wrong-schema store
+# raises MapMemoStoreError — never a silent miss.
+name: map_memo_split
+description: "Drop file items whose bytes and computation signature match a stored map outcome"
+runtime:
+  type: python
+  path: map_memo.py
+  function: map_memo_split
