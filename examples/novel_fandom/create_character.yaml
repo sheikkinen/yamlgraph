@@ -59,6 +59,7 @@ nodes:
     type: llm
     prompt: ref_check_entity
     state_key: check_result
+    on_error: skip
     temperature: 0.1
     variables:
       persisted_page: "{state.persisted_page}"

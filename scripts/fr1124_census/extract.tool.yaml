@@ -1,0 +1,6 @@
+name: fr1124_extract
+description: "Build the FR-1124 dossier for one graph::node identity."
+runtime:
+  type: python
+  path: tools.py
+  function: extract

@@ -145,7 +145,9 @@ class TestFR335ModuleMapCompression:
         # tool-slot binding).
         # FR-1123: 293 -> 294 for utils/schema_walk.py (LLM-free walker the
         # linter can import under the linter-llm-free contract).
-        assert line_count <= 294, f"module-map too large: {line_count} lines (max 294)"
+        # FR-1124: 294 -> 296 for compile/llm_on_error.py (entry + dependency
+        # line; size-gate split of the top-level llm policy resolution).
+        assert line_count <= 296, f"module-map too large: {line_count} lines (max 296)"
 
     def test_ac02_dependency_lists_contain_only_yamlgraph_imports(self) -> None:
         module_map = _run_generator()

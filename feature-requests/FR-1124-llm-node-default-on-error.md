@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved with revisions ([judgement](FR-1124-llm-node-default-on-error.judgement.md), 2026-09-27); R-1..R-3 folded 2026-09-27 (see [Judgement fold](#judgement-fold-2026-09-27)); authority active, not yet enforced
+**Status:** Approved with revisions ([judgement](FR-1124-llm-node-default-on-error.judgement.md), 2026-09-27); R-1..R-3 folded 2026-09-27 (see [Judgement fold](#judgement-fold-2026-09-27)); enforced 2026-09-27 (see [Implementation Record](#implementation-record-2026-09-27))
 **Effort:** 2 days (framework 1 day; migration census and graph edits 1 day)
 **Requested:** 2026-09-27
 **First consumer / first event:** any embedding application that calls
@@ -250,53 +250,53 @@ deterministic inventory reconciled against a census ledger (R-3):
 The judgement's revised list is binding; it replaces the original
 AC-1..AC-8.
 
-- [ ] AC-01: RED first: a two-node graph whose first authored top-level
+- [x] AC-01: RED first: a two-node graph whose first authored top-level
   `llm` has no `on_error` and whose stub provider raises returns
   normally with one untolerated error on main; after GREEN the original
   exception propagates and the downstream node is not invoked. RED and
   GREEN are separate commits.
-- [ ] AC-02: resolution tests prove explicit node value →
+- [x] AC-02: resolution tests prove explicit node value →
   `defaults.on_error` → `fail` for authored top-level `llm` nodes, and
   the resolved `LLMNodeConfig.on_error` is one of the four
   `ErrorHandler` values.
-- [ ] AC-03: `defaults.on_error` accepts exactly `skip`, `retry`, `fail`
+- [x] AC-03: `defaults.on_error` accepts exactly `skip`, `retry`, `fail`
   and `fallback`; an invalid value fails graph load naming
   `defaults.on_error` and the value; an explicit node value overrides
   it.
-- [ ] AC-04: an undeclared router, race node and map `llm` sub-node
+- [x] AC-04: an undeclared router, race node and map `llm` sub-node
   retain their current policies; `defaults.on_error` does not alter
   them.
-- [ ] AC-05: the shared `handle_default` fall-through remains available
+- [x] AC-05: the shared `handle_default` fall-through remains available
   to excluded callers, while a test proves an authored top-level `llm`
   cannot reach it after effective-policy resolution.
-- [ ] AC-06: `defaults.on_error: skip` on a top-level `llm` records
+- [x] AC-06: `defaults.on_error: skip` on a top-level `llm` records
   exactly one tolerated error, sets the existing skip markers, and
   permits the downstream node; explicit node `fail` under that default
   propagates the original exception.
-- [ ] AC-07: `reference/graph-yaml.md` documents the top-level `llm`
+- [x] AC-07: `reference/graph-yaml.md` documents the top-level `llm`
   default and priority in the common-node, `on_error` value and
   `defaults` tables, and does not present record-and-continue as a
   supported authored mode.
-- [ ] AC-08: a deterministic inventory at the implementation SHA emits
+- [x] AC-08: a deterministic inventory at the implementation SHA emits
   every eligible top-level repository `llm` identity; the committed
   census ledger has exactly the same identity set, no duplicates, A/B
   counts, evidence and resulting policy, and reconciles any difference
   from the filing baseline of 224.
-- [ ] AC-09: every B row has explicit `on_error: skip`, or belongs to a
+- [x] AC-09: every B row has explicit `on_error: skip`, or belongs to a
   graph using `defaults.on_error: skip` whose every eligible `llm` is
   B. Each edited graph cites a committed authoring brief and has a
   verified adapter report, passing lint, and a narrow smoke attempt or
   an exact blocked-validation record.
-- [ ] AC-10: no A graph is edited solely to restate `fail`; no graph
+- [x] AC-10: no A graph is edited solely to restate `fail`; no graph
   outside the B ledger is changed by the migration.
-- [ ] AC-11: focused FR-1124 tests, FR-1097/FR-1098 error-status
+- [ ] AC-11 (partial; see D-B and D-C in the Implementation Record): focused FR-1124 tests, FR-1097/FR-1098 error-status
   regressions, the full unit suite, strict requirement coverage, and
   lint over the deterministic graph inventory pass.
-- [ ] AC-12: all new tests carry the governing REQ ID; the
+- [x] AC-12: all new tests carry the governing REQ ID; the
   implementation record names the RED/GREEN commits, inventory SHA and
   counts, A/B counts, authoring runs, validation outcomes, and
   deviations.
-- [ ] AC-13: separate `removal` and `feat` changelog fragments describe
+- [x] AC-13: separate `removal` and `feat` changelog fragments describe
   the removed implicit policy and `defaults.on_error`; a Distill diary
   entry contains `**Seed:**`.
 
@@ -341,6 +341,70 @@ WITH REVISIONS. Folded the same day:
 
 Scope frozen to the judgement's D-1..D-7; conditions C-1..C-7 are
 gates.
+
+## Implementation Record (2026-09-27)
+
+Branch `featfr1124-llm-default-on-error`, base `5cab655a` (v0.6.1), rebased onto `1adbbfc1` (FR-1128, PR #731). SHAs below are post-rebase.
+
+| Step | Commit | Content |
+|---|---|---|
+| RED | `5f6662e4` | `tests/unit/test_fr1124_llm_default_on_error.py` plus REQ-YG-715 in CAP-08, committed with the new-behaviour tests failing |
+| GREEN | `fb1225b8` | `yamlgraph/compile/llm_on_error.py` (`resolve_llm_on_error`, called from `_compile_llm_node`); `GraphConfigSchema.validate_defaults_on_error`; the FR-1097 AC-02 fixture update; two changelog fragments |
+| Docs | `101e9240` | `reference/graph-yaml.md`: `defaults` example and table, common-node `on_error` row, and the Default note under the value table |
+| Inventory + ledger | `9e0e5dac` | `scripts/fr1124_inventory.py`, `scripts/fr1124_census/`, `docs/issues-2026-09-27-fr1124-census.md`, `tests/unit/test_fr1124_census_ledger.py`, B brief |
+| B migration | `b4d2acd3` | six `examples/novel_fandom/create_*.yaml`, one added line each: `on_error: skip` on `check` |
+| Ledger drift RED | `96f70938` | `test_ac08_row_leaves_inventory_only_by_declaring_its_class_policy` |
+| Ledger drift fix | `34cc673e` | `--check` settles a row whose node declares its class policy (A→`fail`, B→`skip`); module-map budget 294 → 296 |
+
+**Inventory (S-5.1).**
+- Command: `python scripts/fr1124_inventory.py`.
+- Roots: `examples/`, `graphs/`, `.github/`.
+- Exclusions: paths under `prompts/`. Map sub-nodes are nested, so they are never listed.
+- Inclusion: a top-level node whose declared or default type is `llm` and that has no `on_error`.
+- At `bd2c04f0` it found **224 nodes in 134 files**, exactly the filing baseline, so there is no difference to reconcile.
+- After migration it found 218. `--check` reconciled: `inventory=218 ledger_rows=224 migrated_b=6`, rc 0.
+- **Drift after rebase.** FR-1121 (#726) added `on_error: fail` to `examples/daily_digest/graph.yaml` `rank_stories`, a class-A row. The row left the inventory by declaring the A policy, and the old check reported it as unknown. `--check` now reads: `inventory=217 ledger_rows=224 migrated_b=6 declared_a=1`, rc 0.
+
+**Census and reconciliation (S-5.2/3).**
+- `examples/demos/corpus_census` ran with slot manifests under `scripts/fr1124_census/`, labels `a`/`b`, and model `inception/mercury-2`, in two slices because the map cap is 200.
+- Raw output: 199 `a`, 15 `b`, 5 abstain, 0 row failures.
+- Every `b` and abstain was reconciled against source. Result: **A 218, B 6**.
+- 17 `b`/abstain rows cited the dossier's `NODES_REFERENCING_STATE_KEY: none`. That substring scan cannot see python-node readers, so it is not evidence of an unread output.
+- The six `create_*` `check` nodes are identical. The census split them 3/3. All six are B on the prompt header "advisory ≤2-line verdict" and their position after `persist`.
+- Each overridden row gives its reason in the ledger.
+
+**Authoring (S-5.4).**
+- One brief, `feature-requests/authoring-briefs/fr-1124-novel-fandom-advisory-check-brief.md`, covered all six graphs, in one `scripts/author.sh` run (LangSmith run `01a0e3e6-f2ca-72ea-b1bd-429de0d85428`).
+- The adapter report verified the artifacts. Lint exit 0 per graph. Warnings W803, W022 and W017, where W022/W017 are expected for `skip`.
+- Smoke: `load_graph_config(...).nodes['check'].get('on_error')` printed `skip` ×6. Blocked validation: none.
+- The diff is exactly six `+    on_error: skip` lines.
+
+**Verification.**
+- FR-1124 focused tests (both modules): 30 passed.
+- FR-1097 suite: passes with D-A.
+- Full unit suite including slow (post-rebase, `34cc673e`): 7446 passed, 80 skipped, 1 xfailed.
+- `python scripts/req_coverage.py --strict`: rc 0.
+- Inventory lint: 120 of 134 graphs pass (see D-C).
+
+**Deviations.**
+
+- **D-A (operator-approved, 2026-09-27): FR-1097 AC-02 expectation changed.**
+  - The judgement forbids changing FR-1097/FR-1098 expectations. But FR-1097's `test_ac02_p1_llm_failure_exits_3` pins exactly the behaviour this FR removes: an undeclared `llm` failure records an error and exits 3.
+  - AC-01 and AC-05 make that state unreachable for a top-level `llm`, so the two constraints contradict each other.
+  - The test is now `test_ac02_p1_llm_failure_raises_under_fr1124_default`. It asserts exit 1 and the original error, and carries both REQ-YG-700 and REQ-YG-715.
+  - Exit 3 is still produced by the other FR-1097 producers (p2..p5, `py_fail`, `emit_dict`); those tests are unchanged.
+- **D-B: `defaults.on_error: fallback` without a node `fallback.provider` is refused at load.**
+  - `handle_error` falls through to `handle_default` when FALLBACK has no provider. Without this refusal, AC-05 ("a top-level `llm` cannot reach `handle_default`") would be false for that configuration.
+  - The refusal is in `validate_defaults_on_error` and is witnessed by `test_ac03_defaults_fallback_without_node_fallback_provider_refused`.
+  - A node-level `on_error: fallback` without a provider is not changed. That is the author's explicit, pre-existing contract, and changing it is outside D-1..D-7.
+- **D-C: AC-11 lint clause not met for 14 of 134 inventory graphs.**
+  - The 14 fail `yamlgraph graph lint` with E004 (prompt path not found), E000 (a list or dict where the schema expects a string) or E003.
+  - They return the same exit code at base `5cab655a` on the main checkout, so this change did not introduce the failures.
+  - Fixing them means editing graphs outside the B ledger, which AC-10 forbids. The files are `codegen/impl-agent`, `demos/forensic-failure-diary`, `demos/hook_classifier` (×2), `dungeon_master/purgatory/plot`, `npc/encounter-{loop,multi,turn}`, `npc/npc-creation`, `rag/graph` and four `yamlgraph_gen/snippets/patterns/*`.
+  - They need a separate judged FR. This one does not file it.
+- **D-D: resolver in its own module.** `node_compiler.py` sits at the 450-line gate, so the resolution lives in `yamlgraph/compile/llm_on_error.py`. After the rebase onto FR-1123's `schema_walk.py` (main generates 294 lines), the module adds two map lines (entry + dependency line): budget 294 → 296.
+- **D-F: dependency on FR-1128.** Main at `5cab655a`+#729 carried a spike probe that failed the `inline-llm-check` hook on every commit. FR-1128 (PR #731) renamed it under the FR-599 `probe_` exemption. This branch was rebased onto it.
+- **D-E: census model.** The model was `inception/mercury-2`, not the census default `claude-haiku-4-5`, because the Anthropic key in `.env` returned 401.
 
 ## Related
 

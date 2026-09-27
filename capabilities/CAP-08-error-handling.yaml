@@ -37,4 +37,9 @@ requirements:
     modules:
       - executor_base.is_retryable
       - executor._invoke_with_retry
-fr: legacy
+  - id: REQ-YG-715
+    description: "Top-level llm nodes default to on_error fail; defaults.on_error overrides (FR-1124)"
+    modules:
+      - compile/node_compiler
+      - models/graph_schema
+fr: legacy, FR-1124

@@ -340,7 +340,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 5 | CAP-5 Tool & Agent Integration | `node_factory/tool_nodes`, `tools/agent`, `tools/graph_tool`, `tools/nodes`, … | REQ-YG-017 – 020, 422, 510, 576, 580 |
 | 6 | CAP-6 Routing & Flow Control | `node_factory/control_nodes`, `routing`, `utils/conditions` | REQ-YG-021 – 023, 214, 552 |
 | 7 | CAP-7 State Persistence | `models/state_builder`, `storage/checkpointer`, `storage/checkpointer_factory`, `storage/simple_redis` | REQ-YG-024 – 026 |
-| 8 | CAP-8 Error Handling | `error_handlers`, `error_handlers.NodeResult`, `error_handlers.build_skip_error_state`, `error_handlers.check_loop_limit`, … | REQ-YG-027 – 031 |
+| 8 | CAP-8 Error Handling | `error_handlers`, `error_handlers.NodeResult`, `error_handlers.build_skip_error_state`, `error_handlers.check_loop_limit`, … | REQ-YG-027 – 031, 715 |
 | 9 | CAP-9 CLI Interface | `cli/__init__`, `cli/__main__`, `cli/deprecation`, `cli/graph_commands`, … | REQ-YG-032 – 035 |
 | 10 | CAP-10 Export & Serialization | `cli/graph_commands.cmd_graph_codegen`, `cli/schema_commands`, `storage/export`, `storage/serializers` | REQ-YG-036 – 039, 553 |
 | 11 | CAP-11 Subgraph & Map | `map_compiler`, `map_compiler.wrap_for_reducer`, `node_factory/subgraph_nodes` | REQ-YG-040 – 042, 692, 699 |
@@ -698,6 +698,8 @@ Checkpointers and Redis storage for resuming pipelines and state history.
 
 Error strategies (retry, fallback, skip), sanitization, resilience features.
 
+**Feature Request:** legacy, FR-1124
+
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-027 | Error handling strategies (skip, fail, retry, fallback) | `error_handlers` |
@@ -705,6 +707,7 @@ Error strategies (retry, fallback, skip), sanitization, resilience features.
 | REQ-YG-029 | Error state management (NodeResult, skip updates) | `error_handlers.NodeResult`, `error_handlers.build_skip_error_state` |
 | REQ-YG-030 | Error schemas and reporting | `models/schemas.PipelineError`, `models/schemas.ErrorType` |
 | REQ-YG-031 | Retry capability | `executor_base.is_retryable`, `executor._invoke_with_retry` |
+| REQ-YG-715 | Top-level llm nodes default to on_error fail; defaults.on_error overrides (FR-1124) | `compile/node_compiler`, `models/graph_schema` |
 
 ### 9. CAP-9 CLI Interface
 

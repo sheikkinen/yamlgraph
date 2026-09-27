@@ -10,7 +10,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-from yamlgraph.constants import NodeType
+from yamlgraph.constants import ErrorHandler, NodeType
 from yamlgraph.models.guard_schema import GraphVerifyRule
 from yamlgraph.models.node_schema import NodeConfig, SubgraphNodeConfig
 
@@ -131,6 +131,26 @@ class GraphConfigSchema(BaseModel):
             raise ValueError(
                 f"defaults.on_overflow must be 'error' or 'truncate', got {v!r}"
             )
+        return self
+
+    @model_validator(mode="after")
+    def validate_defaults_on_error(self) -> "GraphConfigSchema":
+        """FR-1124: graph llm error policy is one of the ErrorHandler values;
+        a graph-wide provider-switch policy needs a provider on every
+        inheriting llm node, else it would reach handle_default."""
+        valid = [h.value for h in ErrorHandler]
+        v = self.defaults.get("on_error")
+        if "on_error" in self.defaults and v not in valid:
+            raise ValueError(f"defaults.on_error must be one of {valid}, got {v!r}")
+        if v != ErrorHandler.FALLBACK:
+            return self
+        for name, node in self.nodes.items():
+            inherits = node.type == NodeType.LLM and not node.on_error
+            if inherits and not (node.fallback or {}).get("provider"):
+                raise ValueError(
+                    f"defaults.on_error is 'fallback' but llm node {name!r} "
+                    "has no fallback.provider; declare one or set on_error."
+                )
         return self
 
     @model_validator(mode="after")

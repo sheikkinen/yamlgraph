@@ -227,14 +227,16 @@ def test_ac02_p5_exits_3_and_names_node(tmp_path, capsys, echo_llm, mode):
 
 
 @pytest.mark.req("REQ-YG-700")
+@pytest.mark.req("REQ-YG-715")
 @pytest.mark.parametrize("mode", ["text", "json"])
-def test_ac02_p1_llm_failure_exits_3(tmp_path, capsys, boom_llm, mode):
+def test_ac02_p1_llm_failure_raises_under_fr1124_default(
+    tmp_path, capsys, boom_llm, mode
+):
+    """FR-1124: undeclared llm now defaults to fail — raises, exit 1, not 3."""
     argv = ["--json"] if mode == "json" else []
     o = _run(capsys, _graph(tmp_path, ["p1"]), *argv)
-    assert o.code == 3, o.err
-    assert "p1: " in o.err and "llm down" in o.err
-    if mode == "json":
-        assert _counts(o) == (1, 0)
+    assert o.code == 1, o.err
+    assert "llm down" in o.out + o.err
 
 
 # AC-03 -----------------------------------------------------------------------
