@@ -365,3 +365,40 @@ def test_manifest_resolves_shared_module(name):
     assert tool["type"] == "python"
     assert tool["function"] == name
     assert Path(tool["path"]) == (SHARED / "map_memo.py").resolve()
+
+
+def _load_via_manifest(name: str):
+    """Load the function the way a graph does: FR-768 path, no sys.modules entry."""
+    from yamlgraph.tools.manifest import expand_tool_manifests
+    from yamlgraph.tools.python_tool import load_python_function, parse_python_tools
+
+    manifest = (SHARED / f"{name}.tool.yaml").resolve()
+    tools = expand_tool_manifests({name: {"manifest": str(manifest)}}, None)
+    return load_python_function(parse_python_tools(tools)[name], tool_name=name)
+
+
+# Smoke 2026-09-27: the path-loaded module could not build its Pydantic models.
+@pytest.mark.req("REQ-YG-706")
+def test_manifest_loaded_functions_split_and_merge(corpus):
+    split = _load_via_manifest("map_memo_split")
+    merge = _load_via_manifest("map_memo_merge")
+    plan = split(
+        items=corpus["items"], signature_files=corpus["sig"], store=corpus["store"]
+    )
+    results = [{"_map_index": i} for i in range(len(plan["todo"]))]
+    merged = merge(
+        plan=plan,
+        results=results,
+        failures=[],
+        map_name=MAP,
+        map_dispatch=DISPATCH,
+    )
+    assert merged["counts"]["executed_ok"] == 5
+
+
+# Smoke 2026-09-27: outputs/meta_map/ did not exist on a fresh checkout.
+@pytest.mark.req("REQ-YG-706")
+def test_merge_creates_missing_store_directory(corpus, tmp_path):
+    corpus = {**corpus, "store": str(tmp_path / "new" / "dir" / "m.sqlite")}
+    _run(_split(corpus))
+    assert Path(corpus["store"]).is_file()
