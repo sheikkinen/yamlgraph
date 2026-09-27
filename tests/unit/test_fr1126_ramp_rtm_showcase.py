@@ -106,7 +106,9 @@ def test_readme_e017_diagnostic_equals_the_linter_message(tmp_path) -> None:
     block = re.search(r"```text\n(\[E017\].*?)\n```", text, re.S)
     assert block, "README must quote the E017 diagnostic in a text block"
     quoted = _normalize(block.group(1))
-    assert "…" not in quoted and "..." not in quoted
+    # The diagnostic itself contains "{...}" legitimately; truncation is caught by
+    # the equality below, and an ellipsis at the END is the one shape to forbid.
+    assert not quoted.endswith(("…", "..."))
     messages = [m for c, m in _codes(_before_copy(tmp_path)) if c == "E017"]
     assert len(messages) == 1
     assert quoted == _normalize("[E017] " + messages[0])
