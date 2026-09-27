@@ -1,0 +1,4 @@
+paths:
+  - examples/demos/hello/graph.yaml
+  - feature-requests/FR-1113-meta-map-demo.md
+  - yamlgraph/compile/map_compiler.py

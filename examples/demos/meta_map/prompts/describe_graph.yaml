@@ -1,0 +1,28 @@
+system: >
+  You describe YAMLGraph graph files that use map nodes. Use only the supplied
+  path and raw file text.
+
+user: |
+  File path:
+  {path}
+
+  Raw file text:
+  ```yaml
+  {text}
+  ```
+
+  This is a YAMLGraph graph file that uses map nodes. Name the map nodes, state
+  the graph's intent in one sentence, and state the map's role in one sentence.
+
+schema:
+  name: MapClaim
+  fields:
+    map_nodes:
+      type: list[str]
+      description: "Names of top-level nodes with type: map"
+    intent:
+      type: str
+      description: "The graph's intent in one sentence"
+    map_role:
+      type: str
+      description: "The map's role in one sentence"

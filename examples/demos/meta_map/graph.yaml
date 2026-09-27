@@ -1,0 +1,117 @@
+version: "1.0"
+name: meta-map
+description: >
+  Discover YAMLGraph map graphs, summarize each through a subgraph branch, and
+  render a report that includes Python-checked poison failures.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: inception
+  model: mercury-2.5
+  on_overflow: error
+
+config:
+  max_concurrency: 8
+
+data_files:
+  poison: poison.yaml
+
+state:
+  scan_roots: list
+  output_path: str
+  poison: dict
+  paths: list
+  summaries: list
+  summary_failures: list
+  reduce_input: dict
+  overall: str
+  report_path: str
+
+tools:
+  discover_map_graphs:
+    type: python
+    module: examples.demos.meta_map.tools
+    function: discover_map_graphs
+    description: Discover committed graph YAML files that declare map nodes.
+  poison_the_source:
+    type: python
+    module: examples.demos.meta_map.tools
+    function: poison_the_source
+    description: Append intentionally invalid source paths to the discovered map graph paths.
+  reduce_inputs:
+    type: python
+    module: examples.demos.meta_map.tools
+    function: reduce_inputs
+    description: Build ordered reduce records and computed counts from map results.
+  render_report:
+    type: python
+    module: examples.demos.meta_map.tools
+    function: render_report
+    description: Render the meta-map markdown report.
+
+nodes:
+  discover:
+    type: python
+    tool: discover_map_graphs
+    state_key: paths
+
+  poison_the_source:
+    type: python
+    tool: poison_the_source
+    state_key: paths
+
+  summarize:
+    type: map
+    over: "{state.paths}"
+    as: path
+    max_items: 100
+    on_overflow: error
+    timeout: 120
+    min_success: 0.9
+    failures: summary_failures
+    collect: summaries
+    node:
+      type: subgraph
+      mode: invoke
+      graph: subgraphs/summarize_one.yaml
+      input_mapping:
+        path: path
+      output_mapping:
+        summary: graph_record
+      state_key: summary
+
+  prepare_reduce:
+    type: python
+    tool: reduce_inputs
+    state_key: reduce_input
+
+  reduce:
+    type: llm
+    prompt: reduce_summaries
+    state_key: overall
+    variables:
+      records: "{state.reduce_input.records}"
+      counts: "{state.reduce_input.counts}"
+
+  render:
+    type: python
+    tool: render_report
+    state_key: report_path
+
+edges:
+  - from: START
+    to: discover
+  - from: discover
+    to: poison_the_source
+  - from: poison_the_source
+    to: summarize
+  - from: summarize
+    to: prepare_reduce
+  - from: prepare_reduce
+    to: reduce
+  - from: reduce
+    to: render
+  - from: render
+    to: END
