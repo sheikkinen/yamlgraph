@@ -31,11 +31,11 @@ user: |
   Extract the consequences of this chapter as delta operations.
   Only include operations where something actually changed.
 
-schema:
-  name: DeltaOps
-  fields:
+output_schema:
+  type: object
+  properties:
     ops:
-      type: "list[dict]"
+      type: array
       description: >
         List of delta operations. Each has "op" (add_event/add_edge/
         update_valence/invalidate_edge) plus op-specific fields:
@@ -43,3 +43,37 @@ schema:
         add_edge: character, to, kind, valence.
         update_valence: character, to, new_valence.
         invalidate_edge: character, to.
+      items:
+        type: object
+        properties:
+          op:
+            type: string
+            enum: [add_event, add_edge, update_valence, invalidate_edge]
+          id:
+            type: string
+          window:
+            type: string
+          participants:
+            type: array
+            items:
+              type: string
+          consequences:
+            type: array
+            items:
+              type: string
+          references:
+            type: array
+            items:
+              type: string
+          character:
+            type: string
+          to:
+            type: string
+          kind:
+            type: string
+          valence:
+            type: string
+          new_valence:
+            type: string
+        required: [op]
+  required: [ops]

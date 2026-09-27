@@ -331,6 +331,33 @@ APPROVED WITH REVISIONS. Folded the same day:
 - **R-6** → AC list replaced by AC-01..AC-14; CAP-164 / REQ-YG-712
   extended to both finding kinds, no new capability.
 
+### Second wave (2026-09-27, same day): the census was host-dependent
+
+The R-1 ledger was produced on a host whose `.env` sets `PROVIDER=deepseek`;
+importing yamlgraph loads that file, so every graph naming no provider
+resolved to a non-Anthropic default locally, while on the Linux runner the
+built-in default (`anthropic`) applies. The first CI run of the fix PR
+therefore found **17 static-Anthropic open-object rows** the ledger had
+classed as **other**. The census script now neutralises `PROVIDER` after
+the import; the regenerated ledger is the record. Dispositions, per C-7,
+with the operator's decisions of 2026-09-27:
+
+| rows | prompts | disposition | brief |
+|---|---|---|---|
+| 2 | `cwe-classifier/reason_cluster.candidates`, `icpc-2-rfe/reason_cluster.candidates` | option 1 ("EXACTLY these keys" named) | `fr-1125-cwe-classifier-properties-brief.md`, `fr-1125-icpc-2-rfe-properties-brief.md` |
+| 2 | `demos/fr-atlas/chunk_themes.themes`, `merge_themes.themes` | option 1 | `fr-1125-fr-atlas-properties-brief.md` |
+| 1 | `demos/ramp_rtm/derive_reqs.entries` | option 1 | `fr-1125-ramp-rtm-properties-brief.md` |
+| 6 | `novel_fandom/{find_plot_path,fix_plot_path}.beats`, `reconcile_threads.{threads,dropped}`, `threads_from_synopsis.threads`, `throughlines.throughlines` | option 1 | `fr-1125-novel-fandom-properties-brief.md` |
+| 1 | `novel_fandom/extract_consequences.ops` (polymorphic) | option 1, **operator decision**: `op` required plus every op-specific field the description names, optional | same |
+| 1 | `novel_fandom/semantic_dedup.merge_map` (map keyed by ids) | option 2, **operator decision**: node `compare` → `provider: mistral` | same |
+| 4 | `api-discovery/prompts/synthesize` `$defs…sample_response`, `steps/schema-extract/{ckan,openapi,unsupported}.sample_response` (free-form) | option 2, **operator decision**: nodes `synthesize`, `summarize_openapi`, `extract_ckan`, `unsupported_family` → `provider: mistral` | `fr-1125-api-discovery-provider-brief.md` |
+
+Also in the second wave, test-only: `tests/unit/test_router.py`,
+`test_issues.py`, `test_router_race.py` compile fixtures against the
+framework's `GenericReport` (open `sections`/`metadata` maps) with no
+provider; they now pin `PROVIDER=mistral` via an autouse fixture. No
+committed graph uses that model. Effort revised: 3 days.
+
 Scope frozen to the judgement's D-1..D-9; conditions C-1..C-8 are
 gates. Judge rendered from the author's session via the sole route,
 as recorded for FR-1121..FR-1124.
@@ -406,3 +433,21 @@ completed and every verdict carries `req_id`, `witnessed`, `gap` and
 checks_schema.py, which is declared as a module for this requirement")
 is a real observation about this very PR. The previous log was a
 postponement marker (FR-1073); this one is a run.
+
+### Second wave enforcement (2026-09-27)
+
+Six more authoring runs in the worktree, one per brief
+(`cwe-classifier`, `icpc-2-rfe`, `fr-atlas`, `ramp_rtm`, `novel_fandom`,
+`api-discovery`): eleven prompts retyped with declared properties, the
+polymorphic `extract_consequences.ops` as a union with `op` required, and
+five nodes moved to `provider: mistral`. Five runs passed the wrapper; the
+`ramp_rtm` run exited 65 on the known backslash-artifact-path defect with
+the edit correct and verified by hand. The `api-discovery` run also
+regenerated the ledger's mechanical table (outside its brief; the result
+equals the script's output and was regenerated again by the enforcer).
+Host-independent census after both waves: **21 rows, anthropic 0**; CI's
+17 static-Anthropic rows are gone. Lint under the built-in default on
+this host could not reproduce CI's E017 baselines (the worktree's `.env`
+is read by the CLI), so the census, not lint, is the before/after
+record for this wave: 17 → 0. `PROVIDER=mistral` autouse fixtures in
+`test_router.py`, `test_issues.py`, `test_router_race.py`.

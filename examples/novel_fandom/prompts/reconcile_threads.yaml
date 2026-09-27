@@ -77,11 +77,11 @@ user: |
   with zero latent threads has almost certainly under-mined. List anything dropped
   beyond the cap with reasons.
 
-schema:
-  name: ReconciledThreads
-  fields:
+output_schema:
+  type: object
+  properties:
     threads:
-      type: "list[dict]"
+      type: array
       description: >
         The final union, AT MOST 8 threads. Each thread is an object with:
         id (str, snake_case; preserve prior ids where the thread persists),
@@ -95,7 +95,60 @@ schema:
         releases (list[str]: canon EVENT ids that resolve; EMPTY for latent),
         status (str: open, escalating, released, or latent),
         justification (str: for latent threads, the canon field mined from).
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          kind:
+            type: string
+            enum: [feud, bond, belief, survival, succession]
+          carriers:
+            type: array
+            items:
+              type: string
+          sources:
+            type: array
+            items:
+              type: string
+          opposition:
+            type: string
+          stakes:
+            type: string
+          raises:
+            type: array
+            items:
+              type: string
+          releases:
+            type: array
+            items:
+              type: string
+          status:
+            type: string
+            enum: [open, escalating, released, latent]
+          justification:
+            type: string
+        required:
+          - id
+          - kind
+          - carriers
+          - sources
+          - opposition
+          - stakes
+          - raises
+          - releases
+          - status
+          - justification
     dropped:
-      type: "list[dict]"
+      type: array
       description: >
         Threads dropped beyond the cap. Each: id (str), reason (str).
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          reason:
+            type: string
+        required: [id, reason]
+  required: [threads, dropped]

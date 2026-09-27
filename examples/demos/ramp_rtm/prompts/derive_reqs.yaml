@@ -22,14 +22,14 @@ user: |
 
   Produce proposed requirement candidates supported by this test file.
 
-schema:
-  name: RtmFileRequirements
-  fields:
+output_schema:
+  type: object
+  properties:
     path:
-      type: str
+      type: string
       description: The test file path exactly as provided.
     entries:
-      type: list[dict]
+      type: array
       description: >
         Requirement candidates supported by this file. Each item is an
         RtmEntry-shaped object with exactly these keys: req_id (neutral
@@ -37,3 +37,27 @@ schema:
         witness_tests (list of provided test function names only),
         confidence (0.0 to 1.0), and status (exactly proposed).
       default: []
+      items:
+        type: object
+        properties:
+          req_id:
+            type: string
+          statement:
+            type: string
+          witness_tests:
+            type: array
+            items:
+              type: string
+          confidence:
+            type: number
+          status:
+            type: string
+            enum: [proposed]
+        required:
+          - req_id
+          - statement
+          - witness_tests
+          - confidence
+          - status
+  required:
+    - path

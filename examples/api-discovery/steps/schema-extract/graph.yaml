@@ -48,18 +48,24 @@ nodes:
   summarize_openapi:
     type: llm
     prompt: openapi
+    # FR-1125: sample_response is an open object; Anthropic constrained decoding cannot express it.
+    provider: mistral
     state_key: capability_report
     on_error: fail
 
   extract_ckan:
     type: llm
     prompt: ckan
+    # FR-1125: sample_response is an open object; Anthropic constrained decoding cannot express it.
+    provider: mistral
     state_key: capability_report
     on_error: fail
 
   unsupported_family:
     type: llm
     prompt: unsupported
+    # FR-1125: sample_response is an open object; Anthropic constrained decoding cannot express it.
+    provider: mistral
     state_key: capability_report
     on_error: fail
 

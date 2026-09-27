@@ -37,6 +37,8 @@ nodes:
   compare:
     type: llm
     prompt: semantic_dedup
+    # FR-1125: merge_map is an open map (dropped_id -> surviving_id); Anthropic constrained decoding cannot express it.
+    provider: mistral
     state_key: merge_result
     temperature: 0.1
     variables:

@@ -178,6 +178,8 @@ nodes:
   synthesize:
     type: llm
     prompt: synthesize
+    # FR-1125: sample_response is an open object; Anthropic constrained decoding cannot express it.
+    provider: mistral
     state_key: result
     on_error: fail
 

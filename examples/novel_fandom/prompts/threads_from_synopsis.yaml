@@ -25,11 +25,11 @@ user: |
 
   Name the 3 to 6 plot threads that drive this story.
 
-schema:
-  name: SynopsisThreads
-  fields:
+output_schema:
+  type: object
+  properties:
     threads:
-      type: "list[dict]"
+      type: array
       description: >
         3 to 6 plot threads. Each thread is an object with:
         id (str, snake_case, e.g. 'hilde_arnulf_feud'),
@@ -40,3 +40,40 @@ schema:
         raises (list[str]: beat phrases that open/escalate, in synopsis order),
         releases (list[str]: beat phrases that resolve it),
         status (str: open, escalating, released, or latent).
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          kind:
+            type: string
+            enum: [feud, bond, belief, survival, succession]
+          carriers:
+            type: array
+            items:
+              type: string
+          opposition:
+            type: string
+          stakes:
+            type: string
+          raises:
+            type: array
+            items:
+              type: string
+          releases:
+            type: array
+            items:
+              type: string
+          status:
+            type: string
+            enum: [open, escalating, released, latent]
+        required:
+          - id
+          - kind
+          - carriers
+          - opposition
+          - stakes
+          - raises
+          - releases
+          - status
+  required: [threads]

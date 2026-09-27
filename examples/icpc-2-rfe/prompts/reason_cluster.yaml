@@ -29,11 +29,11 @@ user: |
   For each rubric that plausibly fits the patient's reason for
   encounter, return a candidate verdict.
 
-schema:
-  name: ClusterVerdicts
-  fields:
+output_schema:
+  type: object
+  properties:
     candidates:
-      type: list[dict]
+      type: array
       description: >
         Zero or more candidate verdicts, ONLY for codes present in this
         cluster. Each candidate is an object with EXACTLY these keys:
@@ -43,3 +43,33 @@ schema:
         evidence_spans (list of verbatim transcript substrings),
         missing_signals (list of str, what would confirm the code).
       default: []
+      items:
+        type: object
+        properties:
+          code:
+            type: string
+          title:
+            type: string
+          verdict:
+            type: string
+            enum: [match, partial_match, not_applicable]
+          confidence:
+            type: number
+          reasoning_short:
+            type: string
+          evidence_spans:
+            type: array
+            items:
+              type: string
+          missing_signals:
+            type: array
+            items:
+              type: string
+        required:
+          - code
+          - title
+          - verdict
+          - confidence
+          - reasoning_short
+          - evidence_spans
+          - missing_signals
