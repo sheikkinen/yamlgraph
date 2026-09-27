@@ -26,5 +26,5 @@ schema:
   name: RankedStories
   fields:
     stories:
-      type: list[Any]
+      type: list[dict]
       description: "Top 5-8 stories, each with title, url, summary, relevance, reason"

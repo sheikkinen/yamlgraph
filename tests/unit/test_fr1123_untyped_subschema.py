@@ -16,13 +16,13 @@ from unittest.mock import patch
 
 import langchain_anthropic
 import pytest
+
+from yamlgraph.schema_loader import build_pydantic_model
 from yamlgraph.utils.schema_walk import (
     UnconstrainableSchemaError,
     find_untyped_subschemas,
     resolve_static_provider,
 )
-
-from yamlgraph.schema_loader import build_pydantic_model
 from yamlgraph.utils.structured_output import bind_structured_output
 
 REQ = "REQ-YG-712"
@@ -391,7 +391,10 @@ def test_ac10_graph_run_exits_nonzero_before_any_node(tmp_path, capsys) -> None:
     from yamlgraph.cli.graph_commands import cmd_graph_run
 
     graph = _graph(tmp_path, STATIC)
-    args = create_parser().parse_args(["graph", "run", str(graph), "--var", "items=x"])
+    # --json: the CLI routes errors to stderr only in json mode (graph_commands.py)
+    args = create_parser().parse_args(
+        ["graph", "run", str(graph), "--var", "items=x", "--json"]
+    )
     code = 0
     try:
         cmd_graph_run(args)

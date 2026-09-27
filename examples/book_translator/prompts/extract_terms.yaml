@@ -33,5 +33,5 @@ schema:
   name: TermExtraction
   fields:
     terms:
-      type: list[Any]
+      type: list[dict]
       description: "List of extracted terms, each with keys: source_term, translation, context, importance"

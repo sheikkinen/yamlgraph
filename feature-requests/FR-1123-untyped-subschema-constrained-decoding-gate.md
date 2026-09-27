@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS; R-1..R-6 folded 2026-09-27 ([judgement](FR-1123-untyped-subschema-constrained-decoding-gate.judgement.md)); implementation authority active
+**Status:** Judged — APPROVED WITH REVISIONS; R-1..R-6 folded 2026-09-27 ([judgement](FR-1123-untyped-subschema-constrained-decoding-gate.judgement.md)); implemented 2026-09-27 (see Implementation Record)
 **REQ:** REQ-YG-712 (new, CAP-164)
 **Effort:** 1.5 days
 **Requested:** 2026-09-27
@@ -230,18 +230,62 @@ rewrite it. No exception may leave an empty subschema in the census.
 Replaced by the judgement's revised criteria (R-6); scope frozen per the
 judgement's D-1..D-8 and "Not authorized" list.
 
-- [ ] AC-01 (RED): before production implementation, the five frozen type fixtures prove exact walker results: `Any` and `list[Any]` expose their precise paths; `dict`, `list[dict]`, and `list[str]` expose none. The RED commit precedes GREEN.
-- [ ] AC-02: nested fixtures cover `properties`, `items`, `prefixItems`, `anyOf`, `oneOf`, `allOf`, `$defs`, dict-valued `additionalProperties`, and accepted `$ref`; assertions compare exact, deterministically ordered JSON paths.
-- [ ] AC-03: `bind_structured_output` raises `UnconstrainableSchemaError` before `with_structured_output` for an actual Anthropic model using effective `json_schema`; the error names model and every path. Spies prove no walker call for a non-Anthropic model or explicit `function_calling`.
-- [ ] AC-04: provider-resolution tests cover node override, graph default, `PROVIDER`, built-in Anthropic default, explicit known non-Anthropic, and state-derived unresolved provider; `create_llm` and compile/lint classification use the same pure resolver.
-- [ ] AC-05: compiling a static-Anthropic fixture fails before any node executes and names node, prompt, model, and path. A state-derived-provider fixture compiles, then the binder refuses before `with_structured_output` when the runtime model is Anthropic.
-- [ ] AC-06: lint emits `E016` per offending path for static Anthropic, `W028` per offending path for unresolved provider, and no issue for explicit Mistral or another known non-Anthropic provider; both checks are wired through `lint_graph`, serialized through the existing issue shape, and documented.
-- [ ] AC-07: the private-SDK test imports `transform_schema` in exactly one test module and proves parity only for the cited missing-keyword rejection over the frozen fixtures and every committed prompt schema under `examples/`, `graphs/`, and `.github/`; production contains no private SDK import.
-- [ ] AC-08: the committed prompt census contains none of the forbidden untyped paths, and all twelve fields have exactly the R-4 types and matching descriptions. If FR-1121 supplied the digest migration first, the census records that ownership without rewriting it.
-- [ ] AC-09: every example directory modified by FR-1123 has a cited committed authoring brief and a separately verified `tmp/draft-authoring-report.md`; the implementation record lists each adapter command, authored paths, lint result, smoke result or exact blocked reason, and repairs. Temporary reports are not committed.
-- [ ] AC-10: `graph run` on the static-Anthropic fixture exits nonzero with the compile error on stderr and a witness proves no graph node executed.
-- [ ] AC-11: `structured_output.py` remains below 400 lines or the walker is split into `schema_walk.py`; `lint-imports` passes and no production `.with_structured_output(` call is added outside the FR-998 policy module.
-- [ ] AC-12: tests carry the approved REQ marker; the capability/architecture record, canonical documentation, changelog fragment, FR implementation record, and Distill entry exist; targeted tests, `python scripts/req_coverage.py --strict`, and the full unit suite pass without weakened assertions.
+- [x] AC-01 (RED): before production implementation, the five frozen type fixtures prove exact walker results: `Any` and `list[Any]` expose their precise paths; `dict`, `list[dict]`, and `list[str]` expose none. The RED commit precedes GREEN.
+- [x] AC-02: nested fixtures cover `properties`, `items`, `prefixItems`, `anyOf`, `oneOf`, `allOf`, `$defs`, dict-valued `additionalProperties`, and accepted `$ref`; assertions compare exact, deterministically ordered JSON paths.
+- [x] AC-03: `bind_structured_output` raises `UnconstrainableSchemaError` before `with_structured_output` for an actual Anthropic model using effective `json_schema`; the error names model and every path. Spies prove no walker call for a non-Anthropic model or explicit `function_calling`.
+- [x] AC-04: provider-resolution tests cover node override, graph default, `PROVIDER`, built-in Anthropic default, explicit known non-Anthropic, and state-derived unresolved provider; `create_llm` and compile/lint classification use the same pure resolver.
+- [x] AC-05: compiling a static-Anthropic fixture fails before any node executes and names node, prompt, model, and path. A state-derived-provider fixture compiles, then the binder refuses before `with_structured_output` when the runtime model is Anthropic.
+- [x] AC-06: lint emits `E016` per offending path for static Anthropic, `W028` per offending path for unresolved provider, and no issue for explicit Mistral or another known non-Anthropic provider; both checks are wired through `lint_graph`, serialized through the existing issue shape, and documented.
+- [x] AC-07: the private-SDK test imports `transform_schema` in exactly one test module and proves parity only for the cited missing-keyword rejection over the frozen fixtures and every committed prompt schema under `examples/`, `graphs/`, and `.github/`; production contains no private SDK import.
+- [x] AC-08: the committed prompt census contains none of the forbidden untyped paths, and all twelve fields have exactly the R-4 types and matching descriptions. If FR-1121 supplied the digest migration first, the census records that ownership without rewriting it.
+- [x] AC-09: every example directory modified by FR-1123 has a cited committed authoring brief and a separately verified `tmp/draft-authoring-report.md`; the implementation record lists each adapter command, authored paths, lint result, smoke result or exact blocked reason, and repairs. Temporary reports are not committed.
+- [x] AC-10: `graph run` on the static-Anthropic fixture exits nonzero with the compile error on stderr and a witness proves no graph node executed.
+- [x] AC-11: `structured_output.py` remains below 400 lines or the walker is split into `schema_walk.py`; `lint-imports` passes and no production `.with_structured_output(` call is added outside the FR-998 policy module.
+- [x] AC-12: tests carry the approved REQ marker; the capability/architecture record, canonical documentation, changelog fragment, FR implementation record, and Distill entry exist; targeted tests, `python scripts/req_coverage.py --strict`, and the full unit suite pass without weakened assertions.
+
+## Implementation Record
+
+Status: implemented (RED commit, then GREEN + migrations in one commit
+because the census test interlocks with the prompt edits). All twelve
+ACs pass; `tests/unit/test_fr1123_*.py` 53 passed (parity module
+included, `-m slow`), full unit suite green, `req_coverage --strict`
+green, `lint-imports` 3 contracts kept.
+
+**Deviations from the judgement**
+
+- D-2 said the shared resolver lives in `llm_factory`. The
+  `linter-llm-free` import contract forbids the linter from importing
+  `llm_factory`, so `resolve_static_provider` and the walker live in the
+  new pure module `yamlgraph/utils/schema_walk.py`; `create_llm`,
+  compile and lint all call it (AC-04 still holds: one resolver).
+- Traversal mirrors SDK 1.5.0 `transform_schema` exactly (S-1, C-5):
+  `prefixItems` and dict-valued `additionalProperties` are never
+  validated by the SDK, so their AC-02 fixtures assert `[]`. Adding a
+  rule there would break AC-07 parity.
+- Lint (E016/W028) covers top-level `llm`/`router` nodes; map
+  sub-nodes are covered by the compile-time refusal, which runs in
+  `create_node_function` for every LLM node.
+- AC-10: `graph run` prints CLI errors to stdout in text mode and to
+  stderr only with `--json` (existing `graph_commands.py` convention).
+  The test runs with `--json`; the CLI stream policy was not changed.
+- `test_fr335` module-map budget 293 → 294 for `schema_walk.py`,
+  following the per-new-module precedent recorded in that test
+  (FR-892, FR-810, ...).
+
+**Migrations (C-6, AC-09)** — each via `scripts/author.sh <brief>`,
+report verified by the wrapper (headings + authored path exists), not
+committed:
+
+| Brief | Authored paths | Lint | Smoke |
+|---|---|---|---|
+| `authoring-briefs/fr-1123-daily-digest-typed-stories-brief.md` | `examples/daily_digest/prompts/rank_stories.yaml` | exit 0, no E016/W028 (unrelated W013/W021 left, graph out of scope) | walker `[]` |
+| `authoring-briefs/fr-1123-book-translator-typed-lists-brief.md` | `extract_terms.yaml`, `identify_chapters.yaml`, `translate_chunk.yaml` | exit 0, no E016/W028 | walker all `[]` |
+| `authoring-briefs/fr-1123-yamlgraph-gen-typed-fields-brief.md` | `generate_tools.yaml`, `assemble_graph.yaml`, `generate_prompts.yaml` | exit 0, no E016/W028 (unrelated warnings left) | walker all `[]` |
+| `authoring-briefs/fr-1123-codegen-typed-fields-brief.md` | `plan_discovery.yaml`, `synthesize.yaml` | exit 0, no E016/W028 | walker all `[]` |
+
+Repairs: none. Blocked validation: no live LLM smoke (not required by
+the briefs; the walker is the property under test). FR-1121 had not
+migrated the digest field, so FR-1123 did.
 
 ## Alternatives Considered
 

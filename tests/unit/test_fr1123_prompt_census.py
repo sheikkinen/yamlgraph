@@ -10,9 +10,9 @@ from pathlib import Path
 
 import pytest
 import yaml
-from yamlgraph.utils.schema_walk import find_untyped_subschemas
 
 from yamlgraph.schema_loader import load_schema_from_yaml
+from yamlgraph.utils.schema_walk import find_untyped_subschemas
 
 pytestmark = pytest.mark.process
 

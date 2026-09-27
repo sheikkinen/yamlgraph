@@ -15,6 +15,7 @@ from langchain_core.language_models.chat_models import BaseChatModel
 
 from yamlgraph.config import DEFAULT_MODELS
 from yamlgraph.utils.llm_providers import dispatch_provider
+from yamlgraph.utils.schema_walk import resolve_static_provider
 
 logger = logging.getLogger(__name__)
 
@@ -138,8 +139,10 @@ def create_llm(
         >>> # Enable extended thinking
         >>> llm = create_llm(provider="anthropic", thinking_budget=8000)
     """
-    # Determine provider (parameter > env var > default)
-    selected_provider = provider or os.getenv("PROVIDER") or "anthropic"
+    # Determine provider (parameter > env var > default); FR-1123 shares this
+    # resolution with compile and lint. An unresolved {state.x} keeps its text
+    # so the invalid-provider error below names it.
+    selected_provider = resolve_static_provider(provider, None) or provider
 
     # Validate provider
     if selected_provider not in DEFAULT_MODELS:

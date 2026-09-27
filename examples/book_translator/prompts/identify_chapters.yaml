@@ -35,7 +35,7 @@ schema:
   name: ChapterMarkers
   fields:
     markers:
-      type: list[Any]
+      type: list[dict]
       description: |
         List of section boundary markers. Each item should have:
         - marker: exact text string (20-50 chars) from document

@@ -8,11 +8,11 @@ propagates from the oracle instead of being folded into the comparison.
 from __future__ import annotations
 
 import pytest
-from yamlgraph.utils.schema_walk import find_untyped_subschemas
 
 from tests.unit.test_fr1123_prompt_census import ROOT, committed_prompt_schemas
 from tests.unit.test_fr1123_untyped_subschema import _model
 from yamlgraph.schema_loader import load_schema_from_yaml
+from yamlgraph.utils.schema_walk import find_untyped_subschemas
 
 transform = pytest.importorskip("anthropic.lib._parse._transform")
 
