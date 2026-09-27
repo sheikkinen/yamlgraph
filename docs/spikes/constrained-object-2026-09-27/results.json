@@ -1,0 +1,399 @@
+{
+  "model": "claude-haiku-4-5",
+  "runs": [
+    {
+      "form": "A_fields_list_dict",
+      "method": "json_schema",
+      "rep": 0,
+      "wire_schema_stories": {
+        "type": "array",
+        "description": "Top 5-8 stories, each with title, url, summary, relevance, reason",
+        "title": "Stories",
+        "items": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        }
+      },
+      "raw_content": "{\"stories\": []}",
+      "raw_tool_calls": null,
+      "parsed": {
+        "stories": []
+      },
+      "parsing_error": null,
+      "usage": {
+        "input_tokens": 531,
+        "output_tokens": 8,
+        "total_tokens": 539,
+        "input_token_details": {
+          "cache_read": 0,
+          "cache_creation": 0,
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        }
+      }
+    },
+    {
+      "form": "A_fields_list_dict",
+      "method": "json_schema",
+      "rep": 1,
+      "wire_schema_stories": {
+        "type": "array",
+        "description": "Top 5-8 stories, each with title, url, summary, relevance, reason",
+        "title": "Stories",
+        "items": {
+          "type": "object",
+          "properties": {},
+          "additionalProperties": false
+        }
+      },
+      "raw_content": "{\"stories\": []}",
+      "raw_tool_calls": null,
+      "parsed": {
+        "stories": []
+      },
+      "parsing_error": null,
+      "usage": {
+        "input_tokens": 531,
+        "output_tokens": 8,
+        "total_tokens": 539,
+        "input_token_details": {
+          "cache_read": 0,
+          "cache_creation": 0,
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        }
+      }
+    },
+    {
+      "form": "A_fields_list_dict",
+      "method": "function_calling",
+      "rep": 0,
+      "wire_schema_stories": {
+        "description": "Top 5-8 stories, each with title, url, summary, relevance, reason",
+        "items": {
+          "additionalProperties": true,
+          "type": "object"
+        },
+        "type": "array"
+      },
+      "raw_content": "[{\"id\": \"toolu_01FWBrCZ9URyJXHqLWuw7d86\", \"caller\": {\"type\": \"direct\"}, \"input\": {\"stories\": [{\"title\": \"Python 3.15 free-threading becomes default\", \"url\": \"https://example.com/py315\", \"summary\": \"CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true parallelism in Python applications and addresses one of the language's longest-standing limitations.\", \"relevance\": 0.8, \"reason\": \"High relevance to Python topic of interest. Breaking news on a fundamental Python feature with significant impact on performance and concurrency. Directly addresses user's interest in Python developments.\"}, {\"title\": \"LangGraph adds durable map fan-out\", \"url\": \"https://example.com/langgraph-map\", \"summary\": \"LangGraph's Send API gains per-branch accounting and failure lists, enhancing its map fan-out capabilities. This update improves reliability and observability for distributed task execution patterns.\", \"relevance\": 0.7, \"reason\": \"Directly matches user's interest in LangGraph. Represents a meaningful feature enhancement for AI/LLM application development. Unique insight into LangGraph's evolution for handling complex workflows.\"}, {\"title\": \"Rust 2.0 announced with a stable ABI\", \"url\": \"https://example.com/rust-2\", \"summary\": \"The Rust team announced a stable ABI and a 2.0 edition timeline, marking a significant milestone for the language. This achievement addresses long-standing requests for binary compatibility and broader ecosystem adoption.\", \"relevance\": 0.9, \"reason\": \"Highest relevance score with breaking news status. While not in primary topics of interest, this is a major industry development that impacts systems programming and AI infrastructure. Strong candidate for digest due to significance.\"}]}, \"name\": \"RankedStories\", \"type\": \"tool_use\", \"toolset_name\": null}]",
+      "raw_tool_calls": "[{\"name\": \"RankedStories\", \"args\": {\"stories\": [{\"title\": \"Python 3.15 free-threading becomes default\", \"url\": \"https://example.com/py315\", \"summary\": \"CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true parallelism in Python applications and addresses one of the language's longest-standing limitations.\", \"relevance\": 0.8, \"reason\": \"High relevance to Python topic of interest. Breaking news on a fundamental Python feature with significant impact on performance and concurrency. Directly addresses user's interest in Python developments.\"}, {\"title\": \"LangGraph adds durable map fan-out\", \"url\": \"https://example.com/langgraph-map\", \"summary\": \"LangGraph's Send API gains per-branch accounting and failure lists, enhancing its map fan-out capabilities. This update improves reliability and observability for distributed task execution patterns.\", \"relevance\": 0.7, \"reason\": \"Directly matches user's interest in LangGraph. Represents a meaningful feature enhancement for AI/LLM application development. Unique insight into LangGraph's evolution for handling complex workflows.\"}, {\"title\": \"Rust 2.0 announced with a stable ABI\", \"url\": \"https://example.com/rust-2\", \"summary\": \"The Rust team announced a stable ABI and a 2.0 edition timeline, marking a significant milestone for the language. This achievement addresses long-standing requests for binary compatibility and broader ecosystem adoption.\", \"relevance\": 0.9, \"reason\": \"Highest relevance score with breaking news status. While not in primary topics of interest, this is a major industry development that impacts systems programming and AI infrastructure. Strong candidate for digest due to significance.\"}]}, \"id\": \"toolu_01FWBrCZ9URyJXHqLWuw7d86\", \"type\": \"tool_call\"}]",
+      "parsed": {
+        "stories": [
+          {
+            "title": "Python 3.15 free-threading becomes default",
+            "url": "https://example.com/py315",
+            "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true parallelism in Python applications and addresses one of the language's longest-standing limitations.",
+            "relevance": 0.8,
+            "reason": "High relevance to Python topic of interest. Breaking news on a fundamental Python feature with significant impact on performance and concurrency. Directly addresses user's interest in Python developments."
+          },
+          {
+            "title": "LangGraph adds durable map fan-out",
+            "url": "https://example.com/langgraph-map",
+            "summary": "LangGraph's Send API gains per-branch accounting and failure lists, enhancing its map fan-out capabilities. This update improves reliability and observability for distributed task execution patterns.",
+            "relevance": 0.7,
+            "reason": "Directly matches user's interest in LangGraph. Represents a meaningful feature enhancement for AI/LLM application development. Unique insight into LangGraph's evolution for handling complex workflows."
+          },
+          {
+            "title": "Rust 2.0 announced with a stable ABI",
+            "url": "https://example.com/rust-2",
+            "summary": "The Rust team announced a stable ABI and a 2.0 edition timeline, marking a significant milestone for the language. This achievement addresses long-standing requests for binary compatibility and broader ecosystem adoption.",
+            "relevance": 0.9,
+            "reason": "Highest relevance score with breaking news status. While not in primary topics of interest, this is a major industry development that impacts systems programming and AI infrastructure. Strong candidate for digest due to significance."
+          }
+        ]
+      },
+      "parsing_error": null,
+      "usage": {
+        "input_tokens": 994,
+        "output_tokens": 469,
+        "total_tokens": 1463,
+        "input_token_details": {
+          "cache_read": 0,
+          "cache_creation": 0,
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        }
+      }
+    },
+    {
+      "form": "B_fields_list_any",
+      "method": "json_schema",
+      "rep": 0,
+      "wire_error": "ValueError: Schema must have a 'type', 'anyOf', 'oneOf', or 'allOf' field."
+    },
+    {
+      "form": "B_fields_list_any",
+      "method": "function_calling",
+      "rep": 0,
+      "wire_schema_stories": {
+        "description": "Top 5-8 stories, each with title, url, summary, relevance, reason",
+        "items": {},
+        "type": "array"
+      },
+      "raw_content": "[{\"id\": \"toolu_01PFtKUTRzrFmve9iWD3Dtsf\", \"caller\": {\"type\": \"direct\"}, \"input\": {\"stories\": [{\"title\": \"Python 3.15 free-threading becomes default\", \"url\": \"https://example.com/py315\", \"summary\": \"CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true multi-threaded parallelism without the Global Interpreter Lock, significantly improving performance for concurrent applications.\", \"relevance\": 0.8, \"reason\": \"High relevance to stated interests (Python). Breaking news on a fundamental Python feature with broad impact on the developer ecosystem. Directly addresses one of the three priority topics.\"}, {\"title\": \"LangGraph adds durable map fan-out\", \"url\": \"https://example.com/langgraph-map\", \"summary\": \"LangGraph's Send API gains per-branch accounting and failure lists, enhancing reliability for distributed workflow execution. This update improves error handling and observability in complex agentic applications.\", \"relevance\": 0.7, \"reason\": \"Directly matches stated topic of interest (LangGraph). Represents meaningful feature enhancement with practical value for AI/LLM application developers using LangGraph for agent orchestration.\"}, {\"title\": \"Rust 2.0 announced with a stable ABI\", \"url\": \"https://example.com/rust-2\", \"summary\": \"The Rust team announced a stable ABI and a 2.0 edition timeline, marking a significant milestone for language maturity. A stable ABI enables better library compatibility and broader adoption in systems programming.\", \"relevance\": 0.9, \"reason\": \"Highest relevance score with breaking news value. While not in primary topics of interest, this is a major industry announcement that impacts the broader tech ecosystem and Python ecosystem (via performance-critical bindings).\"}]}, \"name\": \"RankedStories\", \"type\": \"tool_use\", \"toolset_name\": null}]",
+      "raw_tool_calls": "[{\"name\": \"RankedStories\", \"args\": {\"stories\": [{\"title\": \"Python 3.15 free-threading becomes default\", \"url\": \"https://example.com/py315\", \"summary\": \"CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true multi-threaded parallelism without the Global Interpreter Lock, significantly improving performance for concurrent applications.\", \"relevance\": 0.8, \"reason\": \"High relevance to stated interests (Python). Breaking news on a fundamental Python feature with broad impact on the developer ecosystem. Directly addresses one of the three priority topics.\"}, {\"title\": \"LangGraph adds durable map fan-out\", \"url\": \"https://example.com/langgraph-map\", \"summary\": \"LangGraph's Send API gains per-branch accounting and failure lists, enhancing reliability for distributed workflow execution. This update improves error handling and observability in complex agentic applications.\", \"relevance\": 0.7, \"reason\": \"Directly matches stated topic of interest (LangGraph). Represents meaningful feature enhancement with practical value for AI/LLM application developers using LangGraph for agent orchestration.\"}, {\"title\": \"Rust 2.0 announced with a stable ABI\", \"url\": \"https://example.com/rust-2\", \"summary\": \"The Rust team announced a stable ABI and a 2.0 edition timeline, marking a significant milestone for language maturity. A stable ABI enables better library compatibility and broader adoption in systems programming.\", \"relevance\": 0.9, \"reason\": \"Highest relevance score with breaking news value. While not in primary topics of interest, this is a major industry announcement that impacts the broader tech ecosystem and Python ecosystem (via performance-critical bindings).\"}]}, \"id\": \"toolu_01PFtKUTRzrFmve9iWD3Dtsf\", \"type\": \"tool_call\"}]",
+      "parsed": {
+        "stories": [
+          {
+            "title": "Python 3.15 free-threading becomes default",
+            "url": "https://example.com/py315",
+            "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true multi-threaded parallelism without the Global Interpreter Lock, significantly improving performance for concurrent applications.",
+            "relevance": 0.8,
+            "reason": "High relevance to stated interests (Python). Breaking news on a fundamental Python feature with broad impact on the developer ecosystem. Directly addresses one of the three priority topics."
+          },
+          {
+            "title": "LangGraph adds durable map fan-out",
+            "url": "https://example.com/langgraph-map",
+            "summary": "LangGraph's Send API gains per-branch accounting and failure lists, enhancing reliability for distributed workflow execution. This update improves error handling and observability in complex agentic applications.",
+            "relevance": 0.7,
+            "reason": "Directly matches stated topic of interest (LangGraph). Represents meaningful feature enhancement with practical value for AI/LLM application developers using LangGraph for agent orchestration."
+          },
+          {
+            "title": "Rust 2.0 announced with a stable ABI",
+            "url": "https://example.com/rust-2",
+            "summary": "The Rust team announced a stable ABI and a 2.0 edition timeline, marking a significant milestone for language maturity. A stable ABI enables better library compatibility and broader adoption in systems programming.",
+            "relevance": 0.9,
+            "reason": "Highest relevance score with breaking news value. While not in primary topics of interest, this is a major industry announcement that impacts the broader tech ecosystem and Python ecosystem (via performance-critical bindings)."
+          }
+        ]
+      },
+      "parsing_error": null,
+      "usage": {
+        "input_tokens": 982,
+        "output_tokens": 472,
+        "total_tokens": 1454,
+        "input_token_details": {
+          "cache_read": 0,
+          "cache_creation": 0,
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        }
+      }
+    },
+    {
+      "form": "C_output_schema_nested",
+      "method": "json_schema",
+      "rep": 0,
+      "wire_schema_stories": {
+        "type": "array",
+        "description": "Top 5-8 stories, each with title, url, summary, relevance, reason",
+        "title": "Stories",
+        "items": {
+          "$ref": "#/$defs/RankedStories_stories"
+        }
+      },
+      "wire_defs": {
+        "RankedStories_stories": {
+          "type": "object",
+          "title": "RankedStories_stories",
+          "properties": {
+            "title": {
+              "type": "string",
+              "title": "Title"
+            },
+            "url": {
+              "type": "string",
+              "title": "Url"
+            },
+            "summary": {
+              "type": "string",
+              "title": "Summary"
+            },
+            "relevance": {
+              "type": "number",
+              "title": "Relevance"
+            },
+            "reason": {
+              "type": "string",
+              "title": "Reason"
+            }
+          },
+          "additionalProperties": false,
+          "required": [
+            "title",
+            "url",
+            "summary",
+            "relevance",
+            "reason"
+          ]
+        }
+      },
+      "raw_content": "{\"stories\": [{\"title\": \"Python 3.15 free-threading becomes default\", \"url\": \"https://example.com/py315\", \"summary\": \"CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true parallel execution of Python threads without the Global Interpreter Lock, significantly improving performance for multi-threaded applications.\", \"relevance\": 0.8, \"reason\": \"High relevance to Python topic of interest and represents a major breaking change in the Python ecosystem that will impact developers immediately.\"}, {\"title\": \"LangGraph adds durable map fan-out\", \"url\": \"https://example.com/langgraph-map\", \"summary\": \"LangGraph's Send API gains per-branch accounting and failure lists capabilities. This enhancement improves reliability and observability when distributing work across multiple branches in agentic workflows.\", \"relevance\": 0.7, \"reason\": \"Direct match to LangGraph topic of interest with practical improvements for AI application development and reliability.\"}, {\"title\": \"Rust 2.0 announced with a stable ABI\", \"url\": \"https://example.com/rust-2\", \"summary\": \"The Rust team announced a stable ABI and a 2.0 edition timeline. This represents a significant milestone in Rust's maturity and will improve interoperability with other languages and long-term API stability.\", \"relevance\": 0.9, \"reason\": \"Breaking news about a major language release with high technical significance, though less directly aligned with stated AI and Python interests.\"}]}",
+      "raw_tool_calls": null,
+      "parsed": {
+        "stories": [
+          {
+            "title": "Python 3.15 free-threading becomes default",
+            "url": "https://example.com/py315",
+            "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true parallel execution of Python threads without the Global Interpreter Lock, significantly improving performance for multi-threaded applications.",
+            "relevance": 0.8,
+            "reason": "High relevance to Python topic of interest and represents a major breaking change in the Python ecosystem that will impact developers immediately."
+          },
+          {
+            "title": "LangGraph adds durable map fan-out",
+            "url": "https://example.com/langgraph-map",
+            "summary": "LangGraph's Send API gains per-branch accounting and failure lists capabilities. This enhancement improves reliability and observability when distributing work across multiple branches in agentic workflows.",
+            "relevance": 0.7,
+            "reason": "Direct match to LangGraph topic of interest with practical improvements for AI application development and reliability."
+          },
+          {
+            "title": "Rust 2.0 announced with a stable ABI",
+            "url": "https://example.com/rust-2",
+            "summary": "The Rust team announced a stable ABI and a 2.0 edition timeline. This represents a significant milestone in Rust's maturity and will improve interoperability with other languages and long-term API stability.",
+            "relevance": 0.9,
+            "reason": "Breaking news about a major language release with high technical significance, though less directly aligned with stated AI and Python interests."
+          }
+        ]
+      },
+      "parsing_error": null,
+      "usage": {
+        "input_tokens": 757,
+        "output_tokens": 355,
+        "total_tokens": 1112,
+        "input_token_details": {
+          "cache_read": 0,
+          "cache_creation": 0,
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        }
+      }
+    },
+    {
+      "form": "C_output_schema_nested",
+      "method": "function_calling",
+      "rep": 0,
+      "wire_schema_stories": {
+        "description": "Top 5-8 stories, each with title, url, summary, relevance, reason",
+        "items": {
+          "properties": {
+            "title": {
+              "type": "string"
+            },
+            "url": {
+              "type": "string"
+            },
+            "summary": {
+              "type": "string"
+            },
+            "relevance": {
+              "type": "number"
+            },
+            "reason": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "title",
+            "url",
+            "summary",
+            "relevance",
+            "reason"
+          ],
+          "type": "object"
+        },
+        "type": "array"
+      },
+      "raw_content": "[{\"id\": \"toolu_01Vn31Sx7HfmgMnoQZiUr1Tp\", \"caller\": {\"type\": \"direct\"}, \"input\": {\"stories\": [{\"title\": \"Python 3.15 free-threading becomes default\", \"url\": \"https://example.com/py315\", \"summary\": \"CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true parallel execution of Python code, addressing one of the language's longest-standing performance limitations.\", \"relevance\": 0.8, \"reason\": \"High relevance to Python topic of interest. Breaking news with significant impact on Python developers and performance. Addresses a critical pain point that has defined Python for decades.\"}, {\"title\": \"LangGraph adds durable map fan-out\", \"url\": \"https://example.com/langgraph-map\", \"summary\": \"LangGraph's Send API gains per-branch accounting and failure lists, enabling more robust distributed workflows. This enhancement improves reliability and observability for complex AI agent orchestration patterns.\", \"relevance\": 0.7, \"reason\": \"Direct match to LangGraph topic of interest. Provides unique insights into advanced workflow patterns for AI applications. Demonstrates platform maturity with production-grade features.\"}, {\"title\": \"Rust 2.0 announced with a stable ABI\", \"url\": \"https://example.com/rust-2\", \"summary\": \"The Rust team announced a stable ABI and a 2.0 edition timeline, representing a major milestone for the language. A stable ABI is crucial for building ecosystems around systems programming.\", \"relevance\": 0.9, \"reason\": \"Highest relevance score indicating major industry news. While not directly in primary topics, this is significant breaking news that impacts Python and AI tooling ecosystems built on Rust (like LangGraph implementations).\"}]}, \"name\": \"RankedStories\", \"type\": \"tool_use\", \"toolset_name\": null}]",
+      "raw_tool_calls": "[{\"name\": \"RankedStories\", \"args\": {\"stories\": [{\"title\": \"Python 3.15 free-threading becomes default\", \"url\": \"https://example.com/py315\", \"summary\": \"CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true parallel execution of Python code, addressing one of the language's longest-standing performance limitations.\", \"relevance\": 0.8, \"reason\": \"High relevance to Python topic of interest. Breaking news with significant impact on Python developers and performance. Addresses a critical pain point that has defined Python for decades.\"}, {\"title\": \"LangGraph adds durable map fan-out\", \"url\": \"https://example.com/langgraph-map\", \"summary\": \"LangGraph's Send API gains per-branch accounting and failure lists, enabling more robust distributed workflows. This enhancement improves reliability and observability for complex AI agent orchestration patterns.\", \"relevance\": 0.7, \"reason\": \"Direct match to LangGraph topic of interest. Provides unique insights into advanced workflow patterns for AI applications. Demonstrates platform maturity with production-grade features.\"}, {\"title\": \"Rust 2.0 announced with a stable ABI\", \"url\": \"https://example.com/rust-2\", \"summary\": \"The Rust team announced a stable ABI and a 2.0 edition timeline, representing a major milestone for the language. A stable ABI is crucial for building ecosystems around systems programming.\", \"relevance\": 0.9, \"reason\": \"Highest relevance score indicating major industry news. While not directly in primary topics, this is significant breaking news that impacts Python and AI tooling ecosystems built on Rust (like LangGraph implementations).\"}]}, \"id\": \"toolu_01Vn31Sx7HfmgMnoQZiUr1Tp\", \"type\": \"tool_call\"}]",
+      "parsed": {
+        "stories": [
+          {
+            "title": "Python 3.15 free-threading becomes default",
+            "url": "https://example.com/py315",
+            "summary": "CPython 3.15 ships with the GIL disabled by default, marking a major milestone in Python's evolution. This change enables true parallel execution of Python code, addressing one of the language's longest-standing performance limitations.",
+            "relevance": 0.8,
+            "reason": "High relevance to Python topic of interest. Breaking news with significant impact on Python developers and performance. Addresses a critical pain point that has defined Python for decades."
+          },
+          {
+            "title": "LangGraph adds durable map fan-out",
+            "url": "https://example.com/langgraph-map",
+            "summary": "LangGraph's Send API gains per-branch accounting and failure lists, enabling more robust distributed workflows. This enhancement improves reliability and observability for complex AI agent orchestration patterns.",
+            "relevance": 0.7,
+            "reason": "Direct match to LangGraph topic of interest. Provides unique insights into advanced workflow patterns for AI applications. Demonstrates platform maturity with production-grade features."
+          },
+          {
+            "title": "Rust 2.0 announced with a stable ABI",
+            "url": "https://example.com/rust-2",
+            "summary": "The Rust team announced a stable ABI and a 2.0 edition timeline, representing a major milestone for the language. A stable ABI is crucial for building ecosystems around systems programming.",
+            "relevance": 0.9,
+            "reason": "Highest relevance score indicating major industry news. While not directly in primary topics, this is significant breaking news that impacts Python and AI tooling ecosystems built on Rust (like LangGraph implementations)."
+          }
+        ]
+      },
+      "parsing_error": null,
+      "usage": {
+        "input_tokens": 1060,
+        "output_tokens": 461,
+        "total_tokens": 1521,
+        "input_token_details": {
+          "cache_read": 0,
+          "cache_creation": 0,
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        }
+      }
+    },
+    {
+      "form": "D_fields_dict",
+      "method": "json_schema",
+      "rep": 0,
+      "wire_schema_stories": {
+        "type": "object",
+        "description": "map of url -> reason",
+        "title": "Stories",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "raw_content": "{\"stories\": {}}",
+      "raw_tool_calls": null,
+      "parsed": {
+        "stories": {}
+      },
+      "parsing_error": null,
+      "usage": {
+        "input_tokens": 499,
+        "output_tokens": 8,
+        "total_tokens": 507,
+        "input_token_details": {
+          "cache_read": 0,
+          "cache_creation": 0,
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        }
+      }
+    },
+    {
+      "form": "D_fields_dict",
+      "method": "function_calling",
+      "rep": 0,
+      "wire_schema_stories": {
+        "additionalProperties": true,
+        "description": "map of url -> reason",
+        "type": "object"
+      },
+      "raw_content": "[{\"id\": \"toolu_01AA8gLHHf1MTQ2Fm6xyntbW\", \"caller\": {\"type\": \"direct\"}, \"input\": {\"stories\": {\"https://example.com/py315\": \"Directly matches topic of interest (Python). High relevance (0.8). Breaking news on major language feature (GIL disabled by default in CPython 3.15) - significant for Python developers and AI/ML workflows.\", \"https://example.com/langgraph-map\": \"Directly matches topic of interest (LangGraph). Relevant (0.7). Unique insight on new Send API capabilities for distributed workflows - important for AI application developers.\", \"https://example.com/rust-2\": \"Moderate relevance (0.9) but lower priority for stated interests (AI, Python, LangGraph). Included for completeness as it's breaking news on a major systems language milestone.\"}}, \"name\": \"RankedStories\", \"type\": \"tool_use\", \"toolset_name\": null}]",
+      "raw_tool_calls": "[{\"name\": \"RankedStories\", \"args\": {\"stories\": {\"https://example.com/py315\": \"Directly matches topic of interest (Python). High relevance (0.8). Breaking news on major language feature (GIL disabled by default in CPython 3.15) - significant for Python developers and AI/ML workflows.\", \"https://example.com/langgraph-map\": \"Directly matches topic of interest (LangGraph). Relevant (0.7). Unique insight on new Send API capabilities for distributed workflows - important for AI application developers.\", \"https://example.com/rust-2\": \"Moderate relevance (0.9) but lower priority for stated interests (AI, Python, LangGraph). Included for completeness as it's breaking news on a major systems language milestone.\"}}, \"id\": \"toolu_01AA8gLHHf1MTQ2Fm6xyntbW\", \"type\": \"tool_call\"}]",
+      "parsed": {
+        "stories": {
+          "https://example.com/py315": "Directly matches topic of interest (Python). High relevance (0.8). Breaking news on major language feature (GIL disabled by default in CPython 3.15) - significant for Python developers and AI/ML workflows.",
+          "https://example.com/langgraph-map": "Directly matches topic of interest (LangGraph). Relevant (0.7). Unique insight on new Send API capabilities for distributed workflows - important for AI application developers.",
+          "https://example.com/rust-2": "Moderate relevance (0.9) but lower priority for stated interests (AI, Python, LangGraph). Included for completeness as it's breaking news on a major systems language milestone."
+        }
+      },
+      "parsing_error": null,
+      "usage": {
+        "input_tokens": 969,
+        "output_tokens": 203,
+        "total_tokens": 1172,
+        "input_token_details": {
+          "cache_read": 0,
+          "cache_creation": 0,
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        }
+      }
+    }
+  ]
+}
