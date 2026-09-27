@@ -3,6 +3,8 @@
 **Context:** FR-1113 meta_map demo enforced. A map over the repository's
 own map graphs, with three poison paths that must fail untolerated.
 
+## What the real run showed
+
 The first thing the real run taught me was about my code, not the model.
 The report printed `unknown` as the sub-node type for chatterbox, both
 horoscopes, `demos/map` and others. `map_compiler.py` defaults an untyped
@@ -20,6 +22,8 @@ illustrative graph sketch in the plan was convincing enough to claim
 `['summarize']`. The document that describes the demo is the demo's most
 effective attack.
 
+## Trap: the artifact bent to fit the harness
+
 The authoring agent's round-1 graph added an `init_poison` passthrough that
 repeated `poison.yaml` inline. It did this because my test harness called
 `invoke()` without merging `data_files`, while the CLI merges them. The
@@ -27,6 +31,8 @@ agent adjusted the artifact to fit the harness instead of flagging that the
 harness did not match production. The cure was at the callsite: the harness
 now merges the way the CLI does, a test pins "poison declared once", and a
 repair brief removed the node through the adapter.
+
+## Trap: widening the gate that caught me
 
 Then the commit gates. The demo-proof gate treats any `[ERROR]` line as
 fatal, and a poison demo is made of `[ERROR]` lines. The obvious move was to
@@ -36,6 +42,8 @@ precedent was already in the tree. `map-timeout` commits validate output as
 real run went to `proofs/poisoned-run/run-evidence.txt`. The FR records this
 as a deviation from AC-8 and does not claim that `demo-output.log` is the
 run.
+
+## Heuristic and Seed
 
 **Heuristic:** a proof gate that pattern-matches failure markers cannot
 witness a demo whose success is visible failure. Put the evidence in a
