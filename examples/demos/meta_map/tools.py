@@ -18,7 +18,6 @@ from yamlgraph.models.map_results import MapFailure, MapVerdict
 
 DEFAULT_SCAN_ROOTS = ["examples", "graphs"]
 DEFAULT_OUTPUT_PATH = "outputs/meta_map/report.md"
-MAP_NAME = "summarize"
 
 # Checked in order; the first rule a node matches is its version.
 VERSION_RULES: list[tuple[str, tuple[str, ...]]] = [
@@ -151,9 +150,14 @@ def reconcile_claim(state: dict) -> dict:
     return {"graph_record": record}
 
 
+def _merged(state: dict) -> dict:
+    """FR-1116: the memo merge result — the whole current population."""
+    return state["merged"]["result"]
+
+
 def _records(state: dict) -> list[tuple[int, GraphRecord]]:
     rows = []
-    for item in state.get("summaries") or []:
+    for item in _merged(state)["records"]:
         data = dict(item)
         index = data.pop("_map_index")
         rows.append((index, GraphRecord.model_validate(data)))
@@ -161,12 +165,12 @@ def _records(state: dict) -> list[tuple[int, GraphRecord]]:
 
 
 def _failures(state: dict) -> list[MapFailure]:
-    failures = [_as_model(MapFailure, f) for f in state.get("summary_failures") or []]
+    failures = [_as_model(MapFailure, f) for f in _merged(state)["failures"]]
     return sorted(failures, key=lambda f: f.index)
 
 
 def _verdict(state: dict) -> MapVerdict:
-    return _as_model(MapVerdict, state["_map_verdict"][MAP_NAME])
+    return _as_model(MapVerdict, _merged(state)["verdict"])
 
 
 def reduce_inputs(state: dict) -> dict:
@@ -206,12 +210,17 @@ def render_report(state: dict) -> dict:
 
     required = verdict.min_success
     status = "met" if verdict.met else "unmet"
+    memo = _merged(state)["counts"]
     lines = [
         f"# Map usage in YAMLGraph — {len(paths)} paths",
         "",
         f"Coverage: {verdict.dispatched} dispatched · {verdict.succeeded} succeeded"
         f" · {verdict.tolerated} tolerated · {verdict.failed} failed"
         f" (min_success {required}, {status})",
+        "",
+        f"Memo: {memo['executed_ok']} executed ok · {memo['executed_failed']}"
+        f" executed failed · {memo['reused_ok']} reused ok"
+        f" · {memo['reused_failed']} reused failed",
         "",
         "Map version = declared YAML keys; the runtime applies the FR-1073 "
         "result contract to every map.",

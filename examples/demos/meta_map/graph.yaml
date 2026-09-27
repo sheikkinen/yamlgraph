@@ -17,19 +17,28 @@ config:
 
 data_files:
   poison: poison.yaml
+  memo_config: memo.yaml
 
 state:
   scan_roots: list
   output_path: str
   poison: dict
+  memo_config: dict
   paths: list
+  memo: dict
   summaries: list
   summary_failures: list
+  _map_verdict: dict
+  merged: dict
   reduce_input: dict
   overall: str
   report_path: str
 
 tools:
+  map_memo_split:
+    manifest: ../../shared/map_memo_split.tool.yaml
+  map_memo_merge:
+    manifest: ../../shared/map_memo_merge.tool.yaml
   discover_map_graphs:
     type: python
     module: examples.demos.meta_map.tools
@@ -62,14 +71,26 @@ nodes:
     tool: poison_the_source
     state_key: paths
 
+  memo_split:
+    type: tool_call
+    tool: map_memo_split
+    on_error: fail
+    state_key: memo
+    args:
+      items: "{state.paths}"
+      signature_files: "{state.memo_config.signature_files}"
+      store: "{state.memo_config.store}"
+
+  # The real 0.9 threshold is judged by memo_merge over the whole population.
+  # The map itself declares min_success: 0 so executed work is saved first.
   summarize:
     type: map
-    over: "{state.paths}"
+    over: "{state.memo.result.todo}"
     as: path
     max_items: 100
     on_overflow: error
     timeout: 120
-    min_success: 0.9
+    min_success: 0
     failures: summary_failures
     collect: summaries
     node:
@@ -81,6 +102,19 @@ nodes:
       output_mapping:
         summary: graph_record
       state_key: summary
+
+  memo_merge:
+    type: tool_call
+    tool: map_memo_merge
+    on_error: fail
+    state_key: merged
+    args:
+      plan: "{state.memo.result}"
+      results: "{state.summaries}"
+      failures: "{state.summary_failures}"
+      map_name: summarize
+      map_dispatch: "{state._map_verdict.summarize.dispatch}"
+      min_success: 0.9
 
   prepare_reduce:
     type: python
@@ -106,8 +140,12 @@ edges:
   - from: discover
     to: poison_the_source
   - from: poison_the_source
+    to: memo_split
+  - from: memo_split
     to: summarize
   - from: summarize
+    to: memo_merge
+  - from: memo_merge
     to: prepare_reduce
   - from: prepare_reduce
     to: reduce

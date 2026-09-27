@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed revision, 2026-09-26. The second [judgement](FR-1076-shared-map-reuse-helpers.judgement.md) is APPROVED WITH REVISIONS; its R-1 through R-3 are dispositioned below. This revision adds explicit computation inputs and save-before-reconciliation, and removes the generic query and checkpoint-size deliverables. Those scope changes require re-judgement through `scripts/judge.sh` before implementation. Merging this documentation grants no runtime implementation authority.
+**Status:** Superseded by [FR-1116](FR-1116-map-memo-file-corpus.md) (operator, 2026-09-27; never implemented, the revision below was never re-judged). Prior status: Proposed revision, 2026-09-26. The second [judgement](FR-1076-shared-map-reuse-helpers.judgement.md) is APPROVED WITH REVISIONS; its R-1 through R-3 are dispositioned below. This revision adds explicit computation inputs and save-before-reconciliation, and removes the generic query and checkpoint-size deliverables. Those scope changes require re-judgement through `scripts/judge.sh` before implementation. Merging this documentation grants no runtime implementation authority.
 **Effort:** 1 day
 **Requested:** 2026-09-25
 **First consumer / first event:** the next re-run of

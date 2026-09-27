@@ -1,0 +1,10 @@
+# FR-1116 memo rerun smoke — code at 9411f5cb + working tree (map_memo.py GREEN fix)
+$ rm -f outputs/meta_map/memo.sqlite
+$ yamlgraph graph run examples/demos/meta_map/graph.yaml --full  # run 1
+run 1 exit: 3
+Coverage: 55 dispatched · 52 succeeded · 0 tolerated · 3 failed (min_success 0.9, met)
+Memo: 52 executed ok · 3 executed failed · 0 reused ok · 0 reused failed
+$ yamlgraph graph run examples/demos/meta_map/graph.yaml --full  # run 2
+run 2 exit: 0
+Coverage: 55 dispatched · 52 succeeded · 0 tolerated · 3 failed (min_success 0.9, met)
+Memo: 0 executed ok · 0 executed failed · 52 reused ok · 3 reused failed

@@ -1,0 +1,23 @@
+# Tool manifest (FR-768) — map memo merge (FR-1116, CAP-289).
+# First committed manifest consumer: examples/demos/meta_map (FR-1116).
+#
+# Contract: map_memo_merge(plan, results, failures, map_name, map_dispatch,
+#                          min_success=1.0) -> dict
+#   plan:         the MemoPlan returned by map_memo_split
+#   results:      the map's `collect` list (each carries _map_index into todo)
+#   failures:     the map's FR-1073 `failures` list for the same dispatch
+#   map_name:     the map node name
+#   map_dispatch: the map's dispatch token ({state._map_verdict.<map>.dispatch})
+#   min_success:  FR-1073 domain — non-negative int, or float in [0, 1]
+# Stores executed outcomes in one transaction, then returns MemoMerged
+# {records, failures, verdict, counts} over the whole current population.
+# Run the map itself with min_success: 0 and give the real threshold here.
+# Raises MapCompletenessError AFTER commit when the threshold is missed;
+# bad attribution raises MapMemoInputError and writes nothing; a failed
+# write raises MapMemoStoreError.
+name: map_memo_merge
+description: "Store executed map outcomes and return the whole current population with an FR-1073 verdict"
+runtime:
+  type: python
+  path: map_memo.py
+  function: map_memo_merge
