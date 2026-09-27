@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Implemented (2026-09-27) — fix PR pending merge; digest #6 pending; production witness pending the first ranker-invoking scheduled run (see [Implementation record](#implementation-record))
+**Status:** Implemented (2026-09-27) — yamlgraph #732 (`2b62085e`), digest #6 (`9594d910`); production witness pending the first ranker-invoking scheduled run (see [Implementation record](#implementation-record))
 **Effort:** 2.5 days (framework and parity 1 day; linter extraction 0.5 day; nine ledger rows across six briefs plus the external digest 1 day)
 **Requested:** 2026-09-27
 **First consumer / first event:** `sheikkinen/yamlgraph-daily-digest` at
@@ -374,7 +374,7 @@ as recorded for FR-1121..FR-1124.
 
 ## Implementation record
 
-**Enforced 2026-09-27**, branch `fix/fr1125-open-objects`, rebased onto `main` after #730.
+**Enforced 2026-09-27**, branch `fix/fr1125-open-objects`, rebased onto `main` after #730; squash-merged as `2b62085e` (#732). The two second-wave demo-proof commits landed after the auto-merge fired and follow in their own docs PR.
 
 | Step | Commit | Evidence |
 |---|---|---|
@@ -456,3 +456,25 @@ this host could not reproduce CI's E017 baselines (the worktree's `.env`
 is read by the CLI), so the census, not lint, is the before/after
 record for this wave: 17 → 0. `PROVIDER=mistral` autouse fixtures in
 `test_router.py`, `test_issues.py`, `test_router_race.py`.
+
+### Demo proofs, second wave (ramp_rtm, fr-atlas)
+
+Both demos changed in the second wave, so the CI demo-proof gate needs a
+fresh log for each; both were run live on `claude-haiku-4-5` under
+constrained decoding with the retyped prompts, `PROVIDER=anthropic` set
+explicitly because the worktree's `.env` would otherwise route them to
+deepseek.
+
+- `ramp_rtm` on its committed fixture `tests/fixtures/ramp_target`: two
+  test files, two map branches, five requirement entries each carrying
+  `req_id`, `statement`, `witness_tests`, `confidence`, `status:
+  proposed` (`examples/demos/ramp_rtm/demo-output.log`).
+- `fr-atlas` on a small project of this week's FR-1121..FR-1125 files
+  plus CAP-164 (the full repository is hundreds of calls): chunk themes
+  and merged themes carry `name`, `arc`, `fr_ids` / `merged_from`, and
+  the atlas was written (`examples/demos/fr-atlas/demo-output.log`,
+  engine log lines plus an output summary: the `--full` state dump quotes
+  the FR texts, whose incident wording trips the gate's fatal-marker
+  scan). The model's first theme, "Schema Validation and Type Safety …
+  preventing silent failures and empty results in constrained decoding",
+  is this FR describing itself.
