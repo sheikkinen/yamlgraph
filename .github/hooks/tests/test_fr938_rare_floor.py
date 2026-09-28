@@ -119,8 +119,7 @@ def test_module_runs_without_pyyaml_installed() -> None:
 
     swallows stderr (`2>/dev/null || true` in fr-checks.sh). A module-scope
     `import yaml` therefore kills the whole notification hook silently on
-    any interpreter without PyYAML. The FR-814 graph is an optional
-    augmentation and must degrade, not abort.
+    any interpreter without PyYAML.
     """
     with tempfile.TemporaryDirectory() as tmpdir:
         fr_dir = Path(tmpdir) / "feature-requests"
