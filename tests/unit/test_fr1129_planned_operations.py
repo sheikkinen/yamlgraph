@@ -137,3 +137,13 @@ def test_skill_defines_reconciliation_cutoff_and_sample_respects_it() -> None:
     flat = yaml.safe_dump(_sample())
     for post_cutoff in ("outsider.sh", "review.sh", "merge"):
         assert post_cutoff not in flat, post_cutoff
+    assert re.search(r"\bCI\b", flat) is None, "push CI is post-cutoff"
+
+
+@pytest.mark.req("REQ-YG-716")
+def test_skill_wait_examples_respect_cutoff() -> None:
+    text = SKILL.read_text(encoding="utf-8")
+    rules = text.split("## Planned Operations (FR-1129)", 1)[1].split(BEGIN, 1)[0]
+    assert re.search(r"\bCI\b", rules) is None
+    assert "merge" not in rules
+    assert "review" not in rules

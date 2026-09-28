@@ -22,8 +22,8 @@ requirements:
       of strings, with no numeric duration; the skill defines the
       `Planned operation | Outcome | Witness` table, the `Unplanned
       operations` list, and a reconciliation cutoff at enforcement completion
-      that excludes outsider, review and merge from the plan. No standalone
-      planning skill exists.
+      that excludes push CI, outsider, review and merge from the plan, its
+      sample and its wait examples. No standalone planning skill exists.
     modules:
       - feature-requests/TEMPLATE.md
       - .github/skills/feature-request/SKILL.md
