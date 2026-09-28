@@ -1,0 +1,225 @@
+version: "1.0"
+name: langgraph-issues-census
+description: >
+  Census langchain-ai/langgraph issues and PRs into the frozen FR-1130 taxonomy,
+  memoizing per-item extraction and judgement by upstream updated_at.
+
+prompts_relative: true
+prompts_dir: ../corpus_census/prompts
+
+defaults:
+  provider: azure
+  temperature: 0.0
+
+config:
+  max_map_items: 10000
+  max_concurrency: 8
+
+state:
+  source: str
+  rubric: str
+  labels: str
+  provider: str
+  model: str
+  output_path: str
+  results_dir: str
+  fixture_path: str
+  memo_store: str
+  memo_inputs: dict
+  memo_query: dict
+  items:
+    type: list
+  versions: dict
+  memo: dict
+  executed_contents:
+    type: list
+    reducer: sorted_add
+  executed_findings:
+    type: list
+    reducer: sorted_add
+  paired:
+    type: list
+  merged: dict
+  findings:
+    type: list
+  ledger: dict
+  crosstab: dict
+
+tools:
+  discover:
+    slot: true
+    contract:
+      runtimes: [python]
+      args: [source]
+  versions:
+    slot: true
+    contract:
+      runtimes: [python]
+  extract:
+    slot: true
+    contract:
+      runtimes: [python]
+      args: [item]
+  map_memo_split:
+    manifest: ../../shared/map_memo_split.tool.yaml
+  map_memo_merge:
+    manifest: ../../shared/map_memo_merge.tool.yaml
+  memo_prepare:
+    type: python
+    module: examples.demos.corpus_census.adapters.gh_issues_report
+    function: gh_issues_memo_prepare
+    description: Require memo_store and build gh-issues memo signature inputs.
+  pair:
+    type: python
+    module: examples.demos.corpus_census.adapters.gh_issues_report
+    function: gh_issues_pair
+    description: Pair extracted GitHub issue bundles with judge outcomes.
+  findings:
+    type: python
+    module: examples.demos.corpus_census.adapters.gh_issues_report
+    function: gh_issues_findings
+    description: Convert memo-merged gh-issues records to ledger findings.
+  reduce_ledger:
+    type: python
+    module: examples.demos.corpus_census.tools
+    function: reduce_ledger
+    description: Write the normalized markdown and JSONL census ledger.
+  crosstab:
+    type: python
+    module: examples.demos.corpus_census.adapters.gh_issues_report
+    function: gh_issues_crosstab
+    description: Validate the ledger and write crosstab plus manifest artifacts.
+
+nodes:
+  memo_prepare:
+    type: python
+    tool: memo_prepare
+    state_key: memo_inputs
+    on_error: fail
+
+  discover:
+    type: python
+    tool: discover
+    variables:
+      source: "{state.source}"
+    state_key: items
+    on_error: fail
+
+  versions:
+    type: tool_call
+    tool: versions
+    args:
+      state: "{state.memo_query}"
+    state_key: versions
+    on_error: fail
+
+  memo_split:
+    type: tool_call
+    tool: map_memo_split
+    on_error: fail
+    state_key: memo
+    args:
+      items: "{state.items}"
+      versions: "{state.versions.result}"
+      store: "{state.memo_store}"
+      inputs: "{state.memo_inputs}"
+      signature_files:
+        - examples/demos/langgraph_issues_census/graph.yaml
+        - examples/demos/corpus_census/prompts/judge_item.yaml
+        - examples/demos/corpus_census/tools.py
+        - examples/demos/corpus_census/adapters/gh_issues_adapters.py
+        - examples/demos/corpus_census/adapters/gh_issues_report.py
+
+  extract_items:
+    type: map
+    over: "{state.memo.result.todo}"
+    as: item
+    max_items: 10000
+    node:
+      type: python
+      tool: extract
+      state_key: content
+      on_error: fail
+    collect: executed_contents
+
+  judge_items:
+    type: map
+    over: "{state.executed_contents}"
+    as: judged_content
+    max_items: 10000
+    node:
+      type: llm
+      prompt: judge_item
+      provider: "{state.provider}"
+      model: "{state.model}"
+      temperature: 0
+      state_key: finding
+      on_error: skip
+      variables:
+        rubric: "{state.rubric}"
+        content: "{state.judged_content.value}"
+        source_index: "{state.judged_content._map_index}"
+    collect: executed_findings
+
+  pair:
+    type: python
+    tool: pair
+    state_key: paired
+    on_error: fail
+
+  memo_merge:
+    type: tool_call
+    tool: map_memo_merge
+    on_error: fail
+    state_key: merged
+    args:
+      plan: "{state.memo.result}"
+      results: "{state.paired}"
+      failures: []
+      map_name: judge_items
+      map_dispatch: "{state._map_verdict.judge_items.dispatch}"
+      min_success: 0
+
+  findings:
+    type: python
+    tool: findings
+    state_key: findings
+    on_error: fail
+
+  reduce_ledger:
+    type: python
+    tool: reduce_ledger
+    state_key: ledger
+    on_error: fail
+
+  crosstab:
+    type: python
+    tool: crosstab
+    state_key: crosstab
+    on_error: fail
+
+edges:
+  - from: START
+    to: memo_prepare
+  - from: memo_prepare
+    to: discover
+  - from: discover
+    to: versions
+  - from: versions
+    to: memo_split
+  - from: memo_split
+    to: extract_items
+  - from: extract_items
+    to: judge_items
+  - from: judge_items
+    to: pair
+  - from: pair
+    to: memo_merge
+  - from: memo_merge
+    to: findings
+  - from: findings
+    to: reduce_ledger
+  - from: reduce_ledger
+    to: crosstab
+  - from: crosstab
+    to: END

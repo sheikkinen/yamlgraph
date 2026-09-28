@@ -1,0 +1,59 @@
+2026-09-28 12:28:17,589 [INFO] yamlgraph.compile.graph_loader: Parsed 10 Python tools: discover, versions, extract, map_memo_split, map_memo_merge, memo_prepare, pair, findings, reduce_ledger, crosstab
+2026-09-28 12:28:17,589 [INFO] yamlgraph.compile.node_compiler: Added node: memo_prepare (type=python)
+2026-09-28 12:28:17,591 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
+2026-09-28 12:28:17,591 [INFO] yamlgraph.compile.node_compiler: Added node: versions (type=tool_call)
+2026-09-28 12:28:17,591 [INFO] yamlgraph.compile.node_compiler: Added node: memo_split (type=tool_call)
+2026-09-28 12:28:17,593 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
+2026-09-28 12:28:17,595 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
+2026-09-28 12:28:17,596 [INFO] yamlgraph.compile.node_compiler: Added node: pair (type=python)
+2026-09-28 12:28:17,596 [INFO] yamlgraph.compile.node_compiler: Added node: memo_merge (type=tool_call)
+2026-09-28 12:28:17,596 [INFO] yamlgraph.compile.node_compiler: Added node: findings (type=python)
+2026-09-28 12:28:17,596 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
+2026-09-28 12:28:17,596 [INFO] yamlgraph.compile.node_compiler: Added node: crosstab (type=python)
+2026-09-28 12:28:17,729 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: memo_prepare -> memo_prepare
+2026-09-28 12:28:17,730 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
+2026-09-28 12:29:29,298 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0)
+2026-09-28 12:29:31,831 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-28 12:29:31,851 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-28 12:29:32,320 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-28 12:29:32,323 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-28 12:29:32,329 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: pair -> pair
+2026-09-28 12:29:32,334 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: findings -> findings
+2026-09-28 12:29:32,336 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
+2026-09-28 12:29:32,338 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: crosstab -> crosstab
+
+🚀 Running graph: graph.yaml
+   Variables: {'source': 'langchain-ai/langgraph@6534,7400', 'rubric': "Classify one GitHub issue or pull request from the langchain-ai/langgraph repository by the pain it reports or addresses. Return exactly one category label from the closed list below.\n\nPrecedence: apply the rules top to bottom; the first category whose inclusion matches and whose exclusion does not match wins.\n\n| # | Category | Includes | Excludes |\n|---|---|---|---|\n| 1 | spam-invalid | promotion, off-topic pitches, empty-body or test submissions closed unmerged, bot noise | any real defect/feature/doc content |\n| 2 | docs | changes or requests touching only documentation, docstrings, examples prose, typos, README | code behaviour changes |\n| 3 | maintenance-non-pain | dependency bumps, CI, release, lint/format, internal refactor, test code and test fixtures (incl. checkpoint-backend test fixtures) | defects users hit at runtime |\n| 4 | interrupt-resume-hitl | interrupt(), Command(resume/goto) on resume, human-in-the-loop, breakpoints | checkpoint storage bugs not about resume |\n| 5 | subgraph-config-propagation | subgraphs, nested graphs, config/context/RunnableConfig propagation into children, subgraph state namespaces | interrupts inside subgraphs (use interrupt-resume-hitl) |\n| 6 | checkpoint-persistence | checkpointers (memory/sqlite/postgres/redis), store, thread history, time travel, serialization of saved state | test fixtures (use maintenance-non-pain) |\n| 7 | streaming | stream/astream modes, events, token streaming, stream output shape | |\n| 8 | state-schema-reducers | state schema, channels, reducers, add_messages, input/output schemas, state updates | typing-only requests (use typing-api-ergonomics) |\n| 9 | control-flow-routing | edges, conditional edges, Send, recursion limit, parallel branches, graph compile/structure | |\n| 10 | functional-api | @entrypoint, @task | |\n| 11 | prebuilt-agents-tools | create_react_agent, ToolNode, tools_condition, supervisor/swarm prebuilts, tool calling through prebuilts; wins over model-provider-integration when a prebuilt is named | |\n| 12 | model-provider-integration | a specific model/provider's message or feature handling with no prebuilt named | |\n| 13 | platform-server-cli-sdk | langgraph CLI, langgraph.json, docker/build, LangGraph Server/Platform, SDK clients, Studio | |\n| 14 | observability-visualization | tracing, callbacks, logging, graph drawing/mermaid | |\n| 15 | error-handling-retry | exceptions, error messages, retry policies, GraphRecursionError messaging | |\n| 16 | async-concurrency-performance | async execution, threading, concurrency, memory/CPU/latency | |\n| 17 | typing-api-ergonomics | type hints, generics, public API shape and naming, deprecations | |\n\nThe content is a JSON record with number, kind (issue or pr), merged, state, state_reason, title, body_head (first 1,500 characters of the body), labels, comments, reactions and timestamps. Use the title, body and upstream labels as evidence; quote the evidence span verbatim from the title or body.\n\nAbstain only when the item has no title and no body.", 'labels': '["spam-invalid", "docs", "maintenance-non-pain", "interrupt-resume-hitl", "subgraph-config-propagation", "checkpoint-persistence", "streaming", "state-schema-reducers", "control-flow-routing", "functional-api", "prebuilt-agents-tools", "model-provider-integration", "platform-server-cli-sdk", "observability-visualization", "error-handling-retry", "async-concurrency-performance", "typing-api-ergonomics"]', 'provider': 'azure', 'model': 'aaa-gpt-5.4-mini', 'output_path': 'tmp/fr1130/author-smoke/ledger.md', 'results_dir': 'tmp/fr1130/author-smoke', 'fixture_path': 'tests/fixtures/fr1130/raw_read.json', 'memo_store': 'tmp/fr1130/author-smoke/memo.sqlite'}
+
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a0e757-f9c9-7141-9c97-eb1770a597aa?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: crosstab
+  source: langchain-ai/langgraph@6534,7400
+  rubric: Classify one GitHub issue or pull request from the langchain-ai/langgraph repository by the pain it reports or addresses. Return exactly one category label from the closed list below.
+
+Precedence: app...
+  labels: ["spam-invalid", "docs", "maintenance-non-pain", "interrupt-resume-hitl", "subgraph-config-propagation", "checkpoint-persistence", "streaming", "state-schema-reducers", "control-flow-routing", "functi...
+  provider: azure
+  model: aaa-gpt-5.4-mini
+  output_path: tmp/fr1130/author-smoke/ledger.md
+  results_dir: tmp/fr1130/author-smoke
+  fixture_path: tests/fixtures/fr1130/raw_read.json
+  memo_store: tmp/fr1130/author-smoke/memo.sqlite
+  memo_inputs: {'rubric': "Classify one GitHub issue or pull request from the langchain-ai/langgraph repository by the pain it reports or addresses. Return exactly one category label from the closed list below.\n\nP...
+  memo_query: {'source': 'langchain-ai/langgraph@6534,7400'}
+  items: ['langchain-ai/langgraph#6534', 'langchain-ai/langgraph#7400']
+  versions: {'task_id': None, 'tool': 'versions', 'success': True, 'result': {'langchain-ai/langgraph#6534': '2026-06-27T02:54:01Z', 'langchain-ai/langgraph#7400': '2026-04-03T13:51:55Z'}, 'error': None}
+  memo: {'task_id': None, 'tool': 'map_memo_split', 'success': True, 'result': {'store': '/Users/sami.j.p.heikkinen/src/yamlgraph/tmp/worktrees/feat/fr-1130-langgraph-issues-census/tmp/fr1130/author-smoke/mem...
+  executed_contents: [{'_map_index': 0, 'value': '{"number": 6534, "kind": "issue", "merged": null, "state": "open", "state_reason": null, "title": "If an interrupt already exists, use the command to trigger a jump and th...
+  executed_findings: [{'_map_index': 0, 'source_index': 0, 'judgement': 'interrupt-resume-hitl', 'confidence': 0.98, 'evidence_span': 'If an interrupt already exists, use the command to trigger a jump and then trigger ano...
+  paired: [{'_map_index': 0, 'bundle': '{"number": 6534, "kind": "issue", "merged": null, "state": "open", "state_reason": null, "title": "If an interrupt already exists, use the command to trigger a jump and t...
+  merged: {'task_id': None, 'tool': 'map_memo_merge', 'success': True, 'result': {'records': [{'bundle': '{"number": 6534, "kind": "issue", "merged": null, "state": "open", "state_reason": null, "title": "If an...
+  findings: [{'_map_index': 0, 'judgement': 'interrupt-resume-hitl', 'confidence': 0.98, 'evidence_span': 'If an interrupt already exists, use the command to trigger a jump and then trigger another interrupt.', '...
+  ledger: {'markdown_path': 'tmp/fr1130/author-smoke/ledger.md', 'jsonl_path': 'tmp/fr1130/author-smoke/ledger.jsonl', 'rows': 2}
+  crosstab: {'markdown_path': 'tmp/fr1130/author-smoke/crosstab.md', 'manifest_path': 'tmp/fr1130/author-smoke/manifest.json'}
+  executed_contents_failures: []
+  executed_findings_failures: []
+
+📊 Token usage: 2902 in / 128 out (2 calls)
