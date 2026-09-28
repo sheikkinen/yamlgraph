@@ -214,6 +214,7 @@ decision.
 - PR body glossary edit after the outsider report (PR #739 edit history)
 - review round 1 refused pending D-8 rows (commit `48252248` filled them); review round 2 refused the self-referential review/merge rows and CAP-293's missing test ownership — fixed by the reconciliation cutoff (RED `d9a61ba4`, GREEN `30eb37a2`)
 - review round 3 refused CI/merge wait examples in the skill rules and an unsupported parser-probe witness — cutoff extended to push CI and wait examples (RED `ea76ecdd`, GREEN `424eba96`), probe recorded as evidence §3
+- review round 4: deleting the skill's key table and no-duration rule left the suite green; added `test_skill_states_the_five_key_contract` and `test_skill_states_the_no_duration_rule`. No RED commit was possible, because the product text was already correct. The proof is the same deletion mutation: exactly those two tests fail (2 failed, 23 passed), and the suite is green on restore.
 
 ## Related
 

@@ -39,6 +39,26 @@ def _headings(text: str) -> list[str]:
     return [line for line in text.splitlines() if line.startswith("## ")]
 
 
+def _rules() -> str:
+    text = SKILL.read_text(encoding="utf-8")
+    return text.split("## Planned Operations (FR-1129)", 1)[1].split(BEGIN, 1)[0]
+
+
+@pytest.mark.req("REQ-YG-716")
+def test_skill_states_the_five_key_contract() -> None:
+    rules = _rules()
+    assert "exactly these keys, each a non-empty list of strings" in rules
+    table_keys = set(re.findall(r"^\| `(\w+)` \|", rules, re.MULTILINE))
+    assert table_keys == KEYS
+
+
+@pytest.mark.req("REQ-YG-716")
+def test_skill_states_the_no_duration_rule() -> None:
+    rules = _rules()
+    assert "**No numeric duration**" in rules
+    assert "millisecond-through-year" in rules
+
+
 def _sample() -> dict:
     text = SKILL.read_text(encoding="utf-8")
     assert text.count(BEGIN) == 1 and text.count(END) == 1
