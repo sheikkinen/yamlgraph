@@ -1,0 +1,23 @@
+id: CAP-297
+name: FR knowledge graph retired
+fr: FR-1134
+description: >
+  The FR knowledge graph built by FR-814/816/817 (CAP-240) is absent from
+  main. Its committed artifact stopped at FR-819 on 2026-08-18 and nothing
+  regenerated it, so the prior-art hook's cluster boost was a no-op for
+  every later FR. The extractor, artifact, docs, fixtures, tests and the
+  hook's graph code were deleted; the prior-art hook's output for FR ids
+  above FR-819 is unchanged.
+modules:
+  - tests/unit/test_fr1134_retirements.py
+requirements:
+  - id: REQ-YG-720
+    description: >
+      scripts/extract_fr_graph.py, reference/fr-knowledge-graph.yaml,
+      reference/fr-knowledge-graph.md, tests/fixtures/fr_graph_validation.yaml,
+      tests/unit/test_fr_graph.py and CAP-240 are absent, and
+      .github/hooks/scripts/checks/prior_art.py contains no graph loading,
+      lookup, boost or tag code — witnessed by
+      tests/unit/test_fr1134_retirements.py.
+    modules:
+      - tests/unit/test_fr1134_retirements.py

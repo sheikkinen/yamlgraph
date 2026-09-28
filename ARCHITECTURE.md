@@ -444,7 +444,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 122 | CAP-122 Router Node with Candidates Race Support | `yamlgraph/node_factory/llm_nodes.py`, `yamlgraph/utils/validators.py`, `yamlgraph/models/state_builder.py`, `yamlgraph/compile/node_compiler.py`, … | REQ-YG-271 |
 | 124 | CAP-124 Watcher2 PR Reuse (FR-275) | `.chaplain/lib/watcher/create_pr.sh`, `tests/unit/test_watcher2_create_pr_reuse.py` | REQ-YG-272 |
 | 125 | CAP-125 Pipeline Script Retirement (FR-276) | `.chaplain/scripts/start-system.sh`, `.chaplain/config/watcher-dispatcher.yaml`, `.chaplain/config/watcher-pipeline-v2.yaml`, `.chaplain/lib/watcher/worktree_setup.sh`, … | REQ-YG-276 |
-| 126 | CAP-126 Test Speed Optimization | `pyproject.toml`, `tests/chaos_tools.py`, `tests/unit/test_map_node_timeout.py`, `tests/unit/test_race_node.py`, … | REQ-YG-275 |
+| 126 | CAP-126 Test Speed Optimization | `pyproject.toml`, `tests/unit/test_fr275_test_speed_optimization.py` | REQ-YG-275 |
 | 127 | CAP-127 CI Hardening Consolidation | `.github/workflows/workflow.yml`, `.github/workflows/security.yml`, `.github/workflows/commitlint.yml`, `tests/unit/test_ci_hardening_consolidation.py` | REQ-YG-277 |
 | 128 | CAP-128 Chaplain Documentation | `.chaplain/README.md`, `tests/unit/test_chaplain_readme_documentation` | REQ-YG-278 |
 | 130 | CAP-130 Watcher2 Finalize Pre-commit Optimization | `.chaplain/scripts/start-system.sh`, `tests/unit/test_fr198_watcher2_finalize_optimization.py` | REQ-YG-286 |
@@ -555,7 +555,6 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 237 | CAP-237 Author Brief Pre-Flight | `scripts` | REQ-YG-598 |
 | 238 | CAP-238 API Discovery Orchestrator v2 — Recon and Browser-Sniff Routing | `examples` | REQ-YG-599 |
 | 239 | CAP-239 Discord Hello Slash-Command Example | `examples/discord_bot` | REQ-YG-600 |
-| 240 | CAP-240 FR Knowledge Graph Extraction | `scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.yaml`, `reference/fr-knowledge-graph.md`, `.github/hooks/scripts/checks/prior_art.py` | REQ-YG-601 – 603 |
 | 241 | CAP-241 Weekly Recap Publication | `scripts` | REQ-YG-604 |
 | 242 | CAP-242 Lint/Compile Validation Parity | `linter` | REQ-YG-605 |
 | 243 | CAP-243 Requirement Witness Audit | `scripts` | REQ-YG-606 – 609 |
@@ -597,6 +596,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 289 | CAP-289 Map Memo For File Corpora | `examples/shared/map_memo.py`, `examples/shared/map_memo_split.tool.yaml`, `examples/shared/map_memo_merge.tool.yaml` | REQ-YG-706 |
 | 292 | CAP-292 Census Map Memo With Caller-Supplied Versions | `examples/shared/map_memo.py`, `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/tools.py`, `examples/demos/person_profile_census/graph.yaml` | REQ-YG-709 |
 | 293 | CAP-293 FR Planned Operations Section | `feature-requests/TEMPLATE.md`, `ramp/assets/tier2/feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md`, `tests/unit/test_fr1129_planned_operations.py` | REQ-YG-716 |
+| 297 | CAP-297 FR knowledge graph retired | `tests/unit/test_fr1134_retirements.py` | REQ-YG-720 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -1778,13 +1778,13 @@ Retire obsolete pipeline scripts (watch.sh, enforce_worktree.sh, bugfix_worktree
 
 ### 126. CAP-126 Test Speed Optimization
 
-Pytest markers and configurable timing to enable faster development cycles. Adds 'slow' marker for tests >1s, configurable TEST_DELAY_SCALE for accelerated timing, and developer commands for selective test execution during rapid iteration.
+Pytest `slow` marker for tests >1s, so the fast loop can deselect them. FR-1134 narrowed the requirement to marker registration; the markers on timing tests and TEST_DELAY_SCALE remain in the code without a claim.
 
-**Feature Request:** FR-275
+**Feature Request:** FR-275, FR-1134
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-275 | pytest slow marker infrastructure enables selective test execution. 'slow' marker defined in pyproject.toml for tests taking >1 second; tests using sleep >1s marked with @pytest.mark.slow; pytest -m "not slow" excludes slow tests for fast iteration; pytest -m "slow" runs only slow tests for full validation; CHAOS_DELAY and test timing configurable via TEST_DELAY_SCALE environment variable; development commands documented in CLAUDE.md for ultra-fast, fast, and slow-only execution; test behavior unchanged when no marker filters applied; comprehensive acceptance tests validate marker functionality | `pyproject.toml`, `tests/chaos_tools.py`, `tests/unit/test_map_node_timeout.py`, `tests/unit/test_race_node.py`, `tests/unit/test_fr275_test_speed_optimization.py`, `CLAUDE.md` |
+| REQ-YG-275 | The 'slow' pytest marker is registered in pyproject.toml for tests taking >1 second. | `pyproject.toml`, `tests/unit/test_fr275_test_speed_optimization.py` |
 
 ### 127. CAP-127 CI Hardening Consolidation
 
@@ -3002,18 +3002,6 @@ Minimal Discord gateway-bot example executing the unmodified hello demo graph fr
 |------------|-------------|-------------|
 | REQ-YG-600 | Discord hello example: pure adapter maps /hello options (name, style) to hello-graph initial state with validation, renders the structured greeting result as embed fields, and renders visible correlated error messages instead of fallback greetings. | `examples/discord_bot` |
 
-### 240. CAP-240 FR Knowledge Graph Extraction
-
-Deterministic extraction of typed causal and associative edges from the FR corpus into a machine-queryable YAML artifact. Supports cycle detection, transitive closure computation, cluster identification, and staleness gating. Augments the prior-art hook with graph-backed cluster lookup.
-
-**Feature Request:** FR-814
-
-| Requirement | Description | Key Modules |
-|------------|-------------|-------------|
-| REQ-YG-601 | scripts/extract_fr_graph.py deterministically generates reference/fr-knowledge-graph.yaml with typed edges (causal: depends_on, regression_of, spawned_by, substrate, supersedes; associative: prior_art, first_consumer_of, mentions), transitive closures over causal edges, cycle detection reporting exact chains, cluster identification, and corpus fingerprint for staleness detection. Prior-art hook augmented with graph-backed cluster boost. | `scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.yaml`, `.github/hooks/scripts/checks/prior_art.py`, `tests/unit/test_fr_graph.py` |
-| REQ-YG-602 | FR-816: Each cluster in the knowledge graph has a semantic display name derived from member filename nouns. Stable cluster-N keys preserved. Naming is deterministic with collision resolution. | `scripts/extract_fr_graph.py`, `tests/unit/test_fr_graph.py` |
-| REQ-YG-603 | FR-817: Cross-cluster mention section in the knowledge graph contains only mention edges where source and target are in different clusters. Count < 500, artifact < 500KB. | `scripts/extract_fr_graph.py`, `tests/unit/test_fr_graph.py` |
-
 ### 241. CAP-241 Weekly Recap Publication
 
 Scheduled self-publication of a weekly repository recap to the protected main branch (scripts/weekly_recap.py + .github/workflows/weekly-recap.yml). Reuses the recap demo graph (CAP-195) unmodified; renders workstreams, orphans, and hotspots into docs/recaps/<ISO-week>.md and lands it via an automation PR (docs(recap): ...) with auto-merge, gated by the required checks. Quiet weeks are detected deterministically before any LLM call: the substantive commit window excludes prior recap-only automation commits, so the feature's own output never makes the next week noisy.
@@ -3444,6 +3432,16 @@ FR-1129: the FR template replaces the unparsed `**Effort:**` field with a `## Pl
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-716 | `feature-requests/TEMPLATE.md` has no `**Effort:**` line and places `## Planned Operations` directly after `## Ideal Result`, pointing to the feature-request skill; the ramp mirror is byte-identical. The feature-request skill's inline template drops Effort and adds the section; its marked sample is one YAML document with exactly `probes`, `branches`, `delegations`, `waits`, `commands`, each a non-empty list of strings, with no numeric duration; the skill defines the `Planned operation \| Outcome \| Witness` table, the `Unplanned operations` list, and a reconciliation cutoff at enforcement completion that excludes push CI, outsider, review and merge from the plan, its sample and its wait examples. No standalone planning skill exists. | `feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md`, `tests/unit/test_fr1129_planned_operations.py` |
+
+### 297. CAP-297 FR knowledge graph retired
+
+The FR knowledge graph built by FR-814/816/817 (CAP-240) is absent from main. Its committed artifact stopped at FR-819 on 2026-08-18 and nothing regenerated it, so the prior-art hook's cluster boost was a no-op for every later FR. The extractor, artifact, docs, fixtures, tests and the hook's graph code were deleted; the prior-art hook's output for FR ids above FR-819 is unchanged.
+
+**Feature Request:** FR-1134
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-720 | scripts/extract_fr_graph.py, reference/fr-knowledge-graph.yaml, reference/fr-knowledge-graph.md, tests/fixtures/fr_graph_validation.yaml, tests/unit/test_fr_graph.py and CAP-240 are absent, and .github/hooks/scripts/checks/prior_art.py contains no graph loading, lookup, boost or tag code — witnessed by tests/unit/test_fr1134_retirements.py. | `tests/unit/test_fr1134_retirements.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
