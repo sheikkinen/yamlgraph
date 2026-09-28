@@ -243,3 +243,35 @@ def test_extract_reads_snapshot_without_api_call(workdir):
     bundle = json.loads(blob)
     assert bundle == next(r for r in RECORDS if r["number"] == 6534)
     assert forbidden.calls == []
+
+
+# --- loaded by path, as the graph loads them (smoke found IssueRecord unbuilt) --
+
+ADAPTERS = Path(gia.__file__).resolve().parent
+
+
+@pytest.mark.req("REQ-YG-717")
+def test_manifest_loaded_functions_run_outside_sys_modules(workdir):
+    import yaml
+
+    from yamlgraph.tools.python_tool import PythonToolConfig, load_python_function
+
+    def load(name: str):
+        manifest = yaml.safe_load((ADAPTERS / f"{name}.tool.yaml").read_text())
+        runtime = manifest["runtime"]
+        config = PythonToolConfig(
+            function=runtime["function"], path=str(ADAPTERS / runtime["path"])
+        )
+        return load_python_function(config)
+
+    discover = load("gh-issues-discover")
+    with patch.object(subprocess, "run", FakeGh(_lines(RECORDS))):
+        refs = discover({"source": f"{REPO}@6534"})
+    assert refs == [f"{REPO}#6534"]
+    assert load("gh-issues-versions")({"source": f"{REPO}@6534"}) == {
+        f"{REPO}#6534": next(r["updated_at"] for r in RECORDS if r["number"] == 6534)
+    }
+    assert (
+        json.loads(load("gh-issues-extract")({"item": f"{REPO}#6534"}))["number"]
+        == 6534
+    )

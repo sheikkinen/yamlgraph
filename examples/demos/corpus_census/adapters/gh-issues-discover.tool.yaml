@@ -1,0 +1,6 @@
+name: gh-issues-discover
+description: "FR-1130 gh-issues census: one paginated gh api listing -> validated snapshot -> selected refs"
+runtime:
+  type: python
+  path: gh_issues_adapters.py
+  function: gh_issues_discover

@@ -1,0 +1,6 @@
+name: gh-issues-extract
+description: "FR-1130 gh-issues census: one ref -> its record JSON bundle, read from the snapshot"
+runtime:
+  type: python
+  path: gh_issues_adapters.py
+  function: gh_issues_extract
