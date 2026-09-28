@@ -1,0 +1,81 @@
+# FR-1137: The LLM only CLAIMS description/target/type; freeze, identity,
+# reconciliation, canary, and rendering are deterministic Python.
+version: "1.0"
+name: test-map
+description: >
+  Map the committed test corpus into per-test descriptions, target areas, and
+  test types, then publish reconciled JSON and Markdown artifacts.
+
+prompts_relative: true
+prompts_dir: prompts
+
+config:
+  max_map_items: 900
+  max_concurrency: 8
+  timeout: 3600
+
+state:
+  scope: str
+  canary_path: str
+  json_path: str
+  md_path: str
+  run_id: str
+  corpus: dict
+  findings:
+    type: list
+    reducer: sorted_add
+  findings_failures: list
+  result: dict
+
+tools:
+  freeze_corpus:
+    type: python
+    path: tools.py
+    function: freeze_corpus
+  publish_map:
+    type: python
+    path: tools.py
+    function: publish_map
+
+nodes:
+  freeze:
+    type: python
+    tool: freeze_corpus
+    state_key: corpus
+    on_error: fail
+
+  classify:
+    type: map
+    over: "{state.corpus.partitions}"
+    as: partition
+    max_items: 900
+    min_success: 0
+    collect: findings
+    failures: findings_failures
+    node:
+      type: llm
+      prompt: classify_tests
+      temperature: 0.0
+      timeout: 180
+      on_error: skip
+      state_key: records_out
+      variables:
+        path: "{state.partition.path}"
+        nodeids: "{state.partition.nodeids}"
+        text: "{state.partition.text}"
+
+  publish:
+    type: python
+    tool: publish_map
+    state_key: result
+    on_error: fail
+
+edges:
+  - from: START
+    to: freeze
+  - from: freeze
+    to: classify
+  - from: classify
+    to: publish
+  - from: publish
+    to: END

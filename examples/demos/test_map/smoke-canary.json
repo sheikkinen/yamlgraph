@@ -1,0 +1,12 @@
+[
+  {
+    "nodeid": "tests/unit/test_expression_language.py::TestPathResolution::test_single_key",
+    "target": "core",
+    "test_type": "unit"
+  },
+  {
+    "nodeid": "tests/unit/test_commitlint_workflow.py::TestWorkflowTrigger::test_triggers_on_pull_request",
+    "target": "other",
+    "test_type": "unit"
+  }
+]

@@ -9,6 +9,8 @@ description: >
 modules:
   - examples/demos/test_map/graph.yaml
   - examples/demos/test_map/tools.py
+  - examples/demos/test_map/extract.py
+  - examples/demos/test_map/reconcile.py
   - tests/unit/test_fr1137_test_map.py
 requirements:
   - id: REQ-YG-723
@@ -28,5 +30,7 @@ requirements:
     modules:
       - examples/demos/test_map/graph.yaml
       - examples/demos/test_map/tools.py
+      - examples/demos/test_map/extract.py
+      - examples/demos/test_map/reconcile.py
       - tests/unit/test_fr1137_test_map.py
 fr: FR-1137

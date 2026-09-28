@@ -597,7 +597,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 292 | CAP-292 Census Map Memo With Caller-Supplied Versions | `examples/shared/map_memo.py`, `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/tools.py`, `examples/demos/person_profile_census/graph.yaml` | REQ-YG-709 |
 | 293 | CAP-293 FR Planned Operations Section | `feature-requests/TEMPLATE.md`, `ramp/assets/tier2/feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md`, `tests/unit/test_fr1129_planned_operations.py` | REQ-YG-716 |
 | 297 | CAP-297 FR knowledge graph retired | `tests/unit/test_fr1134_retirements.py` | REQ-YG-720 |
-| 300 | CAP-300 Test Corpus Map | `examples/demos/test_map/graph.yaml`, `examples/demos/test_map/tools.py`, `tests/unit/test_fr1137_test_map.py` | REQ-YG-723 |
+| 300 | CAP-300 Test Corpus Map | `examples/demos/test_map/graph.yaml`, `examples/demos/test_map/tools.py`, `examples/demos/test_map/extract.py`, `examples/demos/test_map/reconcile.py`, … | REQ-YG-723 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3452,7 +3452,7 @@ FR-1137: a corpus-map-reduce demo that maps every framework test function (tests
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-723 | The test-map demo freezes a clean committed test scope (per-file path, SHA-256, bytes) and enforces its file, byte, per-payload token and partition ceilings before any LLM call; extracts path-qualified nodeids, lines, inherited markers (req excluded) and reqs equal to req_coverage.extract_req_markers; partitions each file into payloads of whole test functions carrying the import block; maps one structured-output call per payload at the default provider/model and temperature 0; rejects the run on any missing, unknown, duplicate, wrong-partition, out-of-enum, malformed-description, map-error or canary defect by writing only a diagnostic report; and otherwise writes canonical JSON with full provenance and a Markdown rendering derived only from that JSON. | `examples/demos/test_map/graph.yaml`, `examples/demos/test_map/tools.py`, `tests/unit/test_fr1137_test_map.py` |
+| REQ-YG-723 | The test-map demo freezes a clean committed test scope (per-file path, SHA-256, bytes) and enforces its file, byte, per-payload token and partition ceilings before any LLM call; extracts path-qualified nodeids, lines, inherited markers (req excluded) and reqs equal to req_coverage.extract_req_markers; partitions each file into payloads of whole test functions carrying the import block; maps one structured-output call per payload at the default provider/model and temperature 0; rejects the run on any missing, unknown, duplicate, wrong-partition, out-of-enum, malformed-description, map-error or canary defect by writing only a diagnostic report; and otherwise writes canonical JSON with full provenance and a Markdown rendering derived only from that JSON. | `examples/demos/test_map/graph.yaml`, `examples/demos/test_map/tools.py`, `examples/demos/test_map/extract.py`, `examples/demos/test_map/reconcile.py`, `tests/unit/test_fr1137_test_map.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

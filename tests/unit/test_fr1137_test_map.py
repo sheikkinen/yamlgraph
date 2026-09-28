@@ -13,8 +13,8 @@ from pathlib import Path
 
 import pytest
 import yaml
-from examples.demos.test_map import tools
 
+from examples.demos.test_map import extract, reconcile, tools
 from scripts.req_coverage import extract_req_markers
 
 # References examples/ (process boundary, FR-756)
@@ -90,7 +90,7 @@ def _repo(tmp_path: Path, files: dict[str, str]) -> Path:
 
 
 def _freeze(root: Path, scope: str = "tests/unit") -> dict:
-    return tools.freeze_corpus({"root": str(root), "scope": scope})
+    return tools.freeze_corpus({"root": str(root), "scope": scope})["corpus"]
 
 
 def _good_findings(corpus: dict, target: str = "core", ttype: str = "unit") -> list:
@@ -109,8 +109,8 @@ def _good_findings(corpus: dict, target: str = "core", ttype: str = "unit") -> l
     return findings
 
 
-def _canary(tmp_path: Path, entries: list[dict]) -> str:
-    path = tmp_path / "canary.json"
+def _canary(tmp_path: Path, entries: list[dict], name: str = "canary.json") -> str:
+    path = tmp_path / name
     path.write_text(json.dumps(entries), encoding="utf-8")
     return str(path)
 
@@ -123,7 +123,7 @@ def _publish_state(tmp_path: Path, corpus: dict, findings: list, **extra) -> dic
         "findings_failures": [],
         "json_path": str(out / "test-map.json"),
         "md_path": str(out / "test-map.md"),
-        "canary_path": _canary(tmp_path, []),
+        "canary_path": _canary(tmp_path, [], "empty-canary.json"),
         "run_id": "run-fixture",
     }
     state.update(extra)
@@ -150,7 +150,7 @@ def small_repo(tmp_path: Path) -> Path:
 def test_extract_nodeids_lines_async_class_and_markers(tmp_path: Path) -> None:
     path = tmp_path / "test_alpha.py"
     path.write_text(MARKED_SOURCE, encoding="utf-8")
-    rows = tools.extract_tests(path, "tests/unit/test_alpha.py")
+    rows = extract.extract_tests(path, "tests/unit/test_alpha.py")
     by_id = {row.nodeid: row for row in rows}
     assert list(by_id) == [
         "tests/unit/test_alpha.py::test_plain",
@@ -175,7 +175,7 @@ def test_extract_nodeids_lines_async_class_and_markers(tmp_path: Path) -> None:
 def test_reqs_equal_imported_req_coverage_extractor(tmp_path: Path) -> None:
     path = tmp_path / "test_alpha.py"
     path.write_text(MARKED_SOURCE, encoding="utf-8")
-    rows = tools.extract_tests(path, "tests/unit/test_alpha.py")
+    rows = extract.extract_tests(path, "tests/unit/test_alpha.py")
     expected: dict[str, list[str]] = {}
     for req, keys in extract_req_markers(path).items():
         for key in keys:
@@ -236,8 +236,8 @@ def test_freeze_rejects_dirty_scope(small_repo: Path, dirt: str) -> None:
 def test_small_file_is_one_payload_with_imports_and_metadata(tmp_path: Path) -> None:
     path = tmp_path / "test_alpha.py"
     path.write_text(MARKED_SOURCE, encoding="utf-8")
-    rows = tools.extract_tests(path, "tests/unit/test_alpha.py")
-    payloads = tools.build_payloads(
+    rows = extract.extract_tests(path, "tests/unit/test_alpha.py")
+    payloads = extract.build_payloads(
         "tests/unit/test_alpha.py", MARKED_SOURCE, rows, 8000
     )
     assert len(payloads) == 1
@@ -256,8 +256,8 @@ def test_large_file_splits_only_between_whole_tests(tmp_path: Path) -> None:
     source = "import os\n" + "".join(_test_block(f"test_{i}", 40) for i in range(12))
     path = tmp_path / "test_big.py"
     path.write_text(source, encoding="utf-8")
-    rows = tools.extract_tests(path, "tests/unit/test_big.py")
-    payloads = tools.build_payloads("tests/unit/test_big.py", source, rows, 600)
+    rows = extract.extract_tests(path, "tests/unit/test_big.py")
+    payloads = extract.build_payloads("tests/unit/test_big.py", source, rows, 600)
     assert len(payloads) > 1
     assert [p.partition_id for p in payloads] == [
         f"tests/unit/test_big.py#{i}" for i in range(1, len(payloads) + 1)
@@ -271,7 +271,7 @@ def test_large_file_splits_only_between_whole_tests(tmp_path: Path) -> None:
             name = nodeid.rsplit("::", 1)[1]
             assert f"def {name}():" in payload.text
             assert "    value_39 = 39\n    assert True" in payload.text
-    again = tools.build_payloads("tests/unit/test_big.py", source, rows, 600)
+    again = extract.build_payloads("tests/unit/test_big.py", source, rows, 600)
     assert again == payloads
 
 
@@ -280,9 +280,9 @@ def test_single_test_over_token_budget_fails(tmp_path: Path) -> None:
     source = "import os\n" + _test_block("test_huge", 400)
     path = tmp_path / "test_huge.py"
     path.write_text(source, encoding="utf-8")
-    rows = tools.extract_tests(path, "tests/unit/test_huge.py")
+    rows = extract.extract_tests(path, "tests/unit/test_huge.py")
     with pytest.raises(ValueError, match="token"):
-        tools.build_payloads("tests/unit/test_huge.py", source, rows, 600)
+        extract.build_payloads("tests/unit/test_huge.py", source, rows, 600)
 
 
 @pytest.mark.req("REQ-YG-723")
@@ -365,9 +365,9 @@ def test_prompt_schema_enums_and_tie_break_match_tools() -> None:
         (DEMO / "prompts" / f"{sub['prompt']}.yaml").read_text(encoding="utf-8")
     )
     text = json.dumps(prompt)
-    for value in (*tools.TARGETS, *tools.TEST_TYPES):
+    for value in (*reconcile.TARGETS, *reconcile.TEST_TYPES):
         assert f'"{value}"' in text
-    assert " > ".join(tools.TIE_BREAK) in text
+    assert " > ".join(reconcile.TIE_BREAK) in text
     assert "canary" not in text.lower()
 
 
@@ -474,7 +474,7 @@ def test_bad_description_keeps_raw_text_in_diagnostics(
 def test_every_target_and_type_is_accepted(
     small_repo: Path, tmp_path: Path, target: str, ttype: str
 ) -> None:
-    assert (*tools.TARGETS,) == (
+    assert (*reconcile.TARGETS,) == (
         "core",
         "linter",
         "examples",
@@ -482,17 +482,24 @@ def test_every_target_and_type_is_accepted(
         "docs",
         "other",
     )
-    assert (*tools.TEST_TYPES,) == ("unit", "integration", "other")
+    assert (*reconcile.TEST_TYPES,) == ("unit", "integration", "other")
     corpus = _freeze(small_repo)
     result = tools.publish_map(
         _publish_state(tmp_path, corpus, _good_findings(corpus, target, ttype))
-    )
+    )["result"]
     assert result["rows"] == 4
 
 
 @pytest.mark.req("REQ-YG-723")
 def test_tie_break_order_is_frozen() -> None:
-    assert tools.TIE_BREAK == ("linter", "examples", "scripts", "docs", "core", "other")
+    assert reconcile.TIE_BREAK == (
+        "linter",
+        "examples",
+        "scripts",
+        "docs",
+        "core",
+        "other",
+    )
 
 
 @pytest.mark.req("REQ-YG-723")
@@ -507,7 +514,7 @@ def test_tie_break_order_is_frozen() -> None:
     ],
 )
 def test_one_sentence_validator_accepts(text: str) -> None:
-    assert tools.validate_description(text) is None
+    assert reconcile.validate_description(text) is None
 
 
 @pytest.mark.req("REQ-YG-723")
@@ -525,7 +532,7 @@ def test_one_sentence_validator_accepts(text: str) -> None:
     ],
 )
 def test_one_sentence_validator_rejects(text: str) -> None:
-    assert tools.validate_description(text) is not None
+    assert reconcile.validate_description(text) is not None
 
 
 # --- AC-08 markdown derived from JSON ----------------------------------------
@@ -544,7 +551,7 @@ def test_markdown_counts_and_nodeids_match_json(
     tools.publish_map(state)
     doc = json.loads(Path(state["json_path"]).read_text(encoding="utf-8"))
     markdown = Path(state["md_path"]).read_text(encoding="utf-8")
-    assert markdown == tools.render_markdown(doc)
+    assert markdown == reconcile.render_markdown(doc)
     for row in doc["rows"]:
         assert markdown.count(f"`{row['nodeid']}`") == 1
     counts: dict[tuple[str, str], int] = {}
@@ -596,14 +603,14 @@ def test_canary_miss_rejects_before_render(
 @pytest.mark.req("REQ-YG-723")
 def test_committed_canary_covers_every_target_and_unit_integration() -> None:
     entries = json.loads((DEMO / "canary.json").read_text(encoding="utf-8"))
-    assert {e["target"] for e in entries} == set(tools.TARGETS)
+    assert {e["target"] for e in entries} == set(reconcile.TARGETS)
     assert any(
         e["nodeid"].startswith("tests/unit/") and e["test_type"] == "integration"
         for e in entries
     )
     for entry in entries:
         rel = entry["nodeid"].split("::", 1)[0]
-        rows = tools.extract_tests(Path(rel), rel)
+        rows = extract.extract_tests(Path(rel), rel)
         assert entry["nodeid"] in {row.nodeid for row in rows}
 
 
@@ -624,7 +631,7 @@ def test_accepted_provenance_is_complete(small_repo: Path, tmp_path: Path) -> No
         ],
     )
     state = _publish_state(tmp_path, corpus, _good_findings(corpus), canary_path=canary)
-    result = tools.publish_map(state)
+    result = tools.publish_map(state)["result"]
     doc = json.loads(Path(state["json_path"]).read_text(encoding="utf-8"))
     prov = doc["provenance"]
     frozen = corpus["provenance"]
