@@ -2,10 +2,9 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged 2026-09-28 — APPROVED WITH REVISIONS
-([judgement](FR-1137-test-corpus-map.judgement.md)); R-1..R-6 and the Q4
-model/spend decision are not yet folded, and enforcement is gated on
-them (C-1)
+**Status:** In Progress — judged 2026-09-28 APPROVED WITH REVISIONS
+([judgement](FR-1137-test-corpus-map.judgement.md)); R-2..R-6 and Q4
+folded, R-1 overruled by the operator (see § Judgement fold)
 **Requested:** 2026-09-28
 **First consumer / first event:** the operator, at the next test-retirement
 or test-speed decision (live instance: FR-1134 retiring the FR knowledge
@@ -110,7 +109,7 @@ the rebase); the judge did not read this block.
 ```yaml
 probes:
   - "AST census of tests/unit + tests/integration at the pinned SHA — sets file, test, and partition counts and the max_map_items ceiling (judge counted 536 files / 6,890 top-level tests at edc1f173)"
-  - "read 10 raw test functions end-to-end before authority (R-1), 3+ with directory-vs-classification mismatch"
+  - "(struck: R-1 pre-authority raw read, overruled by the operator 2026-09-28)"
   - "import req_coverage.extract_req_markers from a demo tool — importable without sys.path hacks decides reuse vs blocker"
   - "largest test file token estimate vs per-payload ceiling — decides chunk split rule"
   - "census cost: payload count x per-payload tokens x Q4 model price, before any smaller alternative"
@@ -141,6 +140,63 @@ commands:
   - scripts/review.sh
 ```
 
+## Judgement fold (2026-09-28)
+
+| Revision | Disposition |
+|---|---|
+| R-1 pre-authority raw-input table | **Overruled by the operator** ("r-1 overruled. aint gonna happen. enforce"). No pre-authority table. The *post-run* raw-response read (revised AC-12) is a separate criterion and stays. |
+| R-2 topology + ceilings | Folded: § Frozen ceilings; stage 3 below. One payload = one file or one chunk of whole test functions of one file; one LLM call per payload; overflow fails in the freeze tool before any LLM call. |
+| Q4 model/spend | **(b) default resolution**, resolved by the agent from the original request ("analyze each test with default provider and model"); the operator did not answer Q4 separately. The map node pins no provider/model; `PROVIDER` env else `anthropic`, model from `DEFAULT_MODELS` (`{PROVIDER}_MODEL` env overrides). Quality and price follow the environment; this shell has `PROVIDER=inception` (mercury-2, ≈$1), a clean environment gets anthropic/claude-haiku-4-5 (≈$3–4). Temperature pinned to 0.0. Effective provider/model/temperature recorded in provenance. |
+| R-3 reject on any defect | Folded: stage 5–6. Any defect ⇒ no `test-map.*`; only `tmp/test-map/test-map-rejected.json`. Stale canonical files are deleted first. |
+| R-4 freeze + provenance | Folded: freeze rejects a dirty or untracked scope (`git status --porcelain --untracked-files=all -- <scope>`), then records path, SHA-256, bytes per file. `token_usage` is removed from the JSON; `--token-usage` output goes to `demo-output.log`. |
+| R-5 extraction/classification | Folded: § Extraction contract, § Description validator, tie-break order in the classification guidance. |
+| R-6 authoring/evidence | Folded: the authoring report is transient; committed proof is `examples/demos/test_map/proof.json`. |
+
+The revised AC-01..AC-15 below are the judgement's, with AC-01's R-1 clause
+removed by the overrule.
+
+### Frozen ceilings
+
+| Ceiling | Value | Enforced by |
+|---|---|---|
+| Source files | 700 | freeze tool, before any LLM call |
+| Source bytes (total) | 6,000,000 | freeze tool |
+| Estimated tokens per payload (chars / 4) | 8,000 | freeze tool; a single test over the budget fails, never truncates |
+| Partitions = LLM calls = `max_items` / `max_map_items` | 900 | freeze tool, and the map node's `max_items` |
+| Concurrency | 8 | graph `config.max_concurrency` |
+| Per-call timeout | 180 s | map sub-node `timeout` |
+| Wall-clock timeout | 3,600 s | graph `config.timeout` |
+
+At main 977bf6e7 the scope is 538 test files, 4.8 MB.
+
+### Extraction contract
+
+- Files: `git ls-files` under each scope directory matching `test_*.py`.
+- Tests: top-level `test*` functions (sync and async) and `test*` methods of
+  top-level `Test*` classes. Nodeid: `<path>::<name>` or
+  `<path>::<Class>::<name>`; parametrized tests appear once, unparametrized.
+  `line` is the `def` line.
+- `markers`: sorted unique `pytest.mark.<name>` names inherited from module
+  `pytestmark`, class decorators, class-body `pytestmark`, and function
+  decorators. **`req` is excluded** from `markers`; it is represented by
+  `reqs`.
+- `reqs`: exactly what `scripts/req_coverage.extract_req_markers` reports for
+  the test, loaded by path (no copy, no `sys.path` edit). Module-level
+  `pytestmark` req marks are therefore not in `reqs`, matching the existing
+  mapping.
+
+### Description validator
+
+Valid iff: after stripping, non-empty; no newline; ends with exactly one of
+`.` `!` `?`; and contains no earlier sentence break, where a sentence break
+is `.`/`!`/`?` followed by whitespace and more text, except after the
+abbreviations `e.g.`, `i.e.`, `etc.`, `vs.`, `cf.`. Dotted paths
+(`yamlgraph.linter`, `graph.yaml`) contain no whitespace after the dot and
+pass. The judgement's literal wording ("no earlier terminal punctuation
+followed by non-whitespace") would reject every dotted path, which its own
+abbreviation/path fixture requirement contradicts; this reading keeps the
+fixture requirement.
+
 ## Proposed Solution
 
 A new graph `examples/demos/test_map/graph.yaml`, authored through the sole
@@ -156,35 +212,39 @@ corpus-map-reduce stages.
    and methods: nodeid, line, decorators or markers, and `req` marks through
    the existing `req_coverage` extractor, imported rather than copied. Also
    capture the file's import block and each test's source.
-3. **Partition (tool).** One item per file. If a file goes over a token
-   budget (for example `test_graph_commands.py`, 1,442 lines), split it into
-   chunks of whole test functions, each carrying the file's import block.
-   Item count must stay within the map cap, so batch items if the partition
-   exceeds `max_items`.
+3. **Partition (tool).** One payload per file. If a file goes over the
+   per-payload token ceiling (for example `test_graph_commands.py`, 1,442
+   lines), split it greedily into chunks of whole test functions, each
+   carrying the file's import block and its collector-owned metadata
+   (`partition_id`, `path`, `nodeids`). Files with no tests produce no
+   payload. Any ceiling overflow raises before the first LLM call; there is
+   no rebatching.
 4. **Map (LLM, bounded).** Each prompt gets the file path, the imports, and
    the chunk's tests, and must return
    `records: list[{nodeid, description, target, test_type}]`. The inline
    schema uses enum-constrained `target` and `test_type`. No `provider:` or
-   `model:` is pinned, so the default resolution applies (`PROVIDER` env,
-   then `DEFAULT_MODELS`), with optional `--var provider/model` overrides in
-   the corpus_census style. `on_error` must be explicit.
+   `model:` is pinned (Q4 b); the default resolution applies (`PROVIDER`
+   env, then `DEFAULT_MODELS`); `{PROVIDER}_MODEL` env remains the override.
+   Temperature 0.0. `on_error: skip` so failures reach the reconciler on the
+   map's failures channel.
 5. **Reconcile (tool, no LLM).** Join LLM records to AST rows on `nodeid`.
-   Rules:
-   - A missing record becomes a fail-closed row
-     (`target: other, test_type: other, description: null, error: <reason>`).
-     The row is demoted, never dropped.
-   - An unknown or duplicate nodeid is a batch-fatal error.
-   - `description` must be one sentence: non-empty, and it must not contain
-     a sentence break followed by more text. A row that fails is demoted
-     with a reason and keeps the raw text.
-   - Final check: count of AST test functions == count of JSON rows.
-6. **Canary (tool).** A small fixed set of tests with known classification:
-   at least one each of core, linter, examples, scripts, and docs, plus one
-   known subprocess or integration test in `tests/unit/`. They live in a
-   fixture file in the demo directory. If any canary is misclassified the
-   run fails visibly, and the artifacts are written as `*.REJECTED.*`.
-7. **Render (tool, no LLM).** Write `test-map.json`:
-   `{provenance: {sha, provider, model, run_at, files, tests, failed_rows, token_usage}, rows: [...]}`.
+   Every one of these is a defect: map error; unusable or duplicate map
+   index; a partition with no result; a malformed record; unknown nodeid;
+   nodeid from another partition; duplicate nodeid; out-of-enum `target` or
+   `test_type`; invalid description; an AST nodeid with no record. Any
+   defect rejects the run: the reconciler deletes stale `test-map.*`, writes
+   only `test-map-rejected.json` (defects with raw text, raw findings,
+   counts), and raises.
+6. **Canary (tool).** `examples/demos/test_map/canary.json` lists real
+   corpus nodeids with expected `target` and `test_type`: at least one per
+   target value and one `tests/unit` integration case. Only the reconciler
+   reads it; it is never in model input. It runs after reconciliation and
+   before rendering; a mismatch or an absent canary nodeid rejects the run
+   as in stage 5.
+7. **Render (tool, no LLM).** Write `raw-responses.jsonl` (the map
+   results verbatim, with partition IDs), then `test-map.json`:
+   `{provenance: {run_id, commit_sha, scope, ceilings, files: [{path, sha256, bytes, tests}], corpus_hash, artifact_hash, provider, model, temperature, counts: {files, tests, partitions}, calls: {estimated, actual}, reconciliation: {rows, failed_rows: 0, defects: 0}, canary}, rows: [...]}`.
+   `artifact_hash` is the SHA-256 of the canonical rows serialization.
    Then render `test-map.md` from that JSON:
    - provenance head;
    - a `target × test_type` count table;
@@ -201,7 +261,11 @@ yamlgraph graph run examples/demos/test_map/graph.yaml \
 
 **Classification guidance (prompt, not code):**
 
-- `target` is decided by what the test *exercises*, not by where it sits:
+- `target` is the single **primary exercised surface** — what the test
+  exercises, not where it sits. When a test spans several surfaces, the
+  tie-break order is `linter` > `examples` > `scripts` > `docs` > `core` >
+  `other` (the most specific surface wins; `core` is what almost every test
+  imports):
   - `core`: `yamlgraph/` runtime, excluding the linter;
   - `linter`: `yamlgraph/linter` and `graph lint`;
   - `examples`: `examples/**` graphs, tools, and demos;
@@ -216,45 +280,70 @@ yamlgraph graph run examples/demos/test_map/graph.yaml \
 
 ## Acceptance Criteria
 
-- [ ] AC-01: The graph exists at `examples/demos/test_map/graph.yaml` with
-  prompts under `prompts/`. It was authored through `scripts/author.sh`, and
-  the draft authoring report is committed as evidence.
-  `yamlgraph graph lint` passes.
-- [ ] AC-02: Extraction reuses the `req_coverage` marker extractor
-  (import, not copy). A unit test proves that `reqs` for a fixture file
-  equals what `req_coverage` reports for it.
-- [ ] AC-03: The map prompt pins no provider or model. A unit test proves
-  that the effective provider and model recorded in provenance come from
-  default resolution when no vars are set.
-- [ ] AC-04: Reconciliation unit tests cover:
-  - missing record → demoted row with reason;
-  - unknown nodeid → batch-fatal;
-  - duplicate nodeid → batch-fatal;
-  - out-of-enum value → rejected by the schema, then demoted;
-  - multi-sentence description → demoted with raw text kept;
-  - AST count ≠ row count → fatal.
-- [ ] AC-05: Chunking unit test: a synthetic file over the token budget is
-  split only at test-function boundaries, every chunk carries the import
-  block, and the union of chunk nodeids equals the file's nodeids.
-- [ ] AC-06: Both artifacts are produced from one record set. A unit test
-  renders Markdown from a fixture JSON and checks that per-target counts in
-  the table equal counts in the JSON, and that every JSON nodeid appears in
-  the Markdown.
-- [ ] AC-07: The canary fixture exists, and a unit test proves that a
-  misclassified canary makes the run fail and write `*.REJECTED.*`.
-- [ ] AC-08: A real run over the full framework test scope at a pinned SHA
-  completes with `tests` in provenance equal to the AST count. A run log is
-  committed as `examples/demos/test_map/demo-output.log`, produced by this
-  graph (`proof_by_placement`).
-- [ ] AC-09: Raw read before aggregates (`read_raw_output_first`). Before
-  the count table is quoted anywhere, the FR records at least 10 raw rows,
-  each with one concrete observation. At least 3 must come from files whose
-  directory suggests a different target or type.
-- [ ] AC-10: New CAP and REQ allocated at enforce time, not reserved now
-  (FR-180). Every new test carries its `req` marker.
-  `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-11: A changelog fragment in `changelog/unreleased/`, a README in the
-  demo directory, and a diary entry with a **Seed:**.
+The judgement's revised criteria, verbatim except AC-01 (R-1 clause removed
+by the operator overrule).
+
+- [ ] AC-01: The committed FR records the resolved Q4 model/spend decision
+  plus all numeric ceilings from R-2.
+- [ ] AC-02: `examples/demos/test_map/graph.yaml` and its prompts are
+  authored through `scripts/author.sh`; `tmp/draft-authoring-report.md` is
+  present and substantive but uncommitted; graph lint and the narrow smoke
+  are recorded honestly.
+- [ ] AC-03: Freeze/extraction tests prove immutable-input handling,
+  per-file path/SHA-256/bytes, path-qualified nodeid, line, sync/async and
+  class test discovery, module/class/function marker inheritance, the
+  declared `req`-marker policy, and equality with imported
+  `req_coverage.extract_req_markers`.
+- [ ] AC-04: Partition tests prove splits occur only between whole test
+  functions, every payload carries the import block and collector-owned
+  partition metadata, every nodeid belongs to exactly one payload, ordering
+  is stable, and every configured source/byte/token/partition/call limit
+  rejects before the first LLM call.
+- [ ] AC-05: The map makes exactly one structured-output LLM call per
+  file/chunk payload at the frozen concurrency and timeout. The schema
+  requires `nodeid`, one-sentence `description`, enum-constrained `target`,
+  and enum-constrained `test_type`; effective provider/model/temperature
+  follow the recorded Q4 policy.
+- [ ] AC-06: Reconciliation tests cover missing, unknown, duplicate,
+  out-of-enum, malformed-description, wrong-partition, and map-error
+  results. Every case produces diagnostic evidence and rejects acceptance;
+  no failed row can appear in an accepted canonical map.
+- [ ] AC-07: Classification tests cover every target and type, a
+  multi-surface tie, a `tests/unit` subprocess/integration case, and the
+  exact sentence-validation boundary, including abbreviations or dotted
+  paths.
+- [ ] AC-08: Markdown is rendered only from the accepted canonical JSON.
+  Tests prove target-by-type counts equal JSON counts and every JSON nodeid
+  appears exactly once in Markdown.
+- [ ] AC-09: Withheld canary answers are never included in model input. A
+  canary test covers every target family plus a unit-directory integration
+  case; any mismatch rejects the run before `test-map.json` or
+  `test-map.md` is written.
+- [ ] AC-10: Accepted JSON provenance contains run ID, commit SHA, per-file
+  hashes/bytes, corpus and artifact hashes, effective
+  provider/model/temperature, source-file/test/partition counts, estimated
+  and actual calls, reconciliation totals, and `failed_rows: 0`. Tests
+  verify each field from deterministic inputs.
+- [ ] AC-11: One real full-scope run at a pinned SHA succeeds with AST count
+  == reconciled row count == unique nodeid count, every required invariant
+  true, zero failed rows, and actual calls equal primary partitions.
+  `demo-output.log` records the command, SHA, outcomes, and CLI
+  `--token-usage` totals; `proof.json` records compact provenance and
+  invariant results.
+- [ ] AC-12: Before any aggregate table is quoted, at least ten raw model
+  responses are read from `tmp/test-map/`; `proof.json` cites the
+  corresponding nodeids and records one concrete observation per response,
+  including at least three directory-versus-classification mismatches.
+- [ ] AC-13: The full generated map and raw responses remain under
+  `tmp/test-map/`; only `demo-output.log` and compact `proof.json` are
+  committed as run evidence.
+- [ ] AC-14: A new CAP and REQ are allocated at enforce time, every new test
+  carries that REQ marker, and `python scripts/req_coverage.py --strict`
+  passes.
+- [ ] AC-15: The demo README documents scope, taxonomy, Q4 model policy,
+  ceilings, rejection semantics, output locations, and the exact real-run
+  command. A changelog fragment and diary entry with a **Seed:** are
+  present.
 
 ## Alternatives Considered
 
@@ -275,6 +364,11 @@ The operator accepted all three recommendations ("proceed as recommended"):
 - **D2:** artifacts are written to `tmp/test-map/` only; the committed
   evidence is `demo-output.log` plus an allowlisted proof (Q2 a).
 - **D3:** the target enum stays at the six requested values (Q3).
+- **D4 (enforce time):** R-1 overruled — "r-1 overruled. aint gonna
+  happen. enforce".
+- **D5 (enforce time):** Q4 = (b) default provider/model resolution. The
+  operator did not answer Q4 separately; the agent resolved it from the
+  original request ("analyze each test with default provider and model").
 
 ## Questions for the human (resolved — see Operator decisions)
 
