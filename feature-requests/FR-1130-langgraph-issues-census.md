@@ -2,7 +2,9 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS
+([judgement](FR-1130-langgraph-issues-census.judgement.md), copilot backend,
+2026-09-28); R-1…R-6 folded 2026-09-28
 **Requested:** 2026-09-28
 **First consumer / first event:** the operator choosing the next framework FRs
 — the first event is reading the three disposition lists this census produces
@@ -12,12 +14,20 @@ and filing (or refusing) the candidate FRs they name.
 `aaa-gpt-5.4-mini`, personas: os-infra-primitivist, data-process-planner,
 yamlgraph-native-planner, subtractionist, librarian)
 **Requirement:** REQ-YG-717 (new), capability **CAP-294 GitHub issues census**
+**Prior art:** census family dispositioned in §5 (FR-892, FR-899, FR-936,
+FR-939, FR-940, FR-943, FR-957, FR-962, FR-983, FR-1032, FR-1058, FR-1086,
+FR-1116, FR-1120). Gate hits FR-802 (node-type usage census — counts
+YAMLGraph's own node types, not upstream issues), FR-893 (diary trap census —
+local diary corpus), FR-896 (cross-repo pattern census — sibling repos'
+code): same census shape, different corpus; nothing reused, none changed.
 
 ## Summary
 
 Add a gh-issues discover / versions / extract adapter trio to corpus_census,
 run a full census of every `langchain-ai/langgraph` issue and pull request
-(7,531 measured 2026-09-28), classify each into one closed pain category,
+(7,531 measured 2026-09-28), assign each to exactly one category of the
+frozen FR-1130 taxonomy (§2), report **item counts** (never unique-pain
+totals),
 cross-check the categories against upstream labels and open/closed state, and
 deliver three lists: pains YAMLGraph **solves**, **inherits**, and **leaves
 untouched** — every row a candidate FR or an explicit disposition.
@@ -48,7 +58,11 @@ Measured 2026-09-28:
 | `corpus_census/graph.yaml` | `max_items: 200` on both maps; overflow raises (FR-939) — 7,531 cannot run through it |
 | `corpus_adapters.py` | 384 lines — a new adapter family there breaches the 400-line target |
 
-### Raw read (12 items, end-to-end)
+### Raw read (11 items, end-to-end)
+
+Correction at judgement fold: the first draft said 12; the scratch record
+(`tmp/fr1130/raw10.txt`, `raw10b.txt`, plus #7000 fetched alone) holds 11
+readable records. The 11 become the committed fixture (R-1).
 
 - **#6534** (issue, open, `bug,pending,external`): a second `interrupt()` after
   `Command(goto=…)` resumes the wrong node; **#8200** (external PR, closed
@@ -69,20 +83,23 @@ Measured 2026-09-28:
 - **#7400** (PR, closed unmerged): promotional "Tardygrada" pitch; **#7000**
   (PR, closed unmerged): "feat: new logos" with empty body. Not pain reports.
 
-Surprises that shaped the plan: 7 of 12 readable items are not pain reports
-(docs, promo, logos, CLI plumbing); most PRs carry no label; the `external` /
+Surprises that shaped the plan: 6 of 11 readable items are not pain reports
+(3 docs, promo, logos, CLI plumbing); most PRs carry no label; the `external` /
 `missing-issue-link` labels are bot bookkeeping, not topic signals.
 
 ## Ideal Result
 
-One committed report lists, for every pain category upstream, its item count
-(issues vs PRs, open vs closed), the upstream labels that co-occur, three to
-five cited items per category that a reader can open, and a disposition —
+One committed report assigns every item of one frozen, complete upstream
+snapshot to exactly one category of the frozen FR-1130 taxonomy and lists,
+per category, its **item count** (issues vs PRs, open vs closed), the upstream
+labels that co-occur, between `min(3, N)` and `min(5, N)` deterministically
+cited items a reader can open, and an advisory disposition —
 **solves** (YAMLGraph's YAML layer removes the pain; cite the mechanism),
 **inherits** (YAMLGraph passes it through; a candidate FR or an explicit
 "accept"), **untouched** (outside YAMLGraph's surface; explicit disposition).
-Category counts sum to the discovered population; every cited number exists
-upstream. Re-running next month costs LLM spend only for items whose
+Category item counts sum to the snapshot population with zero final abstained
+or row-failed rows; every cited number exists upstream. Re-running next month
+re-lists the whole repository but spends LLM calls only on items whose
 `updated_at` changed.
 
 ## Planned Operations
@@ -124,77 +141,245 @@ commands:
   - python scripts/req_coverage.py --strict
 ```
 
+Revisions at judgement fold (2026-09-28; the block above is kept as written
+before `judge.sh` so planned-vs-actual stays comparable):
+
+```yaml
+superseded:
+  - "branch 'rate limit or transient failure on discover → … since=max(updated_at)' → replaced by R-2: every run re-lists the full repository; a failed listing aborts before model spend and leaves the prior snapshot intact"
+  - "branch 'row-failed or abstained share above 5 percent → read' → replaced by R-1: any final abstain/row_failed row blocks the crosstab; resolve and re-run those items"
+added:
+  probes:
+    - "read the judgement and fold R-1..R-6 (done)"
+    - "status/verdict of every cited prior-art FR for §5 (done)"
+    - "precedent: person_profile_census graph/tools memo glue and FR-1120 provider-free graph test"
+  commands:
+    - pytest tests/unit/test_fr1130_census_graph.py
+    - "pytest tests/unit/ for FR-940/943/1116/1120 suites"
+    - "yamlgraph graph run … --token-usage (smoke and full run)"
+    - "python -m … gh_issues_report verify examples/demos/langgraph_issues_census/results"
+    - "sqlite3 <memo store> DELETE for unresolved rows (only if needed)"
+```
+
 ## Proposed Solution
 
-### 1. Adapter module (new, RED/GREEN)
+### 1. Adapter modules (new, RED/GREEN) — R-2
 
-`examples/demos/corpus_census/adapters/gh_issues_adapters.py` with manifests
-`gh-issues-discover.tool.yaml`, `gh-issues-versions.tool.yaml`,
+Two modules under `examples/demos/corpus_census/adapters/` keep each below the
+400-line target: `gh_issues_adapters.py` (snapshot, discover, versions,
+extract) and `gh_issues_report.py` (memo glue, crosstab, manifest, verify).
+Manifests: `gh-issues-discover.tool.yaml`, `gh-issues-versions.tool.yaml`,
 `gh-issues-extract.tool.yaml`, `gh-issues-crosstab.tool.yaml`.
 
-- **Source grammar:** `<owner>/<repo>` or `<owner>/<repo>:<n>` — `n` selects
-  `n` items evenly spaced across the number-sorted population (deterministic
-  smoke sample spanning old and new items). Malformed source raises.
-- **`gh_issues_discover(state) -> list[str]`** — loads the on-disk cache
-  `tmp/gh-issues-cache/<owner>__<repo>.json` (records keyed by number, each
-  carrying `updated_at`), fetches
-  `gh api --paginate "repos/<o>/<r>/issues?state=all&per_page=100[&since=<max updated_at>]"`
-  with a `--jq` projection to one JSON object per line, merges by number
-  (newer `updated_at` wins), writes the cache atomically, returns refs
-  `<owner>/<repo>#<number>` sorted by number. Raises on non-zero `gh` exit,
-  a malformed line, a record missing `number`/`updated_at`, or an empty
-  population. Never logs-and-returns `[]` (the `daily_digest` `fetch_hn`
-  pattern swallows errors; not reused).
-- **`gh_issues_versions(state) -> dict[str, str]`** — `{ref: updated_at}` from
-  the cache, same selection as discover; the FR-1120 memo key.
-- **`gh_issues_extract(state) -> str`** — one ref → JSON bundle from the
-  cache: kind (`issue`/`pr`), merged (PRs), state, state_reason, labels,
-  title, body head (bounded chars), comments, reactions, created/closed dates.
-  No per-item API call. Raises when the ref is absent from the cache or the
-  record lacks `title`.
-- **`gh_issues_crosstab(state) -> dict`** — reads the reduced ledger JSONL and
-  the cache; writes a markdown crosstab: category × kind × open/closed, top
-  upstream labels per category, and up to 5 cited refs per category. Raises
-  if any ledger `item_ref` is absent from the cache, if any cited label is not
-  on the item, or if category counts do not sum to the ledger row count
-  (abstained and row-failed are counted as their own rows, never dropped).
+- **Source grammar** (parsed strictly, anything else raises):
+  `<owner>/<repo>` (whole snapshot), `<owner>/<repo>:<n>` (deterministic
+  spread sample), `<owner>/<repo>@<a>,<b>,…` (named numbers; every number must
+  exist in the snapshot, duplicates raise). Owner/repo match
+  `[A-Za-z0-9_.-]+`. Sample formula over the number-sorted population of size
+  `P`: `n = 1 → [0]`; `2 ≤ n ≤ P → [i·(P−1)//(n−1) for i in 0..n−1]`
+  (distinct because `n ≤ P`; `n = P` is the whole population); `n ≤ 0`,
+  non-integer `n`, or `n > P` raise.
+- **Snapshot (typed, replace-not-merge).** Every discover run executes one
+  fixed argument vector, `["gh", "api", "--paginate", "--jq", JQ,
+  "repos/<o>/<r>/issues?state=all&per_page=100"]`, via
+  `subprocess.run(check=False, capture_output=True, text=True, timeout=900)`.
+  Non-zero exit, timeout, a non-JSON line, a record failing the model,
+  a duplicate number, an empty population, or a population above
+  `MAX_POPULATION = 10_000` raises **before any model call** and leaves the
+  previous snapshot byte-identical. Only after every line validates is
+  `tmp/gh-issues-cache/<owner>__<repo>.json` atomically replaced (temp file +
+  `os.replace`). No `since=` merging: an item absent from the listing is
+  absent from the snapshot. Snapshot envelope (Pydantic `IssueSnapshot`):
+  `schema_version` (int constant `SCHEMA_VERSION = 1`), `repository`,
+  `query` (the endpoint string), `retrieved_at` (UTC `YYYY-MM-DDTHH:MM:SSZ`),
+  `count`, `sha256` (of the canonical JSON of `items`), `items` sorted by
+  number.
+- **Record model** (Pydantic `IssueRecord`, `extra="forbid"`), projected by JQ:
+  `number` int > 0; `kind` `issue|pr` (`pull_request` key present → `pr`);
+  `merged` bool for PRs (`pull_request.merged_at != null`), `null` for
+  issues; `state` `open|closed`; `state_reason` str or null; `title` non-empty
+  str; `body_head` = first 1,500 chars of `body` (null → `""`); `labels`
+  list of label names, at most 50 (more raises); `comments` int ≥ 0 (count
+  only, no comment text is fetched); `reactions` int ≥ 0
+  (`reactions.total_count`); `created_at`, `updated_at` non-empty UTC
+  timestamps; `closed_at` timestamp or null. A null or missing required field
+  raises. Never logs-and-returns `[]` (the `daily_digest` `fetch_hn` pattern
+  swallows errors; not reused).
+- **`gh_issues_discover(state) -> list[str]`** — refresh the snapshot, apply
+  the source selection, return refs `<owner>/<repo>#<number>` in number order.
+- **`gh_issues_versions(state) -> dict[str, str]`** — `{ref: updated_at}` for
+  exactly the selected refs, read from the snapshot this run wrote; the
+  FR-1120 memo key. Missing, extra, or empty versions raise.
+- **`gh_issues_extract(state) -> str`** — one ref → the record's JSON bundle
+  from the snapshot. No per-item API call. Raises when the ref is absent.
+- **Memo glue (`gh_issues_report.py`)** — `gh_issues_memo_prepare` (require
+  `memo_store`; `memo_inputs` = `rubric`, `labels`, `provider`, `model`;
+  `memo_query` = `source`), `gh_issues_pair` (join executed bundles and judge
+  outcomes by exact index cover, failures kept as `error` records — the
+  person_profile_census `pair_executed` contract), `gh_issues_findings`
+  (memo-merged records → the `items`-aligned `findings` list the unchanged
+  corpus_census `reduce_ledger` consumes; `error` records become `_error`
+  findings, i.e. FR-943 `row_failed` rows).
+- **`gh_issues_crosstab(state) -> dict`** — reads the reduced ledger JSONL, the
+  snapshot and the fixture canary. Refuses (raises, no artifact) when: any
+  ledger ref is absent from the snapshot; ledger rows ≠ selected refs or any
+  ref appears twice; any row is `abstain` or `row_failed`; the canary row's
+  category differs from its fixture expectation; category item counts do not
+  sum to the row count. Otherwise writes `crosstab.md` — category × kind ×
+  open/closed **item counts**, top upstream labels per category, and
+  citations: the `min(5, N)` lowest-numbered refs of the category, ascending
+  (deterministic; ≥ `min(3, N)` follows) with each cited item's labels — and
+  `manifest.json` (Pydantic `CensusManifest`): repository, snapshot
+  `retrieved_at`/`count`/`sha256`, provider, model, run id, sha256 of every
+  memo signature file and of the ledger/crosstab, row and category counts.
+  Model-call count, token totals (from `yamlgraph graph run --token-usage`)
+  and cost are appended to the manifest from the run log after the run.
+- **Verify (`python -m` entry of `gh_issues_report.py verify <results-dir>`)**
+  — for every cited ref, one `gh api repos/<o>/<r>/issues/<n>` call: the ref
+  resolves and every displayed label is on the item; plus the disposition
+  schema check (§4). Output recorded in the FR.
 
-### 2. Pain categories (closed label set)
+### 2. Frozen taxonomy (closed label set) — R-1
 
-Drafted from the 12 raw reads plus the upstream label list; every label has
-non-empty inclusion terms (`junk_drawer_cap` — there is no `other`; the
-model abstains instead, and abstentions are counted):
+17 categories drafted from the 11 raw reads plus the upstream label list.
+There is no `other` (`junk_drawer_cap`); `maintenance-non-pain` and
+`spam-invalid` have concrete inclusion terms. **Precedence:** apply rules top
+to bottom; the first whose inclusion matches and exclusion does not wins.
 
-`state-schema-reducers`, `streaming`, `checkpoint-persistence`,
-`interrupt-resume-hitl`, `subgraph-config-propagation`,
-`control-flow-routing` (conditional edges, Send, recursion limit, parallel
-branches), `prebuilt-agents-tools`, `model-provider-integration`,
-`functional-api`, `typing-api-ergonomics`, `async-concurrency-performance`,
-`error-handling-retry`, `observability-visualization`,
-`platform-server-cli-sdk`, `docs`, `maintenance-non-pain` (dependency bumps,
-CI, release, lint, internal refactor, test infrastructure), `spam-invalid`.
+| # | Category | Includes | Excludes |
+|---|---|---|---|
+| 1 | `spam-invalid` | promotion, off-topic pitches, empty-body or test submissions closed unmerged, bot noise | any real defect/feature/doc content |
+| 2 | `docs` | changes or requests touching only documentation, docstrings, examples prose, typos, README | code behaviour changes |
+| 3 | `maintenance-non-pain` | dependency bumps, CI, release, lint/format, internal refactor, test code and test fixtures (incl. checkpoint-backend test fixtures) | defects users hit at runtime |
+| 4 | `interrupt-resume-hitl` | `interrupt()`, `Command(resume/goto)` on resume, human-in-the-loop, breakpoints | checkpoint storage bugs not about resume |
+| 5 | `subgraph-config-propagation` | subgraphs, nested graphs, config/context/`RunnableConfig` propagation into children, subgraph state namespaces | interrupts inside subgraphs (→ 4) |
+| 6 | `checkpoint-persistence` | checkpointers (memory/sqlite/postgres/redis), store, thread history, time travel, serialization of saved state | test fixtures (→ 3) |
+| 7 | `streaming` | `stream`/`astream` modes, events, token streaming, stream output shape | |
+| 8 | `state-schema-reducers` | state schema, channels, reducers, `add_messages`, input/output schemas, state updates | typing-only requests (→ 17) |
+| 9 | `control-flow-routing` | edges, conditional edges, `Send`, recursion limit, parallel branches, graph compile/structure | |
+| 10 | `functional-api` | `@entrypoint`, `@task` | |
+| 11 | `prebuilt-agents-tools` | `create_react_agent`, `ToolNode`, `tools_condition`, supervisor/swarm prebuilts, tool calling through prebuilts — wins over provider when a prebuilt is named | |
+| 12 | `model-provider-integration` | a specific model/provider's message or feature handling with no prebuilt named | |
+| 13 | `platform-server-cli-sdk` | `langgraph` CLI, `langgraph.json`, docker/build, LangGraph Server/Platform, SDK clients, Studio | |
+| 14 | `observability-visualization` | tracing, callbacks, logging, graph drawing/mermaid | |
+| 15 | `error-handling-retry` | exceptions, error messages, retry policies, `GraphRecursionError` messaging | |
+| 16 | `async-concurrency-performance` | async execution, threading, concurrency, memory/CPU/latency | |
+| 17 | `typing-api-ergonomics` | type hints, generics, public API shape and naming, deprecations | |
 
-Passed as `--var labels=` (FR-940 closed-vocabulary normalization in
-`reduce_ledger`) with the definitions in `--var rubric=`. The smoke decides
-whether they stand.
+**Rubric text** (passed as `--var rubric=`) = this table + the precedence
+sentence + "abstain only when the item has no title and no body". Labels are
+passed as `--var labels=` (FR-940 closed-vocabulary normalization in the
+unchanged `reduce_ledger`); the generic corpus_census `judge_item` prompt
+carries the rubric — no new prompt.
 
-### 3. Sibling graph via author.sh
+**Fixture** `tests/fixtures/fr1130/raw_read.json`: the 11 raw-read records in
+the `IssueRecord` projection with expected category + one-line rationale:
 
-`examples/demos/langgraph_issues_census/graph.yaml`: corpus_census shape with
-`versions` slot, `map_memo_split`/`map_memo_merge` around extract and judge
-(person_profile_census precedent), `max_items` ≥ population with
-`on_overflow: error`, bounded `max_concurrency`, reuse of corpus_census
-`judge_item` and `reduce_ledger`, and a final `gh_issues_crosstab` node. The
-10-item smoke runs through the unchanged corpus_census graph (10 < 200).
+| Ref | Expected | Role |
+|---|---|---|
+| #6534 | `interrupt-resume-hitl` | smoke |
+| #8200 | `interrupt-resume-hitl` | smoke |
+| #9050 | `maintenance-non-pain` (test fixture) | smoke |
+| #5000 | `typing-api-ergonomics` | smoke |
+| #5300 | `prebuilt-agents-tools` (prebuilt named) | smoke |
+| #4500 | `platform-server-cli-sdk` | smoke |
+| #3900, #1500, #2000 | `docs` | smoke |
+| #7000 | `spam-invalid` (empty-body logos PR, unmerged) | smoke |
+| #7400 | `spam-invalid` (promotional pitch) | **withheld canary** |
 
-### 4. Deliverable
+The smoke source is `langchain-ai/langgraph@6534,8200,9050,5000,5300,4500,3900,1500,2000,7000`.
+A smoke row whose category disagrees with the fixture is a finding: either
+the rubric is revised in this FR (table + fixture updated **before** the paid
+full run) or the fixture expectation is corrected with a recorded rationale.
+The smoke never silently redefines scope.
+
+**Final completeness.** Provisional runs may contain `abstain` / `row_failed`
+rows; the accepted census contains zero of either. Resolution: read the rows;
+transient `row_failed` → delete those keys from the memo store
+(`sqlite3 <store> "DELETE FROM memo WHERE key IN (…)"`) and re-run, which
+re-judges only them; abstentions caused by a rubric gap → revise §2 and
+re-run (signature change re-spends; the 3× cost gate applies).
+
+### 3. Sibling graph via author.sh — R-4
+
+`examples/demos/langgraph_issues_census/graph.yaml`, authored through
+`scripts/author.sh`. State/tool contract:
+
+- **vars:** `source`, `rubric`, `labels`, `provider`, `model`, `output_path`
+  (ledger), `results_dir`, `fixture_path`, `memo_store` (required).
+- **nodes:** `memo_prepare` → `discover` (slot, gh-issues-discover) →
+  `versions` (slot, `args: state: "{state.memo_query}"`) → `memo_split`
+  (shared `map_memo_split`; `signature_files` = the sibling `graph.yaml`,
+  `corpus_census/prompts/judge_item.yaml`, `corpus_census/tools.py`,
+  `gh_issues_adapters.py`, `gh_issues_report.py`) → `extract_items` (map over
+  `memo.result.todo`, slot extract) → `judge_items` (map, corpus_census
+  `judge_item`, `provider`/`model` from state, `temperature: 0`,
+  `on_error: skip`) → `pair` → `memo_merge` (shared) → `findings` →
+  `reduce_ledger` (unchanged corpus_census) → `crosstab`.
+- **ceilings:** `max_items: 10000` on both maps (= `MAX_POPULATION`; overflow
+  raises per FR-939), `max_concurrency: 8`.
+- **invalidation:** memo key = ref, version = `updated_at`; signature =
+  `memo_inputs` (rubric, labels, provider, model) + signature-file hashes —
+  so a taxonomy/rubric, label, provider/model, prompt, extraction
+  `SCHEMA_VERSION` or census-code change re-runs every item; unchanged
+  inputs make zero extract/judge calls.
+
+The 10-row smoke runs through the unchanged corpus_census graph (10 < 200)
+with the gh-issues discover/extract slots.
+
+**Provider-free end-to-end witness** (`tests/unit/test_fr1130_census_graph.py`):
+the sibling graph over the fixture with `gh` and `execute_prompt` patched
+(FR-1120 test precedent) — discovery, sampling, extraction, memo split/merge,
+one simulated judge failure, recovery of only that item after deleting its
+memo key, reducer normalization, canary pass and canary-mismatch refusal,
+crosstab, and a second unchanged run with zero judge calls and byte-identical
+ledger/crosstab.
+
+### 4. Deliverable and dispositions — R-3, R-5
 
 `examples/demos/langgraph_issues_census/results/` (upstream data is public):
-ledger JSONL, crosstab markdown, and `dispositions.md` with the three lists.
-Dispositions are decided **after** the census by reading the cited rows per
-category — not frozen here. Each row names either a candidate FR (title + one
-sentence) or an explicit disposition (`accept`, `out of scope`, `already
-covered by FR-XXX`).
+`ledger.jsonl`, `ledger.md`, `crosstab.md`, `manifest.json`,
+`dispositions.md`, `verify.txt`.
+
+All totals are **item counts**. No unique-pain total is emitted and no
+heuristic issue/PR de-duplication is done. Prose that links an issue to its
+fix PR cites both refs and a relationship witness quoted from the snapshot
+(e.g. a `Fixes #n` span); the link never alters arithmetic.
+
+`dispositions.md` is an **advisory report for the operator**, not a roadmap
+decision: exactly three sections `## solves`, `## inherits`, `## untouched`;
+exactly one row per frozen category across them; columns `category | issues
+open/closed | PRs open/closed | citations | YAMLGraph evidence |
+recommendation`. Recommendation is exactly one of `candidate FR: <title> —
+<one-sentence objective>`, `accept`, `out of scope`, `already covered by
+FR-XXX`. Rules: a `solves` row cites a repository mechanism (file path); an
+`already covered` row names an existing FR file; an `inherits` row recommends
+a candidate FR or `accept`; an `untouched` row recommends `out of scope`.
+Filing candidate FRs, changing FR priorities/statuses, or implementing any
+discovered fix is outside FR-1130.
+
+### 5. Prior art — R-6
+
+| FR | Status | Reused contract | Distinction / change by FR-1130 |
+|---|---|---|---|
+| FR-892 | Completed | corpus_census injected discover/extract slots | reused; unchanged |
+| FR-899 | In Progress (enforced) | gh adapter pattern, azure census run | new gh-issues family in a new module; FR-899 adapters unchanged |
+| FR-936 | SPLIT, no implementation | — | successors FR-939/FR-957; nothing reused directly |
+| FR-939 | Implemented | map overflow raises | relied on for `max_items: 10000`; unchanged |
+| FR-940 | ENFORCED rev 2 (first judgement REJECTED) | closed-vocabulary normalization in `reduce_ledger` | **prerequisite**; unchanged |
+| FR-943 | ENFORCED rev 2 | `row_failed` containment | **prerequisite**; unchanged |
+| FR-957 | Judged, not enforced | — | not relied on; retries via memo re-run instead |
+| FR-962 | Approved with Revisions | person-profile census shape | precedent only; unchanged |
+| FR-983 | SPLIT | — | coverage gate not relied on; crosstab refuses on any unresolved row instead |
+| FR-1032 | Proposed | — | extract here is a snapshot read; not needed, untouched |
+| FR-1058 | Enforced | — | a topic the census counts (`subgraph-config-propagation`); untouched |
+| FR-1086 | Judged | `yamlgraph graph lint` | lint used as-is |
+| FR-1116 | Implemented | shared `map_memo_split`/`map_memo_merge` | **prerequisite**; unchanged |
+| FR-1120 | Implemented | caller-supplied versions memo, pair/merge contract | **prerequisite**; glue re-implemented for gh-issues, shared memo unchanged |
+
+If enforcement finds a prerequisite's shipped contract cannot carry the
+frozen graph without changing that shared surface, enforcement stops and the
+FR returns to planning (judgement C-7).
 
 ### Cost
 
@@ -213,25 +398,63 @@ measures real per-item tokens and re-costs before the full run.
 
 ## Acceptance Criteria
 
-- [ ] RED then GREEN commits for `gh_issues_adapters.py`: paging projection
-  parse, cache merge keyed on number + `updated_at` with `since=` on re-run,
-  evenly-spaced `:<n>` selection, versions map, extract bundle, and a raise
-  per failure class (gh exit ≠ 0, malformed line, missing field, empty
-  population, ref absent from cache, crosstab sum mismatch, crosstab unknown
-  ref). Tests tagged `@pytest.mark.req("REQ-YG-717")`.
-- [ ] `yamlgraph graph lint` clean for the sibling graph (authored via
-  `scripts/author.sh`, `tmp/draft-authoring-report.md` present).
-- [ ] 10-item smoke ledger committed to the FR with each row read against its
-  raw item; misclassifications recorded and resolved before the full run.
-- [ ] Full census ledger covers the discovered population: ledger rows ==
-  discovered refs; category counts (including abstain and row-failed) sum to
-  that total.
-- [ ] Every cited issue number resolves via `gh api` and every cited label is
-  on that item (scripted check, output recorded).
-- [ ] `dispositions.md` has three lists; every row is a candidate FR or an
-  explicit disposition.
-- [ ] CAP-294 / REQ-YG-717, changelog fragment, diary entry with **Seed:**.
-- [ ] Completion table below filled from witnesses, with Unplanned operations.
+Folded from the judgement's AC-01…AC-16 (the fixture holds 11 records, not
+12 — see Raw read correction).
+
+- [ ] AC-01: §2 holds the full rubric with inclusion, exclusion and
+  precedence; the committed fixture has 11 records with expected categories and
+  rationales, ten named smoke rows and one withheld canary (#7400).
+- [ ] AC-02: RED then GREEN commits prove strict source parsing and sample
+  indices for `n=1`, an interior `n`, `n=P`, and rejection of zero, malformed,
+  or over-population `n`; named `@` selection rejects unknown and duplicate
+  numbers.
+- [ ] AC-03: Discovery executes the one frozen argument vector, validates
+  every line as `IssueRecord`, and rejects command failure, timeout, malformed
+  JSON, invalid/missing fields, duplicate numbers, empty population and
+  over-ceiling population, with no model call on failure.
+- [ ] AC-04: A successful discovery atomically replaces the typed snapshot
+  (repository, query, retrieved_at, ordered items, count, schema version,
+  hash); a failed discovery leaves the prior snapshot byte-identical; an item
+  missing from the next listing is missing from the next snapshot.
+- [ ] AC-05: Versions returns exactly `{ref: updated_at}` for the selected
+  refs and rejects missing, extra, empty or invalid versions; extraction
+  returns the frozen bundle and rejects an absent ref without a per-item API
+  call.
+- [ ] AC-06: The sibling graph has `max_items: 10000`, `max_concurrency: 8`,
+  carries every §3 memo-signature input, is authored through
+  `scripts/author.sh`, and the substantive `tmp/draft-authoring-report.md`
+  records lint and smoke evidence.
+- [ ] AC-07: The provider-free end-to-end fixture run produces one ledger row
+  per ref, passes the canary, contains a simulated judge failure, re-runs only
+  that item, and reaches zero abstained and zero row-failed rows.
+- [ ] AC-08: An unchanged second run makes zero extract/judge calls and emits
+  byte-identical ledger/crosstab; changing rubric, labels, provider/model,
+  prompt, `SCHEMA_VERSION` or a signature file invalidates the memo entries.
+- [ ] AC-09: Final ledger rows == snapshot refs; each ref exactly once; each
+  row one frozen category; category item counts sum to the snapshot count; no
+  final `abstain` or `row_failed` row.
+- [ ] AC-10: Every non-empty category cites between `min(3, N)` and
+  `min(5, N)` distinct refs by the frozen lowest-number rule; each citation
+  belongs to its category and snapshot; `verify.txt` proves every ref resolves
+  via `gh api` and every displayed label is on its item.
+- [ ] AC-11: All totals are labeled item counts; any issue/fix-PR link in
+  prose cites both refs and a relationship witness and does not alter
+  arithmetic; no unique-pain total.
+- [ ] AC-12: `dispositions.md` has exactly one typed row per frozen category
+  in exactly three sections, each row satisfying the §4 rules (checked by
+  `verify`).
+- [ ] AC-13: `manifest.json` records provider/model, run id, corpus and
+  artifact hashes, item/model-call counts, token usage and measured cost; a
+  smoke estimate above 3× the first estimate has a recorded operator approval
+  before the full run.
+- [ ] AC-14: §5 prior-art table present; no excluded shared/core surface is
+  changed; FR-940, FR-943, FR-1116 and FR-1120 tests stay green.
+- [ ] AC-15: CAP-294 / REQ-YG-717 own the graph, adapter, result-contract and
+  test surfaces; every new test carries `@pytest.mark.req("REQ-YG-717")`;
+  `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-16: Changelog fragment, implementation status/decisions/deviations,
+  completed operation table with unplanned operations, authoring record,
+  committed result artifacts, and diary entry with **Seed:** are present.
 
 ## Alternatives Considered
 
