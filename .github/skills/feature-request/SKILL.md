@@ -11,7 +11,7 @@ Create, judge, and enforce feature requests. Sources: `feature-requests/TEMPLATE
 ## The Sermon: Plan → Judge → Enforce
 
 1. **Research** — Run `scripts/research.sh <problem-brief.md>` (FR-890 sole route): a closed problem brief fans out to five orthogonal personas; the accepted `tmp/draft-alternatives.md` is promoted to `feature-requests/FR-XXX.research.md`. Cheapest code is unwritten code.
-2. **Plan** — Write FR in `feature-requests/FR-XXX-name.md`. Define objectives, constraints, acceptance criteria, first consumer, and the `**Research:**` reference.
+2. **Plan** — Write FR in `feature-requests/FR-XXX-name.md`. Define objectives, constraints, acceptance criteria, first consumer, the `**Research:**` reference, and the `## Planned Operations` block (see [Planned Operations](#planned-operations-fr-1129)).
 3. **Judge** — Critically examine the FR. Resolve contradictions, eliminate ambiguity. If clear and minimal, freeze scope. An FR without a committed research reference receives no authority (FR-890, prospective).
 4. **Enforce** — Write failing test first. Make smallest sufficient change. Update FR with decisions.
 5. **Purge** — Remove invented interfaces, speculative flags. If not required and not tested, delete.
@@ -26,7 +26,6 @@ Create, judge, and enforce feature requests. Sources: `feature-requests/TEMPLATE
 **Priority:** LOW | MEDIUM | HIGH
 **Type:** Feature | Bug | Enhancement
 **Status:** Proposed
-**Effort:** X days
 **Requested:** YYYY-MM-DD
 **First consumer / first event:** who uses this first, at what moment
 **Research:** [FR-XXX.research.md](FR-XXX.research.md)
@@ -39,6 +38,12 @@ Who benefits and how (one sentence).
 
 ## Problem
 What problem does this solve?
+
+## Ideal Result
+The end state; the solution is the minimal path back from it.
+
+## Planned Operations
+One fenced YAML block: probes, branches, delegations, waits, commands.
 
 ## Proposed Solution
 How should it work? Include code examples.
@@ -54,6 +59,85 @@ What other approaches were considered?
 ## Related
 - Links to issues, PRs, files
 ```
+
+## Planned Operations (FR-1129)
+
+State the work, not its duration. `**Effort:**` was removed: across 92
+FRs its estimate correlated 0.09 with commit activity
+(`feature-requests/FR-1129-evidence.md`). Write one fenced YAML block
+with exactly these keys, each a non-empty list of strings:
+
+| Key | Content |
+|---|---|
+| `probes` | command or read, and what its answer decides |
+| `branches` | condition → consequence |
+| `delegations` | route, run count, item count (subagent, sibling session, census, sole-route adapter) |
+| `waits` | named wait states — never timed |
+| `commands` | audit-visible command strings a reader can grep later |
+
+Rules:
+
+- **No numeric duration** — no number followed by a millisecond-through-year
+  unit or its abbreviation. Counts ("10 raw issues", "1 run") and named
+  waits ("CI", "human merge decision") are the substance.
+- **Reference the standard pipeline, don't retype it** — list the
+  research/judge/review runs only as delegations with counts; spend the
+  lines on what is specific to this FR.
+- **Write it before the judge run** — the judge reads it; writing it
+  first is what surfaces blockers (a governed prompt, an API cap, a
+  census cost estimate due first).
+
+Sample (I1 — LangGraph issues census):
+
+<!-- fr1129-planned-operations-sample:begin -->
+```yaml
+probes:
+  - "grep corpus_census adapters for a gh-issues adapter — absent means RED/GREEN adapter work"
+  - "gh api search total_count vs the search cap of 1,000 results — over the cap means list endpoint or date slices"
+  - "read 10 raw issues end-to-end before drafting pain categories"
+  - "census cost: item count x per-item tokens x cheap-map price, before any smaller alternative"
+branches:
+  - "10-item smoke rows misclassified → back to plan, revise categories"
+  - "rate limit on discover → paged, cached discover keyed on updated_at"
+  - "brief prompt or schema is a governed prompts/*.yaml → author.sh route, never manual"
+delegations:
+  - "research.sh: 1 run"
+  - "judge.sh: 1 run, 2 if revisions are disputed"
+  - "author.sh: 1 run for the brief prompt and schema"
+  - "census: smoke on 10 items, then full population with map cache"
+  - "outsider.sh and review.sh: 1 run each"
+waits:
+  - "judge"
+  - "CI"
+  - "full census run"
+  - "human merge decision"
+commands:
+  - scripts/research.sh
+  - scripts/judge.sh
+  - scripts/author.sh
+  - yamlgraph graph lint
+  - yamlgraph graph run examples/demos/corpus_census/graph.yaml
+  - scripts/outsider.sh
+  - scripts/review.sh
+```
+<!-- fr1129-planned-operations-sample:end -->
+
+### Completion reconciliation
+
+At completion, the implementation status carries this table, filled by
+hand from witnesses:
+
+```markdown
+| Planned operation | Outcome (ran / did not run / changed) | Witness |
+|---|---|---|
+
+**Unplanned operations:** None
+```
+
+A witness is an audit-log match (`.github/hooks/logs/audit.jsonl`), a
+commit SHA, a CI run, or a named human decision; a row without one is not
+reconciled. List every operation that ran without being planned, or write
+`None`. Automated reconciliation is not part of this contract.
 
 ## Research Evidence (FR-890)
 

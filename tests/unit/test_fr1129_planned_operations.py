@@ -67,7 +67,8 @@ def test_ramp_mirror_is_byte_identical() -> None:
 @pytest.mark.req("REQ-YG-716")
 def test_skill_inline_template_drops_effort() -> None:
     text = SKILL.read_text(encoding="utf-8")
-    inline = text.split("## FR Template", 1)[1].split("\n## ", 1)[0]
+    after = text.split("## FR Template", 1)[1]
+    inline = after.split("```markdown\n", 1)[1].split("\n```", 1)[0]
     assert "**Effort:**" not in inline
     assert "## Planned Operations" in inline
 

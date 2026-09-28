@@ -2,14 +2,14 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Judged (APPROVED WITH REVISIONS, R-1..R-5 folded)
+**Status:** In Progress (judged APPROVED WITH REVISIONS, R-1..R-5 folded)
 **Requested:** 2026-09-28
 **First consumer / first event:** the sibling session that files the
 LangGraph-issues census FR (I1, 2026-09-28) writes its `## Planned
 Operations` section from the `feature-request` skill before its judge
 run; the operator later compares that section with what the session did.
 **Research:** [FR-1129.research.md](FR-1129.research.md)
-**Evidence:** [FR-1129.evidence.md](FR-1129.evidence.md)
+**Evidence:** [FR-1129-evidence.md](FR-1129-evidence.md)
 **Judgement:** [FR-1129-planning-skill.judgement.md](FR-1129-planning-skill.judgement.md)
 **Prior art:**
 [FR-746](FR-746-ideal-result-slot.md) — added the Ideal Result section;
@@ -51,7 +51,7 @@ completion.
 
 `feature-requests/TEMPLATE.md` forces `**Effort:** X days` on every FR;
 nothing in `scripts/`, `yamlgraph/`, `.github/hooks/` or `tests/` parses
-it. Committed measurement ([FR-1129.evidence.md](FR-1129.evidence.md) §1,
+it. Committed measurement ([FR-1129-evidence.md](FR-1129-evidence.md) §1,
 92 FRs numbered 900+): estimate vs. commit-activity correlation 0.09;
 active/estimate ratio median 0.24; 40 of 92 estimates are exactly
 "0.5 day". Wall-clock span is dominated by waits no estimate names.
@@ -157,7 +157,7 @@ commands:
 - [ ] AC-06: `tests/unit/test_fr1129_planned_operations.py` witnesses AC-01..AC-05 and the reconciliation schema, every test marked `REQ-YG-716`, committed RED before GREEN.
 - [ ] AC-07: `capabilities/CAP-293-fr-planned-operations.yaml` declares REQ-YG-716; `ARCHITECTURE.md` regenerated; `python scripts/req_coverage.py --strict` and capability validation pass.
 - [ ] AC-08: Every retrieval hit in the research record has a disposition above.
-- [ ] AC-09: Every quantitative claim in Problem is reproducible from [FR-1129.evidence.md](FR-1129.evidence.md).
+- [ ] AC-09: Every quantitative claim in Problem is reproducible from [FR-1129-evidence.md](FR-1129-evidence.md).
 - [ ] AC-10: Changelog fragment exists; diary entry with `**Seed:**`.
 - [ ] AC-11: Implementation status reconciles every planned operation with outcome and witness, and lists unplanned operations or `None`.
 - [ ] AC-12: Historical FR `Effort:` lines, the research `effort-risk` column, and every not-authorized surface in the judgement have no diff.
@@ -178,6 +178,37 @@ commands:
 - File slug stays `FR-1129-planning-skill.md` so the adjacent
   `.judgement.md` (FR-1022 round counting) keeps its pairing; the title
   carries the R-1 rename.
+- The RED test's inline-template extractor split at the first `## `
+  heading, which lies inside the fenced template; GREEN corrected it to
+  extract the fenced `markdown` block. Mutation probe after the fix
+  (Effort line + "2 days" injected into the skill) turned exactly the
+  two targeted tests red.
+
+## Implementation Status
+
+**Status:** In Progress — D-1..D-7, D-9 delivered; D-8 reconciliation
+below is completed after outsider and review run.
+
+| Planned operation | Outcome (ran / did not run / changed) | Witness |
+|---|---|---|
+| probe: code parsing `Effort:` | ran — none found | `FR-1129-evidence.md`; no diff outside template/skill |
+| probe: ramp `mirror_exact` | ran — mirror required | `test_ramp_installer.py` passes on GREEN commit |
+| probe: free CAP/REQ ids | ran — CAP-293 / REQ-YG-716 | RED commit `a7f674e5` |
+| branch: automated reconciler | ran — deferred by judgement R-2 | `FR-1129-planning-skill.judgement.md` |
+| branch: ID collision at push | pending | — |
+| research.sh: 1 run | ran (azure override) | commit `300197ef` (`FR-1129.research.md`) |
+| judge.sh: 1 run | ran — 1 run, no second | commit `ef28bbcd` (judgement) |
+| outsider.sh: 1 run | pending | — |
+| review.sh: 1 run | pending | — |
+| waits: judge / CI / human merge | judge done; CI, merge pending | — |
+
+**Unplanned operations:**
+- prior-art gate (FR-738) refused judgement + evidence files; fixed with pointer `**Prior art:**` lines (commit `ef28bbcd`)
+- `ruff format` rewrote the RED test; re-staged (commit `a7f674e5`)
+- capability validation required `fr:` in CAP-293 (commit `a7f674e5`)
+- PreToolUse guard refused pytest `| tail`; re-run via log file (audit log)
+- witness-test extractor fix (see Deviations)
+- `test_no_duplicate_fr_numbers` refused `FR-1129.evidence.md`; renamed to the accepted sibling slug `FR-1129-evidence.md` (GREEN commit)
 
 ## Related
 
