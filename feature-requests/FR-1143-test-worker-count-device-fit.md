@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Implemented (operator decision N = 4; not judged — see § Implementation Status)
 **Requested:** 2026-09-28
 **First consumer / first event:** the operator, at the first local commit
 after Phase 2 merges. The `pytest` pre-commit hook runs with the chosen worker
@@ -217,6 +217,111 @@ that the change delivered the measured number.
 | A-5 | Delegate the hook suite to the LAN host | Rejected: the hook must gate the local index before commit. Delegation fits full-suite and bench runs, not the per-commit gate. |
 | A-6 | Cut test memory per worker | Owned by FR-1131 Phase C. This FR passes on the heaviest-module list if the machine is memory-bound. |
 | A-7 | Change CI worker count | Owned by FR-1131 Phase A. CI is a different machine. |
+
+## Implementation Status (2026-09-28)
+
+**Operator-directed, no judge run.** Phase 1 ran on the operator's order
+without a judgement. The operator stopped it partway ("computer is unstable
+at 12 — no need to crash the system") and set N = 4: "let's trade some time
+for stability". That decision replaces § Decision rule, rejected
+alternative A-1, and mechanisms D-1/D-2. The hook entry and `CLAUDE.md` now
+state `-n 4` directly. M-2 at the winner, all of M-3, and the Phase 2
+re-measure did not run.
+
+Bench: detached worktree `tmp/bench-fr1143` at main 6e11be5f. Driver:
+`tmp/bench_fr1143.py` (uncommitted). It samples `ps` RSS over the pytest
+process tree once per tick and `memory_pressure` / `vm.swapusage` every
+fifth tick. Raw logs: `logs/bench-fr1143-*` (local).
+
+### M-1 fast loop (hook command, `-n <N>`)
+
+| Run | N | Wall s | CPU s | Peak tree RSS MB | Free % before → min | Load before (1-min) | Result |
+|---|---|---|---|---|---|---|---|
+| r1 | 12 | 175.1 | 866.0 | 2492 | 51 → 20 | 22.27 | 7481 passed |
+| r1 | 4 | 135.8 | 375.4 | 2029 | 45 → 34 | 31.26 | 7481 passed |
+| r1 | 8 | 103.8 | 551.4 | 2399 | 47 → 43 | 8.54 | 7481 passed |
+| r1 | 3 | 147.9 | 339.8 | 1642 | 62 → 46 | 9.26 | 7481 passed |
+| r1 | 6 | 106.1 | 449.1 | 1756 | 60 → 34 | 5.26 | 7481 passed |
+| r2 | 6 | 96.4 | 417.8 | 2046 | 57 → 49 | 7.58 | 7481 passed |
+| r2 | 3 | 154.8 | 341.3 | 1593 | 60 → 27 | 8.48 | 7481 passed |
+| r2 | 8 | 117.4 | 602.9 | 2369 | 58 → 30 | 6.59 | 7481 passed |
+| r2 | 4 | 123.2 | 373.2 | 1442 | 61 → 39 | 11.56 | 7481 passed |
+| r2 | 12 | 196.1 | 729.1 | 2768 | 56 → 12 | 7.50 | 7481 passed |
+
+Median wall: N=3 151 s, N=4 130 s, **N=6 101 s**, N=8 111 s,
+**N=12 186 s**. The current `-n auto` (12 here) is the slowest setting
+measured. It uses about twice the CPU of N=6 for less throughput, and it
+has the lowest free memory. Pass/fail counts are identical across all 10
+runs (AC-04).
+
+### Idle baseline and M-2
+
+| Run | Wall s | Swap Δ MB | Pageouts Δ | Min free % | Result |
+|---|---|---|---|---|---|
+| idle r1 (`sleep`, no tests) | 120.8 | +1039.8 | 5196 | 20 | — |
+| idle r2 | 120.3 | +338.0 | 2801 | 46 | — |
+| M-2 pair, N=12 ×2 concurrent | 580.8 | −1600.0 | 12828 | **3** | 3 failed, 7478 passed (each copy) |
+
+- **Rule 1 had no valid metric.** With no tests running, swap still grew
+  and pages still went out, driven by other apps and sessions. Swap and
+  pageout deltas cannot separate pytest from background noise on this
+  machine. Minimum free % was the signal that held up.
+- **M-2 at 12 failed the same 3 tests in both copies.** Two are in
+  `test_fr995_outsider_wrapper` (`test_input_mode_writes_placeholder_report_and_no_observation`,
+  `test_pr_comment_posts_the_enriched_report_byte_for_byte`): both suites
+  glob the global `TMPDIR` for `outsider-*`, which is a known isolation
+  race and not fixed here. The third is
+  `test_vscode_ledger::test_cli_smoke_exits_zero[args1]`: a
+  `subprocess.TimeoutExpired` on `scripts/vscode/ledger.py --tap` under
+  load. Each run took roughly 3× the solo time.
+
+### Raw read (AC-02)
+
+`bench-fr1143-m1-n12-r1.samples.log`, `free_pct` lines: the tree RSS was
+2142 MB at t=32, then **fell** to 545–893 MB at t=65–131 while
+`free_pct` fell to 24–33 and `nproc` rose to 33. The workers were being
+compressed or paged out while their test subprocesses spawned. The peak
+column cannot show that. The N=6 r2 run held 54–60% free throughout. At
+every N, one process reaches 0.9–1.25 GB near the end of the run
+(t≈128–146). It is visible in the `max_mb` column. Its command line was not
+captured: the capture was added after M-1, and the stopped runs did not
+reach that point. It is not identified.
+
+### Decision
+
+N = 4, set by the operator. Measured cost versus N=6: +29 s median fast
+loop (130 s vs 101 s), for about 15% less CPU and 2 fewer processes
+competing with the other sessions. The single machine-specific number is
+committed to shared config (A-1 overruled). Other machines get 4 workers
+too.
+
+### Acceptance
+
+- [x] AC-01 partial: M-1 and idle recorded. M-2 at the winner and M-3 not run (operator stop).
+- [x] AC-02: raw read above.
+- [ ] AC-03: superseded by the operator's decision.
+- [x] AC-04: identical counts across M-1.
+- [ ] AC-05: replaced. `-n 4` is literal in the hook entry and `CLAUDE.md`, and no `auto` resolution is involved.
+- [ ] AC-06: not run.
+- [x] AC-07: `CLAUDE.md` states the measured, dated M-1 N=4 range; `~20s on 12 cores` removed.
+- [ ] AC-08: n/a (no dependency).
+
+| Planned operation | Outcome | Witness |
+|---|---|---|
+| quiet check, loadavg/swap/vm_stat/ps sampling | ran | `logs/bench-fr1143-results.jsonl` |
+| M-1 matrix, 10 runs | ran | same |
+| M-2, 2 runs | 1 ran (N=12), 1 stopped | operator "stop" |
+| M-3, 2 runs | did not run | operator "stop" |
+| judge.sh | did not run | operator order to enforce |
+| Phase 2 re-measure | did not run | operator decision |
+
+**Unplanned operations:** 2 idle-baseline windows (needed to test rule 1);
+the first M-1 launch was killed a few seconds in and relaunched, and its
+logs were deleted. The commit hook failed on
+`test_fr293_pytest_xdist::test_precommit_uses_parallel_flag`, which pinned
+`-n auto`. Its assertion now pins `-n 4`: the contract changed by operator
+decision, and no exclusion was added. The commit-hook run at `-n 4` took
+140 s, with that 1 failure and 7480 passed.
 
 ## Related
 

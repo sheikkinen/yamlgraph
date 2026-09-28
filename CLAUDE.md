@@ -34,8 +34,8 @@ scan): see [reference/development-operations.md → Dependency Governance](refer
 
 ### Testing
 ```bash
-# Ultra-fast parallel tests (skip slow, ~20s on 12 cores)
-pytest tests/unit/ -q --no-cov -m "not slow" -n auto
+# Parallel fast loop, 4 workers (FR-1143: 123–136 s on the 6-core/8 GB iMac, 2026-09-28)
+pytest tests/unit/ -q --no-cov -m "not slow" -n 4
 
 # Run only slow tests
 pytest tests/unit/ -q --no-cov -m "slow"
