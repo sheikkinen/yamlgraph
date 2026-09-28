@@ -449,6 +449,29 @@ def test_any_defect_rejects_and_writes_only_diagnostics(
 
 
 @pytest.mark.req("REQ-YG-723")
+def test_runtime_map_failure_objects_still_write_the_rejection_report(
+    small_repo: Path, tmp_path: Path
+) -> None:
+    # The map runtime delivers MapFailure models, not dicts (full run 2026-09-28).
+    from yamlgraph.models.map_results import MapFailure
+
+    corpus = _freeze(small_repo)
+    findings, failures = _mutate("map_error", corpus, _good_findings(corpus))
+    state = _publish_state(
+        tmp_path,
+        corpus,
+        findings,
+        findings_failures=[MapFailure.model_validate(f) for f in failures],
+    )
+    with pytest.raises(RuntimeError, match="rejected"):
+        tools.publish_map(state)
+    out = Path(state["json_path"]).parent
+    report = json.loads((out / "test-map-rejected.json").read_text(encoding="utf-8"))
+    assert report["failures"][0]["message"] == "provider timeout"
+    assert "map_error" in {d["kind"] for d in report["defects"]}
+
+
+@pytest.mark.req("REQ-YG-723")
 def test_bad_description_keeps_raw_text_in_diagnostics(
     small_repo: Path, tmp_path: Path
 ) -> None:
