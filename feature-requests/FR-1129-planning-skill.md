@@ -114,7 +114,10 @@ status:
 ```
 
 A witness is an audit-log match, a commit SHA, a CI run, or a named human
-decision; a row without one is not reconciled. FR-1129 delivers this
+decision; a row without one is not reconciled. Reconciliation cutoff:
+plan and table end at enforcement completion; push CI, outsider, review
+and merge happen after the head that would record them and are recorded
+by the PR, never planned in the FR. FR-1129 delivers this
 manual record only — an automated audit-log reconciler is not authorized
 and must re-enter the pipeline as its own FR after session-to-FR mapping
 is designed.
@@ -134,17 +137,11 @@ branches:
 delegations:
   - "research.sh: 1 run (done, azure override; anthropic 401)"
   - "judge.sh: 1 run (done), second only if folding is disputed"
-  - "outsider.sh: 1 run"
-  - "review.sh: 1 run"
 waits:
   - "judge"
-  - "CI"
-  - "human merge decision"
 commands:
   - scripts/research.sh
   - scripts/judge.sh
-  - scripts/outsider.sh
-  - scripts/review.sh
 ```
 
 ## Acceptance Criteria
@@ -183,6 +180,13 @@ commands:
   extract the fenced `markdown` block. Mutation probe after the fix
   (Effort line + "2 days" injected into the skill) turned exactly the
   two targeted tests red.
+- Review round 2 (post-judgement): the contract as judged required
+  reconciling review and merge from committed witnesses, which cannot
+  exist at the reviewed head. Added a reconciliation cutoff at
+  enforcement completion; outsider, review, push CI and merge were removed
+  from this FR's plan and from the skill sample, and CAP-293 now owns the
+  witness test (judgement R-5(2)). Outsider, review and merge outcomes are
+  on PR #739.
 
 ## Implementation Status
 
@@ -198,11 +202,7 @@ decision.
 | branch: ID collision at push | did not run — no collision | audit-log match: pre-push `git grep ... origin/main -- capabilities/` returned no CAP-293+/REQ-YG-716+; branch push of `03a0c354` |
 | research.sh: 1 run | ran (azure override) | commit `300197ef` (`FR-1129.research.md`) |
 | judge.sh: 1 run | ran — 1 run, no second | commit `ef28bbcd` (judgement) |
-| outsider.sh: 1 run | ran — derived NO, 6 unknown terms | report head `03a0c354`, input `e222cf82`; PR #739 body glossed in response (human-visible) |
-| review.sh: 1 run | changed — 2 runs | run 1 at `03a0c354`: Not approved, D-8 pending rows (session `3d11b9a6`); run 2 at the head carrying this table |
 | waits: judge | ran | commit `ef28bbcd` |
-| waits: CI | ran | PR #739 checks at `03a0c354` (runs `36387025230`, `36387180980`); re-run on this head |
-| waits: human merge decision | outside this record | the merge commit on `main` is its own witness; no commit can witness its own merge |
 
 **Unplanned operations:**
 - prior-art gate (FR-738) refused judgement + evidence files; fixed with pointer `**Prior art:**` lines (commit `ef28bbcd`)
@@ -212,7 +212,7 @@ decision.
 - witness-test extractor fix (see Deviations)
 - `test_no_duplicate_fr_numbers` refused `FR-1129.evidence.md`; renamed to the accepted sibling slug `FR-1129-evidence.md` (GREEN commit `03a0c354`)
 - PR body glossary edit after the outsider report (PR #739 edit history)
-- second review run after completing this table
+- review round 1 refused pending D-8 rows (commit `48252248` filled them); review round 2 refused the self-referential review/merge rows and CAP-293's missing test ownership — fixed by the reconciliation cutoff (RED `d9a61ba4`, GREEN next commit)
 
 ## Related
 

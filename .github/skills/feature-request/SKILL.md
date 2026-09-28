@@ -105,20 +105,15 @@ delegations:
   - "judge.sh: 1 run, 2 if revisions are disputed"
   - "author.sh: 1 run for the brief prompt and schema"
   - "census: smoke on 10 items, then full population with map cache"
-  - "outsider.sh and review.sh: 1 run each"
 waits:
   - "judge"
-  - "CI"
   - "full census run"
-  - "human merge decision"
 commands:
   - scripts/research.sh
   - scripts/judge.sh
   - scripts/author.sh
   - yamlgraph graph lint
   - yamlgraph graph run examples/demos/corpus_census/graph.yaml
-  - scripts/outsider.sh
-  - scripts/review.sh
 ```
 <!-- fr1129-planned-operations-sample:end -->
 
@@ -138,6 +133,13 @@ A witness is an audit-log match (`.github/hooks/logs/audit.jsonl`), a
 commit SHA, a CI run, or a named human decision; a row without one is not
 reconciled. List every operation that ran without being planned, or write
 `None`. Automated reconciliation is not part of this contract.
+
+**Reconciliation cutoff:** the plan and its table end at enforcement
+completion, i.e. the last implementation commit plus its local
+verification. Post-cutoff operations (push CI, outsider read, review, the
+human merge decision) happen after the head they would be recorded in, so
+no committed row can witness them. They are not planned here; the PR
+records them. Outcomes are only `ran`, `did not run`, or `changed`.
 
 ## Research Evidence (FR-890)
 
