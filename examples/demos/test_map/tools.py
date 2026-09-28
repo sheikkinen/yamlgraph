@@ -18,6 +18,7 @@ from types import ModuleType
 from typing import Any
 
 from yamlgraph.config import DEFAULT_MODELS
+from yamlgraph.models.map_results import MapFailure
 from yamlgraph.utils.schema_walk import resolve_static_provider
 
 DEMO_DIR = Path(__file__).resolve().parent
@@ -163,7 +164,10 @@ def publish_map(state: dict[str, Any] | None = None, **kwargs: Any) -> dict:
     state = state if isinstance(state, dict) else kwargs
     corpus = state["corpus"]
     findings = list(state.get("findings") or [])
-    failures = list(state.get("findings_failures") or [])
+    failures = [
+        MapFailure.model_validate(f).model_dump()
+        for f in state.get("findings_failures") or []
+    ]
     json_path = Path(state.get("json_path") or DEFAULT_JSON)
     md_path = Path(state.get("md_path") or DEFAULT_MD)
     rejected = json_path.parent / REJECTED_NAME
