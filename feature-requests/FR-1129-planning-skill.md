@@ -213,7 +213,7 @@ decision.
 - `test_no_duplicate_fr_numbers` refused `FR-1129.evidence.md`; renamed to the accepted sibling slug `FR-1129-evidence.md` (GREEN commit `03a0c354`)
 - PR body glossary edit after the outsider report (PR #739 edit history)
 - review round 1 refused pending D-8 rows (commit `48252248` filled them); review round 2 refused the self-referential review/merge rows and CAP-293's missing test ownership — fixed by the reconciliation cutoff (RED `d9a61ba4`, GREEN `30eb37a2`)
-- review round 3 refused CI/merge wait examples in the skill rules and an unsupported parser-probe witness — cutoff extended to push CI and wait examples (RED `ea76ecdd`, GREEN next commit), probe recorded as evidence §3
+- review round 3 refused CI/merge wait examples in the skill rules and an unsupported parser-probe witness — cutoff extended to push CI and wait examples (RED `ea76ecdd`, GREEN `424eba96`), probe recorded as evidence §3
 
 ## Related
 
