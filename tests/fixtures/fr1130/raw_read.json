@@ -1,0 +1,246 @@
+{
+  "repository": "langchain-ai/langgraph",
+  "fetched": "2026-09-28",
+  "records": [
+    {
+      "body_head": "",
+      "closed_at": "2024-08-28T18:54:44Z",
+      "comments": 0,
+      "created_at": "2024-08-27T19:02:26Z",
+      "kind": "pr",
+      "labels": [],
+      "merged": true,
+      "number": 1500,
+      "reactions": 0,
+      "state": "closed",
+      "state_reason": null,
+      "title": "[docs]: update node config info",
+      "updated_at": "2024-08-28T18:54:46Z"
+    },
+    {
+      "body_head": "",
+      "closed_at": "2024-10-04T20:58:22Z",
+      "comments": 0,
+      "created_at": "2024-10-03T20:09:09Z",
+      "kind": "pr",
+      "labels": [],
+      "merged": true,
+      "number": 2000,
+      "reactions": 0,
+      "state": "closed",
+      "state_reason": null,
+      "title": "docs: clean up memory docs",
+      "updated_at": "2024-10-04T20:58:24Z"
+    },
+    {
+      "body_head": "- Adds missing word 'in'\r\n- Sentence should read -> \"The core technique **in** the examples below is\"",
+      "closed_at": "2025-03-18T21:56:33Z",
+      "comments": 1,
+      "created_at": "2025-03-18T16:37:27Z",
+      "kind": "pr",
+      "labels": [],
+      "merged": true,
+      "number": 3900,
+      "reactions": 0,
+      "state": "closed",
+      "state_reason": null,
+      "title": "docs: add missing word 'in' in the docs related to passing runtime args to tools",
+      "updated_at": "2025-03-18T21:56:33Z"
+    },
+    {
+      "body_head": "build & dockerfile commands\r\n\r\ncan be specified via CLI  > langgraph.json",
+      "closed_at": "2025-05-01T23:13:49Z",
+      "comments": 1,
+      "created_at": "2025-05-01T22:55:41Z",
+      "kind": "pr",
+      "labels": [],
+      "merged": true,
+      "number": 4500,
+      "reactions": 0,
+      "state": "closed",
+      "state_reason": null,
+      "title": "Add support for specifying a custom base image in docker commands",
+      "updated_at": "2025-05-01T23:13:50Z"
+    },
+    {
+      "body_head": "Graphs should be generic on:\n* `StateT`\n* `InputT`\n* `OutputT`\n* `ContextT`\n\nWe should thus be able to:\n* Check that node signatures are correct (accept `state: StateT` and `runtime: ContextT`)\n* Check the input to `invoke/stream` takes the right type (either `StateT` or `InputT`, depending on if `InputT` is specified\n* Type the output types more properly",
+      "closed_at": null,
+      "comments": 3,
+      "created_at": "2025-06-09T14:13:54Z",
+      "kind": "issue",
+      "labels": [
+        "type checking",
+        "internal"
+      ],
+      "merged": null,
+      "number": 5000,
+      "reactions": 0,
+      "state": "open",
+      "state_reason": null,
+      "title": "Make `StateGraph` and `CompiledStateGraph` more type safe",
+      "updated_at": "2026-03-24T04:35:16Z"
+    },
+    {
+      "body_head": "",
+      "closed_at": "2025-07-02T20:50:06Z",
+      "comments": 1,
+      "created_at": "2025-07-01T22:37:42Z",
+      "kind": "issue",
+      "labels": [
+        "question"
+      ],
+      "merged": null,
+      "number": 5300,
+      "reactions": 0,
+      "state": "closed",
+      "state_reason": "completed",
+      "title": "How does `create_react_agent` work with Gemini 2.5 `include_thoughts`?",
+      "updated_at": "2025-07-02T20:50:10Z"
+    },
+    {
+      "body_head": "### Checked other resources\n\n- [x] This is a bug, not a usage question. For questions, please use the LangChain Forum (https://forum.langchain.com/).\n- [x] I added a clear and detailed title that summarizes the issue.\n- [x] I read what a minimal reproducible example is (https://stackoverflow.com/help/minimal-reproducible-example).\n- [x] I included a self-contained, minimal example that demonstrates the issue INCLUDING all the relevant imports. The code run AS IS to reproduce the issue.\n\n### Example Code\n\n```python\nfrom pprint import pprint\n\nfrom langchain_core.language_models import FakeListChatModel\nfrom langgraph.checkpoint.memory import InMemorySaver\nfrom langgraph.graph import StateGraph, MessagesState, START, END\nfrom langgraph.types import interrupt, Command\n\n\nclass State(MessagesState):\n    interrupt: int\n    chat: int\n\n\ndef payment_interrupt_node(state: State):\n    message_list = []\n    fake_message = FakeListChatModel(responses=[\"Order creation successful!\"]).invoke(\"\")\n    message_list.append(fake_message)\n\n    payload = interrupt(\"Payment Link...\")\n\n    data = payload.get(\"data\")  # payment data\n    message = payload.get(\"message\")  # human message\n\n    if data:\n        message_list.append({\"role\": \"ai\", \"content\": data})\n        return Command(\n            goto=\"delivery\",\n            update={\n                \"interrupt\": state.get(\"interrupt\", 0) + 1,\n                \"messages\": message_list\n            }\n        )\n\n    if message:\n        message_list.append({\"r",
+      "closed_at": null,
+      "comments": 6,
+      "created_at": "2025-12-04T07:07:43Z",
+      "kind": "issue",
+      "labels": [
+        "bug",
+        "pending",
+        "external"
+      ],
+      "merged": null,
+      "number": 6534,
+      "reactions": 0,
+      "state": "open",
+      "state_reason": null,
+      "title": "If an interrupt already exists, use the command to trigger a jump and then trigger another interrupt.",
+      "updated_at": "2026-06-27T02:54:01Z"
+    },
+    {
+      "body_head": "",
+      "closed_at": "2026-03-03T17:39:44Z",
+      "comments": 0,
+      "created_at": "2026-03-02T15:54:09Z",
+      "kind": "pr",
+      "labels": [],
+      "merged": false,
+      "number": 7000,
+      "reactions": 0,
+      "state": "closed",
+      "state_reason": null,
+      "title": "feat: new logos",
+      "updated_at": "2026-03-03T17:39:44Z"
+    },
+    {
+      "body_head": "## Your state graph in Tardygrada\n\n[Tardygrada](https://github.com/fabio-rovai/tardygrada) is a formally verified agent programming language. 194KB binary. Zero dependencies. Pure C11.\n\n`tardy terraform` analyzed your repo and generated `langgraph.tardy`:\n\n- **19 graph nodes** mapped to verified agents\n- **12 tools** mapped to exec() shell pipelines\n- **State graph** mapped to coordinate/consensus\n\n| | LangGraph | Tardygrada |\n|---|---|---|\n| Size | 101,662 lines, 450 files | 39 instructions, 1 file |\n| Dependencies | LangGraph + LangChain + 30 pkgs | Zero |\n| Verification | None | 8-layer pipeline + BFT consensus |\n| Provenance | None | ed25519 + SHA-256 on every value |\n\nGenerated with: `tardy terraform /path/to/langgraph`\n\nhttps://github.com/fabio-rovai/tardygrada",
+      "closed_at": "2026-04-03T13:51:55Z",
+      "comments": 1,
+      "created_at": "2026-04-03T13:51:35Z",
+      "kind": "pr",
+      "labels": [
+        "external",
+        "missing-issue-link"
+      ],
+      "merged": false,
+      "number": 7400,
+      "reactions": 0,
+      "state": "closed",
+      "state_reason": null,
+      "title": "Your 101,662 lines in 39 verified instructions (Tardygrada)",
+      "updated_at": "2026-04-03T13:51:55Z"
+    },
+    {
+      "body_head": "Fixes #6534. Binds resume to goto target when another interrupt is pending, adds fail-closed behavior for stale targets, and expands regression tests.",
+      "closed_at": "2026-06-26T04:36:56Z",
+      "comments": 2,
+      "created_at": "2026-06-26T04:36:36Z",
+      "kind": "pr",
+      "labels": [
+        "external",
+        "missing-issue-link"
+      ],
+      "merged": false,
+      "number": 8200,
+      "reactions": 0,
+      "state": "closed",
+      "state_reason": null,
+      "title": "fix(langgraph): bind Command goto+resume to target interrupted node",
+      "updated_at": "2026-06-26T04:37:42Z"
+    },
+    {
+      "body_head": "### Checked other resources\n\n- [x] This is a bug, not a usage question.\n- [x] I added a clear and descriptive title that summarizes this issue.\n- [x] I used the GitHub search to find a similar question and didn't find it.\n- [x] I am sure that this is a bug in LangGraph rather than my code.\n- [x] The bug is not resolved by updating to the latest stable version of LangGraph (or the specific integration package).\n- [x] This is not related to the langchain-community package.\n- [x] I posted a self-contained, minimal, reproducible example. A maintainer can copy it and run it AS IS.\n\n### Related Issues / PRs\n\n_No response_\n\n### Reproduction Steps / Example Code (Python)\n\n```python\n# The issue can be reproduced directly by running the existing test suite \n# against a custom/remote Redis host (e.g., in a LAN or custom container setup)\n# without running a local Redis instance on localhost:6379.\n\n# Step 1: Set up a remote/LAN Redis instance (e.g., at 192.168.1.142:6379).\n# Step 2: Attempt to target the remote Redis instance via standard environment variables:\n# $env:REDIS_HOST=\"192.168.1.142\"\n\n# Step 3: Run the test suite in libs/checkpoint:\n# pytest tests/test_redis_cache.py\n\n# Behavior:\n# The tests in tests/test_redis_cache.py hardcode host=\"localhost\" in the setup fixture:\n#\n# class TestRedisCache:\n#     @pytest.fixture(autouse=True)\n#     def setup(self) -> None:\n#         self.client = redis.Redis(\n#             host=\"localhost\", port=6379, db=0, decode_responses=False\n#         )\n",
+      "closed_at": null,
+      "comments": 4,
+      "created_at": "2026-09-22T12:48:08Z",
+      "kind": "issue",
+      "labels": [
+        "bug",
+        "external"
+      ],
+      "merged": null,
+      "number": 9050,
+      "reactions": 0,
+      "state": "open",
+      "state_reason": null,
+      "title": "[checkpoint] Test suite hardcodes localhost for Redis, blocking remote/custom test setups",
+      "updated_at": "2026-09-23T15:31:38Z"
+    }
+  ],
+  "expected": {
+    "langchain-ai/langgraph#1500": {
+      "category": "docs",
+      "rationale": "docs update of node config info",
+      "role": "smoke"
+    },
+    "langchain-ai/langgraph#2000": {
+      "category": "docs",
+      "rationale": "docs cleanup of memory docs",
+      "role": "smoke"
+    },
+    "langchain-ai/langgraph#3900": {
+      "category": "docs",
+      "rationale": "one-word docs fix",
+      "role": "smoke"
+    },
+    "langchain-ai/langgraph#4500": {
+      "category": "platform-server-cli-sdk",
+      "rationale": "custom base image for langgraph CLI docker commands",
+      "role": "smoke"
+    },
+    "langchain-ai/langgraph#5000": {
+      "category": "typing-api-ergonomics",
+      "rationale": "make StateGraph generic: type-safety request",
+      "role": "smoke"
+    },
+    "langchain-ai/langgraph#5300": {
+      "category": "prebuilt-agents-tools",
+      "rationale": "create_react_agent named; provider feature is secondary",
+      "role": "smoke"
+    },
+    "langchain-ai/langgraph#6534": {
+      "category": "interrupt-resume-hitl",
+      "rationale": "second interrupt after Command(goto) resumes the wrong node",
+      "role": "smoke"
+    },
+    "langchain-ai/langgraph#7000": {
+      "category": "spam-invalid",
+      "rationale": "empty-body logos PR closed unmerged",
+      "role": "smoke"
+    },
+    "langchain-ai/langgraph#7400": {
+      "category": "spam-invalid",
+      "rationale": "promotional pitch for another project, closed unmerged",
+      "role": "canary"
+    },
+    "langchain-ai/langgraph#8200": {
+      "category": "interrupt-resume-hitl",
+      "rationale": "fix PR binding Command goto+resume to the target interrupt",
+      "role": "smoke"
+    },
+    "langchain-ai/langgraph#9050": {
+      "category": "maintenance-non-pain",
+      "rationale": "checkpoint Redis test fixture hardcodes localhost: test code",
+      "role": "smoke"
+    }
+  }
+}
