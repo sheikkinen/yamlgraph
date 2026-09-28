@@ -1,9 +1,75 @@
-# FR-1120: adapters changed (gh_authored_prs_versions added), graph unchanged; lint + validate of this graph. Live run still postponed (FR-1073 ruling 2026-09-26).
-✅ graph.yaml - No issues found
+# FR-1130: gh-issues discover/extract slots added; graph unchanged. Live 10-item smoke (azure aaa-gpt-5.4-mini) over langchain-ai/langgraph@6534,8200,9050,5000,5300,4500,3900,1500,2000,7000; 10/10 rows match tests/fixtures/fr1130/raw_read.json.
+2026-09-28 12:15:21,747 [INFO] yamlgraph.compile.graph_loader: Parsed 6 Python tools: discover, extract, reduce_ledger, prepare_brief_input, resolve_brief_llm, render_brief
+2026-09-28 12:15:21,749 [INFO] yamlgraph.compile.node_compiler: Added node: discover (type=python)
+2026-09-28 12:15:21,751 [INFO] yamlgraph.compile.node_compiler: Added node: extract_items (type=map)
+2026-09-28 12:15:21,754 [INFO] yamlgraph.compile.node_compiler: Added node: judge_items (type=map)
+2026-09-28 12:15:21,755 [INFO] yamlgraph.compile.node_compiler: Added node: reduce_ledger (type=python)
+2026-09-28 12:15:21,756 [INFO] yamlgraph.compile.node_compiler: Added node: prepare_brief_input (type=python)
+2026-09-28 12:15:21,756 [INFO] yamlgraph.compile.node_compiler: Added node: resolve_brief_llm (type=python)
+2026-09-28 12:15:21,758 [INFO] yamlgraph.compile.node_compiler: Added node: synthesize (type=llm)
+2026-09-28 12:15:21,759 [INFO] yamlgraph.compile.node_compiler: Added node: render_brief (type=python)
+2026-09-28 12:15:21,902 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: discover -> discover
+2026-09-28 12:16:37,117 [INFO] yamlgraph.utils.llm_factory: Creating LLM: azure/aaa-gpt-5.4-mini (temp=0.0)
+2026-09-28 12:16:39,557 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-28 12:16:39,576 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-28 12:16:39,783 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-28 12:16:39,786 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-28 12:16:39,866 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-28 12:16:39,868 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-28 12:16:39,979 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-28 12:16:39,982 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-28 12:16:40,015 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-28 12:16:40,018 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-28 12:16:40,131 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-28 12:16:40,135 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-28 12:16:40,144 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-28 12:16:40,147 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-28 12:16:40,450 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-28 12:16:40,454 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-28 12:16:40,697 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-28 12:16:40,700 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-28 12:16:40,737 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-28 12:16:40,741 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_judge_items_sub completed successfully
+2026-09-28 12:16:40,746 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: reduce_ledger -> reduce_ledger
+2026-09-28 12:16:40,748 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: prepare_brief_input -> prepare_brief_input
+2026-09-28 12:16:40,751 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: resolve_brief_llm -> resolve_brief_llm
+2026-09-28 12:16:40,826 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 400 Bad Request"
+/Users/sami.j.p.heikkinen/src/yamlgraph/.venv/lib/python3.12/site-packages/langchain_openai/chat_models/base.py:590: UserWarning: Invalid schema for OpenAI's structured output feature, which is the default method for `with_structured_output` as of langchain-openai==0.3. Specify `method="function_calling"` instead or update your schema. See supported schemas: https://platform.openai.com/docs/guides/structured-outputs#supported-schemas
+  warnings.warn(message)
+2026-09-28 12:16:40,837 [INFO] yamlgraph.executor_base: Structured output rejected, falling back to JSON extraction (FR-464)
+2026-09-28 12:16:42,866 [INFO] httpx: HTTP Request: POST https://staz-sdc-csap-test-ai-cog.cognitiveservices.azure.com/openai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-09-28 12:16:42,868 [INFO] yamlgraph.node_factory.llm_nodes: Node synthesize completed successfully
+2026-09-28 12:16:42,869 [INFO] yamlgraph.tools.python_tool: 🐍 Executing Python node: render_brief -> render_brief
 
-✅ All graphs passed linting
+🚀 Running graph: graph.yaml
+   Variables: {'source': 'langchain-ai/langgraph@6534,8200,9050,5000,5300,4500,3900,1500,2000,7000', 'rubric': "Classify one GitHub issue or pull request from the langchain-ai/langgraph repository by the pain it reports or addresses. Return exactly one category label from the closed list below.\n\nPrecedence: apply the rules top to bottom; the first category whose inclusion matches and whose exclusion does not match wins.\n\n| # | Category | Includes | Excludes |\n|---|---|---|---|\n| 1 | spam-invalid | promotion, off-topic pitches, empty-body or test submissions closed unmerged, bot noise | any real defect/feature/doc content |\n| 2 | docs | changes or requests touching only documentation, docstrings, examples prose, typos, README | code behaviour changes |\n| 3 | maintenance-non-pain | dependency bumps, CI, release, lint/format, internal refactor, test code and test fixtures (incl. checkpoint-backend test fixtures) | defects users hit at runtime |\n| 4 | interrupt-resume-hitl | interrupt(), Command(resume/goto) on resume, human-in-the-loop, breakpoints | checkpoint storage bugs not about resume |\n| 5 | subgraph-config-propagation | subgraphs, nested graphs, config/context/RunnableConfig propagation into children, subgraph state namespaces | interrupts inside subgraphs (use interrupt-resume-hitl) |\n| 6 | checkpoint-persistence | checkpointers (memory/sqlite/postgres/redis), store, thread history, time travel, serialization of saved state | test fixtures (use maintenance-non-pain) |\n| 7 | streaming | stream/astream modes, events, token streaming, stream output shape | |\n| 8 | state-schema-reducers | state schema, channels, reducers, add_messages, input/output schemas, state updates | typing-only requests (use typing-api-ergonomics) |\n| 9 | control-flow-routing | edges, conditional edges, Send, recursion limit, parallel branches, graph compile/structure | |\n| 10 | functional-api | @entrypoint, @task | |\n| 11 | prebuilt-agents-tools | create_react_agent, ToolNode, tools_condition, supervisor/swarm prebuilts, tool calling through prebuilts; wins over model-provider-integration when a prebuilt is named | |\n| 12 | model-provider-integration | a specific model/provider's message or feature handling with no prebuilt named | |\n| 13 | platform-server-cli-sdk | langgraph CLI, langgraph.json, docker/build, LangGraph Server/Platform, SDK clients, Studio | |\n| 14 | observability-visualization | tracing, callbacks, logging, graph drawing/mermaid | |\n| 15 | error-handling-retry | exceptions, error messages, retry policies, GraphRecursionError messaging | |\n| 16 | async-concurrency-performance | async execution, threading, concurrency, memory/CPU/latency | |\n| 17 | typing-api-ergonomics | type hints, generics, public API shape and naming, deprecations | |\n\nThe content is a JSON record with number, kind (issue or pr), merged, state, state_reason, title, body_head (first 1,500 characters of the body), labels, comments, reactions and timestamps. Use the title, body and upstream labels as evidence; quote the evidence span verbatim from the title or body.\n\nAbstain only when the item has no title and no body.", 'labels': '["spam-invalid", "docs", "maintenance-non-pain", "interrupt-resume-hitl", "subgraph-config-propagation", "checkpoint-persistence", "streaming", "state-schema-reducers", "control-flow-routing", "functional-api", "prebuilt-agents-tools", "model-provider-integration", "platform-server-cli-sdk", "observability-visualization", "error-handling-retry", "async-concurrency-performance", "typing-api-ergonomics"]', 'provider': 'azure', 'model': 'aaa-gpt-5.4-mini', 'brief_provider': 'azure', 'brief_model': 'aaa-gpt-5.4-mini', 'output_path': 'tmp/fr1130/smoke/ledger.md', 'brief_path': 'tmp/fr1130/smoke/brief.md', 'brief_rubric': 'Which LangGraph pain categories dominate these items?'}
 
-✅ graph.yaml (corpus-census) - VALID
+🔗 Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/09c0c2d4-5724-4301-bcee-e1b64ddeb80e/r/01a0e74c-232b-79e2-aa92-8dd540f749dd?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: render_brief
+  source: langchain-ai/langgraph@6534,8200,9050,5000,5300,4500,3900,1500,2000,7000
+  rubric: Classify one GitHub issue or pull request from the langchain-ai/langgraph repository by the pain it reports or addresses. Return exactly one category label from the closed list below.
 
-   Nodes: 8
-   Edges: 9
+Precedence: app...
+  model: aaa-gpt-5.4-mini
+  provider: azure
+  brief_provider: azure
+  brief_model: aaa-gpt-5.4-mini
+  labels: ["spam-invalid", "docs", "maintenance-non-pain", "interrupt-resume-hitl", "subgraph-config-propagation", "checkpoint-persistence", "streaming", "state-schema-reducers", "control-flow-routing", "functi...
+  output_path: tmp/fr1130/smoke/ledger.md
+  items: ['langchain-ai/langgraph#1500', 'langchain-ai/langgraph#2000', 'langchain-ai/langgraph#3900', 'langchain-ai/langgraph#4500', 'langchain-ai/langgraph#5000', 'langchain-ai/langgraph#5300', 'langchain-ai...
+  contents: [{'_map_index': 0, 'value': '{"number": 1500, "kind": "pr", "merged": true, "state": "closed", "state_reason": null, "title": "[docs]: update node config info", "body_head": "", "labels": [], "comment...
+  findings: [{'_map_index': 0, 'source_index': 0, 'judgement': 'docs', 'confidence': 0.99, 'evidence_span': '[docs]: update node config info', 'abstained': False, 'abstain_reason': ''}, {'_map_index': 1, 'source_...
+  ledger: {'markdown_path': 'tmp/fr1130/smoke/ledger.md', 'jsonl_path': 'tmp/fr1130/smoke/ledger.jsonl', 'rows': 10}
+  brief_path: tmp/fr1130/smoke/brief.md
+  brief_rubric: Which LangGraph pain categories dominate these items?
+  brief_input: [{'confidence': 0.99, 'item_ref': 'langchain-ai/langgraph#1500', 'judgement': 'docs'}, {'confidence': 0.99, 'item_ref': 'langchain-ai/langgraph#2000', 'judgement': 'docs'}, {'confidence': 0.99, 'item_...
+  claims: {'claims': [{'claim_id': 'c1', 'text': 'The dominant pain category is docs, appearing in three items and making up the largest visible cluster in this sample.', 'citations': ['row:langchain-ai/langgra...
+  brief_llm: {'provider': 'azure', 'model': 'aaa-gpt-5.4-mini'}
+  brief: {'accepted': True, 'errors': [], 'artifact': 'tmp/fr1130/smoke/brief.md'}
+  contents_failures: []
+  findings_failures: []
+
+📊 Token usage: 12978 in / 882 out (11 calls)

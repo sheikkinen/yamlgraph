@@ -1,0 +1,6 @@
+name: gh-issues-crosstab
+description: "FR-1130 gh-issues census: refuse unresolved ledgers; write crosstab.md and manifest.json"
+runtime:
+  type: python
+  path: gh_issues_report.py
+  function: gh_issues_crosstab

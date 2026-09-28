@@ -597,6 +597,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 289 | CAP-289 Map Memo For File Corpora | `examples/shared/map_memo.py`, `examples/shared/map_memo_split.tool.yaml`, `examples/shared/map_memo_merge.tool.yaml` | REQ-YG-706 |
 | 292 | CAP-292 Census Map Memo With Caller-Supplied Versions | `examples/shared/map_memo.py`, `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/tools.py`, `examples/demos/person_profile_census/graph.yaml` | REQ-YG-709 |
 | 293 | CAP-293 FR Planned Operations Section | `feature-requests/TEMPLATE.md`, `ramp/assets/tier2/feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md`, `tests/unit/test_fr1129_planned_operations.py` | REQ-YG-716 |
+| 294 | CAP-294 LangGraph Issues Census | `examples/demos/corpus_census/adapters/gh_issues_adapters.py`, `examples/demos/corpus_census/adapters/gh_issues_report.py`, `examples/demos/langgraph_issues_census/graph.yaml` | REQ-YG-717 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3444,6 +3445,16 @@ FR-1129: the FR template replaces the unparsed `**Effort:**` field with a `## Pl
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-716 | `feature-requests/TEMPLATE.md` has no `**Effort:**` line and places `## Planned Operations` directly after `## Ideal Result`, pointing to the feature-request skill; the ramp mirror is byte-identical. The feature-request skill's inline template drops Effort and adds the section; its marked sample is one YAML document with exactly `probes`, `branches`, `delegations`, `waits`, `commands`, each a non-empty list of strings, with no numeric duration; the skill defines the `Planned operation \| Outcome \| Witness` table, the `Unplanned operations` list, and a reconciliation cutoff at enforcement completion that excludes push CI, outsider, review and merge from the plan, its sample and its wait examples. No standalone planning skill exists. | `feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md`, `tests/unit/test_fr1129_planned_operations.py` |
+
+### 294. CAP-294 LangGraph Issues Census
+
+FR-1130: gh-issues discover/versions/extract adapters snapshot a GitHub repository's issues and PRs once per run into a validated, atomically replaced cache; the LangGraph issues census graph judges every item under a 17-category pain taxonomy through the corpus-census judge and map memo, then a refusing cross-tab, citation verifier and disposition checker turn the ledger into solves / inherits / untouched lists.
+
+**Feature Request:** FR-1130
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-717 | `gh_issues_discover` runs one paginated `gh api` listing with the frozen argv, validates every record against `IssueRecord` (extra fields forbidden) and the population ceiling, and replaces the snapshot atomically only when the whole listing validates; any bad record raises and leaves the prior snapshot byte-identical. `gh_issues_versions` returns `{ref: updated_at}` from that snapshot and `gh_issues_extract` reads one record from it without a subprocess, raising when absent. The source grammar accepts `o/r`, evenly spaced `o/r:n` and explicit `o/r@a,b`. `gh_issues_crosstab` refuses abstained, unknown, duplicate, missing, off-taxonomy or canary-contradicting rows before writing, and reports item counts per category by kind and state; `verify_citations` resolves every cited ref's labels against GitHub; `check_dispositions` enforces one row per category and the evidence rule per list. The census graph re-judges only memo misses and every item when rubric, labels, provider, model or a signature file changes. | `examples/demos/corpus_census/adapters/gh_issues_adapters.py`, `examples/demos/corpus_census/adapters/gh_issues_report.py`, `examples/demos/langgraph_issues_census/graph.yaml`, `tests/unit/test_fr1130_gh_issues_adapters.py`, `tests/unit/test_fr1130_gh_issues_report.py`, `tests/unit/test_fr1130_census_graph.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

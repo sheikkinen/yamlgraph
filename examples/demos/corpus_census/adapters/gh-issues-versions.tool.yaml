@@ -1,0 +1,6 @@
+name: gh-issues-versions
+description: "FR-1130 gh-issues census: {ref: updated_at} for the selected refs, from the snapshot"
+runtime:
+  type: python
+  path: gh_issues_adapters.py
+  function: gh_issues_versions
