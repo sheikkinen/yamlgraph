@@ -8,9 +8,11 @@
 The FR's measurement showed `Effort:` telling us almost nothing:
 correlation 0.09 across 92 FRs, and 40 of them said "0.5 day". The
 proposed replacement was a list of the operations the work will run. I
-wrote that list for FR-1129 itself before enforcing it. Reconciling it
-afterwards, all the planned delegations ran as written. The unplanned
-rows were every pre-commit refusal:
+wrote that list for FR-1129 itself before enforcing it. When I reconciled
+the list afterwards, every delegation had run except `review.sh`. That
+ran twice, because the first review refused the PR: I had left the
+outsider, review and CI rows as "pending" and had written, in this diary,
+that everything ran. The unplanned rows were every pre-commit refusal:
 
 - the prior-art gate fired on the judgement and evidence files;
 - `ruff format` rewrote the RED test;
@@ -37,7 +39,9 @@ pictures, not what the repository does.
 When writing `## Planned Operations`, add one `probes` row per artifact
 class you will create (FR sidecar, CAP, test, fragment) naming the gate
 that validates it. Then the reconciliation finds those refusals in the
-plan instead of in `Unplanned operations`.
+plan instead of in `Unplanned operations`. And write the reconciliation
+only after the last planned operation has a witness: a table filled in
+earlier is a forecast dressed as a record, and the reviewer caught mine.
 
 ## Seed
 

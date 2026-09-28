@@ -186,21 +186,23 @@ commands:
 
 ## Implementation Status
 
-**Status:** In Progress — D-1..D-7, D-9 delivered; D-8 reconciliation
-below is completed after outsider and review run.
+**Status:** Implemented — D-1..D-9 delivered; awaiting human merge
+decision.
 
 | Planned operation | Outcome (ran / did not run / changed) | Witness |
 |---|---|---|
 | probe: code parsing `Effort:` | ran — none found | `FR-1129-evidence.md`; no diff outside template/skill |
-| probe: ramp `mirror_exact` | ran — mirror required | `test_ramp_installer.py` passes on GREEN commit |
+| probe: ramp `mirror_exact` | ran — mirror required | `test_ramp_installer.py` passes on GREEN commit `03a0c354` |
 | probe: free CAP/REQ ids | ran — CAP-293 / REQ-YG-716 | RED commit `a7f674e5` |
 | branch: automated reconciler | ran — deferred by judgement R-2 | `FR-1129-planning-skill.judgement.md` |
-| branch: ID collision at push | pending | — |
+| branch: ID collision at push | did not run — no collision | audit-log match: pre-push `git grep ... origin/main -- capabilities/` returned no CAP-293+/REQ-YG-716+; branch push of `03a0c354` |
 | research.sh: 1 run | ran (azure override) | commit `300197ef` (`FR-1129.research.md`) |
 | judge.sh: 1 run | ran — 1 run, no second | commit `ef28bbcd` (judgement) |
-| outsider.sh: 1 run | pending | — |
-| review.sh: 1 run | pending | — |
-| waits: judge / CI / human merge | judge done; CI, merge pending | — |
+| outsider.sh: 1 run | ran — derived NO, 6 unknown terms | report head `03a0c354`, input `e222cf82`; PR #739 body glossed in response (human-visible) |
+| review.sh: 1 run | changed — 2 runs | run 1 at `03a0c354`: Not approved, D-8 pending rows (session `3d11b9a6`); run 2 at the head carrying this table |
+| waits: judge | ran | commit `ef28bbcd` |
+| waits: CI | ran | PR #739 checks at `03a0c354` (runs `36387025230`, `36387180980`); re-run on this head |
+| waits: human merge decision | outside this record | the merge commit on `main` is its own witness; no commit can witness its own merge |
 
 **Unplanned operations:**
 - prior-art gate (FR-738) refused judgement + evidence files; fixed with pointer `**Prior art:**` lines (commit `ef28bbcd`)
@@ -208,7 +210,9 @@ below is completed after outsider and review run.
 - capability validation required `fr:` in CAP-293 (commit `a7f674e5`)
 - PreToolUse guard refused pytest `| tail`; re-run via log file (audit log)
 - witness-test extractor fix (see Deviations)
-- `test_no_duplicate_fr_numbers` refused `FR-1129.evidence.md`; renamed to the accepted sibling slug `FR-1129-evidence.md` (GREEN commit)
+- `test_no_duplicate_fr_numbers` refused `FR-1129.evidence.md`; renamed to the accepted sibling slug `FR-1129-evidence.md` (GREEN commit `03a0c354`)
+- PR body glossary edit after the outsider report (PR #739 edit history)
+- second review run after completing this table
 
 ## Related
 
