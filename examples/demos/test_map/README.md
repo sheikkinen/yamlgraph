@@ -32,11 +32,16 @@ The test scope must be committed and clean. Outputs:
 `graph run` exits 0 on some node failures and 3 when a call failed after
 its retries — check the artifacts, not the exit code.
 
-Small smoke (4 calls; `demo-output.log` is this run):
+Small smoke (4 calls):
 
 ```bash
 yamlgraph graph run examples/demos/test_map/graph.yaml --var scope=tests/unit/test_expression_language.py,tests/unit/test_commitlint_workflow.py --var canary_path=examples/demos/test_map/smoke-canary.json --var json_path=tmp/test-map-smoke/test-map.json --var md_path=tmp/test-map-smoke/test-map.md --full
 ```
+
+`demo-output.log` is the full-scope run (546 calls, mercury-2.5, accepted);
+`proof.json` holds its provenance, invariants, and twelve raw-response
+reads. In that run the model labelled tests by the code they import, not
+the artifact they guard, so read the `core` share (67%) as an upper bound.
 
 `canary.json` holds seven hand-classified tests, one per target plus a
 tie-break case. It is never shown to the model.

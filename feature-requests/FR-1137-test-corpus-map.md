@@ -2,9 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** In Progress — judged 2026-09-28 APPROVED WITH REVISIONS
+**Status:** Implemented — judged 2026-09-28 APPROVED WITH REVISIONS
 ([judgement](FR-1137-test-corpus-map.judgement.md)); R-2..R-6 and Q4
-folded, R-1 overruled by the operator (see § Judgement fold)
+folded, R-1 overruled by the operator (see § Judgement fold); AC-06
+amended by the operator (D6, 5% failed-partition allowance); full run
+accepted (see § Implementation Status)
 **Requested:** 2026-09-28
 **First consumer / first event:** the operator, at the next test-retirement
 or test-speed decision (live instance: FR-1134 retiring the FR knowledge
@@ -369,6 +371,67 @@ The operator accepted all three recommendations ("proceed as recommended"):
 - **D5 (enforce time):** Q4 = (b) default provider/model resolution. The
   operator did not answer Q4 separately; the agent resolved it from the
   original request ("analyze each test with default provider and model").
+- **D6 (enforce time):** "allow 5% error rate" — amends AC-06 and R-3
+  ("any defect rejects"). A partition whose map call fails, or whose
+  records carry defects, is listed in `failed_partitions` with its nodeids
+  and defects, and its tests are left unmapped. More than 5% failed
+  partitions, any defect not attributable to one partition, or any canary
+  miss still rejects. Canary entries inside a failed partition count as
+  `skipped`, never `passed`. The map node retries twice with validation
+  feedback (`on_error: retry`, `max_retries: 2`) and declares
+  `min_success: 0.95`, so an exhausted retry still makes the CLI exit 3.
+
+## Implementation Status
+
+Branch `feat/fr1137-test-map-enforce`. RED/GREEN pairs: `edd370b2` /
+`6cb62d87` (pipeline), `a9dcd9fb` / `3e2fc178` (`MapFailure` objects),
+`8fb5dafd` / `b78d9fd8` (D6 allowance).
+
+**Defect found by the first full run.** The map returns `failures` as typed
+`MapFailure` objects (FR-1073), not dicts; `publish_map` crashed while
+writing the rejection report. Fixed by normalising through
+`MapFailure.model_validate(f).model_dump()`.
+
+**Cause of the failed calls.** In that first run 3 of 545 calls failed
+validation: mercury returned the `records` array without its
+`{"records": ...}` wrapper. Answered here by the prompt line "never return
+a bare array", the retry, and D6. The general fix belongs in the
+structured-output boundary, not in this demo:
+[FR-1140](FR-1140-bare-list-structured-output.md).
+
+**Accepted full run** at `b78d9fd8` (inception/mercury-2.5, temperature
+0.0), recorded in `examples/demos/test_map/demo-output.log` and
+`examples/demos/test_map/proof.json`:
+
+| Measure | Value |
+|---|---|
+| Files / tests / partitions | 538 / 6,891 / 546 |
+| Calls estimated / actual | 546 / 546 (plus 2 retries, both bare-array) |
+| Failed partitions / failed rows / defects | 0 / 0 / 0 |
+| Canary | 7 checked, 7 passed, 0 skipped |
+| Tokens | 1,817,104 in / 1,645,875 out |
+
+The dry-run census at the earlier SHA gave 537 files / 6,903 tests / 545
+partitions; the counts moved with main between runs, and each run's own
+AST count equals its reconciled row count.
+
+**Raw read (AC-12).** Twelve responses spread across the corpus were read
+before any aggregate; observations are in `proof.json`. Four are
+directory-versus-classification mismatches with one shared shape: the
+model labels by the code a test *imports*, not by the artifact it
+*guards* — this FR's own demo tests, pre-commit config tests, and
+copilot-instructions tests all come out `core`. Aggregates after the read:
+`core` 4,626 (67%), `examples` 1,090, `linter` 410, `scripts` 329, `other`
+225, `docs` 211; `unit` 6,419, `integration` 472, `other` 0. Of the 296
+rows in files named for examples or demos, 35 are labelled `core`. Read
+the `core` share as an upper bound.
+
+**Planned Operations reconciliation.** All probes ran; the req_coverage
+extractor imported as-is; no ceiling was raised. Delegations: judge 1 run,
+author.sh 3 runs (brief revisions 1–3; revision 3 for D6), smoke runs
+plus 2 full-scope runs (the first hit the 3 bare-array failures and then
+the `MapFailure` crash while writing its rejection; the second was
+accepted). outsider.sh and review.sh run on the PR.
 
 ## Questions for the human (resolved — see Operator decisions)
 

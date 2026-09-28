@@ -1,0 +1,86 @@
+{
+  "fr": "FR-1137",
+  "command": "yamlgraph graph run examples/demos/test_map/graph.yaml --token-usage",
+  "commit_sha": "b78d9fd8cba0a638d51f1e7a1f256ccc31486eee",
+  "provider": "inception",
+  "model": "mercury-2.5",
+  "temperature": 0.0,
+  "run_id": "2330c0cfa0044b559d553712e754a74a",
+  "artifact_hash": "0f38a37a10e2e794222a771669d2469e26fc00e0c09bcea5a5ee27ce0da2f5fc",
+  "corpus_hash": "a13314df1c07d387c055f92afac038ba8d1541d101ba5ce0d470c189803cf0ba",
+  "counts": {
+    "files": 538,
+    "tests": 6891,
+    "partitions": 546
+  },
+  "calls": {
+    "estimated": 546,
+    "actual": 546
+  },
+  "reconciliation": {
+    "rows": 6891,
+    "failed_rows": 0,
+    "failed_partitions": 0,
+    "defects": 0,
+    "max_failed_partition_rate": 0.05
+  },
+  "canary": {
+    "checked": 7,
+    "passed": 7,
+    "skipped": 0
+  },
+  "failed_partitions": [],
+  "retries_with_feedback": 2,
+  "retry_cause": "both retries: field '<root>': Input should be an object (bare records array); see FR-1140",
+  "token_usage": "\ud83d\udcca Token usage: 1817104 in / 1645875 out (546 calls)",
+  "raw_reads": [
+    {
+      "nodeid": "tests/unit/test_fr1137_test_map.py::test_extract_nodeids_lines_async_class_and_markers",
+      "observation": "MISMATCH: tests the demo-local examples/demos/test_map extractor, labelled core/unit although the module under test lives in examples/demos/test_map/ (this FR's own tests)."
+    },
+    {
+      "nodeid": "tests/unit/test_fr441_precommit_files_patterns_red.py::test_ac01_target_hooks_define_files_patterns",
+      "observation": "MISMATCH: asserts .pre-commit-config.yaml hook patterns, labelled core/unit; repo tooling, closer to other/scripts."
+    },
+    {
+      "nodeid": "tests/unit/test_knowledge_graph_fr193.py::TestMassGraduationProcessEntries::test_copilot_instructions_exists",
+      "observation": "MISMATCH: checks that .github/copilot-instructions.md exists, labelled core/unit; guards doctrine text, i.e. docs."
+    },
+    {
+      "nodeid": "tests/unit/test_salvage_classify.py::test_graph_lints_clean",
+      "observation": "MISMATCH: lints the salvage example graph, labelled linter/integration; the guarded artifact is an example, the linter is only the instrument."
+    },
+    {
+      "nodeid": "tests/integration/sim117_remediation/test_sim117_auto_fix.py::TestSIM117AutoFix::test_nested_with_statements_auto_fix",
+      "observation": "Correct: linter/integration; the description names the unsafe-fixes flag the test really passes to ruff."
+    },
+    {
+      "nodeid": "tests/unit/test_azure_provider.py::TestAzureProvider::test_azure_uses_endpoint_from_env",
+      "observation": "Correct: core/unit; the description names the env-var endpoint, the one thing the test asserts."
+    },
+    {
+      "nodeid": "tests/unit/test_copilot_node.py::test_copilot_pre_guard_halt_prevents_subprocess_run",
+      "observation": "Correct: core/unit; a one-record partition (#2 of the file), the description adds no claim beyond the test."
+    },
+    {
+      "nodeid": "tests/unit/test_fr027_execution_safety.py::TestMapMaxItems::test_map_edge_truncates_items_to_max_items",
+      "observation": "Correct: in a 34-record partition every description names its own on_overflow variant; no row lost at that size."
+    },
+    {
+      "nodeid": "tests/unit/test_fr703_status_join.py::TestWorkstreamJoin::test_nc346_field_failure_fixed",
+      "observation": "Weak: 'a specific field failure case' hides what NC-346 was; the model had no NC text, so vague but not wrong."
+    },
+    {
+      "nodeid": "tests/unit/test_fr786_page_analysis.py::test_graph_file_exists",
+      "observation": "Correct: examples/unit; resolved from the example path string inside the test body."
+    },
+    {
+      "nodeid": "tests/unit/test_fr951_utf8_boundaries.py::test_graph_loader_declares_utf8",
+      "observation": "Suspect: says the loader 'preserves UTF-8 characters in the description field' while the name says it DECLARES utf-8; paraphrase of a fixture detail, unverified."
+    },
+    {
+      "nodeid": "tests/unit/test_noqa_coverage.py::TestFindNoqaInFile::test_find_noqa_blanket",
+      "observation": "Correct: scripts/unit; keeps the 'ALL' return value the test asserts."
+    }
+  ]
+}
