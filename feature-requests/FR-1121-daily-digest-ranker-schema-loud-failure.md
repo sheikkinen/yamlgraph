@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Implemented (2026-09-27) — yamlgraph #726 (`d7890517`), digest #4 (`0648fbd8`); production witness pending the next scheduled run (see [Implementation record](#implementation-record))
+**Status:** Implemented (2026-09-27) — yamlgraph #726 (`d7890517`), digest #4 (`0648fbd8`); production witness recorded 2026-09-28 (run 36375149984, 7 stories)
 **Effort:** 1 day
 **Requested:** 2026-09-27
 **First consumer / first event:** the `sheikkinen/yamlgraph-daily-digest`
@@ -358,3 +358,14 @@ loud-failure work is reverted: the loudness is what exposed the hollow form.
 
 Pending: the first scheduled run after digest #4 (06:00 UTC, 2026-09-28).
 Record here its run id and which of the three outcomes it proved.
+
+### Production witness recorded (2026-09-28)
+
+Manual `workflow_dispatch` run [36375149984](https://github.com/sheikkinen/yamlgraph-daily-digest/actions/runs/36375149984),
+2026-09-28 03:49Z, digest `main` at `9594d91` (after #6), yamlgraph
+**0.6.2** from PyPI: 32 new articles filtered, `Analysed 32 of 32 - 0
+skipped`, `Node rank_stories completed successfully`, bulletin archived
+as `digests/2026-09-28.md` with **7 stories**, mail sent, commit
+`09527c2` pushed. First bulletin since 2026-09-18. Outcome 1 of the
+three-way invariant; the ranker was invoked with articles and returned a
+non-zero story count.

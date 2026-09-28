@@ -366,3 +366,14 @@ merges; then the next scheduled run. Record run ids and the
 - No changelog fragment in this repository: no code here changed (S-5).
 - Judge rendered from the author's session via the sole route; recorded
   as in FR-1121.
+
+### Production witness recorded (2026-09-28)
+
+Manual `workflow_dispatch` run [36375149984](https://github.com/sheikkinen/yamlgraph-daily-digest/actions/runs/36375149984),
+2026-09-28 03:49Z, digest `main` at `9594d91` (after #6), yamlgraph
+**0.6.2** from PyPI: 32 new articles filtered, `Analysed 32 of 32 - 0
+skipped`, `Node rank_stories completed successfully`, bulletin archived
+as `digests/2026-09-28.md` with **7 stories**, mail sent, commit
+`09527c2` pushed. First bulletin since 2026-09-18. Outcome 1 of the
+three-way invariant; the ranker was invoked with articles and returned a
+non-zero story count.
