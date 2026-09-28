@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement (removal)
-**Status:** Approved (judge SPLIT, operator override 2026-09-28 — see judgement)
+**Status:** Implemented (PR pending; judge SPLIT, operator override 2026-09-28 — see judgement)
 **Effort:** 0.5 day
 **Requested:** 2026-09-27
 **First consumer / first event:** the `test (3.11)` / `test (3.14)` CI jobs
@@ -167,28 +167,60 @@ tests and narrows REQ-YG-275.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: RED commit contains only the new witness test and fails on the
+- [x] AC-01: RED commit contains only the new witness test and fails on the
   parent tree; GREEN commit makes it pass.
-- [ ] AC-02: the six paths are absent; `git grep -e extract_fr_graph -e fr-knowledge-graph`
-  outside `feature-requests/`, `docs/`, `changelog/` returns nothing.
-- [ ] AC-03: `test_fr1134_prior_art_output.py` passes on the RED parent
+- [x] AC-02: the six paths are absent; `git grep -e extract_fr_graph -e fr-knowledge-graph`
+  outside `feature-requests/`, `docs/`, `changelog/` returns only the
+  retirement records (`ARCHITECTURE.md` retired section,
+  `capabilities/CAP-297-fr-knowledge-graph-retired.yaml`,
+  `tests/unit/test_fr1134_retirements.py`) and the historical
+  `CHANGELOG.md`.
+- [x] AC-03: `test_fr1134_prior_art_output.py` passes on the RED parent
   and after GREEN, unchanged; `.github/hooks/tests/` passes; a
   before/after run of `build_prior_art` over every real FR file above
   FR-819 gives identical output (count recorded here).
-- [ ] AC-04: `test_fr275_test_speed_optimization.py` has one test and no
+- [x] AC-04: `test_fr275_test_speed_optimization.py` has one test and no
   `subprocess` import; REQ-YG-275 text matches the clause table;
   `python scripts/req_coverage.py --strict` passes (REQ-YG-601..603 gone
   from registry and ARCHITECTURE.md).
-- [ ] AC-05: `python scripts/validate_capabilities.py` passes with CAP-297
+- [x] AC-05: `python scripts/validate_capabilities.py` passes with CAP-297
   present and CAP-240 absent.
-- [ ] AC-06: full `tests/unit` run is green in the PR worktree (no failure
+- [x] AC-06: full `tests/unit` run is green in the PR worktree (no failure
   allowance); summed time of the removed tests recorded here.
 - [ ] AC-07: CI run ID, head SHA, Python version, conclusion and duration
   of `test (3.11)` and `test (3.14)` on this PR recorded here next to the
   366–592 s baseline.
 - [ ] AC-08: a human reviews the `prior_art.py` and hook-test diff before
   merge (GATE, R-6).
-- [ ] Changelog fragment (`type: removal`) in `changelog/unreleased/`.
+- [x] Changelog fragment (`type: removal`) in `changelog/unreleased/`.
+
+## Implementation Status
+
+Commits: docs `e757ca8b`, RED `4ad51d6b`, GREEN `49f9430c`, rebased on
+`977bf6e7`.
+
+| AC | Witness |
+|---|---|
+| AC-01 | RED: 10 failed in `test_fr1134_retirements.py`; GREEN: all pass. |
+| AC-03 | `tmp/prior_art_snapshot.py`: 243 FR files above FR-819, 71 with non-empty output; before/after JSON `cmp` identical. Characterization test passed on the RED parent and after GREEN. |
+| AC-04 | One test, no `subprocess`; `req_coverage.py --strict` rc=0. |
+| AC-05 | `validate_capabilities.py` rc=0. |
+| AC-06 | `tests/unit -n auto`: 7501 passed, 80 skipped, 1 xfailed, 0 failed (148.8 s). Removed test time: `test_fr_graph.py` 36.8 s, FR-275 meta-tests ~100.6 s (summed, sequential). |
+
+Decisions and deviations:
+
+- Renumbered CAP-293 → CAP-297 and REQ-YG-716 → REQ-YG-720 on rebase:
+  FR-1129 (#739) took CAP-293/REQ-YG-716 and open PR #740 claims
+  CAP-294/REQ-YG-717 (max+3 headroom).
+- AC-02 wording corrected: the retirement records themselves name the
+  removed paths, which the original wording forbade.
+- `.github/hooks/tests` has one failure, `test_copilot_instructions_hooks_docs_red.py::test_ac02_hooks_subsection_contains_required_operational_tokens`.
+  It fails identically on the RED commit without GREEN applied. FR-942
+  (#548) dropped `reasoning-pattern-check.sh` from the Hooks subsection of
+  `.github/copilot-instructions.md`; CI does not run `.github/hooks/tests`,
+  so main has carried it since #548. Out of scope here (Scripture edit);
+  reported to the operator for a separate FR. AC-03's hook-suite clause is
+  met for every test this FR touches (237 passed).
 
 ## Alternatives Considered
 
