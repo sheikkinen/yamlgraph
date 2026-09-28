@@ -2,7 +2,9 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Judged — APPROVED WITH REVISIONS
+**Status:** Partially enforced — pipeline shipped, census NOT run
+(operator stopped the full run 2026-09-28; see Implementation Status).
+Judged APPROVED WITH REVISIONS
 ([judgement](FR-1130-langgraph-issues-census.judgement.md), copilot backend,
 2026-09-28); R-1…R-6 folded 2026-09-28
 **Requested:** 2026-09-28
@@ -478,5 +480,53 @@ Folded from the judgement's AC-01…AC-16 (the fixture holds 11 records, not
 
 | Planned operation | Outcome (ran / did not run / changed) | Witness |
 |---|---|---|
+| research.sh | ran, 1 run | `FR-1130.research.md` |
+| judge.sh | ran, 1 run; R-1…R-6 folded | `3f669e12` |
+| gh-issues adapters RED/GREEN | ran | RED `8da482da`, GREEN `7eb56140`; 45 adapter + 13 report tests |
+| 10-item smoke via corpus_census | ran twice (1st failed, see unplanned) | `tmp/fr1130/smoke/run.log`; 10/10 rows match the fixture, conf 0.95–0.99; 12,978 in / 882 out / 11 calls |
+| read every smoke row | ran | `tmp/fr1130/smoke/ledger.jsonl` vs `tests/fixtures/fr1130/raw_read.json` |
+| re-cost from smoke | ran | ≈9M in / 0.6M out ≈ $9.5 < 3× first estimate ($16); no operator gate |
+| author.sh sibling graph | changed: 2 runs | brief `2f880871`; run 1 report `tmp/fr1130/authoring-report-run1.md`; run 2 `tmp/draft-authoring-report.md`; GREEN `3fc6ad46` |
+| graph provider-free test | ran | RED `8da482da`, RED2 `79733442`, GREEN `3fc6ad46`; 7 pass |
+| yamlgraph graph lint | ran | clean (author report + independent re-run) |
+| 2-item live smoke of sibling graph | ran | `examples/demos/langgraph_issues_census/demo-output.log`; #6534 `interrupt-resume-hitl`, canary #7400 `spam-invalid` |
+| full census (7,532 items) | **did not complete** | run 1 died with its terminal inside discover (no spend); run 2 stopped by operator at 293 judged / 171 rate-limited, before `memo_merge` → nothing memoized, no ledger (`tmp/fr1130/full/run2.log`) |
+| gh_issues_report verify | did not run | needs the full ledger |
+| dispositions.md | did not run | needs the crosstab |
+| manifest usage/cost | did not run | needs the full run |
+| req_coverage --strict | ran | exit 0 (`tmp/fr1130/reqcov.log`) |
+| FR-940/943/1116/1120 suites | ran | 228 passed incl. FR-1130 (`tmp/fr1130/ac14.log`) |
+| memo DELETE for unresolved rows | did not run | no memo store was written |
 
-**Unplanned operations:** (filled at completion)
+AC status: AC-01…AC-08, AC-14, AC-15 met by the witnesses above; AC-09…AC-13
+and the results/dispositions part of AC-16 are **open** — they require the
+full census.
+
+**Decisions and deviations:**
+
+- Author run 1 routed zero-dispatch replays to END before `crosstab`, so a
+  memoized `row_failed` ended the run silently. Cause: my graph test expected
+  a silent replay. Test corrected (replay must raise, zero judge calls),
+  committed RED as `79733442`; brief amended; author run 2 made every edge
+  unconditional.
+- The loader witness (`IssueRecord` unbuilt when loaded by path) was found by
+  smoke #1; its RED was observed in `tmp/fr1130/red_loader.log` but not
+  committed separately from GREEN.
+- Run 2 disabled LangSmith tracing: every upload returned 403.
+- Azure returned token-rate-limit 429s on ~37% of judge calls at
+  `max_concurrency: 8`; each would have become a `row_failed` row needing
+  memo re-runs. Remaining work: run the full census (lower concurrency or a
+  higher-TPM deployment), resolve failed rows, verify, write dispositions.
+- The memo persists only at `memo_merge`, after the whole judge map: an
+  interrupted full run loses all judged items.
+
+**Unplanned operations:** worktree recreated; Explore subagent; pricing page
+fetches; prior-art gate retries (FR ×2, brief ×1); 11 `gh` fetches to build
+the fixture; extra test files (`test_fr1130_gh_issues_report.py`,
+`test_fr1130_census_graph.py`); failed smoke #1 and the loader witness test;
+commit retries from hooks (req-coverage, ruff format ×2, ruff collapsible-if,
+demo-proof ×3, end-of-file ×3, changelog ×2, examples README audit); brief
+commit split from rubric/labels (demo-proof); `examples/README.md` index
+row; second `author.sh` run and RED2 test edit; full run 1 killed with its
+terminal; full run 2 relaunched under `nohup` with tracing off; run 2 stopped
+by the operator; `llm_bounds.py` read to look for a retry override (none).
