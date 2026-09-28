@@ -283,9 +283,25 @@ runs (AC-04).
 compressed or paged out while their test subprocesses spawned. The peak
 column cannot show that. The N=6 r2 run held 54–60% free throughout. At
 every N, one process reaches 0.9–1.25 GB near the end of the run
-(t≈128–146). It is visible in the `max_mb` column. Its command line was not
-captured: the capture was added after M-1, and the stopped runs did not
-reach that point. It is not identified.
+(t≈128–146). It is visible in the `max_mb` column.
+
+**Culprit, identified afterwards.** A follow-up run on main at `-n 4` used
+a per-test probe plugin (`tmp/rss_probe.py`, uncommitted). The plugin
+records `RUSAGE_SELF`/`RUSAGE_CHILDREN` `ru_maxrss` after each test
+(`logs/rss-probe.jsonl`, local). Only one test raised a child's peak
+by more than 100 MB:
+`tests/unit/test_vscode_ledger.py::test_cli_smoke_exits_zero[args1]`, with
++1219 MB (child peak 1324 MB). The next largest was 100 MB. Worker peaks
+were 200–367 MB. The test runs `scripts/vscode/ledger.py --tap` against
+the operator's **real** VS Code store
+(`~/Library/Application Support/Code/User/workspaceStorage/*/chatSessions`,
+about 1.3 GB, 991 MB of it this workspace). `iter_requests` calls
+`read_text()` on each whole `.jsonl` and then `REQ_SPLIT.split()`, which
+copies it. So the cost grows with chat history. It is the same test that
+hit `TimeoutExpired` in M-2. The sibling test
+`test_cli_tap_exits_zero_without_stores` already covers `--tap` exit-zero
+with `HOME=tmp_path`. The fix is out of scope here: the test reads user
+data outside the repo, which puts it under FR-1110's sandbox.
 
 ### Decision
 
