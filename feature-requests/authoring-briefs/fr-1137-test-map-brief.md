@@ -7,6 +7,18 @@
 
 ## Task
 
+Revision 3. The full run (545 partitions) had 3 sub-node failures, all
+`ValidationError: Input should be an object` — the model returned the
+records array bare (`[{nodeid…}]`) instead of `{"records": [...]}`. The
+operator amended FR-1137: at most 5% of partitions may fail; Python now
+lists failed partitions and rejects above 5%
+(`tools.MAX_FAILED_PARTITION_RATE = 0.05`). Edit the existing files (do
+not rewrite): in `graph.yaml` set the classify sub-node
+`on_error: retry` with `max_retries: 2` (retries carry validation
+feedback, FR-933) and set the map `min_success: 0.95`; in the prompt add
+one line of system guidance that the answer is a JSON object whose only
+key is `records`, never a bare array. Then re-run the smoke.
+
 Revision 2. Revision 1 authored `graph.yaml` and the prompt; its smoke
 found (a) `freeze_corpus`/`publish_map` returned unkeyed dicts — now fixed
 in Python, they return `{"corpus": …}` and `{"result": …}`; and (b) the map
@@ -41,9 +53,9 @@ is witnessed by `tests/unit/test_fr1137_test_map.py`
 - Nodes, edges exactly `START → freeze → classify → publish → END`:
   - `freeze`: python, tool `freeze_corpus`, state_key `corpus`, `on_error: fail`.
   - `classify`: `type: map`, `over: "{state.corpus.partitions}"`,
-    `as: partition`, `max_items: 900`, `min_success: 0`,
+    `as: partition`, `max_items: 900`, `min_success: 0.95`,
     `collect: findings`. Sub-node: `type: llm`, `prompt: classify_tests`,
-    `temperature: 0.0`, `timeout: 180`, `on_error: skip`,
+    `temperature: 0.0`, `timeout: 180`, `on_error: retry`, `max_retries: 2`,
     `state_key: records_out`, variables `path: "{state.partition.path}"`,
     `nodeids: "{state.partition.nodeids}"`,
     `text: "{state.partition.text}"`. The map injects the raw item under
@@ -64,6 +76,8 @@ System guidance must state:
 
 - Return exactly one record per listed nodeid, copying the nodeid verbatim;
   no other nodeids.
+- The answer is a JSON object whose only key is `records`; never return a
+  bare array.
 - `description`: exactly ONE sentence, single line, ending in one `.`, what
   the test verifies (not how).
 - `target` = the primary artifact under test: `core` (the yamlgraph package),

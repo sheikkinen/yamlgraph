@@ -49,7 +49,7 @@ nodes:
     over: "{state.corpus.partitions}"
     as: partition
     max_items: 900
-    min_success: 0
+    min_success: 0.95
     collect: findings
     failures: findings_failures
     node:
@@ -57,7 +57,8 @@ nodes:
       prompt: classify_tests
       temperature: 0.0
       timeout: 180
-      on_error: skip
+      on_error: retry
+      max_retries: 2
       state_key: records_out
       variables:
         path: "{state.partition.path}"

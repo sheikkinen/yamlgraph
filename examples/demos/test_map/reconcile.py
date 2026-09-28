@@ -144,11 +144,48 @@ def reconcile(
     return rows, defects
 
 
-def check_canary(rows: list[dict], canary: list[dict]) -> tuple[list[dict], dict]:
+def split_failed_partitions(
+    corpus: dict, rows: list[dict], defects: list[dict]
+) -> tuple[list[dict], list[dict], list[dict]]:
+    """Return (rows outside failed partitions, failed partitions, unattributed)."""
+    parts = corpus["partitions"]
+    owner = {n: p["partition_id"] for p in parts for n in p["nodeids"]}
+    by_part: dict[str, list[dict]] = {}
+    unattributed = []
+    for defect in defects:
+        pid = defect.get("partition_id") or owner.get(defect.get("nodeid"))
+        index = defect.get("index")
+        if pid is None and isinstance(index, int) and 0 <= index < len(parts):
+            pid = parts[index]["partition_id"]
+        if pid is None:
+            unattributed.append(defect)
+        else:
+            by_part.setdefault(pid, []).append(defect)
+    failed = [
+        {
+            "partition_id": part["partition_id"],
+            "nodeids": part["nodeids"],
+            "defects": by_part[part["partition_id"]],
+        }
+        for part in parts
+        if part["partition_id"] in by_part
+    ]
+    lost = {nodeid for part in failed for nodeid in part["nodeids"]}
+    return [r for r in rows if r["nodeid"] not in lost], failed, unattributed
+
+
+def check_canary(
+    rows: list[dict], canary: list[dict], unmapped: set[str] | None = None
+) -> tuple[list[dict], dict]:
     """Compare withheld expected classifications with accepted rows."""
     by_id = {row["nodeid"]: row for row in rows}
+    unmapped = unmapped or set()
     defects = []
+    skipped = 0
     for entry in canary:
+        if entry["nodeid"] in unmapped:
+            skipped += 1
+            continue
         row = by_id.get(entry["nodeid"])
         if row is None:
             defects.append(
@@ -165,7 +202,8 @@ def check_canary(rows: list[dict], canary: list[dict]) -> tuple[list[dict], dict
                     nodeid=entry["nodeid"],
                 )
             )
-    return defects, {"checked": len(canary), "passed": len(canary) - len(defects)}
+    passed = len(canary) - len(defects) - skipped
+    return defects, {"checked": len(canary), "passed": passed, "skipped": skipped}
 
 
 def _cell(value: Any) -> str:
@@ -186,6 +224,8 @@ def render_markdown(doc: dict) -> str:
         f"partitions {counts['partitions']}",
         f"- corpus hash `{prov['corpus_hash']}`; "
         f"artifact hash `{prov['artifact_hash']}`",
+        f"- failed partitions {len(doc['failed_partitions'])}, "
+        f"unmapped tests {prov['reconciliation']['failed_rows']}",
         "",
         "## Target × type",
         "",
@@ -213,4 +253,11 @@ def render_markdown(doc: dict) -> str:
             f"| {row['test_type']} | {_cell(row['reqs'])} "
             f"| {_cell(row['description'])} |"
         )
+    if doc["failed_partitions"]:
+        out += ["", "## Failed partitions", "", "| partition | defects | tests |"]
+        out.append("|---|---|---|")
+        for part in doc["failed_partitions"]:
+            kinds = sorted({d["kind"] for d in part["defects"]})
+            tests = ", ".join(f"`{n}`" for n in part["nodeids"])
+            out.append(f"| {_cell(part['partition_id'])} | {_cell(kinds)} | {tests} |")
     return "\n".join(out) + "\n"

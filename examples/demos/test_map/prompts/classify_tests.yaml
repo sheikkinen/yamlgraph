@@ -3,6 +3,8 @@ system: |
 
   Return exactly one record per listed nodeid, copying the nodeid verbatim; no other nodeids.
 
+  The answer is a JSON object whose only key is records; never return a bare array.
+
   description: exactly ONE sentence, single line, ending in one ".", saying what the test verifies, not how it verifies it.
 
   target = the primary artifact under test:

@@ -38,6 +38,8 @@ MAX_PARTITIONS = 900
 MAX_CONCURRENCY = 8
 CALL_TIMEOUT_S = 180
 GRAPH_TIMEOUT_S = 3600
+# Operator amendment: graph map declares min_success = 1 - this rate.
+MAX_FAILED_PARTITION_RATE = 0.05
 
 
 def _sibling(name: str) -> ModuleType:
@@ -179,18 +181,36 @@ def publish_map(state: dict[str, Any] | None = None, **kwargs: Any) -> dict:
 
     run_id = state.get("run_id") or uuid.uuid4().hex
     rows, defects = _reconcile.reconcile(corpus, findings, failures)
+    parts = corpus["partitions"]
+    rows, failed, unattributed = _reconcile.split_failed_partitions(
+        corpus, rows, defects
+    )
+    unmapped = {nodeid for part in failed for nodeid in part["nodeids"]}
+    blocking = list(unattributed)
+    if len(failed) > MAX_FAILED_PARTITION_RATE * len(parts):
+        blocking.append(
+            {
+                "kind": "failure_rate",
+                "detail": f"{len(failed)} of {len(parts)} partitions failed, "
+                f"over {MAX_FAILED_PARTITION_RATE:.0%}",
+            }
+        )
     canary_summary: dict[str, int] = {}
-    if not defects:
+    if not blocking:
         canary_path = Path(state.get("canary_path") or DEMO_DIR / "canary.json")
         canary = json.loads(canary_path.read_text(encoding="utf-8"))
-        canary_defects, canary_summary = _reconcile.check_canary(rows, canary)
-        defects.extend(canary_defects)
-    if defects:
+        canary_defects, canary_summary = _reconcile.check_canary(rows, canary, unmapped)
+        blocking.extend(canary_defects)
+    if blocking:
         _reject(
-            rejected, run_id, corpus, defects, raw_findings=findings, failures=failures
+            rejected,
+            run_id,
+            corpus,
+            defects + [d for d in blocking if d not in defects],
+            raw_findings=findings,
+            failures=failures,
         )
 
-    parts = corpus["partitions"]
     with raw_path.open("w", encoding="utf-8") as handle:
         for finding in sorted(findings, key=lambda f: f["_map_index"]):
             partition = parts[finding["_map_index"]]["partition_id"]
@@ -201,10 +221,16 @@ def publish_map(state: dict[str, Any] | None = None, **kwargs: Any) -> dict:
         "run_id": run_id,
         "artifact_hash": hashlib.sha256(blob.encode()).hexdigest(),
         "calls": {"estimated": len(parts), "actual": len(findings) + len(failures)},
-        "reconciliation": {"rows": len(rows), "failed_rows": 0, "defects": 0},
+        "reconciliation": {
+            "rows": len(rows),
+            "failed_rows": len(unmapped),
+            "failed_partitions": len(failed),
+            "defects": len(defects),
+            "max_failed_partition_rate": MAX_FAILED_PARTITION_RATE,
+        },
         "canary": canary_summary,
     }
-    doc = {"provenance": provenance, "rows": rows}
+    doc = {"provenance": provenance, "rows": rows, "failed_partitions": failed}
     json_path.write_text(json.dumps(doc, indent=2), encoding="utf-8")
     md_path.write_text(_reconcile.render_markdown(doc), encoding="utf-8")
     return {
