@@ -73,7 +73,11 @@ record the choice in the report.
   "{state._map_verdict.judge_items.dispatch}"`, `min_success: 0` — judge
   failures travel inside `paired` as `error` records, the person_profile
   precedent) → `findings` → `reduce_ledger` → `crosstab`. All non-map nodes
-  `on_error: fail`. No brief/synthesis tail.
+  `on_error: fail`. No brief/synthesis tail. Every edge is unconditional:
+  `reduce_ledger` → `crosstab` → END on EVERY run, including a zero-dispatch
+  memo replay. A memoized `row_failed` must make `crosstab` refuse again on
+  replay; no route may end the run before `crosstab` (repair to the first
+  authoring run, which routed replays around the refusal).
 - **ceilings:** `max_items: 10000` on both maps; `config: max_concurrency: 8`
   and a `max_map_items` that admits 10000.
 - The judge prompt must resolve from the sibling directory (corpus_census

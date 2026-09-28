@@ -80,10 +80,16 @@ def _vars(root: Path, **overrides) -> dict:
     return {**state, **overrides}
 
 
-def _run(root: Path, fail: set[str] = frozenset(), answer=None, **overrides):
+def _run(
+    root: Path,
+    fail: set[str] = frozenset(),
+    answer=None,
+    judged: list[str] | None = None,
+    **overrides,
+):
     from yamlgraph.compile.graph_loader import compile_graph, load_graph_config
 
-    judged: list[str] = []
+    judged = [] if judged is None else judged
 
     def fake(**kwargs):
         variables = kwargs["variables"]
@@ -139,8 +145,13 @@ def test_failure_blocks_then_recovers_only_that_item_then_reuses(root):
         _run(root, fail={FAILING})
     assert not (root / "out/crosstab.md").exists()
 
-    _, judged = _run(root)
-    assert judged == []  # the failure is memoized as row_failed
+    # The failure is memoized as row_failed: a replay judges nothing and
+    # still refuses — a cached failure must never end the run silently.
+    judged: list[str] = []
+    with pytest.raises(Exception, match="abstain|row_failed|unresolved"):
+        _run(root, judged=judged)
+    assert judged == []
+    assert not (root / "out/crosstab.md").exists()
 
     _forget(root, [FAILING])
     _, judged = _run(root)
