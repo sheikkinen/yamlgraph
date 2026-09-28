@@ -123,7 +123,7 @@ it current. The prior-art hook does exactly what its output claims.
 One PR, RED then GREEN.
 
 **RED commit** — add `tests/unit/test_fr1134_retirements.py`
-(`@pytest.mark.req("REQ-YG-716")`), failing on the current tree:
+(`@pytest.mark.req("REQ-YG-720")`), failing on the current tree:
 
 - `scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.yaml`,
   `reference/fr-knowledge-graph.md`, `tests/fixtures/fr_graph_validation.yaml`,
@@ -154,8 +154,8 @@ tests and narrows REQ-YG-275.
 4. `scripts/size_gate.py`: remove the `scripts/extract_fr_graph.py` entry.
 5. `test_fr275_test_speed_optimization.py`: delete the 12 tests listed in
    § Problem; keep `test_slow_marker_defined_in_pyproject`.
-6. Add `capabilities/CAP-293-fr-knowledge-graph-retired.yaml`
-   (REQ-YG-716, module `tests/unit/test_fr1134_retirements.py`), following
+6. Add `capabilities/CAP-297-fr-knowledge-graph-retired.yaml`
+   (REQ-YG-720, module `tests/unit/test_fr1134_retirements.py`), following
    CAP-264. Regenerate `ARCHITECTURE.md` with
    `scripts/aggregate_capabilities.py` (removes the CAP-240 section and
    REQ-YG-601..603).
@@ -179,7 +179,7 @@ tests and narrows REQ-YG-275.
   `subprocess` import; REQ-YG-275 text matches the clause table;
   `python scripts/req_coverage.py --strict` passes (REQ-YG-601..603 gone
   from registry and ARCHITECTURE.md).
-- [ ] AC-05: `python scripts/validate_capabilities.py` passes with CAP-293
+- [ ] AC-05: `python scripts/validate_capabilities.py` passes with CAP-297
   present and CAP-240 absent.
 - [ ] AC-06: full `tests/unit` run is green in the PR worktree (no failure
   allowance); summed time of the removed tests recorded here.

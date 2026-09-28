@@ -118,5 +118,7 @@ claim its surviving witness proves, clause table in the FR), R-5 (no
 failure allowance; targeted commands and a green full unit suite; CI
 run IDs recorded), R-6 (human review of the `prior_art.py` diff is a
 GATE before merge). C-2 partly folded: the two retirements keep
-separate requirements (REQ-YG-716 for the graph, REQ-YG-275 for FR-275)
+separate requirements (REQ-YG-720 for the graph, REQ-YG-275 for FR-275)
 and separate witnesses. Not folded: R-1 and C-1 (split), overruled.
+CAP-293/REQ-YG-716 named above were taken on main by FR-1129 (#739)
+before this FR merged; renumbered to CAP-297/REQ-YG-720.

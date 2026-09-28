@@ -597,6 +597,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 289 | CAP-289 Map Memo For File Corpora | `examples/shared/map_memo.py`, `examples/shared/map_memo_split.tool.yaml`, `examples/shared/map_memo_merge.tool.yaml` | REQ-YG-706 |
 | 292 | CAP-292 Census Map Memo With Caller-Supplied Versions | `examples/shared/map_memo.py`, `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/tools.py`, `examples/demos/person_profile_census/graph.yaml` | REQ-YG-709 |
 | 293 | CAP-293 FR Planned Operations Section | `feature-requests/TEMPLATE.md`, `ramp/assets/tier2/feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md`, `tests/unit/test_fr1129_planned_operations.py` | REQ-YG-716 |
+| 297 | CAP-297 FR knowledge graph retired | `tests/unit/test_fr1134_retirements.py` | REQ-YG-720 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3444,6 +3445,16 @@ FR-1129: the FR template replaces the unparsed `**Effort:**` field with a `## Pl
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-716 | `feature-requests/TEMPLATE.md` has no `**Effort:**` line and places `## Planned Operations` directly after `## Ideal Result`, pointing to the feature-request skill; the ramp mirror is byte-identical. The feature-request skill's inline template drops Effort and adds the section; its marked sample is one YAML document with exactly `probes`, `branches`, `delegations`, `waits`, `commands`, each a non-empty list of strings, with no numeric duration; the skill defines the `Planned operation \| Outcome \| Witness` table, the `Unplanned operations` list, and a reconciliation cutoff at enforcement completion that excludes push CI, outsider, review and merge from the plan, its sample and its wait examples. No standalone planning skill exists. | `feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md`, `tests/unit/test_fr1129_planned_operations.py` |
+
+### 297. CAP-297 FR knowledge graph retired
+
+The FR knowledge graph built by FR-814/816/817 (CAP-240) is absent from main. Its committed artifact stopped at FR-819 on 2026-08-18 and nothing regenerated it, so the prior-art hook's cluster boost was a no-op for every later FR. The extractor, artifact, docs, fixtures, tests and the hook's graph code were deleted; the prior-art hook's output for FR ids above FR-819 is unchanged.
+
+**Feature Request:** FR-1134
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-720 | scripts/extract_fr_graph.py, reference/fr-knowledge-graph.yaml, reference/fr-knowledge-graph.md, tests/fixtures/fr_graph_validation.yaml, tests/unit/test_fr_graph.py and CAP-240 are absent, and .github/hooks/scripts/checks/prior_art.py contains no graph loading, lookup, boost or tag code — witnessed by tests/unit/test_fr1134_retirements.py. | `tests/unit/test_fr1134_retirements.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
