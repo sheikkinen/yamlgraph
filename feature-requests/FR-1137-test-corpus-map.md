@@ -2,8 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
-**Effort:** 1–2 days
+**Status:** Judged 2026-09-28 — APPROVED WITH REVISIONS
+([judgement](FR-1137-test-corpus-map.judgement.md)); R-1..R-6 and the Q4
+model/spend decision are not yet folded, and enforcement is gated on
+them (C-1)
 **Requested:** 2026-09-28
 **First consumer / first event:** the operator, at the next test-retirement
 or test-speed decision (live instance: FR-1134 retiring the FR knowledge
@@ -99,6 +101,45 @@ nothing was dropped or invented, every enum value is valid, and a canary of
 known classifications passed. Either artifact alone answers "which tests
 guard `examples/`?" or "which `unit` tests are really integration?" with a
 filter, not a reading session.
+
+## Planned Operations
+
+Added after the judge run (FR-1129 landed on main between the judge run and
+the rebase); the judge did not read this block.
+
+```yaml
+probes:
+  - "AST census of tests/unit + tests/integration at the pinned SHA — sets file, test, and partition counts and the max_map_items ceiling (judge counted 536 files / 6,890 top-level tests at edc1f173)"
+  - "read 10 raw test functions end-to-end before authority (R-1), 3+ with directory-vs-classification mismatch"
+  - "import req_coverage.extract_req_markers from a demo tool — importable without sys.path hacks decides reuse vs blocker"
+  - "largest test file token estimate vs per-payload ceiling — decides chunk split rule"
+  - "census cost: payload count x per-payload tokens x Q4 model price, before any smaller alternative"
+  - "read 10 raw model responses from tmp/test-map/ before any aggregate is quoted (R-1 post-run half)"
+branches:
+  - "partition count over max_map_items → preflight fails; raise declared ceiling in FR, never silent rebatch"
+  - "any failed row, canary miss, or count mismatch → run rejected, no canonical test-map.* written"
+  - "req_coverage extractor not importable as-is → stop; separate FR (C-6 forbids framework/script edits here)"
+  - "token totals needed in JSON → refused; captured from CLI --token-usage into demo-output.log (R-4)"
+  - "graph or prompt write → author.sh route, never manual"
+delegations:
+  - "judge.sh: 1 run done; 1 more if the R-1..R-6 fold is disputed"
+  - "author.sh: 1 run for graph.yaml + map prompt"
+  - "census: smoke on the canary fixture + 10 files, then 1 full-scope run"
+  - "outsider.sh + review.sh: 1 run each on the enforcement PR"
+waits:
+  - "operator Q4 model/spend decision"
+  - "judge"
+  - "full census run"
+  - "PR CI"
+commands:
+  - scripts/judge.sh
+  - scripts/author.sh
+  - yamlgraph graph lint examples/demos/test_map/graph.yaml
+  - yamlgraph graph run examples/demos/test_map/graph.yaml --token-usage
+  - python scripts/req_coverage.py --strict
+  - scripts/outsider.sh
+  - scripts/review.sh
+```
 
 ## Proposed Solution
 
