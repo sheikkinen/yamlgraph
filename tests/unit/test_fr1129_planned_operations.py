@@ -128,3 +128,12 @@ def test_skill_defines_manual_reconciliation_schema() -> None:
     assert UNPLANNED in text
     for witness in ("audit-log", "commit", "CI run", "human decision"):
         assert witness in text, witness
+
+
+@pytest.mark.req("REQ-YG-716")
+def test_skill_defines_reconciliation_cutoff_and_sample_respects_it() -> None:
+    text = SKILL.read_text(encoding="utf-8")
+    assert "**Reconciliation cutoff:**" in text
+    flat = yaml.safe_dump(_sample())
+    for post_cutoff in ("outsider.sh", "review.sh", "merge"):
+        assert post_cutoff not in flat, post_cutoff

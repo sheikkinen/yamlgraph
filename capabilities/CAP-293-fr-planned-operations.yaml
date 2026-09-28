@@ -9,6 +9,7 @@ modules:
   - feature-requests/TEMPLATE.md
   - ramp/assets/tier2/feature-requests/TEMPLATE.md
   - .github/skills/feature-request/SKILL.md
+  - tests/unit/test_fr1129_planned_operations.py
 requirements:
   - id: REQ-YG-716
     description: >
@@ -19,9 +20,12 @@ requirements:
       section; its marked sample is one YAML document with exactly `probes`,
       `branches`, `delegations`, `waits`, `commands`, each a non-empty list
       of strings, with no numeric duration; the skill defines the
-      `Planned operation | Outcome | Witness` table and the `Unplanned
-      operations` list. No standalone planning skill exists.
+      `Planned operation | Outcome | Witness` table, the `Unplanned
+      operations` list, and a reconciliation cutoff at enforcement completion
+      that excludes outsider, review and merge from the plan. No standalone
+      planning skill exists.
     modules:
       - feature-requests/TEMPLATE.md
       - .github/skills/feature-request/SKILL.md
+      - tests/unit/test_fr1129_planned_operations.py
 fr: FR-1129

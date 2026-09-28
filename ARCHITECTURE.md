@@ -596,7 +596,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 286 | CAP-286 Meta-Map Demo | `examples/demos/meta_map/tools.py`, `examples/demos/meta_map/graph.yaml`, `examples/demos/meta_map/subgraphs/summarize_one.yaml` | REQ-YG-703 |
 | 289 | CAP-289 Map Memo For File Corpora | `examples/shared/map_memo.py`, `examples/shared/map_memo_split.tool.yaml`, `examples/shared/map_memo_merge.tool.yaml` | REQ-YG-706 |
 | 292 | CAP-292 Census Map Memo With Caller-Supplied Versions | `examples/shared/map_memo.py`, `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/tools.py`, `examples/demos/person_profile_census/graph.yaml` | REQ-YG-709 |
-| 293 | CAP-293 FR Planned Operations Section | `feature-requests/TEMPLATE.md`, `ramp/assets/tier2/feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md` | REQ-YG-716 |
+| 293 | CAP-293 FR Planned Operations Section | `feature-requests/TEMPLATE.md`, `ramp/assets/tier2/feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md`, `tests/unit/test_fr1129_planned_operations.py` | REQ-YG-716 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3443,7 +3443,7 @@ FR-1129: the FR template replaces the unparsed `**Effort:**` field with a `## Pl
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-716 | `feature-requests/TEMPLATE.md` has no `**Effort:**` line and places `## Planned Operations` directly after `## Ideal Result`, pointing to the feature-request skill; the ramp mirror is byte-identical. The feature-request skill's inline template drops Effort and adds the section; its marked sample is one YAML document with exactly `probes`, `branches`, `delegations`, `waits`, `commands`, each a non-empty list of strings, with no numeric duration; the skill defines the `Planned operation \| Outcome \| Witness` table and the `Unplanned operations` list. No standalone planning skill exists. | `feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md` |
+| REQ-YG-716 | `feature-requests/TEMPLATE.md` has no `**Effort:**` line and places `## Planned Operations` directly after `## Ideal Result`, pointing to the feature-request skill; the ramp mirror is byte-identical. The feature-request skill's inline template drops Effort and adds the section; its marked sample is one YAML document with exactly `probes`, `branches`, `delegations`, `waits`, `commands`, each a non-empty list of strings, with no numeric duration; the skill defines the `Planned operation \| Outcome \| Witness` table, the `Unplanned operations` list, and a reconciliation cutoff at enforcement completion that excludes outsider, review and merge from the plan. No standalone planning skill exists. | `feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md`, `tests/unit/test_fr1129_planned_operations.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
