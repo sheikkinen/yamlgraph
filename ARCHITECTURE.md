@@ -596,6 +596,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 286 | CAP-286 Meta-Map Demo | `examples/demos/meta_map/tools.py`, `examples/demos/meta_map/graph.yaml`, `examples/demos/meta_map/subgraphs/summarize_one.yaml` | REQ-YG-703 |
 | 289 | CAP-289 Map Memo For File Corpora | `examples/shared/map_memo.py`, `examples/shared/map_memo_split.tool.yaml`, `examples/shared/map_memo_merge.tool.yaml` | REQ-YG-706 |
 | 292 | CAP-292 Census Map Memo With Caller-Supplied Versions | `examples/shared/map_memo.py`, `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/tools.py`, `examples/demos/person_profile_census/graph.yaml` | REQ-YG-709 |
+| 293 | CAP-293 FR Planned Operations Section | `feature-requests/TEMPLATE.md`, `ramp/assets/tier2/feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md` | REQ-YG-716 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3433,6 +3434,16 @@ FR-1120: `map_memo_split` accepts caller-supplied `versions` for non-file items;
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-709 | Split with `versions` takes each item's version from a dict whose key set equals the unique non-empty string items, reads no item path, and rejects bad versions, items or `store` with `MapMemoInputError` before any store exists. `gh_authored_prs_versions` returns `{ref: updatedAt}` over discover's population with discover's failure messages and rejects unusable `updatedAt`. `pair_executed` joins bundles and judge outcomes by two exact index covers and emits nothing on malformed attribution; `reduce_pr_ledger` given `merged` writes JSONL byte-identical to its live path. The census re-run makes zero extract and classify calls for unchanged `updatedAt`, one per bumped PR, and re-runs everything when rubric, labels, model or a signature file changes; a missing `memo_store` fails before extraction. | `examples/shared/map_memo.py`, `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/tools.py`, `tests/unit/test_fr1120_map_memo_versions.py`, `tests/unit/test_fr1120_authored_pr_versions.py`, `tests/unit/test_fr1120_census_pair_reduce.py`, `tests/unit/test_fr1120_census_memo_graph.py` |
+
+### 293. CAP-293 FR Planned Operations Section
+
+FR-1129: the FR template replaces the unparsed `**Effort:**` field with a `## Planned Operations` section, and the feature-request skill defines its five-key contract, no-duration rule, marked sample, and manual completion reconciliation schema.
+
+**Feature Request:** FR-1129
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-716 | `feature-requests/TEMPLATE.md` has no `**Effort:**` line and places `## Planned Operations` directly after `## Ideal Result`, pointing to the feature-request skill; the ramp mirror is byte-identical. The feature-request skill's inline template drops Effort and adds the section; its marked sample is one YAML document with exactly `probes`, `branches`, `delegations`, `waits`, `commands`, each a non-empty list of strings, with no numeric duration; the skill defines the `Planned operation \| Outcome \| Witness` table and the `Unplanned operations` list. No standalone planning skill exists. | `feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md` |
 
 <!-- END GENERATED CAPABILITIES -->
 
