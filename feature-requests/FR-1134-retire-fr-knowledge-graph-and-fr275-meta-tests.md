@@ -167,18 +167,25 @@ tests and narrows REQ-YG-275.
 
 ## Acceptance Criteria
 
-- [x] AC-01: RED commit contains only the new witness test and fails on the
-  parent tree; GREEN commit makes it pass.
+- [ ] AC-01: RED commit contains only the new witness test and fails on the
+  parent tree; GREEN commit makes it pass. **Not met as worded** (review
+  P5): RED `4ad51d6b` also carries the characterization test, CAP-297 and
+  the regenerated ARCHITECTURE.md (the `req-coverage-strict` hook refuses a
+  tagged test whose REQ is unregistered), plus the rebase renumber of the
+  FR and judgement. The witness fails on the parent (10 failed) and passes
+  after GREEN.
 - [x] AC-02: the six paths are absent; `git grep -e extract_fr_graph -e fr-knowledge-graph`
   outside `feature-requests/`, `docs/`, `changelog/` returns only the
   retirement records (`ARCHITECTURE.md` retired section,
   `capabilities/CAP-297-fr-knowledge-graph-retired.yaml`,
   `tests/unit/test_fr1134_retirements.py`) and the historical
   `CHANGELOG.md`.
-- [x] AC-03: `test_fr1134_prior_art_output.py` passes on the RED parent
+- [ ] AC-03: `test_fr1134_prior_art_output.py` passes on the RED parent
   and after GREEN, unchanged; `.github/hooks/tests/` passes; a
   before/after run of `build_prior_art` over every real FR file above
-  FR-819 gives identical output (count recorded here).
+  FR-819 gives identical output (count recorded here). **Open**: the
+  hook suite has 1 failure (see Implementation Status); the other clauses
+  are met.
 - [x] AC-04: `test_fr275_test_speed_optimization.py` has one test and no
   `subprocess` import; REQ-YG-275 text matches the clause table;
   `python scripts/req_coverage.py --strict` passes (REQ-YG-601..603 gone
@@ -187,9 +194,10 @@ tests and narrows REQ-YG-275.
   present and CAP-240 absent.
 - [x] AC-06: full `tests/unit` run is green in the PR worktree (no failure
   allowance); summed time of the removed tests recorded here.
-- [ ] AC-07: CI run ID, head SHA, Python version, conclusion and duration
+- [x] AC-07: CI run ID, head SHA, Python version, conclusion and duration
   of `test (3.11)` and `test (3.14)` on this PR recorded here next to the
-  366–592 s baseline.
+  366–592 s baseline. Run `36431621179`, head `8a20bac2`: `test (3.11)`
+  success 427 s, `test (3.14)` success 328 s.
 - [ ] AC-08: a human reviews the `prior_art.py` and hook-test diff before
   merge (GATE, R-6).
 - [x] Changelog fragment (`type: removal`) in `changelog/unreleased/`.
