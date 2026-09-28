@@ -1,0 +1,37 @@
+[
+  {
+    "nodeid": "tests/unit/test_expression_language.py::TestPathResolution::test_single_key",
+    "target": "core",
+    "test_type": "unit"
+  },
+  {
+    "nodeid": "tests/unit/test_graph_linter.py::TestLintModels::test_lint_issue_creation",
+    "target": "linter",
+    "test_type": "unit"
+  },
+  {
+    "nodeid": "tests/unit/test_census_brief_model_selection.py::test_no_override_returns_the_base_pair",
+    "target": "examples",
+    "test_type": "unit"
+  },
+  {
+    "nodeid": "tests/unit/test_dependency_rationale.py::TestParsePyprojectDependencies::test_extracts_core_dependencies",
+    "target": "scripts",
+    "test_type": "unit"
+  },
+  {
+    "nodeid": "tests/unit/test_branch_protection_docs.py::TestBreakGlassDocumentation::test_break_glass_contains_emergency_procedure",
+    "target": "docs",
+    "test_type": "unit"
+  },
+  {
+    "nodeid": "tests/unit/test_commitlint_workflow.py::TestWorkflowTrigger::test_triggers_on_pull_request",
+    "target": "other",
+    "test_type": "unit"
+  },
+  {
+    "nodeid": "tests/unit/test_salvage_classify.py::test_graph_lints_clean",
+    "target": "linter",
+    "test_type": "integration"
+  }
+]

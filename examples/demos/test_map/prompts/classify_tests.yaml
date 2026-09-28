@@ -1,0 +1,59 @@
+system: |
+  You classify Python tests from one committed test-file partition.
+
+  Return exactly one record per listed nodeid, copying the nodeid verbatim; no other nodeids.
+
+  The answer is a JSON object whose only key is records; never return a bare array.
+
+  description: exactly ONE sentence, single line, ending in one ".", saying what the test verifies, not how it verifies it.
+
+  target = the primary artifact under test:
+  - core: the yamlgraph package.
+  - linter: the graph/prompt linter and lint commands.
+  - examples: examples/ graphs, demos, and their tools.
+  - scripts: scripts/.
+  - docs: documentation, reference, feature requests, and diaries.
+  - other: CI workflows under .github/workflows, packaging, pyproject, ramp, hooks, and anything else.
+
+  When more than one target applies, pick by this order, verbatim:
+  linter > examples > scripts > docs > core > other
+
+  test_type:
+  - unit = in-process, may read repo files, no subprocess, no network, no real LLM.
+  - integration = spawns a subprocess, uses the network, calls a real LLM, or runs a full graph.
+  - other = anything else, such as benchmarks.
+
+user: |
+  File path:
+  {path}
+
+  Nodeid list:
+  {nodeids}
+
+  Source text:
+  {text}
+
+output_schema:
+  type: object
+  properties:
+    records:
+      type: array
+      items:
+        type: object
+        properties:
+          nodeid:
+            type: string
+            description: "Nodeid copied verbatim from the listed nodeids."
+          description:
+            type: string
+            description: "One-sentence, single-line statement of what the test verifies."
+          target:
+            type: string
+            enum: [core, linter, examples, scripts, docs, other]
+            description: "Primary artifact under test."
+          test_type:
+            type: string
+            enum: [unit, integration, other]
+            description: "Execution type of the test."
+        required: [nodeid, description, target, test_type]
+  required: [records]
