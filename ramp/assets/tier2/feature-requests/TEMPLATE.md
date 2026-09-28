@@ -3,7 +3,6 @@
 **Priority:** LOW | MEDIUM | HIGH
 **Type:** Feature | Bug | Enhancement
 **Status:** Proposed
-**Effort:** X days
 **Requested:** YYYY-MM-DD
 **First consumer / first event:** who uses this first, and at what
 concrete moment? An FR that cannot complete this sentence is
@@ -61,6 +60,13 @@ What problem does this solve? Why is it needed?
 State the ideal end state in one paragraph (`ideal_result_backwards`,
 FR-746). The Proposed Solution below must read as the minimal path
 back from it — a solution that outgrows its ideal is scope creep.
+
+## Planned Operations
+
+One fenced YAML block with `probes`, `branches`, `delegations`, `waits`,
+`commands` — the work, never its duration. Contract, sample, and the
+completion reconciliation table: `.github/skills/feature-request/SKILL.md`
+(FR-1129).
 
 ## Proposed Solution
 

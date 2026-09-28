@@ -1,0 +1,31 @@
+id: CAP-293
+name: FR Planned Operations Section
+description: >
+  FR-1129: the FR template replaces the unparsed `**Effort:**` field with a
+  `## Planned Operations` section, and the feature-request skill defines its
+  five-key contract, no-duration rule, marked sample, and manual completion
+  reconciliation schema.
+modules:
+  - feature-requests/TEMPLATE.md
+  - ramp/assets/tier2/feature-requests/TEMPLATE.md
+  - .github/skills/feature-request/SKILL.md
+  - tests/unit/test_fr1129_planned_operations.py
+requirements:
+  - id: REQ-YG-716
+    description: >
+      `feature-requests/TEMPLATE.md` has no `**Effort:**` line and places
+      `## Planned Operations` directly after `## Ideal Result`, pointing to
+      the feature-request skill; the ramp mirror is byte-identical. The
+      feature-request skill's inline template drops Effort and adds the
+      section; its marked sample is one YAML document with exactly `probes`,
+      `branches`, `delegations`, `waits`, `commands`, each a non-empty list
+      of strings, with no numeric duration; the skill defines the
+      `Planned operation | Outcome | Witness` table, the `Unplanned
+      operations` list, and a reconciliation cutoff at enforcement completion
+      that excludes push CI, outsider, review and merge from the plan, its
+      sample and its wait examples. No standalone planning skill exists.
+    modules:
+      - feature-requests/TEMPLATE.md
+      - .github/skills/feature-request/SKILL.md
+      - tests/unit/test_fr1129_planned_operations.py
+fr: FR-1129
