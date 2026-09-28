@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Implemented (2026-09-27) — yamlgraph #732 (`2b62085e`), digest #6 (`9594d910`); production witness pending the first ranker-invoking scheduled run (see [Implementation record](#implementation-record))
+**Status:** Implemented (2026-09-27) — yamlgraph #732 (`2b62085e`), released in 0.6.2; digest #6 (`9594d910`); production witness run 36375149984 (2026-09-28, 7 stories) (see [Implementation record](#implementation-record))
 **Effort:** 2.5 days (framework and parity 1 day; linter extraction 0.5 day; nine ledger rows across six briefs plus the external digest 1 day)
 **Requested:** 2026-09-27
 **First consumer / first event:** `sheikkinen/yamlgraph-daily-digest` at
@@ -478,3 +478,14 @@ deepseek.
   scan). The model's first theme, "Schema Validation and Type Safety …
   preventing silent failures and empty results in constrained decoding",
   is this FR describing itself.
+
+### Production witness recorded (2026-09-28)
+
+Manual `workflow_dispatch` run [36375149984](https://github.com/sheikkinen/yamlgraph-daily-digest/actions/runs/36375149984),
+2026-09-28 03:49Z, digest `main` at `9594d91` (after #6), yamlgraph
+**0.6.2** from PyPI: 32 new articles filtered, `Analysed 32 of 32 - 0
+skipped`, `Node rank_stories completed successfully`, bulletin archived
+as `digests/2026-09-28.md` with **7 stories**, mail sent, commit
+`09527c2` pushed. First bulletin since 2026-09-18. Outcome 1 of the
+three-way invariant; the ranker was invoked with articles and returned a
+non-zero story count.
