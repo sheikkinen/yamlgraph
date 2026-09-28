@@ -79,10 +79,10 @@ Rules:
 
 - **No numeric duration** — no number followed by a millisecond-through-year
   unit or its abbreviation. Counts ("10 raw issues", "1 run") and named
-  waits ("CI", "human merge decision") are the substance.
-- **Reference the standard pipeline, don't retype it** — list the
-  research/judge/review runs only as delegations with counts; spend the
-  lines on what is specific to this FR.
+  waits ("judge", "full census run") are the substance.
+- **Reference the standard pipeline, don't retype it** — list research
+  and judge runs only as delegations with counts; spend the lines on what
+  is specific to this FR.
 - **Write it before the judge run** — the judge reads it; writing it
   first is what surfaces blockers (a governed prompt, an API cap, a
   census cost estimate due first).

@@ -51,7 +51,7 @@ completion.
 
 `feature-requests/TEMPLATE.md` forces `**Effort:** X days` on every FR;
 nothing in `scripts/`, `yamlgraph/`, `.github/hooks/` or `tests/` parses
-it. Committed measurement ([FR-1129-evidence.md](FR-1129-evidence.md) §1,
+it (evidence §3). Committed measurement ([FR-1129-evidence.md](FR-1129-evidence.md) §1,
 92 FRs numbered 900+): estimate vs. commit-activity correlation 0.09;
 active/estimate ratio median 0.24; 40 of 92 estimates are exactly
 "0.5 day". Wall-clock span is dominated by waits no estimate names.
@@ -195,7 +195,7 @@ decision.
 
 | Planned operation | Outcome (ran / did not run / changed) | Witness |
 |---|---|---|
-| probe: code parsing `Effort:` | ran — none found | `FR-1129-evidence.md`; no diff outside template/skill |
+| probe: code parsing `Effort:` | ran — no reader found | `FR-1129-evidence.md` §3: scoped `git grep` command and verbatim output (a fixture's data line, an unrelated class name) |
 | probe: ramp `mirror_exact` | ran — mirror required | `test_ramp_installer.py` passes on GREEN commit `03a0c354` |
 | probe: free CAP/REQ ids | ran — CAP-293 / REQ-YG-716 | RED commit `a7f674e5` |
 | branch: automated reconciler | ran — deferred by judgement R-2 | `FR-1129-planning-skill.judgement.md` |
@@ -212,7 +212,8 @@ decision.
 - witness-test extractor fix (see Deviations)
 - `test_no_duplicate_fr_numbers` refused `FR-1129.evidence.md`; renamed to the accepted sibling slug `FR-1129-evidence.md` (GREEN commit `03a0c354`)
 - PR body glossary edit after the outsider report (PR #739 edit history)
-- review round 1 refused pending D-8 rows (commit `48252248` filled them); review round 2 refused the self-referential review/merge rows and CAP-293's missing test ownership — fixed by the reconciliation cutoff (RED `d9a61ba4`, GREEN next commit)
+- review round 1 refused pending D-8 rows (commit `48252248` filled them); review round 2 refused the self-referential review/merge rows and CAP-293's missing test ownership — fixed by the reconciliation cutoff (RED `d9a61ba4`, GREEN `30eb37a2`)
+- review round 3 refused CI/merge wait examples in the skill rules and an unsupported parser-probe witness — cutoff extended to push CI and wait examples (RED `ea76ecdd`, GREEN next commit), probe recorded as evidence §3
 
 ## Related
 

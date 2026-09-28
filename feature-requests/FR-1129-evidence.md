@@ -97,3 +97,24 @@ runSubagent 61
 
 Session/event totals (143 sessions, 65,192 events) from counting distinct
 `session_id` values over the same file.
+
+## 3. Does any code read `Effort`? (parser probe)
+
+Run in the FR-1129 worktree at `ea76ecdd`, excluding the FR-1129 witness
+test:
+
+```bash
+git grep -nE 'Effort' -- scripts yamlgraph .github/hooks tests ':!tests/unit/test_fr1129_planned_operations.py'
+```
+
+Output, verbatim:
+
+```text
+tests/fixtures/fr890/FR-998-fixture-missing-research.md:6:**Effort:** 0.5 days
+tests/unit/test_fr735_webllm_evidence.py:95:class TestGpuInfoBestEffort:
+```
+
+Neither hit reads the field. The first is a fixture FR that contains the
+line as data; the FR-890 gate it feeds checks `**Research:**`. The second
+is an unrelated class name. Removing `**Effort:**` from the template
+therefore needs no code change.
