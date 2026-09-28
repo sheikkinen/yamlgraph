@@ -199,7 +199,10 @@ tests and narrows REQ-YG-275.
   366–592 s baseline. Run `36431621179`, head `8a20bac2`: `test (3.11)`
   success 427 s, `test (3.14)` success 328 s.
 - [ ] AC-08: a human reviews the `prior_art.py` and hook-test diff before
-  merge (GATE, R-6).
+  merge (GATE, R-6). **Waived by operator override (2026-09-28, review
+  P4):** "overruled. i am not reviewing anything." No human review took
+  place; the evidence left for merge is the characterization test and
+  the 243-file byte-identical comparison (AC-03).
 - [x] Changelog fragment (`type: removal`) in `changelog/unreleased/`.
 
 ## Implementation Status
