@@ -349,7 +349,9 @@ def test_graph_map_uses_default_model_and_frozen_ceilings() -> None:
     assert "provider" not in sub and "model" not in sub
     assert sub["temperature"] == tools.TEMPERATURE
     assert sub["timeout"] == tools.CALL_TIMEOUT_S
-    assert sub["on_error"] == "skip"
+    assert sub["on_error"] == "retry"
+    assert sub["max_retries"] >= 1
+    assert node["min_success"] == pytest.approx(1 - tools.MAX_FAILED_PARTITION_RATE)
     assert node["max_items"] == tools.MAX_PARTITIONS
     config = graph["config"]
     assert config["max_map_items"] == tools.MAX_PARTITIONS
@@ -469,6 +471,115 @@ def test_runtime_map_failure_objects_still_write_the_rejection_report(
     report = json.loads((out / "test-map-rejected.json").read_text(encoding="utf-8"))
     assert report["failures"][0]["message"] == "provider timeout"
     assert "map_error" in {d["kind"] for d in report["defects"]}
+
+
+# --- Operator amendment: at most 5% of partitions may fail ------------------
+
+
+@pytest.fixture
+def wide_repo(tmp_path: Path) -> Path:
+    files = {
+        f"tests/unit/test_w{i:02d}.py": f"def test_w{i:02d}():\n    assert 1\n"
+        for i in range(20)
+    }
+    return _repo(tmp_path, files)
+
+
+def _fail_partition(kind: str, findings: list, failures: list, index: int) -> None:
+    if kind == "map_error":
+        findings[:] = [f for f in findings if f["_map_index"] != index]
+        failures.append(
+            {
+                "map": "classify",
+                "dispatch": "d1",
+                "index": index,
+                "error_type": "ValidationError",
+                "message": "Input should be an object",
+                "node": "_map_classify_sub",
+                "tolerated": False,
+            }
+        )
+    else:
+        findings[index]["records"][0]["description"] = "Two. Sentences."
+
+
+@pytest.mark.req("REQ-YG-723")
+@pytest.mark.parametrize("kind", ["map_error", "bad_description"])
+def test_failed_partitions_within_rate_are_listed_not_hidden(
+    wide_repo: Path, tmp_path: Path, kind: str
+) -> None:
+    corpus = _freeze(wide_repo)
+    assert len(corpus["partitions"]) == 20
+    findings, failures = _good_findings(corpus), []
+    _fail_partition(kind, findings, failures, 3)
+    state = _publish_state(tmp_path, corpus, findings, findings_failures=failures)
+    tools.publish_map(state)
+    doc = json.loads(Path(state["json_path"]).read_text(encoding="utf-8"))
+    lost = corpus["partitions"][3]
+    assert [f["partition_id"] for f in doc["failed_partitions"]] == [
+        lost["partition_id"]
+    ]
+    assert doc["failed_partitions"][0]["nodeids"] == lost["nodeids"]
+    assert kind in {d["kind"] for d in doc["failed_partitions"][0]["defects"]}
+    assert lost["nodeids"][0] not in {row["nodeid"] for row in doc["rows"]}
+    assert len(doc["rows"]) == 19
+    recon = doc["provenance"]["reconciliation"]
+    assert (recon["failed_partitions"], recon["failed_rows"]) == (1, 1)
+    markdown = Path(state["md_path"]).read_text(encoding="utf-8")
+    assert "## Failed partitions" in markdown
+    assert f"`{lost['nodeids'][0]}`" in markdown
+
+
+@pytest.mark.req("REQ-YG-723")
+def test_failure_rate_over_limit_rejects(wide_repo: Path, tmp_path: Path) -> None:
+    corpus = _freeze(wide_repo)
+    findings, failures = _good_findings(corpus), []
+    _fail_partition("map_error", findings, failures, 3)
+    _fail_partition("bad_description", findings, failures, 7)
+    state = _publish_state(tmp_path, corpus, findings, findings_failures=failures)
+    with pytest.raises(RuntimeError, match="rejected"):
+        tools.publish_map(state)
+    assert not Path(state["json_path"]).exists()
+    out = Path(state["json_path"]).parent
+    report = json.loads((out / "test-map-rejected.json").read_text(encoding="utf-8"))
+    assert "failure_rate" in {d["kind"] for d in report["defects"]}
+
+
+@pytest.mark.req("REQ-YG-723")
+def test_unattributed_defect_rejects_under_the_rate(
+    wide_repo: Path, tmp_path: Path
+) -> None:
+    corpus = _freeze(wide_repo)
+    findings = _good_findings(corpus)
+    findings.append(dict(findings[0]))
+    state = _publish_state(tmp_path, corpus, findings)
+    with pytest.raises(RuntimeError, match="rejected"):
+        tools.publish_map(state)
+
+
+@pytest.mark.req("REQ-YG-723")
+def test_canary_in_failed_partition_is_skipped_not_passed(
+    wide_repo: Path, tmp_path: Path
+) -> None:
+    corpus = _freeze(wide_repo)
+    findings, failures = _good_findings(corpus), []
+    _fail_partition("map_error", findings, failures, 3)
+    canary = _canary(
+        tmp_path,
+        [
+            {"nodeid": nid, "target": "core", "test_type": "unit"}
+            for nid in (
+                corpus["partitions"][3]["nodeids"][0],
+                corpus["partitions"][4]["nodeids"][0],
+            )
+        ],
+    )
+    state = _publish_state(
+        tmp_path, corpus, findings, findings_failures=failures, canary_path=canary
+    )
+    tools.publish_map(state)
+    doc = json.loads(Path(state["json_path"]).read_text(encoding="utf-8"))
+    assert doc["provenance"]["canary"] == {"checked": 2, "passed": 1, "skipped": 1}
 
 
 @pytest.mark.req("REQ-YG-723")
@@ -674,8 +785,15 @@ def test_accepted_provenance_is_complete(small_repo: Path, tmp_path: Path) -> No
     rows_blob = json.dumps(doc["rows"], sort_keys=True, separators=(",", ":"))
     assert prov["artifact_hash"] == hashlib.sha256(rows_blob.encode()).hexdigest()
     assert prov["calls"] == {"estimated": 2, "actual": 2}
-    assert prov["reconciliation"] == {"rows": 4, "failed_rows": 0, "defects": 0}
-    assert prov["canary"] == {"checked": 1, "passed": 1}
+    assert prov["reconciliation"] == {
+        "rows": 4,
+        "failed_rows": 0,
+        "failed_partitions": 0,
+        "defects": 0,
+        "max_failed_partition_rate": tools.MAX_FAILED_PARTITION_RATE,
+    }
+    assert prov["canary"] == {"checked": 1, "passed": 1, "skipped": 0}
+    assert doc["failed_partitions"] == []
     assert result["artifact_hash"] == prov["artifact_hash"]
     assert [row["nodeid"] for row in doc["rows"]] == [
         row["nodeid"] for row in corpus["rows"]
