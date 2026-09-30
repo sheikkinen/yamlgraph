@@ -2,9 +2,10 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Implemented (PR pending review) — judged 2026-09-30 APPROVED WITH
-REVISIONS; R-1..R-3 folded (see [Judgement fold](#judgement-fold-2026-09-30));
-see [Implementation status](#implementation-status-2026-09-30)
+**Status:** Implemented — merged #747 (`ac721d79`); judged 2026-09-30 APPROVED
+WITH REVISIONS; R-1..R-3 folded (see [Judgement fold](#judgement-fold-2026-09-30));
+see [Implementation status](#implementation-status-2026-09-30) and
+[Live A/B test bed](#live-ab-test-bed-2026-09-30)
 **Capability:** CAP-301 / REQ-YG-724
 **Requested:** 2026-09-30
 **First consumer / first event:** csap (customer-service-agent-platform, the
@@ -195,6 +196,35 @@ Decisions and deviations:
 - The RED commit used `SKIP=pytest` per Commandment 7; every other hook ran.
 - No other deviation. `create_llm`, provider factories, schema and linter
   are untouched (C-4).
+
+## Live A/B test bed (2026-09-30)
+
+The unit witnesses stop at the provider factory. After merge, two arms of the
+`image-that-speaks` demo were authored via `scripts/author.sh`
+(brief: `feature-requests/authoring-briefs/fr-1144-race-thinking-ab-brief.md`):
+`examples/demos/image-that-speaks/FR-1144-Thinking.yaml` (budget unset) and
+`FR-1144-No-Thinking.yaml` (`thinking_budget: 0`). Both race vertex
+`gemini-3.5-flash` against azure `aaa-gpt-5.4-mini`; the demo's original
+google/openai pair failed with `API_KEY_INVALID`. Gemini 3.5 answers only at
+`GOOGLE_CLOUD_LOCATION=global` (404 at `europe-north1`).
+
+Direct probe, one call per row, `temperature=0.0`:
+
+| Candidate | budget | Latency | Reasoning tokens |
+|---|---|---|---|
+| vertex/gemini-3.5-flash @ global | unset | 3.7 s | 203 |
+| vertex/gemini-3.5-flash @ global | 0 | 2.4 s | none |
+| vertex/gemini-2.5-flash @ europe-north1 | unset | 2.8 s | 221 |
+| vertex/gemini-2.5-flash @ europe-north1 | 0 | 1.2 s | none |
+| azure/aaa-gpt-5.4-mini | unset / 0 | 1.9 / 0.9 s | 0 / 0 |
+
+Six interleaved live runs (3 per arm) all exited 0 with no candidate failure,
+and azure won every race. Race-node time (winner latency) was 5.84/5.39/4.36 s
+Thinking vs 4.47/4.73/4.07 s No-Thinking; that is azure's latency, which the
+budget does not affect, so the gap is noise. The race cancels the loser, and
+with `LANGSMITH_TRACING=false` the Gemini call's own latency is not recorded.
+The test bed proves both arms run on real providers; measuring Gemini's
+in-race effect needs tracing on.
 
 ## Alternatives Considered
 
