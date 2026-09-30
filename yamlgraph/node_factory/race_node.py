@@ -187,7 +187,7 @@ async def _invoke_candidate_async(
 
 
 def _build_candidate_llms(
-    candidates: list[dict], temperature: float
+    candidates: list[dict], temperature: float, thinking_budget: int | None
 ) -> tuple[list[tuple[dict, Any]], list[tuple[dict, Exception]]]:
     """Construct candidate clients on the CALLER thread (FR-713 F6).
 
@@ -204,6 +204,7 @@ def _build_candidate_llms(
                 temperature=temperature,
                 provider=candidate.get("provider"),
                 model=candidate.get("model"),
+                thinking_budget=thinking_budget,
             )
         except Exception as exc:
             logger.warning(
@@ -343,6 +344,8 @@ def create_race_node(
     temperature = node_config.get("temperature")
     if temperature is None:
         temperature = defaults.get("temperature", 0.7)
+    if (budget := node_config.get("thinking_budget")) is None:
+        budget = defaults.get("thinking_budget")
     on_error = node_config.get("on_error")
     variable_templates = node_config.get("variables", {})
     parse_json = node_config.get("parse_json", False)
@@ -393,7 +396,7 @@ def create_race_node(
         try:
             # FR-713 F6: construct clients on the caller thread, never on
             # the shared bridge loop.
-            armed, pre_errors = _build_candidate_llms(candidates, temperature)
+            armed, pre_errors = _build_candidate_llms(candidates, temperature, budget)
             winner_candidate, result = _run_coro_sync_safe(
                 _race_async(
                     armed,

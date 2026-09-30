@@ -633,3 +633,63 @@ class TestRouterRaceStateBuilder:
         fields = extract_node_fields(nodes)
         assert "_race_winner" in fields
         assert "_route" in fields
+
+
+# =============================================================================
+# FR-1144 AC-04: router-race candidates honour thinking_budget
+# =============================================================================
+
+
+class TestRouterRaceThinkingBudget:
+    @pytest.mark.req("REQ-YG-724")
+    @pytest.mark.parametrize(
+        ("node_extra", "defaults", "expected"),
+        [
+            ({"thinking_budget": 0}, {}, 0),
+            ({}, {"thinking_budget": 512}, 512),
+            ({}, {}, None),
+            ({"thinking_budget": 0}, {"thinking_budget": 2048}, 0),
+        ],
+        ids=["node-zero", "defaults", "unset", "node-zero-overrides-default"],
+    )
+    @patch("yamlgraph.node_factory.router_race_node.prepare_messages")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    def test_resolved_budget_reaches_every_candidate(
+        self,
+        mock_create_llm,
+        mock_prepare,
+        sample_state,
+        node_extra,
+        defaults,
+        expected,
+    ):
+        from yamlgraph.node_factory.llm_nodes import create_node_function
+
+        mock_prepare.return_value = ([MagicMock()], "vertex", None)
+        mock_create_llm.side_effect = [
+            _make_mock_llm('{"intent": "a"}'),
+            _make_mock_llm('{"intent": "b"}', delay=0.2),
+        ]
+        node_config = {
+            "type": "router",
+            "prompt": "classify",
+            "parse_json": True,
+            "route_field": "intent",
+            "routes": {"a": "node_a", "b": "node_b"},
+            "default_route": "node_a",
+            "state_key": "intent",
+            "candidates": [
+                {"provider": "vertex", "model": "gemini-2.5-flash"},
+                {"provider": "azure", "model": "aaa-gpt-5.4-mini"},
+            ],
+            **node_extra,
+        }
+
+        node_fn = create_node_function("classify", node_config, defaults)
+        result = node_fn(sample_state)
+
+        assert result["_route"] == "node_a"
+        assert [
+            c.kwargs.get("thinking_budget", "MISSING")
+            for c in mock_create_llm.call_args_list
+        ] == [expected, expected]

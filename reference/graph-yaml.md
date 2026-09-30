@@ -1029,6 +1029,7 @@ nodes:
 | `prompt` | `string` | Yes | Prompt template name |
 | `state_key` | `string` | Yes | State key for the winning response |
 | `temperature` | `float` | No | LLM temperature for all candidates |
+| `thinking_budget` | `int` | No | Thinking budget shared by all candidates (FR-1144). Resolves node value → `defaults.thinking_budget` → `None`, like `llm` nodes; an explicit `0` overrides a default. Thinking providers (`anthropic`, `google`, `vertex`) apply it; other providers never receive it. Router nodes with `candidates:` resolve it the same way |
 | `parse_json` | `bool` | No | Extract JSON from LLM response (default: false) |
 
 **How it works:**
