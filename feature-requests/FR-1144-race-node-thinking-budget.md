@@ -2,7 +2,9 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Approved — judged 2026-09-30 APPROVED WITH REVISIONS; R-1..R-3
+folded (see [Judgement fold](#judgement-fold-2026-09-30))
+**Capability:** CAP-301 / REQ-YG-724
 **Requested:** 2026-09-30
 **First consumer / first event:** csap (customer-service-agent-platform, the
 healthcare voicebot that pins yamlgraph `==0.5.25`). Its `flex_navigator`
@@ -99,6 +101,7 @@ commands:
   - scripts/judge.sh
   - pytest tests/unit/test_race_node.py tests/unit/test_router_race.py -q --no-cov
   - pytest tests/unit/ -q --no-cov -m "not slow" -n auto
+  - python scripts/req_coverage.py --strict
 ```
 
 ## Proposed Solution
@@ -135,21 +138,31 @@ nodes:
 There is no new field. The race node already accepts `thinking_budget`, and
 this change makes it take effect.
 
+## Judgement fold (2026-09-30)
+
+| Revision | Disposition |
+|---|---|
+| R-1 traceability | **Folded.** New `capabilities/CAP-301-race-node-thinking-budget.yaml` owning REQ-YG-724 (both IDs checked free on `origin/main` and all remote branches at fold time; re-check at push). AC-07/AC-08. |
+| R-2 witnesses on both call paths | **Folded.** Direct race in `tests/unit/test_race_node.py`, router-race in `tests/unit/test_router_race.py`. AC-04/AC-07. |
+| R-3 forwarding vs provider dispatch | **Folded.** AC-5 split into AC-05 (both `create_llm` calls get `0`) and AC-06 (Vertex factory gets `thinking_budget=0`, Azure factory called without it). No provider change authorized. |
+
+Linter coverage: the judge did not ask for it and C-4 forbids it; stays out of scope.
+
 ## Acceptance Criteria
 
-- [ ] AC-1: A race node with `thinking_budget: 0` calls `create_llm` with
-  `thinking_budget=0` for every candidate.
-- [ ] AC-2: A race node without `thinking_budget` uses the graph `defaults`
-  value. If neither is set, it passes `None`, which is today's behaviour.
-- [ ] AC-3: A node-level value overrides `defaults`.
-- [ ] AC-4: A router node with race `candidates` (FR-272) meets AC-1 to AC-3.
-- [ ] AC-5: A race with `thinking_budget: 0` that mixes a `vertex` candidate
-  and an `azure` candidate builds both candidates without error. The value
-  reaches the `vertex` constructor and is not sent to `azure`.
-- [ ] Tests added (RED first) in `tests/unit/test_race_node.py`.
-- [ ] `reference/graph-yaml.md` race properties table gains a
-  `thinking_budget` row that says it resolves node → `defaults`, like `llm`.
-- [ ] Changelog fragment.
+- [ ] AC-01: A direct `type: race` node with node-level `thinking_budget: 0` calls `create_llm(..., thinking_budget=0)` once for every candidate.
+- [ ] AC-02: A direct race node with no node-level value uses `defaults.thinking_budget`; when both are absent, every candidate call receives `thinking_budget=None`.
+- [ ] AC-03: For a direct race node, a node-level value, including explicit `0`, overrides a different graph default.
+- [ ] AC-04: A router node with race `candidates` satisfies AC-01 through AC-03 through its `LLMNodeConfig.thinking_budget` value.
+- [ ] AC-05: A mixed Vertex/Azure race with `thinking_budget: 0` constructs both candidates and forwards `0` to both `create_llm` calls.
+- [ ] AC-06: A provider-dispatch witness proves that Vertex's factory receives `thinking_budget=0` and Azure's factory is called without a `thinking_budget` argument; existing provider semantics remain unchanged.
+- [ ] AC-07: RED tests precede GREEN implementation in git history; direct-race tests live in `tests/unit/test_race_node.py`, router-race tests live in `tests/unit/test_router_race.py`, and every new test carries `@pytest.mark.req("REQ-YG-724")`.
+- [ ] AC-08: `capabilities/CAP-301-race-node-thinking-budget.yaml` defines REQ-YG-724 with direct-race and router-race resolution/forwarding contracts, `ARCHITECTURE.md` registers both, and `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-09: `reference/graph-yaml.md` adds `thinking_budget` to the race properties table and states node value → graph default → `None`, shared across all candidates.
+- [ ] AC-10: `pytest tests/unit/test_race_node.py tests/unit/test_router_race.py -q --no-cov` passes.
+- [ ] AC-11: `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` passes.
+- [ ] AC-12: A `changelog/unreleased/` fragment has `type: fix`, identifies FR-1144 and REQ-YG-724, and describes race and router-race behavior.
+- [ ] AC-13: The FR records the folded judgement revisions and, after enforcement, implementation status plus any deviations.
 
 ## Alternatives Considered
 
@@ -173,4 +186,4 @@ this change makes it take effect.
 ## Out of Scope (named, not forgotten)
 
 - Azure/OpenAI `reasoning_effort` control (see the table above).
-- Linter coverage for race-node `thinking_budget`, unless the judge asks for it.
+- Linter coverage for race-node `thinking_budget` (not requested by the judge; C-4).
