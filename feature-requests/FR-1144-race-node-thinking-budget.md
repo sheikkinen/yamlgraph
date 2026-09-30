@@ -2,8 +2,9 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved — judged 2026-09-30 APPROVED WITH REVISIONS; R-1..R-3
-folded (see [Judgement fold](#judgement-fold-2026-09-30))
+**Status:** Implemented (PR pending review) — judged 2026-09-30 APPROVED WITH
+REVISIONS; R-1..R-3 folded (see [Judgement fold](#judgement-fold-2026-09-30));
+see [Implementation status](#implementation-status-2026-09-30)
 **Capability:** CAP-301 / REQ-YG-724
 **Requested:** 2026-09-30
 **First consumer / first event:** csap (customer-service-agent-platform, the
@@ -163,6 +164,37 @@ Linter coverage: the judge did not ask for it and C-4 forbids it; stays out of s
 - [ ] AC-11: `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` passes.
 - [ ] AC-12: A `changelog/unreleased/` fragment has `type: fix`, identifies FR-1144 and REQ-YG-724, and describes race and router-race behavior.
 - [ ] AC-13: The FR records the folded judgement revisions and, after enforcement, implementation status plus any deviations.
+
+## Implementation status (2026-09-30)
+
+RED `0a8ba253` (10 witnesses + CAP-301 + ARCHITECTURE.md), GREEN `f8903df0`
+(production change + changelog fragment).
+
+| AC | Status | Evidence |
+|---|---|---|
+| AC-01 | met | `TestRaceThinkingBudget::test_resolved_budget_reaches_every_candidate[node-zero]` |
+| AC-02 | met | same test, `[defaults]` and `[unset]` (explicit `thinking_budget=None` kwarg) |
+| AC-03 | met | same test, `[node-zero-overrides-default]` (0 over 2048) |
+| AC-04 | met | `TestRouterRaceThinkingBudget::test_resolved_budget_reaches_every_candidate`, all four cases |
+| AC-05 | met | `test_mixed_vertex_azure_zero_constructs_both`: both candidates armed, both `create_llm` calls get `0` |
+| AC-06 | met | `test_vertex_factory_gets_zero_azure_factory_gets_none`: real `create_llm`/`dispatch_provider`, patched `_PROVIDER_FACTORIES`; vertex called `(model, 0.0, 0)`, azure `(model, 0.0)` |
+| AC-07 | met | RED commit precedes GREEN; all new tests carry `REQ-YG-724` |
+| AC-08 | met | `capabilities/CAP-301-race-node-thinking-budget.yaml`; ARCHITECTURE.md regenerated; `req_coverage.py --strict` exit 0 |
+| AC-09 | met | `reference/graph-yaml.md` race properties table |
+| AC-10 | met | 70 passed |
+| AC-11 | met | pre-commit fast unit suite passed on the GREEN commit |
+| AC-12 | met | `changelog/unreleased/fr-1144-race-node-thinking-budget.md` |
+| AC-13 | met | this section |
+
+Decisions and deviations:
+
+- The resolution in `create_race_node` uses a walrus and the local name
+  `budget`. `race_node.py` was 447 lines against the 450 hard gate; the
+  `temperature`-style three-line form plus a wrapped call site came to 452.
+  The behaviour is identical (explicit `0` is kept, only `None` falls back).
+- The RED commit used `SKIP=pytest` per Commandment 7; every other hook ran.
+- No other deviation. `create_llm`, provider factories, schema and linter
+  are untouched (C-4).
 
 ## Alternatives Considered
 
