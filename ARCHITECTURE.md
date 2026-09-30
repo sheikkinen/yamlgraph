@@ -598,6 +598,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 293 | CAP-293 FR Planned Operations Section | `feature-requests/TEMPLATE.md`, `ramp/assets/tier2/feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md`, `tests/unit/test_fr1129_planned_operations.py` | REQ-YG-716 |
 | 297 | CAP-297 FR knowledge graph retired | `tests/unit/test_fr1134_retirements.py` | REQ-YG-720 |
 | 300 | CAP-300 Test Corpus Map | `examples/demos/test_map/graph.yaml`, `examples/demos/test_map/tools.py`, `examples/demos/test_map/extract.py`, `examples/demos/test_map/reconcile.py`, … | REQ-YG-723 |
+| 301 | CAP-301 Race Node Thinking Budget | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py`, `tests/unit/test_race_node.py`, `tests/unit/test_router_race.py` | REQ-YG-724 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3453,6 +3454,16 @@ FR-1137: a corpus-map-reduce demo that maps every framework test function (tests
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-723 | The test-map demo freezes a clean committed test scope (per-file path, SHA-256, bytes) and enforces its file, byte, per-payload token and partition ceilings before any LLM call; extracts path-qualified nodeids, lines, inherited markers (req excluded) and reqs equal to req_coverage.extract_req_markers; partitions each file into payloads of whole test functions carrying the import block; maps one structured-output call per payload at the default provider/model and temperature 0; rejects the run on any missing, unknown, duplicate, wrong-partition, out-of-enum, malformed-description, map-error or canary defect by writing only a diagnostic report; and otherwise writes canonical JSON with full provenance and a Markdown rendering derived only from that JSON. | `examples/demos/test_map/graph.yaml`, `examples/demos/test_map/tools.py`, `examples/demos/test_map/extract.py`, `examples/demos/test_map/reconcile.py`, `tests/unit/test_fr1137_test_map.py` |
+
+### 301. CAP-301 Race Node Thinking Budget
+
+Race nodes and router nodes with race `candidates:` resolve `thinking_budget` the same way `llm` nodes do (node value, then graph `defaults`, then None) and pass the resolved value to every candidate's `create_llm` call. Provider-side meaning is unchanged: thinking providers apply it, others never receive it.
+
+**Feature Request:** FR-1144
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-724 | Direct `type: race` nodes and router nodes with race `candidates:` resolve `thinking_budget` as node value → graph `defaults` → None (explicit 0 is a value, not absence) and pass it to every candidate's `create_llm(..., thinking_budget=...)` call through the shared `_build_candidate_llms` seam; existing provider dispatch is unchanged (thinking providers such as vertex receive the value, non-thinking providers such as azure are called without it). | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py`, `tests/unit/test_race_node.py`, `tests/unit/test_router_race.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
