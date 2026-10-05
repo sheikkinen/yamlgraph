@@ -567,6 +567,17 @@ class TestReasoningModelTemperatureGuard:
         assert llm.temperature == 0
 
 
+_ABSENT = object()
+
+
+def _wire_temperature(llm):
+    # anthropic>=1 SDK: langchain-anthropic relocates temperature into extra_body.
+    payload = llm._get_request_payload("hi")
+    return payload.get(
+        "temperature", (payload.get("extra_body") or {}).get("temperature", _ABSENT)
+    )
+
+
 class TestAnthropicSamplingGuard:
     """FR-1146: Anthropic models outside the probed prefixes reject temperature."""
 
@@ -586,7 +597,7 @@ class TestAnthropicSamplingGuard:
     )
     def test_rejecting_model_payload_has_no_temperature(self, model, temperature):
         llm = create_llm(provider="anthropic", model=model, temperature=temperature)
-        assert "temperature" not in llm._get_request_payload("hi")
+        assert _wire_temperature(llm) is _ABSENT
 
     @pytest.mark.req("REQ-YG-010")
     @pytest.mark.parametrize(
@@ -602,7 +613,7 @@ class TestAnthropicSamplingGuard:
     )
     def test_accepting_model_keeps_temperature(self, model):
         llm = create_llm(provider="anthropic", model=model, temperature=0.3)
-        assert llm._get_request_payload("hi")["temperature"] == 0.3
+        assert _wire_temperature(llm) == 0.3
 
     @pytest.mark.req("REQ-YG-010")
     def test_thinking_override_survives_on_rejecting_model(self):
@@ -625,8 +636,8 @@ class TestAnthropicSamplingGuard:
         a = create_llm(provider="anthropic", model="claude-haiku-4-5", temperature=0)
         b = create_llm(provider="anthropic", model="claude-haiku-4-5", temperature=0.7)
         assert a is not b
-        assert a._get_request_payload("hi")["temperature"] == 0
-        assert b._get_request_payload("hi")["temperature"] == 0.7
+        assert _wire_temperature(a) == 0
+        assert _wire_temperature(b) == 0.7
 
     @pytest.mark.req("REQ-YG-010")
     def test_omission_logs_model_at_info(self, caplog):
