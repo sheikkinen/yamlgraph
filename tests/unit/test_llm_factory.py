@@ -562,6 +562,100 @@ class TestReasoningModelTemperatureGuard:
     def test_non_openai_provider_unaffected(self):
         """Non-OpenAI providers should not be affected by reasoning guard."""
         llm = create_llm(
-            provider="anthropic", model="claude-sonnet-4-20250514", temperature=0
+            provider="anthropic", model="claude-sonnet-4-5-20250929", temperature=0
         )
         assert llm.temperature == 0
+
+
+class TestAnthropicSamplingGuard:
+    """FR-1146: Anthropic models outside the probed prefixes reject temperature."""
+
+    def setup_method(self):
+        clear_cache()
+
+    @pytest.mark.req("REQ-YG-010")
+    @pytest.mark.parametrize(
+        ("model", "temperature"),
+        [
+            ("claude-sonnet-5-5", 0.7),
+            ("claude-sonnet-5-5", 0),
+            ("claude-sonnet-5-5", None),
+            ("claude-opus-4-7", 0.7),
+            ("claude-sonnet-6", 0.7),
+        ],
+    )
+    def test_rejecting_model_payload_has_no_temperature(self, model, temperature):
+        llm = create_llm(provider="anthropic", model=model, temperature=temperature)
+        assert "temperature" not in llm._get_request_payload("hi")
+
+    @pytest.mark.req("REQ-YG-010")
+    @pytest.mark.parametrize(
+        "model",
+        [
+            "claude-haiku-4-5",
+            "claude-haiku-4-5-20251001",
+            "claude-sonnet-4-5-20250929",
+            "claude-sonnet-4-6",
+            "claude-opus-4-5-20251101",
+            "claude-opus-4-6",
+        ],
+    )
+    def test_accepting_model_keeps_temperature(self, model):
+        llm = create_llm(provider="anthropic", model=model, temperature=0.3)
+        assert llm._get_request_payload("hi")["temperature"] == 0.3
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_thinking_override_survives_on_rejecting_model(self):
+        llm = create_llm(
+            provider="anthropic",
+            model="claude-sonnet-5-5",
+            temperature=0.7,
+            thinking_budget=1024,
+        )
+        assert llm.temperature == 1
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_rejecting_model_temperatures_share_cache(self):
+        a = create_llm(provider="anthropic", model="claude-sonnet-5-5", temperature=0)
+        b = create_llm(provider="anthropic", model="claude-sonnet-5-5", temperature=0.7)
+        assert a is b
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_accepting_model_temperatures_stay_distinct(self):
+        a = create_llm(provider="anthropic", model="claude-haiku-4-5", temperature=0)
+        b = create_llm(provider="anthropic", model="claude-haiku-4-5", temperature=0.7)
+        assert a is not b
+        assert a._get_request_payload("hi")["temperature"] == 0
+        assert b._get_request_payload("hi")["temperature"] == 0.7
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_omission_logs_model_at_info(self, caplog):
+        with caplog.at_level("INFO", logger="yamlgraph.utils.llm_factory"):
+            create_llm(provider="anthropic", model="claude-sonnet-5-5", temperature=0.7)
+        hits = [r for r in caplog.records if "Omitting temperature" in r.getMessage()]
+        assert len(hits) == 1
+        assert hits[0].levelname == "INFO"
+        assert "claude-sonnet-5-5" in hits[0].getMessage()
+
+    @pytest.mark.req("REQ-YG-010")
+    @pytest.mark.parametrize(
+        "kwargs",
+        [
+            {"model": "claude-haiku-4-5", "temperature": 0.3},
+            {"model": "claude-sonnet-5-5", "temperature": 0.7, "thinking_budget": 1024},
+        ],
+    )
+    def test_no_omission_log_when_temperature_sent(self, caplog, kwargs):
+        with caplog.at_level("INFO", logger="yamlgraph.utils.llm_factory"):
+            create_llm(provider="anthropic", **kwargs)
+        assert not [
+            r for r in caplog.records if "Omitting temperature" in r.getMessage()
+        ]
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_non_anthropic_provider_keeps_default(self):
+        with patch.dict(os.environ, {"MISTRAL_API_KEY": "test-key"}):
+            llm = create_llm(
+                provider="mistral", model="claude-sonnet-5-5", temperature=None
+            )
+        assert llm.temperature == 0.7
