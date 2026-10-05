@@ -26,7 +26,10 @@ logger = logging.getLogger(__name__)
 
 
 def _create_anthropic_llm(
-    model: str, temperature: float, thinking_budget: int | None = None, **kwargs: object
+    model: str,
+    temperature: float | None,
+    thinking_budget: int | None = None,
+    **kwargs: object,
 ) -> BaseChatModel:
     """Create Anthropic Claude LLM."""
     from langchain_anthropic import ChatAnthropic
