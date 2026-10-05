@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged (APPROVED WITH REVISIONS, R-1–R-4 folded)
+**Status:** Enforced
 **Requested:** 2026-10-05
 **First consumer / first event:** the operator running
 `examples/demos/hello/graph.yaml` with `ANTHROPIC_MODEL=claude-sonnet-5-5`
@@ -222,3 +222,51 @@ evaluation or fan-out; no graph is used.
 - `yamlgraph/utils/llm_providers.py` — `_create_anthropic_llm`
 - `tests/unit/test_llm_factory.py` — FR-455 tests to mirror
 - `logs/hello-sonnet55.log` (main checkout) — failing run
+
+## Implementation Status (2026-10-05)
+
+**Status:** Enforced on `feat/fr-1146-anthropic-temperature-deprecated`.
+
+- RED `d61468b5`: 7 new witnesses failed on `temperature` present in the
+  payload / no log / distinct cache entries; GREEN `9ca523dd`.
+- `ANTHROPIC_SAMPLING_MODEL_PREFIXES` frozen to the five probed lines
+  (R-2). Guard sits after the FR-071 override and the FR-455 branch,
+  before the cache key (C-3).
+- AC-09 enforce-time probe (`tmp/fr1146_ac09_probe.py`): 13/13
+  `models.list` ids agree with the allowlist, 0 contradictions.
+- AC-10 live: hello demo on `claude-sonnet-5-5` exit 0 (log line
+  `Omitting temperature for model without sampling control:
+  claude-sonnet-5-5`, `temp=None`, HTTP 200). Operator-requested
+  control on `mistral/mistral-large-latest` exit 0 with `temp=0.7`.
+- AC-12: targeted 61 passed; fast unit suite 7582 passed, 1 failure
+  (`test_ramp_installer::test_wrapper_delegates`) reproduced with this
+  change stashed and cured by activating the venv (bare `python3` on PATH
+  lacks `yaml`) — environment, not this change; pre-commit suite green.
+- AC-13: `req_coverage.py --strict` passes.
+
+**Deviations:**
+
+1. `tests/unit/test_llm_factory.py::test_non_openai_provider_unaffected`
+   (FR-455) used `claude-sonnet-4-20250514`, now outside the closed
+   allowlist; repointed to the probed `claude-sonnet-4-5-20250929`. The
+   test still asserts Anthropic is unaffected by the OpenAI guard.
+2. `capabilities/CAP-03-node-execution.yaml` `fr:` went from `legacy` to
+   `legacy, FR-263, FR-1146` (+ regenerated `ARCHITECTURE.md`): the
+   changelog REQ-collision gate fires once two fragments claim
+   REQ-YG-010, and FR-263's earlier claim was latent until this one.
+
+| Planned operation | Outcome | Witness |
+|---|---|---|
+| probe: re-run Probe 2 at enforce time | ran | AC-09 table above, 0 contradictions |
+| probe: factory tests before edit | ran | RED run, 7 failed / 18 passed in the guard classes |
+| probe: grep tests pinning Claude temperature | changed | found one FR-455 test; deviation 1 |
+| branch: listed model contradicts prefix rule | did not run | 0 contradictions |
+| branch: ChatAnthropic stops omitting None | did not run | payload tests green on `langchain-anthropic==1.5.2` |
+| delegation: judge.sh 1 run | ran | `FR-1146-anthropic-temperature-deprecated.judgement.md` |
+| delegation: review.sh 1 run | did not run | post-cutoff (PR) |
+| command: hello demo run | ran | sonnet-5-5 and mistral exit 0 |
+
+**Unplanned operations:** commit split (`git reset --soft`) after a
+failed docs commit swept the RED test into one commit; CAP-03 `fr:`
+edit + `aggregate_capabilities.py` (deviation 2); Mistral control run
+(operator request).
