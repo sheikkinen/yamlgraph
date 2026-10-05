@@ -41,6 +41,15 @@ THINKING_PROVIDERS = {"anthropic", "google", "vertex"}
 # OpenAI reasoning models that reject the temperature parameter (FR-455)
 REASONING_MODEL_PREFIXES = ("o1", "o3", "o4")
 
+# Anthropic lines probed to accept temperature (FR-1146); any other id omits it
+ANTHROPIC_SAMPLING_MODEL_PREFIXES = (
+    "claude-haiku-4-5",
+    "claude-sonnet-4-5",
+    "claude-sonnet-4-6",
+    "claude-opus-4-5",
+    "claude-opus-4-6",
+)
+
 
 _llm_cache: dict[tuple, BaseChatModel] = {}
 _cache_lock = threading.Lock()
@@ -192,6 +201,16 @@ def create_llm(
         and temperature is not None
     ):
         logger.info(f"Omitting temperature for reasoning model: {selected_model}")
+        temperature = None
+
+    if (
+        selected_provider == "anthropic"
+        and not temperature_overridden
+        and not selected_model.startswith(ANTHROPIC_SAMPLING_MODEL_PREFIXES)
+    ):
+        logger.info(
+            f"Omitting temperature for model without sampling control: {selected_model}"
+        )
         temperature = None
 
     # Create cache key (includes thinking_budget, uses overridden temperature,

@@ -78,4 +78,4 @@ requirements:
       field ever contradicts.
     modules:
       - utils/llm_factory
-fr: legacy
+fr: legacy, FR-263, FR-1146

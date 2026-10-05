@@ -634,6 +634,8 @@ Transform validated configs into executable StateGraphs with node compilation, e
 
 Create executable node functions for LLM, streaming, tool, interrupt, and subgraph behavior.
 
+**Feature Request:** legacy, FR-263, FR-1146
+
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-009 | Node creation and streaming | `node_factory/llm_nodes`, `node_factory/streaming` |
