@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged (APPROVED WITH REVISIONS, R-1–R-4 folded)
 **Requested:** 2026-10-05
 **First consumer / first event:** the operator running
 `examples/demos/hello/graph.yaml` with `ANTHROPIC_MODEL=claude-sonnet-5-5`
@@ -95,11 +95,12 @@ agreement). This is a correlation, not a documented contract.
 
 ## Ideal Result
 
-Any Claude model id placed in `ANTHROPIC_MODEL` (or a node's `model:`)
-runs every LLM node unchanged. Older models keep honouring the graph's
-`temperature`; newer models silently use their fixed sampling, and the
-operator is told once, in the log, that the configured value was not
-sent.
+For Anthropic calls without enabled extended thinking, models classified
+as accepting sampling retain the resolved temperature; every other model
+id omits it, and each omission decision emits an info log naming the
+model (R-1). This does NOT make `thinking_budget >= 1024` work on models
+that require adaptive thinking — those calls fail for a separate reason
+(see Out of scope).
 
 ## Planned Operations
 
@@ -138,9 +139,6 @@ ANTHROPIC_SAMPLING_MODEL_PREFIXES = (
     "claude-sonnet-4-6",  # probed
     "claude-opus-4-5",    # probed
     "claude-opus-4-6",    # probed
-    "claude-3",           # not listed by models.list; probe or drop at enforce
-    "claude-sonnet-4-0", "claude-sonnet-4-2025", "claude-opus-4-0",
-    "claude-opus-4-1", "claude-opus-4-2025",  # retired 4.0/4.1 ids; same
 )
 
 if (
@@ -154,8 +152,9 @@ if (
 ```
 
 (Prefixes are exact per model line on purpose: a broad `claude-opus-4-`
-would also match the rejecting `claude-opus-4-7`/`4-8`. The judge rules on
-whether unlisted legacy ids stay in the tuple.)
+would also match the rejecting `claude-opus-4-7`/`4-8`. Per R-2 the tuple
+is closed to the five probed lines; a legacy prefix returns only with a
+direct probe folded into this FR.)
 
 Constraints:
 
@@ -170,14 +169,23 @@ Constraints:
 
 ## Acceptance Criteria
 
-- [ ] `create_llm(provider="anthropic", model="claude-sonnet-5-5", temperature=0.7)` builds a client whose request payload has no `temperature` key (unit test via `_get_request_payload`, no network).
-- [ ] Same for `temperature=0` and for a hypothetical future id `claude-sonnet-6`.
-- [ ] `create_llm(provider="anthropic", model="claude-haiku-4-5", temperature=0.3)` still sends `temperature=0.3`.
-- [ ] An info log names the model when temperature is omitted.
-- [ ] FR-455 OpenAI behaviour and its tests unchanged.
-- [ ] Live witness: `ANTHROPIC_MODEL=claude-sonnet-5-5 yamlgraph graph run examples/demos/hello/graph.yaml --var name=World --var style="holy see of code"` exits 0 (log attached to PR).
-- [ ] Tests carry `@pytest.mark.req(...)` for the existing LLM-factory requirement.
-- [ ] Changelog fragment (`type: fix`).
+Revised by judgement ([FR-1146-anthropic-temperature-deprecated.judgement.md](FR-1146-anthropic-temperature-deprecated.judgement.md)):
+
+- [ ] AC-01: `create_llm(provider="anthropic", model="claude-sonnet-5-5", temperature=0.7)` produces a client whose `_get_request_payload("hi")` has no `temperature` key.
+- [ ] AC-02: AC-01 also holds for explicit `temperature=0`, input `temperature=None`, and unknown future id `claude-sonnet-6`.
+- [ ] AC-03: Each of the five frozen accepting prefixes preserves a non-default temperature in the request payload; the matrix includes `claude-haiku-4-5` and one date-suffixed accepted id.
+- [ ] AC-04: A rejecting model with `thinking_budget >= 1024` retains the forced `temperature=1`; the omission guard never nulls an FR-071 override.
+- [ ] AC-05: Same rejecting model at `temperature=0` and `0.7` returns the same cached client.
+- [ ] AC-06: An accepting model at two distinct temperatures yields distinct cache entries with their respective payload values.
+- [ ] AC-07: Omission emits an info log naming the model; accepted and thinking-override paths do not.
+- [ ] AC-08: FR-455 OpenAI tests unchanged; a non-Anthropic provider preserves current temperature behaviour.
+- [ ] AC-09: Enforce-time probe covers every `models.list` id and confirms every accepting id matches a frozen prefix.
+- [ ] AC-10: `ANTHROPIC_MODEL=claude-sonnet-5-5 yamlgraph graph run examples/demos/hello/graph.yaml --var name=World --var style="holy see of code"` exits 0; log attached to PR.
+- [ ] AC-11: Every new test carries `@pytest.mark.req("REQ-YG-010")`; RED commit precedes GREEN.
+- [ ] AC-12: `pytest tests/unit/test_llm_factory.py -q --no-cov` and `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` pass.
+- [ ] AC-13: `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-14: `changelog/unreleased/fr-1146-anthropic-temperature-deprecated.md` with `type: fix`, `scope: llm`, `req: REQ-YG-010`.
+- [ ] AC-15: FR records folded revisions, probe evidence, implementation status, deviations.
 
 ## Alternatives Considered
 
