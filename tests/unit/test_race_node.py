@@ -1435,3 +1435,134 @@ class TestRaceTimeoutCandidateFidelity:
 
         assert result["response"] is None
         assert result["errors"][0].type == ErrorType.TIMEOUT_ERROR
+
+
+# =============================================================================
+# FR-1144: race candidates honour thinking_budget (node → defaults → None)
+# =============================================================================
+
+
+def _race_config(**extra) -> dict:
+    return {
+        "type": "race",
+        "prompt": "test_prompt",
+        "state_key": "response",
+        "candidates": [
+            {"provider": "vertex", "model": "gemini-2.5-flash"},
+            {"provider": "azure", "model": "aaa-gpt-5.4-mini"},
+        ],
+        **extra,
+    }
+
+
+class TestRaceThinkingBudget:
+    """AC-01..AC-03, AC-05: the resolved budget reaches every create_llm call."""
+
+    @pytest.mark.req("REQ-YG-724")
+    @pytest.mark.parametrize(
+        ("node_extra", "defaults", "expected"),
+        [
+            ({"thinking_budget": 0}, {}, 0),  # AC-01
+            ({}, {"thinking_budget": 512}, 512),  # AC-02 defaults
+            ({}, {}, None),  # AC-02 neither set
+            ({"thinking_budget": 0}, {"thinking_budget": 2048}, 0),  # AC-03
+        ],
+        ids=["node-zero", "defaults", "unset", "node-zero-overrides-default"],
+    )
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_resolved_budget_reaches_every_candidate(
+        self,
+        mock_prepare,
+        mock_create_llm,
+        sample_state,
+        node_extra,
+        defaults,
+        expected,
+    ):
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "vertex", None)
+        mock_create_llm.side_effect = [
+            _make_mock_llm("a"),
+            _make_mock_llm("b", delay=0.2),
+        ]
+
+        node_fn = create_race_node("race_tb", _race_config(**node_extra), defaults)
+        node_fn(sample_state)
+
+        calls = mock_create_llm.call_args_list
+        assert len(calls) == 2
+        assert [c.kwargs.get("thinking_budget", "MISSING") for c in calls] == [
+            expected,
+            expected,
+        ]
+
+    @pytest.mark.req("REQ-YG-724")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_mixed_vertex_azure_zero_constructs_both(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        """AC-05: a mixed race with budget 0 arms both candidates, no pre-errors."""
+        from yamlgraph.node_factory import race_node
+
+        mock_prepare.return_value = ([MagicMock()], "vertex", None)
+        mock_create_llm.side_effect = [
+            _make_mock_llm("a"),
+            _make_mock_llm("b", delay=0.2),
+        ]
+        armed_seen: list = []
+        real_race = race_node._race_async
+
+        async def spy_race(armed, *args, **kwargs):
+            armed_seen.extend(armed)
+            return await real_race(armed, *args, **kwargs)
+
+        with patch.object(race_node, "_race_async", spy_race):
+            node_fn = race_node.create_race_node(
+                "race_mixed", _race_config(thinking_budget=0), {}
+            )
+            result = node_fn(sample_state)
+
+        assert [c["provider"] for c, _ in armed_seen] == ["vertex", "azure"]
+        assert [
+            c.kwargs.get("thinking_budget") for c in mock_create_llm.call_args_list
+        ] == [0, 0]
+        assert result["response"] == "a"
+
+
+class TestRaceThinkingBudgetProviderDispatch:
+    """AC-06: through the real create_llm, only the thinking provider gets it."""
+
+    @pytest.fixture(autouse=True)
+    def _fresh_llm_cache(self):
+        from yamlgraph.utils.llm_factory import clear_cache
+
+        clear_cache()
+        yield
+        clear_cache()
+
+    @pytest.mark.req("REQ-YG-724")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_vertex_factory_gets_zero_azure_factory_gets_none(
+        self, mock_prepare, sample_state
+    ):
+        from yamlgraph.node_factory.race_node import create_race_node
+        from yamlgraph.utils import llm_providers
+
+        mock_prepare.return_value = ([MagicMock()], "vertex", None)
+        vertex_factory = MagicMock(return_value=_make_mock_llm("v"))
+        azure_factory = MagicMock(return_value=_make_mock_llm("z", delay=0.2))
+
+        with patch.dict(
+            llm_providers._PROVIDER_FACTORIES,
+            {"vertex": vertex_factory, "azure": azure_factory},
+        ):
+            node_fn = create_race_node(
+                "race_dispatch", _race_config(thinking_budget=0, temperature=0.0), {}
+            )
+            node_fn(sample_state)
+
+        vertex_factory.assert_called_once_with("gemini-2.5-flash", 0.0, 0)
+        azure_factory.assert_called_once_with("aaa-gpt-5.4-mini", 0.0)

@@ -1,0 +1,29 @@
+id: CAP-301
+name: Race Node Thinking Budget
+description: >
+  Race nodes and router nodes with race `candidates:` resolve
+  `thinking_budget` the same way `llm` nodes do (node value, then graph
+  `defaults`, then None) and pass the resolved value to every candidate's
+  `create_llm` call. Provider-side meaning is unchanged: thinking providers
+  apply it, others never receive it.
+modules:
+  - yamlgraph/node_factory/race_node.py
+  - yamlgraph/node_factory/router_race_node.py
+  - tests/unit/test_race_node.py
+  - tests/unit/test_router_race.py
+requirements:
+  - id: REQ-YG-724
+    description: >
+      Direct `type: race` nodes and router nodes with race `candidates:`
+      resolve `thinking_budget` as node value → graph `defaults` → None
+      (explicit 0 is a value, not absence) and pass it to every candidate's
+      `create_llm(..., thinking_budget=...)` call through the shared
+      `_build_candidate_llms` seam; existing provider dispatch is unchanged
+      (thinking providers such as vertex receive the value, non-thinking
+      providers such as azure are called without it).
+    modules:
+      - yamlgraph/node_factory/race_node.py
+      - yamlgraph/node_factory/router_race_node.py
+      - tests/unit/test_race_node.py
+      - tests/unit/test_router_race.py
+fr: FR-1144

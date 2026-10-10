@@ -17,6 +17,11 @@ Governing FR: [FR-1124](../feature-requests/FR-1124-llm-node-default-on-error.md
 | B: advisory, tolerated continuation | 6 | explicit node `on_error: skip` (brief `feature-requests/authoring-briefs/fr-1124-novel-fandom-advisory-check-brief.md`) |
 | **Total** | **224** | |
 
+Addendum (2026-09-30, FR-1144 A/B test bed): 6 class-A rows added for the two
+`image-that-speaks/FR-1144-*.yaml` arms. Their `beast_speaks`, `reckoning` and
+`verdict` nodes are unchanged copies of `graph.yaml`, so they take that graph's
+class. Counts above are the 2026-09-27 census and are not restated.
+
 ## Ledger
 
 | graph | node | state_key | downstream (edges out) | class | evidence | resulting policy |
@@ -77,6 +82,12 @@ Governing FR: [FR-1124](../feature-requests/FR-1124-llm-node-default-on-error.md
 | `examples/demos/image-that-speaks/graph.yaml` | `beast_speaks` | `beast_output` | -> ['image_judges', 'the_law'] | A | census `beast_output: "{state.beast_output}"` | fail (default) |
 | `examples/demos/image-that-speaks/graph.yaml` | `reckoning` | `final_reckoning` | -> verdict | A | census `- from: reckoning     to: verdict` | fail (default) |
 | `examples/demos/image-that-speaks/graph.yaml` | `verdict` | `final_verdict` | -> END | A | census `NODES_REFERENCING_STATE_KEY: none` | fail (default) |
+| `examples/demos/image-that-speaks/FR-1144-Thinking.yaml` | `beast_speaks` | `beast_output` | -> ['image_judges', 'the_law'] | A | addendum: node identical to `graph.yaml` row | fail (default) |
+| `examples/demos/image-that-speaks/FR-1144-Thinking.yaml` | `reckoning` | `final_reckoning` | -> verdict | A | addendum: node identical to `graph.yaml` row | fail (default) |
+| `examples/demos/image-that-speaks/FR-1144-Thinking.yaml` | `verdict` | `final_verdict` | -> END | A | addendum: node identical to `graph.yaml` row | fail (default) |
+| `examples/demos/image-that-speaks/FR-1144-No-Thinking.yaml` | `beast_speaks` | `beast_output` | -> ['image_judges', 'the_law'] | A | addendum: node identical to `graph.yaml` row | fail (default) |
+| `examples/demos/image-that-speaks/FR-1144-No-Thinking.yaml` | `reckoning` | `final_reckoning` | -> verdict | A | addendum: node identical to `graph.yaml` row | fail (default) |
+| `examples/demos/image-that-speaks/FR-1144-No-Thinking.yaml` | `verdict` | `final_verdict` | -> END | A | addendum: node identical to `graph.yaml` row | fail (default) |
 | `examples/demos/innovation_matrix/drill-down.yaml` | `expand` | `expansion` | -> END | A | census `NODES_REFERENCING_STATE_KEY: none` | fail (default) |
 | `examples/demos/innovation_matrix/graph.yaml` | `generate` | `matrix` | -> END | A | census `NODES_REFERENCING_STATE_KEY: none` | fail (default) |
 | `examples/demos/innovation_matrix/pipeline.yaml` | `generate_dimensions` | `dimensions` | -> cartesian | A | census abstained; no tolerance evidence in graph (census said `abstain`; reconciled: edge `-> cartesian`; the next node is python and reads state directly; the dossier's substring scan cannot see python readers, so its `none` is not evidence of an unread output) | fail (default) |

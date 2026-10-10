@@ -8,6 +8,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.4]
+
+### Fixed
+- **FR-1146 Omit temperature for Anthropic models that reject it**: `create_llm` now sends `temperature` to Anthropic only for the probed accepting lines (`claude-haiku-4-5`, `claude-sonnet-4-5`, `claude-sonnet-4-6`, `claude-opus-4-5`, `claude-opus-4-6`); every other Claude id, including `claude-opus-4-7`, `claude-opus-4-8` and all 5.x models, omits it and logs the omission at info. Previously every LLM node on those models failed with `400 temperature is deprecated for this model`. The extended-thinking `temperature=1` override is unchanged. (REQ-YG-010)
+
+## [0.6.3]
+
+### Added
+- **FR-1137 Test corpus map**: new demo `examples/demos/test_map/` maps every test function in `tests/unit` and `tests/integration` to a one-sentence description, a primary target (`core`/`linter`/`examples`/`scripts`/`docs`/`other`) and a test type (`unit`/`integration`/`other`) with one structured call per payload at the default provider/model and temperature 0. Freeze, AST identity, ceilings, reconciliation, a withheld canary and hashing are deterministic Python; a run with any defect writes only `tmp/test-map/test-map-rejected.json`, otherwise canonical JSON with provenance plus a Markdown rendering of that JSON. Tolerated map-branch failures (runtime `MapFailure` models) are normalised to dicts at the publish boundary so they land in the rejection report. Up to 5% of partitions may fail (retry twice, map `min_success: 0.95`); failed partitions are listed with their tests, above 5% the map is rejected. (REQ-YG-723)
+- **FR-1129 Planned Operations replaces Effort**: `feature-requests/TEMPLATE.md` (and its ramp mirror) drops the `**Effort:**` field and adds `## Planned Operations` after `## Ideal Result`. The feature-request skill defines the five-key YAML contract (`probes`, `branches`, `delegations`, `waits`, `commands`), forbids numeric durations, ships a marked sample, and defines the manual completion reconciliation table (planned operation, outcome, witness) plus an `Unplanned operations` list, with a reconciliation cutoff at enforcement completion (outsider, review, push CI and merge are recorded on the PR). (REQ-YG-716)
+
+### Removed
+- **FR-1134 Retire FR knowledge graph and FR-275 meta-tests**: Removes the stale FR-814 knowledge graph (`scripts/extract_fr_graph.py`, `reference/fr-knowledge-graph.{yaml,md}`, its fixture, `test_fr_graph.py`, CAP-240) and the prior-art hook's graph cluster boost. Hook output is unchanged: it is byte-identical before and after across all 243 FRs above FR-819. `test_fr275_test_speed_optimization.py` shrinks from 13 tests, including subprocess pytest re-runs, to a single marker-registration check. REQ-YG-275 now covers only that check. Summed test time saved is about 137 s. (REQ-YG-720)
+
+### Fixed
+- **FR-1144 Race nodes honour `thinking_budget`**: `type: race` nodes and router nodes with race `candidates:` now resolve `thinking_budget` from the node, then graph `defaults`, then `None` (the `llm`-node order), and pass it to every candidate's `create_llm` call. Previously the value was accepted and silently dropped, so thinking models such as `vertex/gemini-2.5-flash` thought on every race call (measured 5.46 s / 600 reasoning tokens vs 1.13 s / 0 at `thinking_budget: 0`). Provider dispatch is unchanged: non-thinking providers never receive the value. (REQ-YG-724)
+
 ## [0.6.2]
 
 ### Added

@@ -67,6 +67,7 @@ def _execute_router_race(
         armed, pre_errors = _build_candidate_llms(
             cfg.candidates,  # type: ignore[arg-type]
             cfg.temperature,
+            cfg.thinking_budget,
         )
         winner_candidate, result = run_coro_sync_safe(
             _race_async(
