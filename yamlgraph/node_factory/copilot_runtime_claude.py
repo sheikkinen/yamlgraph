@@ -7,8 +7,9 @@ are enforced here, all derived from the committed raw probe
 
 * **Payer environment** (REQ-YG-641): the child never inherits the observed
   API-key, bearer, base-URL, or cloud-provider switches.
-* **Per-invocation preflight** (REQ-YG-641): exact CLI version, then a
-  fail-closed ``claude auth status`` that must report a subscription method.
+* **Per-invocation preflight** (REQ-YG-641): Claude Code product banner of
+  any release (FR-1147), then a fail-closed ``claude auth status`` that must
+  report a subscription method.
   No cache — a cached pass would outlive ``claude logout`` (judgement R-2).
 * **Typed envelope** (REQ-YG-639): stdout crosses ``_ClaudeEnvelope`` before
   any state update; ``is_error`` is the only failure signal in the envelope
@@ -20,6 +21,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import Any
@@ -31,14 +33,10 @@ from yamlgraph.node_factory.copilot_runtime import _resolve_resume
 
 logger = logging.getLogger(__name__)
 
-# Pinned from `claude --version` on the probed host (evidence §1). Widening
-# this set requires a new evidence capture on the new version.
-CLAUDE_SUPPORTED_VERSIONS: frozenset[str] = frozenset({"2.1.255"})
-# The complete `--version` banner is what is compared (PR #563 review P3): a
-# matching numeric prefix on a different product string is version drift.
-CLAUDE_SUPPORTED_BANNERS: frozenset[str] = frozenset(
-    {f"{v} (Claude Code)" for v in CLAUDE_SUPPORTED_VERSIONS}
-)
+# Any release is accepted (FR-1147); the product string is the contract (PR #563
+# review P3: a matching number on a different product is a foreign binary).
+CLAUDE_BANNER_RE = re.compile(r"([0-9]+\.[0-9]+\.[0-9]+) \(Claude Code\)")
+CLAUDE_BANNER_SHAPE = "X.Y.Z (Claude Code)"
 
 # `authMethod` values that bill the Claude subscription, each pinned to a raw
 # capture in the evidence file: `claude.ai` is the browser login (§2.3,
@@ -128,14 +126,14 @@ def _run_probe(node_name: str, argv: list[str], env: dict[str, str]):
 def _check_version(node_name: str, env: dict[str, str]) -> str:
     proc = _run_probe(node_name, ["claude", "--version"], env)
     observed = (proc.stdout or "").strip()
-    if proc.returncode != 0 or observed not in CLAUDE_SUPPORTED_BANNERS:
+    match = CLAUDE_BANNER_RE.fullmatch(observed)
+    if proc.returncode != 0 or match is None:
         raise RuntimeError(
-            f"[{node_name}] unsupported Claude Code version {observed!r} "
-            f"(exit {proc.returncode}); accepted: "
-            f"{sorted(CLAUDE_SUPPORTED_BANNERS)}. Widening the set needs a new "
-            "evidence capture (FR-959 §4)."
+            f"[{node_name}] unsupported Claude Code version banner {observed[:_HEAD]!r} "
+            f"(exit {proc.returncode}); expected {CLAUDE_BANNER_SHAPE!r}; "
+            f"stderr: {(proc.stderr or '').strip()[:_HEAD]!r}"
         )
-    return observed.split(" ", 1)[0]
+    return match.group(1)
 
 
 def _check_auth(node_name: str, env: dict[str, str]) -> str:
@@ -289,10 +287,10 @@ def _execute_claude(
 
 
 __all__ = [
+    "CLAUDE_BANNER_RE",
+    "CLAUDE_BANNER_SHAPE",
     "CLAUDE_STRIPPED_ENV_VARS",
     "CLAUDE_SUBSCRIPTION_AUTH_METHODS",
-    "CLAUDE_SUPPORTED_BANNERS",
-    "CLAUDE_SUPPORTED_VERSIONS",
     "_execute_claude",
     "validate_claude_cli_flags",
 ]

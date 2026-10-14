@@ -394,7 +394,8 @@ class TestPreflight:
     def test_version_drift_fails_before_auth_probe(self, tmp_path: Path) -> None:
         """FR-1147: a non-banner shape fails naming observed and expected shape."""
         with pytest.raises(
-            RuntimeError, match=r"2\.1\.254 \(Untrusted Wrapper\).*X\.Y\.Z \(Claude Code\)"
+            RuntimeError,
+            match=r"2\.1\.254 \(Untrusted Wrapper\).*X\.Y\.Z \(Claude Code\)",
         ):
             _run(tmp_path, {}, procs=[_proc(VERSION_DRIFT)])
 
