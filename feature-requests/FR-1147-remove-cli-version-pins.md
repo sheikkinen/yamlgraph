@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed (revision 1, folding [judgement round 1](FR-1147-remove-cli-version-pins.judgement.md))
+**Status:** Judged — APPROVED round 2 ([judgement](FR-1147-remove-cli-version-pins.judgement.md))
 **Requested:** 2026-10-14
 **First consumer / first event:** the operator running any `backend: claude`
 copilot node (e.g. the FR-960 Claude judge variant) on this host — today

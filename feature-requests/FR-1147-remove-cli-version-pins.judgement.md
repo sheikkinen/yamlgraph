@@ -76,3 +76,71 @@ Not authorized: changes to the Copilot runtime; adding any CLI version allowlist
 | C-6 | No Copilot runtime, judge/review graph, model pin, or governed graph/prompt artifact may change under this scope. | GATE |
 
 Authority granted: none; return FR-1147 to planning, fold R-1 through R-4, and re-enter independent judgement before implementation.
+
+---
+
+## Round 2
+
+# Judgement: FR-1147 Remove CLI Version Pinning (Claude Code, opencode, Copilot)
+
+**Verdict:** APPROVED — revision 1 resolves the prior research, requirement-source, exact-contract, and live-witness defects; scope is frozen and implementation authority is granted.
+
+**Reviewed against:** `feature-requests/FR-1147-remove-cli-version-pins.md`; `feature-requests/FR-1147-remove-cli-version-pins.judgement.md`; `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`; `.github/copilot-instructions.md`; `docs/development-process.md`; `feature-requests/FR-959-claude-cli-backend-primitive.md`; `feature-requests/FR-1048-opencode-cli-backend.md`; `feature-requests/FR-931-judge-review-model-pin-gpt56sol.md`; `feature-requests/FR-982-unit-suite-runs-with-tracer-live.md`; `docs/2026-09-05-research-pi-agent-runtime.md`; `feature-requests/evidence/FR-959-claude-auth-probe.md`; `feature-requests/evidence/FR-1048-opencode-cli-probe.md`; `capabilities/CAP-30-copilot-node.yaml`; `ARCHITECTURE.md`; `reference/graph-yaml.md`; `yamlgraph/node_factory/copilot_runtime_claude.py`; `yamlgraph/node_factory/copilot_runtime_opencode.py`; `yamlgraph/node_factory/copilot_runtime.py`; `tests/unit/test_fr959_claude_backend.py`; `tests/unit/test_fr960_claude_judge_variant.py`; `tests/unit/test_fr1048_opencode_backend.py`; `tests/unit/test_fr1049_opencode_judge_variant.py`; `tests/unit/test_fr982_tracing_off_in_tests.py`.
+
+## What is sound
+
+The scope is clear and minimal. The concrete defect is an allowlist-only refusal before otherwise unchanged runtime boundaries: Claude and opencode each compare stripped `--version` stdout against a one-release set (`yamlgraph/node_factory/copilot_runtime_claude.py:36-40,128-138`; `yamlgraph/node_factory/copilot_runtime_opencode.py:35,196-206`), while the Copilot runtime has no version probe. The FR changes only that release-membership policy, retains both per-invocation probes, and expressly leaves the Copilot runtime, payer rules, argv, typed envelopes, and event state machine unchanged (`feature-requests/FR-1147-remove-cli-version-pins.md:175-216,262-268`).
+
+The proposal is internally consistent and mechanically measurable. Its ideal is now bounded to releases preserving banner, payer, argv, and typed-output contracts (`feature-requests/FR-1147-remove-cli-version-pins.md:135-141`). The implementation specifies full-string ASCII patterns after stripping, and AC-02 through AC-08 derive direct pass, rejection, ordering, no-cache, invariant, traceability, and Copilot-control tests (`feature-requests/FR-1147-remove-cli-version-pins.md:175-200,222-250`). AC-09 supplies the real post-GREEN physical witness that the first judgement required, with spend authorization and an exact evidence record (`feature-requests/FR-1147-remove-cli-version-pins.md:251-255`).
+
+Feasibility is established by existing seams. Current tests already isolate Claude version/auth/agent ordering, exact-version drift, and foreign-product rejection (`tests/unit/test_fr959_claude_backend.py:369-419`), opencode probe/run ordering and drift (`tests/unit/test_fr1048_opencode_backend.py:308-323`), and the two governed backend variants (`tests/unit/test_fr960_claude_judge_variant.py:297`; `tests/unit/test_fr1049_opencode_judge_variant.py:305`). The committed captures prove the historical banner forms (`feature-requests/evidence/FR-959-claude-auth-probe.md:12,37-41`; `feature-requests/evidence/FR-1048-opencode-cli-probe.md:11-21`). No dependency or new abstraction is required.
+
+Architecture alignment is sound: validation remains at the external CLI boundary, while `_ClaudeAuthStatus`, `_ClaudeEnvelope`, and the opencode typed stream continue to fail closed. The FR correctly edits `capabilities/CAP-30-copilot-node.yaml` as the requirement source before regenerating `ARCHITECTURE.md` (`feature-requests/FR-1147-remove-cli-version-pins.md:202-216,245-247`), matching the repository traceability spine. It also preserves historical FR text through dated notes rather than rewriting prior evidence.
+
+The proposal has one responsibility: remove release-number membership from the existing Claude and opencode version preflights without weakening their product/banner-shape and downstream contracts. Treating both backends together is one policy correction, not an orthogonal bundle. Strategically, this is maintenance of a framework primitive: the copilot node is reusable across arbitrary graphs, and the affected policy already serves the ordinary Claude/opencode node paths plus the FR-960 and FR-1049 governed variants (`feature-requests/FR-1147-remove-cli-version-pins.md:7-12,144-147`). It is neither an example contribution nor documentation-only work.
+
+The research gate is substantive. Six genuine solution classes are dispositioned with precedent and risk, the strongest semantic-drift dissent is preserved, and `is_this_a_graph` is explicitly answered (`feature-requests/FR-1147-remove-cli-version-pins.md:271-294`). The prior-art section distinguishes model pinning, tracer-test coupling, the two originating backend contracts, and the retirement research instead of treating noun overlap as precedent (`feature-requests/FR-1147-remove-cli-version-pins.md:17-32`).
+
+## Required revisions
+
+None.
+
+## Scope is frozen
+
+| Deliverable | Surface |
+|---|---|
+| D-1 | Replace exact Claude release membership with the specified full-string ASCII `X.Y.Z (Claude Code)` banner check in `yamlgraph/node_factory/copilot_runtime_claude.py`; update its exports and module wording. |
+| D-2 | Replace exact opencode release membership with the specified full-string ASCII `X.Y.Z` banner check in `yamlgraph/node_factory/copilot_runtime_opencode.py`; update its exports and module wording. |
+| D-3 | Add and revise only the directly affected requirement-tagged unit and judge-variant tests in `tests/unit/test_fr959_claude_backend.py`, `tests/unit/test_fr960_claude_judge_variant.py`, `tests/unit/test_fr1048_opencode_backend.py`, `tests/unit/test_fr1049_opencode_judge_variant.py`, and the Copilot no-version-probe witness at the existing runtime seam. |
+| D-4 | Update REQ-YG-641 and REQ-YG-679 in `capabilities/CAP-30-copilot-node.yaml`; regenerate only their corresponding `ARCHITECTURE.md` view. |
+| D-5 | Update the two preflight paragraphs in `reference/graph-yaml.md`; append dated supersession notes to FR-959 and FR-1048 without rewriting history. |
+| D-6 | Add `changelog/unreleased/fr-1147-cli-version-pins.md`; update FR-1147 with implementation decisions, the post-GREEN live witness, and final status; add the required diary entry. |
+
+Not authorized: any change to `yamlgraph/node_factory/copilot_runtime.py`; any version allowlist, minimum-version floor, probe deletion, or probe cache; any change to Claude authentication, environment stripping, argv, tool semantics, or envelope schema; any change to opencode model resolution, payer behavior, argv, session semantics, event vocabulary, or state machine; any judge/review graph or model-pin change; any shared backend/version registry, new dependency, or governed graph/prompt artifact.
+
+## Revised acceptance criteria
+
+- [ ] AC-01: The in-body Alternatives Considered section retains six dispositioned solution classes with precedent and risk, the preserved semantic-drift dissent, and the explicit `is_this_a_graph: no` answer.
+- [ ] AC-02: Requirement-tagged tests prove `2.1.255 (Claude Code)` and `2.1.296 (Claude Code)` pass Claude preflight and reach auth under REQ-YG-641; `1.18.31` and `1.99.0` pass opencode preflight and reach the run call under REQ-YG-679.
+- [ ] AC-03: Direct tests reject before auth/agent execution, with exactly one subprocess call: `2.1.255 (Untrusted Wrapper)`, `opencode 1.18.31`, empty stdout, trailing text, a second line, `2.1`, `2.1.296.1`, Unicode-digit Claude and opencode banners, and a non-zero exit carrying a shape-valid banner. Each failure names the exit code and bounded observed stdout; failures with empty stdout name bounded stderr.
+- [ ] AC-04: Two executions produce version -> auth -> agent twice for Claude and version -> run twice for opencode; no probe result is cached.
+- [ ] AC-05: Existing Claude auth-method, environment-stripping, argv-order, and envelope assertions and existing opencode model-resolution, argv, session, event-vocabulary, and state-transition assertions retain their behavior. Only exact-release-membership assertions named in the FR are rewritten as shape-rejection assertions.
+- [ ] AC-06: `git grep -E "CLAUDE_SUPPORTED_(VERSIONS|BANNERS)|OPENCODE_SUPPORTED_BANNERS" -- yamlgraph tests reference ARCHITECTURE.md capabilities` returns no matches; dated historical notes in FR-959 and FR-1048 remain.
+- [ ] AC-07: `capabilities/CAP-30-copilot-node.yaml` defines the final REQ-YG-641 and REQ-YG-679 banner contracts; regenerated `ARCHITECTURE.md` agrees; `reference/graph-yaml.md` documents the same accepted and rejected shapes.
+- [ ] AC-08: A requirement-tagged test proves one Copilot-backend invocation makes no `copilot --version` call, and `yamlgraph/node_factory/copilot_runtime.py` is unchanged.
+- [ ] AC-09: After GREEN, the authorized single live Claude witness on installed `2.1.296` uses `tools: []` and a one-line prompt; FR-1147 records the producing commit SHA, banner, auth method, redacted argv shape, exit status, and redacted result head. A failed typed envelope stops enforcement and narrows the operability claim through a separate FR rather than weakening this contract.
+- [ ] AC-10: `changelog/unreleased/fr-1147-cli-version-pins.md` has `type: feat`, `scope: copilot`, and `req: REQ-YG-641, REQ-YG-679`; its body cites both requirements; `python scripts/check_changelog_req.py --strict` passes.
+- [ ] AC-11: Git history contains a substantive RED commit for AC-02, AC-03, and AC-08 before GREEN; `python scripts/req_coverage.py --strict` and the targeted suite named in the FR pass.
+
+## Conditions for enforcement
+
+| # | Condition | Severity |
+|---|---|---|
+| C-1 | Implement only full-string ASCII banner-shape checks after stripping; retain the existing per-invocation ordering and no-cache behavior. | GATE |
+| C-2 | Preserve Claude auth/environment/argv/envelope and opencode model/payer/argv/session/event-state-machine boundaries byte-for-byte except where the frozen banner policy directly requires a test or wording change. | GATE |
+| C-3 | Update `capabilities/CAP-30-copilot-node.yaml` before regenerating `ARCHITECTURE.md`; stop if regeneration changes unrelated requirement rows. | GATE |
+| C-4 | Do not modify the Copilot runtime, any judge/review graph, any model pin, or any governed graph/prompt artifact. | GATE |
+| C-5 | The live Claude witness is limited to the single authorized post-GREEN call described by AC-09; redact personal or credential-bearing output and do not substitute a mock for the operational claim. | GATE |
+| C-6 | RED must precede GREEN, and the exact rejection matrix, targeted suite, requirement coverage, changelog gate, and live witness must all pass before marking FR-1147 implemented. | GATE |
+
+Authority granted: implement D-1 through D-6 exactly within the frozen surfaces and gates above.
