@@ -5,9 +5,8 @@ the JSONL event stream through a typed, fail-closed state machine into the
 existing ``CopilotResult``. Two boundaries are enforced here, both derived
 from the committed raw probe ``feature-requests/evidence/FR-1048-opencode-cli-probe.md``:
 
-* **Exact-version preflight** (REQ-YG-679): the whole ``--version`` banner is
-  compared against the pinned set before every run; widening needs a new
-  capture.
+* **Version-banner preflight** (REQ-YG-679, FR-1147): the whole ``--version``
+  banner must have the shape ``X.Y.Z`` before every run; any release passes.
 * **Provider-key payer** (REQ-YG-681): the child environment is *not* stripped
   of provider credentials (they are the payer); the resolved ``--model`` is a
   compile-time requirement enforced in ``create_copilot_node`` and always
@@ -19,6 +18,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import re
 import subprocess
 from pathlib import Path
 from typing import Annotated, Literal
@@ -30,9 +30,9 @@ from yamlgraph.utils.expressions import resolve_state_expression
 
 logger = logging.getLogger(__name__)
 
-# Pinned from `opencode --version` on the probed host (evidence §1). Widening
-# this set requires a new evidence capture on the new version.
-OPENCODE_SUPPORTED_BANNERS: frozenset[str] = frozenset({"1.18.31"})
+# opencode's banner is a bare version (evidence §1); any release is accepted.
+OPENCODE_BANNER_RE = re.compile(r"[0-9]+\.[0-9]+\.[0-9]+")
+OPENCODE_BANNER_SHAPE = "X.Y.Z"
 
 _PROBE_TIMEOUT_S = 30
 _HEAD = 200
@@ -196,12 +196,11 @@ def _run_probe(
 def _check_version(node_name: str, env: dict[str, str]) -> str:
     proc = _run_probe(node_name, ["opencode", "--version"], env)
     observed = (proc.stdout or "").strip()
-    if proc.returncode != 0 or observed not in OPENCODE_SUPPORTED_BANNERS:
+    if proc.returncode != 0 or OPENCODE_BANNER_RE.fullmatch(observed) is None:
         raise RuntimeError(
-            f"[{node_name}] unsupported opencode version {observed!r} "
-            f"(exit {proc.returncode}); accepted: "
-            f"{sorted(OPENCODE_SUPPORTED_BANNERS)}. Widening the set needs a "
-            "new evidence capture (FR-1048 evidence file)."
+            f"[{node_name}] unsupported opencode version {observed[:_HEAD]!r} "
+            f"(exit {proc.returncode}); expected {OPENCODE_BANNER_SHAPE!r}; "
+            f"stderr: {(proc.stderr or '').strip()[:_HEAD]!r}"
         )
     return observed
 
@@ -389,7 +388,8 @@ def _execute_opencode(
 
 
 __all__ = [
-    "OPENCODE_SUPPORTED_BANNERS",
+    "OPENCODE_BANNER_RE",
+    "OPENCODE_BANNER_SHAPE",
     "_execute_opencode",
     "validate_opencode_cli_flags",
 ]
