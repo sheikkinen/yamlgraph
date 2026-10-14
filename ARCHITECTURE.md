@@ -915,7 +915,7 @@ Graph-level and per-node thinking_budget YAML field for Anthropic extended think
 
 New copilot node type that delegates graph processing to Copilot CLI, replacing shell-script orchestration with a first-class YAML-declarable node. FR-959 adds a fourth, closed backend value `claude` that delegates to the Claude Code CLI on the operator's subscription. FR-1048 adds a fifth, `opencode`, that delegates to the opencode CLI over provider keys.
 
-**Feature Request:** FR-082, FR-959, FR-1048
+**Feature Request:** FR-082, FR-959, FR-1048, FR-1147
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|

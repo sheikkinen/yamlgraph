@@ -298,6 +298,10 @@ CI on Linux is their witness. `req_coverage.py --strict` and
    under the FR-889 lock, so the first docs commit omitted the dated note.
    The review flagged the omission, and the note was added from a
    detached worktree instead of unlocking main.
+6. **CAP-30 `fr:` list.** CI's `test_no_req_collision_across_unrelated_frs`
+   failed: the fragment claims REQ-YG-679, which FR-1048 also claims, while
+   CAP-30 did not list FR-1147. `FR-1147` was added to CAP-30's `fr:` list.
+   The local targeted suite had not included that test.
 
 ### Planned Operations reconciliation
 

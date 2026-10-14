@@ -138,4 +138,4 @@ requirements:
     modules:
       - node_factory/copilot_node
       - node_factory/copilot_runtime_opencode
-fr: FR-082, FR-959, FR-1048
+fr: FR-082, FR-959, FR-1048, FR-1147
