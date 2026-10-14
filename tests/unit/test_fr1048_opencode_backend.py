@@ -25,7 +25,7 @@ from yamlgraph.models.schemas import CopilotResult, OpenCodeCliFlags
 # --- evidence fixtures (FR-1048-opencode-cli-probe.md) ----------------------
 
 VERSION_OK = "1.18.31\n"
-VERSION_DRIFT = "1.17.9\n"
+VERSION_DRIFT = "opencode 1.17.9\n"
 
 SID = "ses_f5a05a0faffe3TbMvYHe3wGo2f"
 SID_OTHER = "ses_f59f4c2d5ffeLWm4Iqk9TBRR6k"
@@ -322,6 +322,63 @@ class TestArgvAndPreflight:
                 node_fn({})
         assert mock_run.call_count == 1  # only the probe ran
 
+    @pytest.mark.parametrize("banner", ["1.18.31\n", "1.99.0\n"])
+    def test_any_release_reaches_run(self, tmp_path: Path, banner: str) -> None:
+        """FR-1147 AC-02: release number is not a membership test."""
+        out, mock_run = _run(
+            tmp_path,
+            cli_flags={"model": "inception/mercury-2.5"},
+            procs=[_proc(banner), _proc(SIMPLE_OK)],
+        )
+        assert mock_run.call_count == 2
+        assert _agent_argv(mock_run)[:2] == ["opencode", "run"]
+
+    @pytest.mark.parametrize(
+        ("stdout", "rc", "stderr"),
+        [
+            ("opencode 1.18.31\n", 0, ""),
+            ("", 0, ""),
+            ("1.18.31 extra\n", 0, ""),
+            ("1.18.31\nsecond line\n", 0, ""),
+            ("1.18\n", 0, ""),
+            ("1.18.31.1\n", 0, ""),
+            ("\uff11.18.31\n", 0, ""),
+            ("1.18.31\n", 1, ""),
+            ("", 127, "opencode: broken install"),
+        ],
+    )
+    def test_banner_shape_rejections(
+        self, tmp_path: Path, stdout: str, rc: int, stderr: str
+    ) -> None:
+        """FR-1147 AC-03: one call, error names exit code, stdout, and stderr."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        with patch("subprocess.run", side_effect=[_proc(stdout, rc, stderr)]) as m:
+            node_fn = create_copilot_node(
+                "t", _config(tmp_path, cli_flags={"model": "inception/mercury-2.5"})
+            )
+            with pytest.raises(RuntimeError) as exc:
+                node_fn({})
+        assert m.call_count == 1
+        msg = str(exc.value)
+        assert f"exit {rc}" in msg
+        assert repr(stdout.strip()) in msg
+        if stderr:
+            assert stderr in msg
+
+    def test_two_executions_probe_each_time(self, tmp_path: Path) -> None:
+        """FR-1147 AC-04: version -> run, twice; no cache."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        with patch("subprocess.run", side_effect=_happy_procs() * 2) as m:
+            node_fn = create_copilot_node(
+                "t", _config(tmp_path, cli_flags={"model": "inception/mercury-2.5"})
+            )
+            node_fn({})
+            node_fn({})
+        heads = [c[0][0][:2] for c in m.call_args_list]
+        assert heads == [["opencode", "--version"], ["opencode", "run"]] * 2
+
     def test_resume_state_expression_resolves(self, tmp_path: Path) -> None:
         out, mock_run = _run(
             tmp_path,
@@ -514,4 +571,6 @@ class TestEnvironment:
             )
             node_fn({})
         env = mock_run.call_args_list[1].kwargs["env"]
-        assert env["COPILOT_OTEL_FILE_EXPORTER_PATH"] == "/tmp/otel/t.otel.jsonl"
+        assert Path(env["COPILOT_OTEL_FILE_EXPORTER_PATH"]) == Path(
+            "/tmp/otel/t.otel.jsonl"
+        )

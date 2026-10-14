@@ -26,7 +26,7 @@ from yamlgraph.models.schemas import CopilotResult
 # --- evidence fixtures (FR-959-claude-auth-probe.md) -------------------------
 
 VERSION_OK = "2.1.255 (Claude Code)\n"
-VERSION_DRIFT = "2.1.254 (Claude Code)\n"
+VERSION_DRIFT = "2.1.254 (Untrusted Wrapper)\n"
 
 AUTH_OAUTH_TOKEN = json.dumps(
     {
@@ -392,8 +392,58 @@ class TestPreflight:
         assert out["result"].session_id == SESSION_A
 
     def test_version_drift_fails_before_auth_probe(self, tmp_path: Path) -> None:
-        with pytest.raises(RuntimeError, match=r"2\.1\.254.*2\.1\.255"):
+        """FR-1147: a non-banner shape fails naming observed and expected shape."""
+        with pytest.raises(
+            RuntimeError, match=r"2\.1\.254 \(Untrusted Wrapper\).*X\.Y\.Z \(Claude Code\)"
+        ):
             _run(tmp_path, {}, procs=[_proc(VERSION_DRIFT)])
+
+    @pytest.mark.parametrize(
+        "banner", ["2.1.255 (Claude Code)\n", "2.1.296 (Claude Code)\n"]
+    )
+    def test_any_claude_code_release_reaches_auth(
+        self, tmp_path: Path, banner: str
+    ) -> None:
+        """FR-1147 AC-02: release number is not a membership test."""
+        out, m = _run(
+            tmp_path,
+            {},
+            procs=[_proc(banner), _proc(AUTH_OAUTH_TOKEN), _proc(ENVELOPE_OK)],
+        )
+        assert m.call_args_list[1][0][0] == ["claude", "auth", "status"]
+        assert out["result"].session_id == SESSION_A
+
+    @pytest.mark.parametrize(
+        ("stdout", "rc", "stderr"),
+        [
+            ("2.1.255 (Untrusted Wrapper)\n", 0, ""),
+            ("", 0, ""),
+            ("2.1.296 (Claude Code) extra\n", 0, ""),
+            ("2.1.296 (Claude Code)\nsecond line\n", 0, ""),
+            ("2.1 (Claude Code)\n", 0, ""),
+            ("2.1.296.1 (Claude Code)\n", 0, ""),
+            ("\uff12.1.296 (Claude Code)\n", 0, ""),
+            ("2.1.296 (Claude Code)\n", 1, ""),
+            ("", 127, "claude: broken install"),
+        ],
+    )
+    def test_banner_shape_rejections(
+        self, tmp_path: Path, stdout: str, rc: int, stderr: str
+    ) -> None:
+        """FR-1147 AC-03: one call, error names exit code, stdout, and stderr."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        with (
+            patch("subprocess.run", side_effect=[_proc(stdout, rc, stderr)]) as m,
+            pytest.raises(RuntimeError) as exc,
+        ):
+            create_copilot_node("t", _config(tmp_path, cli_flags={}))({})
+        assert m.call_count == 1
+        msg = str(exc.value)
+        assert f"exit {rc}" in msg
+        assert repr(stdout.strip()) in msg
+        if stderr:
+            assert stderr in msg
 
     def test_matching_version_on_foreign_banner_is_drift(self, tmp_path: Path) -> None:
         """PR #563 review P3: the whole banner is the contract, not its prefix."""

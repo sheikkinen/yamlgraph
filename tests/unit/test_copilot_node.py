@@ -67,6 +67,27 @@ class TestCopilotNodeCLI:
             assert "-p" in cmd
             assert call_args[1].get("shell") is not True
 
+    def test_no_version_probe(self, tmp_path: Path) -> None:
+        """FR-1147 AC-08: the unpinned control case stays unpinned."""
+        from yamlgraph.node_factory.copilot_node import create_copilot_node
+
+        prompt_file = tmp_path / "prompts" / "test.yaml"
+        prompt_file.parent.mkdir(parents=True)
+        prompt_file.write_text("system: Test\nuser: Hello", encoding="utf-8")
+        config = {
+            "type": "copilot",
+            "prompt": str(prompt_file),
+            "state_key": "result",
+            "backend": "cli",
+        }
+        mock_result = MagicMock(stdout="ok", returncode=0, stderr="")
+
+        with patch("subprocess.run", return_value=mock_result) as mock_run:
+            create_copilot_node("test_copilot", config)({})
+
+        assert mock_run.call_count == 1
+        assert "--version" not in mock_run.call_args[0][0]
+
     def test_cli_flags_passed(self, tmp_path: Path) -> None:
         """CLI flags should be passed to copilot command."""
         from yamlgraph.node_factory.copilot_node import create_copilot_node
