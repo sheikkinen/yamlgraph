@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Judged — APPROVED round 2 ([judgement](FR-1147-remove-cli-version-pins.judgement.md))
+**Status:** Enforced — APPROVED round 2 ([judgement](FR-1147-remove-cli-version-pins.judgement.md)); RED `2ae8c37d`, GREEN `bd42731c`
 **Requested:** 2026-10-14
 **First consumer / first event:** the operator running any `backend: claude`
 copilot node (e.g. the FR-960 Claude judge variant) on this host — today
@@ -217,22 +217,22 @@ Requirements and docs:
 
 ## Acceptance Criteria
 
-- [ ] AC-01: § Alternatives Considered has six dispositioned solution
+- [x] AC-01: § Alternatives Considered has six dispositioned solution
       classes with precedent, the preserved dissent, and `is_this_a_graph`.
-- [ ] AC-02: Requirement-tagged tests prove `2.1.255 (Claude Code)` and
+- [x] AC-02: Requirement-tagged tests prove `2.1.255 (Claude Code)` and
       `2.1.296 (Claude Code)` pass Claude preflight and reach auth
       (REQ-YG-641); `1.18.31` and `1.99.0` pass opencode preflight and reach
       the run call (REQ-YG-679).
-- [ ] AC-03: Direct tests reject, before auth/agent execution and with
+- [x] AC-03: Direct tests reject, before auth/agent execution and with
       exactly one subprocess call: `2.1.255 (Untrusted Wrapper)`,
       `opencode 1.18.31`, empty stdout, trailing extra text, a second line,
       `2.1`, `2.1.296.1`, Unicode digits (`２.1.296 (Claude Code)`,
       `１.18.31`), and non-zero exit with a valid banner. Each error names
       the exit code and the observed stdout; the non-zero/empty-stdout case
       names stderr.
-- [ ] AC-04: Two executions still produce version → auth → agent for Claude
+- [x] AC-04: Two executions still produce version → auth → agent for Claude
       and version → run for opencode (no cache).
-- [ ] AC-05: Invariant tests stay byte-identical: Claude auth methods, env
+- [x] AC-05: Invariant tests stay byte-identical: Claude auth methods, env
       stripping, argv order, envelope parsing; opencode model resolution,
       argv, session handling, event vocabulary, state transitions. The only
       tests rewritten are those whose stated contract is exact release
@@ -240,24 +240,84 @@ Requirements and docs:
       `test_version_drift_makes_exactly_one_call` (Claude) and the
       `VERSION_DRIFT = "1.17.9"` cases (opencode), which become
       shape-rejection cases.
-- [ ] AC-06: `git grep -E "CLAUDE_SUPPORTED_(VERSIONS|BANNERS)|OPENCODE_SUPPORTED_BANNERS" -- yamlgraph tests reference ARCHITECTURE.md capabilities`
+- [x] AC-06: `git grep -E "CLAUDE_SUPPORTED_(VERSIONS|BANNERS)|OPENCODE_SUPPORTED_BANNERS" -- yamlgraph tests reference ARCHITECTURE.md capabilities`
       returns nothing; dated historical FR notes remain.
-- [ ] AC-07: `capabilities/CAP-30-copilot-node.yaml` defines the final
+- [x] AC-07: `capabilities/CAP-30-copilot-node.yaml` defines the final
       REQ-YG-641 and REQ-YG-679 text; regenerated `ARCHITECTURE.md` agrees;
       `reference/graph-yaml.md` documents the same shapes.
-- [ ] AC-08: A requirement-tagged test proves a Copilot-backend invocation
+- [x] AC-08: A requirement-tagged test proves a Copilot-backend invocation
       makes no `copilot --version` call, without changing
       `copilot_runtime.py`.
-- [ ] AC-09: Post-GREEN live witness (authorized 2026-10-14 by the
+- [x] AC-09: Post-GREEN live witness (authorized 2026-10-14 by the
       operator as spend owner): one `backend: claude` node with
       `tools: []`, a one-line prompt, on `2.1.296`. The FR records commit
       SHA, banner, auth method, argv shape, exit status, and a redacted
       result head.
-- [ ] AC-10: `changelog/unreleased/fr-1147-cli-version-pins.md` has
+- [x] AC-10: `changelog/unreleased/fr-1147-cli-version-pins.md` has
       `type: feat`, `scope: copilot`, `req: REQ-YG-641, REQ-YG-679`; its body
       cites both; `python scripts/check_changelog_req.py --strict` passes.
-- [ ] AC-11: A RED commit for AC-02/AC-03/AC-08 precedes GREEN;
+- [x] AC-11: A RED commit for AC-02/AC-03/AC-08 precedes GREEN;
       `python scripts/req_coverage.py --strict` and the targeted suite pass.
+
+## Implementation Status (2026-10-14)
+
+All AC-01..AC-11 met. RED `2ae8c37d` (tests only, `SKIP=pytest`), GREEN
+`bd42731c` (both runtimes). Targeted suite: 192 passed locally; the FR-960 /
+FR-1049 wrapper tests that spawn `bash` cannot run on this Windows host
+(`bash` resolves to the System32 WSL stub) and fail identically on `main` —
+CI on Linux is their witness. `req_coverage.py --strict` and
+`check_changelog_req.py --strict` pass; AC-06 `git grep` returns nothing.
+
+### AC-09 live witness
+
+| Field | Value |
+|---|---|
+| Commit | `bd42731c3dd683c00b18367de8d834213032c36a` |
+| Banner | `2.1.296 (Claude Code)` |
+| Auth | `authMethod=claude.ai` (subscription) |
+| Node | `backend: claude`, `cli_flags: {tools: []}`, prompt "Say pong." |
+| argv shape | `claude -p <prompt> --output-format json --tools ""` (unchanged `_build_claude_argv`) |
+| Exit | 0; envelope parsed by `_ClaudeEnvelope`; `session_id` present |
+| Result head | `'pong'` |
+
+### Deviations
+
+1. **AC-08 was never RED.** The Copilot runtime has no pin, so
+   `test_no_version_probe` passes from its first run. It is a guard
+   against introducing a pin, as the FR states, not a RED witness.
+2. **OTel test path comparison** in `test_fr1048_opencode_backend.py` now
+   compares `Path` objects. It failed on Windows separators only; a
+   test-portability fix touched while rewriting that file.
+3. **Witness PATH.** On this host `claude` on PATH is the npm `claude.cmd`
+   shim, which `subprocess.run(["claude", ...])` cannot launch on Windows
+   (`WinError 2`). The witness prepended the real `claude.exe` directory to
+   PATH. Windows npm-shim resolution is a separate defect, out of scope.
+4. **Witness first attempts** failed before any CLI call (relative prompt
+   path, then the shim above); no extra billed call was made.
+5. **No dated note in FR-959.** The file is read-only under the FR-889
+   main write lock. The note was not forced through. The supersession
+   is recorded here, in FR-1048, in CAP-30, and in the reference.
+
+### Planned Operations reconciliation
+
+| Planned operation | Outcome | Witness |
+|---|---|---|
+| probe `claude --version` | `2.1.296 (Claude Code)` — pin breaking | Problem § |
+| probe `claude auth status` | fields present, unchanged | Probe 1 |
+| probe `claude --help` | frozen argv flags present | Probe 1 |
+| probe `git grep` pin consumers | runtimes, two test files, CAP-30, ARCHITECTURE, reference | AC-06 empty after GREEN |
+| probe Copilot runtime `version` grep | none | AC-08 test |
+| branch: judge-variant tests import pins | not taken — no import | AC-06 grep |
+| branch: live witness fails envelope | not taken — exit 0, parsed | AC-09 table |
+| branch: aggregate diff touches other rows | not taken — only REQ-YG-641/679 | `git diff ARCHITECTURE.md` |
+| delegation: judge.sh ×2 | REJECTED, then APPROVED | judgement file |
+| delegation: outsider.sh, review.sh | on the PR | PR comments |
+| commands: aggregate, pytest, req_coverage, check_changelog_req | all pass (wrapper tests: CI) | this section |
+| command: `claude -p` | one billed call | AC-09 table |
+
+**Unplanned operations:** `ruff format` reformat of
+`test_fr959_claude_backend.py` after RED (folded into GREEN); Windows
+PATH prepend for the witness (deviation 3).
 
 ## Out of scope
 

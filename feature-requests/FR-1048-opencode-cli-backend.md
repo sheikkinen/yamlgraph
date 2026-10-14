@@ -259,6 +259,8 @@ same environment as the agent call, before the run:
   matching numeric prefix on a different product string is version drift.
 - Widening the set requires a new evidence capture on the new version,
   recorded in the evidence file.
+- *2026-10-14: superseded by [FR-1147](FR-1147-remove-cli-version-pins.md) —
+  any `X.Y.Z` banner is accepted.*
 
 There is **no auth preflight** (unlike Claude). opencode has no single
 subscription to witness; it fans out across configured providers. The

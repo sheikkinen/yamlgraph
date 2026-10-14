@@ -88,16 +88,19 @@ requirements:
       Claude backend payer boundary, per invocation: child env stripped of the
       evidenced credential and routing switches (`ANTHROPIC_API_KEY`,
       `ANTHROPIC_AUTH_TOKEN`, `ANTHROPIC_BASE_URL`, `CLAUDE_CODE_USE_BEDROCK`,
-      `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`); exact
-      supported-version check then fail-closed subscription auth-status check,
-      both pinned to the committed raw probe and both run before every `-p`
-      call with no cache; residual settings surface enumerated in docs and
-      accepted by a named spend owner.
+      `CLAUDE_CODE_USE_VERTEX`, `CLAUDE_CODE_USE_FOUNDRY`); full-string ASCII
+      semantic-version `X.Y.Z (Claude Code)` product-banner check of any
+      release (FR-1147), then fail-closed subscription auth-status check pinned
+      to the committed raw probe, both run before every `-p` call with no
+      cache; residual settings surface enumerated in docs and accepted by a
+      named spend owner.
     modules:
       - node_factory/copilot_runtime_claude
   - id: REQ-YG-679
     description: >
-      Copilot node supports `backend: opencode`: list argv
+      Copilot node supports `backend: opencode`: a per-invocation full-string
+      ASCII semantic-version `X.Y.Z` `--version` banner check of any release
+      (FR-1147) before the run; list argv
       `opencode run <prompt> --format json --model <resolved>` (plus `--session`
       when `resume` is set) in the frozen order; stdout crosses a typed,
       fail-closed JSONL state machine (recognized events `step_start`, `text`,
