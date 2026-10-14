@@ -169,6 +169,8 @@ stripped environment** (§5) as the agent call:
    anything else raises `RuntimeError` naming the observed and accepted
    versions, before the auth probe. Widening the set requires a new
    evidence capture on the new version, recorded in this FR.
+   *2026-10-14: superseded by [FR-1147](FR-1147-remove-cli-version-pins.md) —
+   any `X.Y.Z (Claude Code)` banner is accepted; the product suffix is kept.*
 2. `claude auth status` (JSON is the default) → must exit 0 and parse into a
    private `_ClaudeAuthStatus` model with `loggedIn: bool`,
    `authMethod: str`, `apiProvider: str`. Accepted iff `loggedIn` is true,

@@ -294,9 +294,10 @@ CI on Linux is their witness. `req_coverage.py --strict` and
    PATH. Windows npm-shim resolution is a separate defect, out of scope.
 4. **Witness first attempts** failed before any CLI call (relative prompt
    path, then the shim above); no extra billed call was made.
-5. **No dated note in FR-959.** The file is read-only under the FR-889
-   main write lock. The note was not forced through. The supersession
-   is recorded here, in FR-1048, in CAP-30, and in the reference.
+5. **FR-959 note via worktree.** The main checkout holds FR-959 read-only
+   under the FR-889 lock, so the first docs commit omitted the dated note.
+   The review flagged the omission, and the note was added from a
+   detached worktree instead of unlocking main.
 
 ### Planned Operations reconciliation
 
