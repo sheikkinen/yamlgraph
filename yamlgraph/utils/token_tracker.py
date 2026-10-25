@@ -42,6 +42,8 @@ class TokenUsageCallbackHandler(BaseCallbackHandler):
     Reads ``usage_metadata`` from ``AIMessage`` (the LangChain-normalised
     path), which is provider-independent:
     ``{"input_tokens": N, "output_tokens": N, "total_tokens": N}``.
+    FR-1152: ``output_token_details["reasoning"]`` (Anthropic's thinking
+    tokens) is summed too; it is a part of ``output_tokens``, never added.
     """
 
     def __init__(self) -> None:
@@ -49,6 +51,7 @@ class TokenUsageCallbackHandler(BaseCallbackHandler):
         self.total_input_tokens: int = 0
         self.total_output_tokens: int = 0
         self.total_calls: int = 0
+        self.total_reasoning_tokens: int = 0
 
     # -- LangChain callback ---------------------------------------------------
 
@@ -69,6 +72,8 @@ class TokenUsageCallbackHandler(BaseCallbackHandler):
                     continue
                 self.total_input_tokens += usage.get("input_tokens", 0)
                 self.total_output_tokens += usage.get("output_tokens", 0)
+                details = usage.get("output_token_details") or {}
+                self.total_reasoning_tokens += details.get("reasoning") or 0
 
     # -- Public API ------------------------------------------------------------
 
@@ -77,13 +82,15 @@ class TokenUsageCallbackHandler(BaseCallbackHandler):
 
         Returns:
             Dict with ``total_input_tokens``, ``total_output_tokens``,
-            ``total_tokens`` (sum), and ``total_calls``.
+            ``total_tokens`` (sum), ``total_calls`` and
+            ``total_reasoning_tokens`` (part of the output, FR-1152).
         """
         return {
             "total_input_tokens": self.total_input_tokens,
             "total_output_tokens": self.total_output_tokens,
             "total_tokens": self.total_input_tokens + self.total_output_tokens,
             "total_calls": self.total_calls,
+            "total_reasoning_tokens": self.total_reasoning_tokens,
         }
 
 
