@@ -812,7 +812,7 @@ Linter cross-reference and semantic checks for edge endpoints, loop limits, stat
 
 Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaway execution.
 
-**Feature Request:** legacy, FR-1152
+**Feature Request:** legacy, FR-027, FR-1152
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|

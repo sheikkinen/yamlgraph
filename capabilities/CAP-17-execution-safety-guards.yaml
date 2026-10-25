@@ -112,4 +112,4 @@ requirements:
       - compile/loop_limits
       - graph_loader
       - node_factory/race_node
-fr: legacy, FR-1152
+fr: legacy, FR-027, FR-1152
