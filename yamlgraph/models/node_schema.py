@@ -10,7 +10,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from yamlgraph.constants import ErrorHandler, NodeType
+from yamlgraph.constants import EffortLevel, ErrorHandler, NodeType
 from yamlgraph.models.guard_schema import (
     CacheConfig,
     GuardConfig,
@@ -83,6 +83,7 @@ class NodeConfig(BaseModel):
         default=None,
         description="Anthropic extended thinking budget_tokens (0 or ≥1024)",
     )
+    effort: EffortLevel | None = Field(default=None, description="FR-1151")
     on_error: str | None = Field(default=None)
     fallback: dict[str, Any] | None = Field(default=None)
     variables: dict[str, str] = Field(default_factory=dict)

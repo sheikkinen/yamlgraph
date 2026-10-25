@@ -1,10 +1,13 @@
 id: CAP-28
-name: Graph-Level Thinking Budget
+name: Graph-Level Thinking Budget and Effort
 description: >
-  Graph-level and per-node thinking_budget YAML field for Anthropic extended
-  thinking.
+  Graph-level and per-node reasoning controls: the thinking_budget YAML field
+  for Anthropic extended thinking (and Google/Vertex/DeepSeek), and the effort
+  field for Anthropic output_config.effort (FR-1151).
 modules:
   - yamlgraph/models/graph_schema.py
+  - yamlgraph/models/node_schema.py
+  - yamlgraph/node_factory/llm_nodes.py
   - yamlgraph/utils/llm_factory.py
   - yamlgraph/utils/llm_providers.py
   - yamlgraph/utils/anthropic_thinking.py
@@ -26,4 +29,18 @@ requirements:
       - yamlgraph/utils/llm_factory.py
       - yamlgraph/utils/llm_providers.py
       - yamlgraph/utils/anthropic_thinking.py
-fr: FR-071, FR-1148
+  - id: REQ-YG-725
+    description: >
+      `effort` YAML field (`low`, `medium`, `high`, `xhigh`, `max`) on graph
+      `defaults` and on `llm` nodes and `router` nodes without `candidates`,
+      node over defaults; sent to `ChatAnthropic` as `reasoning_effort`
+      (`output_config.effort`); omitted leaves the request unchanged; any
+      other resolved provider raises `ValueError` before a client is built;
+      a value outside the five, or `effort` on a race node or a router with
+      `candidates`, is refused at load; included in the LLM cache key
+    modules:
+      - yamlgraph/models/node_schema.py
+      - yamlgraph/models/graph_schema.py
+      - yamlgraph/node_factory/llm_nodes.py
+      - yamlgraph/utils/llm_factory.py
+fr: FR-071, FR-1148, FR-1151

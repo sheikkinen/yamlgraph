@@ -15,6 +15,7 @@ from yamlgraph.error_handlers import check_loop_limit, check_requirements
 from yamlgraph.executor import execute_prompt
 from yamlgraph.models import PipelineError
 from yamlgraph.node_factory.base import GraphState, get_output_model_for_node
+from yamlgraph.node_factory.base import node_or_default as _node_or_default
 from yamlgraph.node_factory.llm_execution import (
     apply_verification as _apply_verification,
 )
@@ -76,6 +77,7 @@ class LLMNodeConfig:
     guards_post: list[dict[str, Any]] = field(default_factory=list)
     default_provider: str | None = field(default=None)
     default_model: str | None = field(default=None)
+    effort: str | None = field(default=None)  # FR-1151
 
 
 def resolve_llm_node_config(
@@ -122,11 +124,6 @@ def resolve_llm_node_config(
     if temperature is None:
         temperature = 0.7
 
-    # Thinking budget: node > defaults
-    thinking_budget = node_config.get("thinking_budget")
-    if thinking_budget is None:
-        thinking_budget = defaults.get("thinking_budget")
-
     # Error handling
     fallback_config = node_config.get("fallback", {})
     fallback_provider = fallback_config.get("provider") if fallback_config else None
@@ -157,7 +154,8 @@ def resolve_llm_node_config(
         default_model=defaults.get("model"),
         temperature=temperature,
         max_tokens=node_config.get("max_tokens", defaults.get("max_tokens")),
-        thinking_budget=thinking_budget,
+        thinking_budget=_node_or_default(node_config, defaults, "thinking_budget"),
+        effort=_node_or_default(node_config, defaults, "effort"),
         output_model=output_model,
         parse_json=parse_json,
         variable_templates=node_config.get("variables", {}),
@@ -361,6 +359,7 @@ def _run_node(
                 state=state,
                 max_tokens=cfg.max_tokens,
                 thinking_budget=cfg.thinking_budget,
+                effort=cfg.effort,
                 retry_feedback=feedback,
             )
             return result, None

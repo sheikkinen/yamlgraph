@@ -111,6 +111,7 @@ from yamlgraph.models.graph_schema import (  # noqa: F401 (CONF-126)
     CacheConfig,
     CheckpointConfig,
     DefaultsConfig,
+    GraphConfigSchema,
     NodeConfig,
     ObservabilityConfig,
     PostGuardRule,
@@ -135,6 +136,7 @@ NodeConfig.parse_guards
 PostGuardRule.validate_retry_fields
 VerificationConfig.validate_on_fail
 DefaultsConfig.validate_defaults_thinking_budget
+GraphConfigSchema.validate_effort_targets
 GraphConfig.validate_defaults_on_overflow
 GraphConfig.validate_defaults_on_error
 GraphConfig.validate_router_targets
@@ -287,5 +289,7 @@ discover_graphs
 
 # FR-1125: tested projections of find_unconstrainable (judgement R-2 keeps them
 # for existing callers and focused tests); production code uses the unified walker.
+from yamlgraph.utils.schema_walk import find_open_objects, find_untyped_subschemas
+
 find_untyped_subschemas
 find_open_objects

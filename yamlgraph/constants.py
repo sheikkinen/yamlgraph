@@ -5,6 +5,11 @@ used throughout the codebase to enable static type checking and IDE support.
 """
 
 from enum import StrEnum
+from typing import Literal, get_args
+
+# FR-1151: Anthropic output_config.effort levels
+EffortLevel = Literal["low", "medium", "high", "xhigh", "max"]
+EFFORT_LEVELS = get_args(EffortLevel)
 
 
 class NodeType(StrEnum):

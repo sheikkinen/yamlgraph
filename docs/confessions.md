@@ -149,7 +149,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Used for YAML prompt template variable extraction, not HTML rendering. Autoescape would corrupt prompt text by escaping `<`, `>`, `&` characters. No web output is generated from this code path.
 
 ### CONF-010
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L199)
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L201)
 - **Code**: C901 (function too complex)
 - **Sin**: `prepare_messages` has high cyclomatic complexity (14 > 15 after refactoring, but still flagged) due to branching logic for different system field types (scalar vs. list vs. system_segments) and provider-specific message formatting.
 - **Penance**: Working functionality for FR-276 prompt caching. Complexity reduced from D (24) to C (14) through helper function extraction. The function orchestrates message preparation across multiple input formats and providers, making some complexity unavoidable.
@@ -179,7 +179,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Same as CONF-037 — hardcoded `["git", "diff", "--cached", "--name-only"]` for staged change detection.
 
 ### CONF-039
-- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L302)
+- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L300)
 - **Code**: C901 (cognitive complexity > 15)
 - **Sin**: Nested `node_fn` still orchestrates loop guards, requirements checks, execution, verification, routing, and error dispatch in one closure.
 - **Penance**: FR-223 already extracted core helpers (`_apply_verification`, `_resolve_route`, `_handle_error`), and FR-632 extracted `_normalize_result`, but closure structure keeps orchestration complexity above threshold. Suppressed while follow-up decomposition lands.
@@ -1056,7 +1056,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-221
-- **File**: [yamlgraph/constants.py](../yamlgraph/constants.py#L48)
+- **File**: [yamlgraph/constants.py](../yamlgraph/constants.py#L53)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
@@ -1170,7 +1170,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-240
-- **File**: [yamlgraph/models/node_schema.py](../yamlgraph/models/node_schema.py#L87)
+- **File**: [yamlgraph/models/node_schema.py](../yamlgraph/models/node_schema.py#L88)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
@@ -1188,25 +1188,25 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-243
-- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L131)
+- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L128)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-244
-- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L132)
+- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L129)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-245
-- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L167)
+- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L165)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-246
-- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L61)
+- **File**: [yamlgraph/node_factory/llm_nodes.py](../yamlgraph/node_factory/llm_nodes.py#L62)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
@@ -1321,7 +1321,7 @@ These are not `# noqa` suppressions — they are documented deviations from proc
 - **Penance**: Documents the structured-output mismatch recovery path. Renaming would obscure intent.
 
 ### CONF-351
-- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L403)
+- **File**: [yamlgraph/executor_base.py](../yamlgraph/executor_base.py#L405)
 - **Code**: FB001
 - **Sin**: Docstring of `_invoke_llm_once` contains `fallback` — describes the FR-464 structured-output fallback strategy.
 - **Penance**: Documents the retry-then-parse pattern. Renaming would obscure intent.
