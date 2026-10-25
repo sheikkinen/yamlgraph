@@ -202,3 +202,81 @@ The silent drop is real for `defaults` only, which is a free dict: `defaults: {p
 loads, and the value reaches nothing. The FR's design is unchanged. Today a node cannot ask for effort at all, and a
 graph-wide `defaults.effort` is ignored. Judgement R-2 still holds: once `effort` is a `NodeConfig` field, a race
 node or a router with `candidates:` would accept it and drop it, so the validator stays.
+
+## Implementation status (2026-10-25)
+
+**Probe, offline payloads** (`langchain-anthropic` 1.7.0, before the code):
+
+```text
+claude-opus-5-5 output_config= {'effort': 'low'} thinking= <absent>
+claude-sonnet-5-5 output_config= {'effort': 'low'} thinking= {'type': 'between_tools'}
+claude-haiku-4-5-20251001 output_config= {'effort': 'low'} thinking= <absent>
+```
+
+The installed profile data gives `claude-opus-5-5` no `xhigh` level, so langchain's adaptive default
+(`chat_models.py:1659-1669`) does not fire: no `thinking` field is sent (AC-16, asserted as observed).
+
+**RED** (`fda8c6f7`, the tests and REQ-YG-725 in CAP-28, no code):
+
+```text
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestCreateLLMEffort::test_effort_reaches_output_config
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestCreateLLMEffort::test_effort_on_another_provider_raises_before_any_client
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestCreateLLMEffort::test_effort_refused_on_the_resolved_provider
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestCreateLLMEffort::test_effort_is_in_the_cache_key
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestCreateLLMEffort::test_effort_with_thinking_off_on_sonnet_5_5
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestCreateLLMEffort::test_opus_5_5_low_effort_thinking_as_observed
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestEffortSchema::test_bad_value_refused_on_a_node
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestEffortSchema::test_bad_value_refused_in_defaults
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestEffortSchema::test_effort_refused_where_it_would_be_dropped[race]
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestEffortSchema::test_effort_refused_where_it_would_be_dropped[router-with-candidates]
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestEffortSchema::test_effort_accepted_on_llm_and_plain_router[llm]
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestEffortSchema::test_effort_accepted_on_llm_and_plain_router[router]
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestEffortNodeResolution::test_effort_resolves_and_reaches_execute_prompt[node]
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestEffortNodeResolution::test_effort_resolves_and_reaches_execute_prompt[defaults]
+FAILED tests/unit/test_fr1151_anthropic_effort.py::TestEffortNodeResolution::test_effort_resolves_and_reaches_execute_prompt[unset]
+15 failed, 2 passed in 2.69s
+```
+
+The two that pass hold today by design: AC-02 (absent effort leaves the request unchanged) and AC-18 (race
+candidates are built without effort).
+
+**GREEN** (`dc9fa4dc`): 17 passed in `test_fr1151_anthropic_effort.py`; `test_thinking_budget.py`,
+`test_fr1148_thinking_off_payload.py`, `test_fr715_prompt_request.py`, the race, router-race, llm-node, executor,
+schema and JSON-schema suites: 227 passed. Four `test_fr1028_provider_model_override.py` wrapper tests fail on
+Windows with and without this change (they need bash).
+
+**AC-11, the live call** (`create_llm(provider="anthropic", model="claude-opus-5-5", effort="low",
+max_tokens=1024).invoke("Name three primary colours, one per line, nothing else.")`, key from `.env`, not printed):
+
+```text
+provider=anthropic model= claude-opus-5-5
+stop_reason= end_turn
+usage= {'cache_creation': {'ephemeral_1h_input_tokens': 0, 'ephemeral_5m_input_tokens': 0}, 'cache_creation_input_tokens': 0, 'cache_read_input_tokens': 0, 'inference_geo': 'global', 'input_tokens': 25, 'output_tokens': 13, 'output_tokens_details': {'thinking_tokens': 0}, 'server_tool_use': None, 'service_tier': 'standard', 'speed': 'standard'}
+blocks= ['str']
+text= 'Red\nBlue\nYellow'
+```
+
+**Sizes and gates:** `llm_nodes.py` 448, `executor_base.py` 447, `node_schema.py` 420, `llm_factory.py` 315,
+`graph_schema.py` 250, `executor.py` 217, `base.py` 96; `size_gate.py` exit 0, no BASELINE entry. `lint-imports`
+3 kept. `req_coverage.py --strict` exit 0 (CAP-28: 2/2 REQs). `check_changelog_req.py`: this fragment
+**deferred** (REQ-YG-725 in multi-REQ CAP-28, LLM unavailable locally), not passed (AC-13).
+
+### Deviations from the frozen scope
+
+1. **The line-keyed confessions.** The insertions shifted six hedging ALLOWLIST entries (CONF-240, CONF-243..246,
+   CONF-351) and two noqa confessions (`executor_base.py` C901 L199→L201, `llm_nodes.py` C901 L302→L300).
+   `scripts/hedging_check.py` and `docs/confessions.md` are re-keyed, as FR-998:166 did; nothing re-described.
+   The repo's `noqa_coverage.py --fix` repaired none of them, so the two noqa anchors were moved by hand.
+2. **`vulture_whitelist.py`** names `NodeConfig.validate_effort_target`, as for every other Pydantic validator.
+   Touching the file ran ruff on it, which failed on `main`'s bare `find_untyped_subschemas` and
+   `find_open_objects` (FR-1125, F821); one import line from `yamlgraph.utils.schema_walk` cures it, no `noqa`.
+3. **`create_llm`'s complexity.** The effort check took `create_llm` from radon C (20) to D (22), which the gate
+   blocks. Both provider checks (the existing `thinking_budget` one, moved verbatim, and the new `effort` one)
+   are now `_refuse_unsupported_options` in `llm_factory.py`; `create_llm` is C (17).
+4. **The helper's import** in `llm_nodes.py` is `node_or_default as _node_or_default`, the file's own aliased
+   style; the plain import, merged by isort, wrapped to five lines and put the file at 451.
+5. **`LLMNodeConfig.effort`** is a defaulted field at the end of the dataclass: `test_llm_node_phases.py` builds
+   `LLMNodeConfig` directly, and a required field broke eleven of its tests, which C-2's spirit forbids editing.
+
+**Parked (not this FR):** CONF-364 points at `executor_base.py#L172` for `_invoke_llm`, which is not there on
+`main`.
