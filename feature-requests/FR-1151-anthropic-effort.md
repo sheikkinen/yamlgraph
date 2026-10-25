@@ -75,7 +75,7 @@ waits:
   - "producer's reviewer, then the operator's merge decision"
 commands:
   - JUDGE_BACKEND=claude bash scripts/judge.sh feature-requests/FR-1151-anthropic-effort.md
-  - pytest -q --no-cov tests/unit/test_fr1151_anthropic_effort.py tests/unit/test_thinking_budget.py tests/unit/test_fr715_prompt_request.py tests/unit/test_llm_nodes.py
+  - pytest -q --no-cov tests/unit/test_fr1151_anthropic_effort.py tests/unit/test_thinking_budget.py tests/unit/test_fr715_prompt_request.py tests/unit/test_llm_node_phases.py tests/unit/test_fr1028_provider_model_override.py
   - PYTHONUTF8=1 python scripts/size_gate.py
   - lint-imports
   - python scripts/req_coverage.py --strict
