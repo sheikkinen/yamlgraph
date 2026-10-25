@@ -335,3 +335,58 @@ from os.path import join as join
 
 The two errors are the unsorted block and the unused `from os import sep`;
 `--fix` removed only that line and kept both same-name `as` imports.
+
+**The move** (`379546dc`), byte identity against the anchor:
+
+```text
+$ python - <<'EOF'
+old = git show c1db2321:yamlgraph/utils/llm_providers.py, lines 28-77
+new = yamlgraph/utils/anthropic_thinking.py
+EOF
+byte-identical: True at anthropic_thinking.py lines 13 to 62
+```
+
+`llm_providers.py` is 430 lines, `anthropic_thinking.py` 62. The pinned
+format hook also rewrapped two lines of `tests/unit/test_thinking_budget.py`
+(`create_llm(...)` calls at its lines 112 and 118) that FR-1148's direct push
+left over 88 characters; nothing else in that file changed outside the new
+`TestAnthropicThinkingModule` class.
+
+**R-3 probe after the move** (`379546dc`):
+
+```text
+$ PYTHONUTF8=1 python scripts/hedging_check.py yamlgraph scripts --strict
+No hedging patterns found.
+exit 0
+```
+
+Identical to the probe before the move; CONF-352 untouched.
+
+**RED witness (AC-07),** at `188f7137` (repaired assert, 473 entry present):
+
+```text
+$ PYTHONUTF8=1 pytest .github/hooks/tests/test_size_gate.py -q --no-cov
+            assert actual <= allowed, f"{rel} grew past its ratchet ({actual} > {allowed})"
+>           assert actual > size_gate.LIMIT, (
+                f"stale baseline entry: {rel} is {actual} lines, not over LIMIT"
+            )
+E           AssertionError: stale baseline entry: yamlgraph/utils/llm_providers.py is 430 lines, not over LIMIT
+E           assert 430 > 450
+E            +  where 450 = <module 'size_gate' from 'C:\\src\\yamlgraph\\scripts\\size_gate.py'>.LIMIT
+
+.github\hooks\tests\test_size_gate.py:123: AssertionError
+=========================== short test summary info ===========================
+FAILED .github/hooks/tests/test_size_gate.py::test_baseline_is_shrink_only_and_honest
+1 failed, 10 passed in 1.81s
+```
+
+**GREEN** at `6a6133e7` (entry removed): `test_size_gate.py` 11 passed;
+`PYTHONUTF8=1 python scripts/size_gate.py` exits 0 with no `✗` line (AC-01;
+its output is 18 `⚠` lines for other files between 400 and 450 lines).
+
+**Checks at `379546dc`:** `lint-imports`: 3 kept, 0 broken.
+`python scripts/req_coverage.py --strict`: exit 0. The targeted pytest
+command (plus `test_fr230_google_vertex_thinking.py`): 172 passed, 4 skipped.
+The full unit suite runs in CI (on Windows it fails on 286 tests outside
+this change, so the `pytest` hook was skipped on the three code commits; the
+PR body lists them).
