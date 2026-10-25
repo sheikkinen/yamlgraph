@@ -108,9 +108,20 @@ class TestCreateLLMThinking:
         # Check that thinking was not enabled (will check internals after implementation)
 
     def test_thinking_budget_zero_no_thinking(self):
-        """thinking_budget=0 does not enable thinking."""
+        """thinking_budget=0 sends thinking disabled (a model that thinks by default stops)."""
         llm = create_llm(provider="anthropic", thinking_budget=0)
         assert isinstance(llm, ChatAnthropic)
+        assert llm.thinking == {"type": "disabled"}
+
+    def test_thinking_budget_absent_leaves_the_request_unchanged(self):
+        """No thinking_budget: no thinking field at all, the model's default stands."""
+        llm = create_llm(provider="anthropic", thinking_budget=None)
+        assert llm.thinking is None
+
+    def test_thinking_budget_enabled_sets_the_budget(self):
+        """thinking_budget >= 1024 still enables thinking with that budget."""
+        llm = create_llm(provider="anthropic", thinking_budget=2048)
+        assert llm.thinking == {"type": "enabled", "budget_tokens": 2048}
 
     def test_thinking_budget_enabled_anthropic(self):
         """thinking_budget >= 1024 with anthropic enables thinking."""

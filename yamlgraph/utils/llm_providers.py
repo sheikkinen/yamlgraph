@@ -31,11 +31,19 @@ def _create_anthropic_llm(
     thinking_budget: int | None = None,
     **kwargs: object,
 ) -> BaseChatModel:
-    """Create Anthropic Claude LLM."""
+    """Create Anthropic Claude LLM.
+
+    ``thinking_budget``: ``None`` leaves the request as it is (the model's own
+    default); ``0`` sends ``thinking: {"type": "disabled"}``, so a model that
+    thinks by default (Sonnet 5.5) spends its ``max_tokens`` on the answer;
+    ``>= 1024`` enables thinking with that budget.
+    """
     from langchain_anthropic import ChatAnthropic
 
     anthropic_kwargs = dict(kwargs)
-    if thinking_budget is not None and thinking_budget >= 1024:
+    if thinking_budget == 0:
+        anthropic_kwargs["thinking"] = {"type": "disabled"}
+    elif thinking_budget is not None and thinking_budget >= 1024:
         anthropic_kwargs["thinking"] = {
             "type": "enabled",
             "budget_tokens": thinking_budget,
