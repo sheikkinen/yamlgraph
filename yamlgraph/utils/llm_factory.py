@@ -118,8 +118,12 @@ def create_llm(
         temperature: Temperature for generation (0.0-1.0).
         max_tokens: Maximum output tokens. None means provider default.
         thinking_budget: Extended thinking budget tokens. Supported by anthropic, google, and
-                        vertex providers (FR-071, FR-230). For Anthropic: 0 or ≥1024, forces
-                        temperature=1. For Google/Vertex: any non-negative integer or -1 for
+                        vertex providers (FR-071, FR-230). For Anthropic: ≥1024 enables
+                        thinking with that budget and forces temperature=1; 0 turns thinking
+                        off in the form the model takes ({"type": "between_tools"} on
+                        claude-sonnet-5-5, {"type": "disabled"} elsewhere) and raises
+                        ValueError on claude-opus-5-5 and claude-fable-5*, which cannot turn
+                        it off; 0 does not force temperature=1 (FR-1148). For Google/Vertex: any non-negative integer or -1 for
                         automatic mode; temperature is not overridden. For DeepSeek (FR-1056):
                         only 0 is expressible — it disables thinking via reasoning_effort="none";
                         omitting the field preserves DeepSeek's default (thinking on, effort

@@ -359,7 +359,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 24 | CAP-24 Interactive Tool Node | `interactive_tool`, `node_factory/control_nodes`, `utils/conditions` | REQ-YG-075 |
 | 25 | CAP-25 Tavily Domain RAG Demo | `examples/demos/tavily_rag` | REQ-YG-076 |
 | 26 | CAP-26 Streaming Error Resilience | `executor_async`, `models/streaming` | REQ-YG-077 |
-| 28 | CAP-28 Graph-Level Thinking Budget | `yamlgraph/models/graph_schema.py`, `yamlgraph/utils/llm_factory.py` | REQ-YG-083 |
+| 28 | CAP-28 Graph-Level Thinking Budget | `yamlgraph/models/graph_schema.py`, `yamlgraph/utils/llm_factory.py`, `yamlgraph/utils/llm_providers.py`, `yamlgraph/utils/anthropic_thinking.py` | REQ-YG-083 |
 | 30 | CAP-30 Copilot Node | `constants.NodeType.COPILOT`, `models/schemas`, `node_compiler`, `node_factory/copilot_node`, … | REQ-YG-087, 089, 105, 356 – 357, 639 – 641, 679 – 681 |
 | 31 | CAP-31 Chaplain Diary Append | `examples/copilot/graph.yaml`, `examples/copilot/prompts/summarize.yaml`, `examples/shared/diary` | REQ-YG-090 |
 | 32 | CAP-32 eBook Authoring Pipeline | `examples/ebook/nodes/writing.py`, `tests/unit/test_ebook_doctrine_validation.py` | REQ-YG-091 – 092 |
@@ -909,7 +909,7 @@ Graph-level and per-node thinking_budget YAML field for Anthropic extended think
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-083 | `thinking_budget` YAML field on graph `defaults` and per-node; validated as `0` or `≥ 1024`; passed as `thinking={"type":"enabled","budget_tokens":N}` to `ChatAnthropic` with forced `temperature=1` (override before cache key); raises on non-Anthropic provider; included in LLM cache key | `yamlgraph/models/graph_schema.py`, `yamlgraph/utils/llm_factory.py` |
+| REQ-YG-083 | `thinking_budget` YAML field on graph `defaults` and per-node; validated as `0` or `≥ 1024`; `≥ 1024` is passed as `thinking={"type":"enabled","budget_tokens":N}` to `ChatAnthropic` with forced `temperature=1` (override before cache key); `0` turns thinking off in the form each model takes (`{"type":"between_tools"}` on `claude-sonnet-5-5`, `{"type":"disabled"}` elsewhere) and raises `ValueError` before any request on `claude-opus-5-5` and `claude-fable-5*`, which cannot turn it off; `0` does not force `temperature=1`; omitted leaves the request unchanged (FR-1148); raises on non-Anthropic provider for `≥ 1024`; included in LLM cache key | `yamlgraph/models/graph_schema.py`, `yamlgraph/utils/llm_factory.py`, `yamlgraph/utils/llm_providers.py`, `yamlgraph/utils/anthropic_thinking.py` |
 
 ### 30. CAP-30 Copilot Node
 

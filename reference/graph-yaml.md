@@ -81,7 +81,7 @@ Default configuration applied to all nodes unless overridden.
 defaults:
   provider: mistral       # Default LLM provider
   temperature: 0.7        # Default temperature
-  thinking_budget: 8000   # Extended thinking budget (Anthropic: ≥1024; Google/Vertex: any positive int or -1 for auto, FR-071/FR-230)
+  thinking_budget: 8000   # Extended thinking budget (Anthropic: ≥1024, or 0 for off where the model allows it, FR-1148; Google/Vertex: any positive int or -1 for auto, FR-071/FR-230)
   prompts_relative: true  # Resolve prompts relative to graph file
   prompts_dir: path/to   # Explicit prompts directory (optional)
   on_error: fail          # Error policy for top-level llm nodes (FR-1124)
@@ -91,7 +91,7 @@ defaults:
 |----------|------|---------|-------------|
 | `provider` | `string` | env-based | Default LLM provider |
 | `temperature` | `float` | `0.7` | Default temperature |
-| `thinking_budget` | `int` | `None` | Extended thinking tokens. `anthropic`: `0` turns thinking off (`{type: between_tools}` on Claude Sonnet 5.5, `{type: disabled}` elsewhere; an error on Opus 5.5 and Fable 5.x, which cannot turn it off); `≥1024` enables it and forces `temperature=1` (FR-071); omitted leaves the request unchanged. `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). `deepseek`: only `0` is meaningful — it disables thinking; omitted keeps the API default (thinking on, effort `high`); other accepted values are ignored and `≥1024` raises (FR-1056). |
+| `thinking_budget` | `int` | `None` | Extended thinking tokens. `anthropic`: `0` turns thinking off (`{type: between_tools}` on Claude Sonnet 5.5, `{type: disabled}` elsewhere; an error on Opus 5.5 and Fable 5.x, which cannot turn it off); `≥1024` enables it and forces `temperature=1` (FR-071), while `0` does not; omitted leaves the request unchanged. `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). `deepseek`: only `0` is meaningful — it disables thinking; omitted keeps the API default (thinking on, effort `high`); other accepted values are ignored and `≥1024` raises (FR-1056). |
 | `prompts_relative` | `bool` | `false` | Resolve prompts relative to graph file |
 | `prompts_dir` | `string` | `prompts/` | Explicit prompts directory path |
 | `on_error` | `string` | `fail` | FR-1124. Error policy for top-level `type: llm` nodes that do not set their own `on_error`: `skip`, `retry`, `fail` or `fallback`. Priority: node `on_error` > `defaults.on_error` > `fail`. Other values fail at load; `fallback` fails at load if an inheriting node has no `fallback.provider`. Router, race and map sub-nodes are not affected. |
@@ -275,7 +275,7 @@ Each node in the `nodes` section defines a processing step.
 | `temperature` | `float` | from defaults | LLM temperature |
 | `provider` | `string` | from defaults | LLM provider |
 | `max_tokens` | `int` | from config | Maximum output tokens for this node's LLM call |
-| `thinking_budget` | `int` | from defaults | Extended thinking tokens. `anthropic`: `0` turns thinking off (`{type: between_tools}` on Claude Sonnet 5.5, `{type: disabled}` elsewhere; an error on Opus 5.5 and Fable 5.x, which cannot turn it off); `≥1024` enables it and forces `temperature=1` (FR-071); omitted leaves the request unchanged. `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). `deepseek`: only `0` is meaningful — it disables thinking; omitted keeps the API default (thinking on, effort `high`); other accepted values are ignored and `≥1024` raises (FR-1056). |
+| `thinking_budget` | `int` | from defaults | Extended thinking tokens. `anthropic`: `0` turns thinking off (`{type: between_tools}` on Claude Sonnet 5.5, `{type: disabled}` elsewhere; an error on Opus 5.5 and Fable 5.x, which cannot turn it off); `≥1024` enables it and forces `temperature=1` (FR-071), while `0` does not; omitted leaves the request unchanged. `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). `deepseek`: only `0` is meaningful — it disables thinking; omitted keeps the API default (thinking on, effort `high`); other accepted values are ignored and `≥1024` raises (FR-1056). |
 | `skip_if_exists` | `bool` | `true` | Skip if state key has truthy value (FR-050: `[]`, `""`, `None` do NOT skip) |
 | `parse_json` | `bool` | `false` | Extract JSON from LLM response |
 | `stream` | `bool` | `false` | Enable token-by-token streaming |
@@ -1029,7 +1029,7 @@ nodes:
 | `prompt` | `string` | Yes | Prompt template name |
 | `state_key` | `string` | Yes | State key for the winning response |
 | `temperature` | `float` | No | LLM temperature for all candidates |
-| `thinking_budget` | `int` | No | Thinking budget shared by all candidates (FR-1144). Resolves node value → `defaults.thinking_budget` → `None`, like `llm` nodes; an explicit `0` overrides a default. Thinking providers (`anthropic`, `google`, `vertex`) apply it; other providers never receive it. Router nodes with `candidates:` resolve it the same way |
+| `thinking_budget` | `int` | No | Thinking budget shared by all candidates (FR-1144). Resolves node value → `defaults.thinking_budget` → `None`, like `llm` nodes; an explicit `0` overrides a default. Thinking providers (`anthropic`, `google`, `vertex`) apply it; other providers never receive it. On an `anthropic` candidate `0` follows the per-model rule of the `llm` node table: `between_tools` on Claude Sonnet 5.5, `disabled` elsewhere, an error on Opus 5.5 and Fable 5.x; `0` never forces `temperature=1`. Router nodes with `candidates:` resolve it the same way |
 | `parse_json` | `bool` | No | Extract JSON from LLM response (default: false) |
 
 **How it works:**
