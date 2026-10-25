@@ -87,11 +87,16 @@ class TestCreateLLMEffort:
         assert payload["thinking"] == {"type": "between_tools"}
         assert payload["output_config"] == {"effort": "low"}
 
-    def test_opus_5_5_low_effort_thinking_as_observed(self):
-        """AC-16: langchain_anthropic 1.7.0's profile data gives claude-opus-5-5 no `xhigh` level, so its adaptive
-        default (chat_models.py:1659-1669) does not apply: no `thinking` field is sent."""
+    def test_opus_5_5_low_effort_thinking_follows_the_profile_gate(self):
+        """AC-16: with effort set and no thinking, langchain_anthropic adds adaptive thinking exactly when the
+        model's profile lists `xhigh` (chat_models.py ~L1659). The profile data differs by version: 1.7.0 gives
+        claude-opus-5-5 no `xhigh` (no thinking field), 1.7.6 gives it one (adaptive, summarized)."""
+        from langchain_anthropic.chat_models import _reasoning_effort_levels
+
         llm = create_llm(provider="anthropic", model=OPUS, effort="low")
-        assert "thinking" not in _payload(llm)
+        adaptive = {"type": "adaptive", "display": "summarized"}
+        want = adaptive if "xhigh" in _reasoning_effort_levels(llm.profile) else None
+        assert _payload(llm).get("thinking") == want
 
 
 @pytest.mark.req("REQ-YG-725")
@@ -128,7 +133,7 @@ class TestEffortSchema:
     def test_effort_refused_where_it_would_be_dropped(self, node):
         """AC-17."""
         with pytest.raises(ValidationError, match="effort") as err:
-            NodeConfig(**node, effort="low")
+            GraphConfigSchema.model_validate(_graph({}, {**node, "effort": "low"}))
         assert node["type"] in str(err.value)
 
     @pytest.mark.parametrize(
