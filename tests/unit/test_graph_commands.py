@@ -1362,6 +1362,7 @@ class TestCmdGraphRunExtended:
         mock_tracker.summary.return_value = {
             "total_input_tokens": 100,
             "total_output_tokens": 50,
+            "total_reasoning_tokens": 0,
             "total_calls": 2,
         }
 
