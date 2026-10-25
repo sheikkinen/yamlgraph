@@ -17,4 +17,4 @@ requirements:
     modules:
       - yamlgraph/models/graph_schema.py
       - yamlgraph/utils/llm_factory.py
-fr: FR-071
+fr: FR-071, FR-1148

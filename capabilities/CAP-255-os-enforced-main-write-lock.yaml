@@ -10,7 +10,7 @@ description: >
   bytes for .github/copilot-instructions.md + CLAUDE.md). The CI test
   job runs the unit suite under the same lock (FR-1094), so a test that
   writes into a governed root fails in CI, not only on a locked main.
-fr: FR-889, FR-942, FR-1094
+fr: FR-889, FR-942, FR-1094, FR-1149
 modules:
   - scripts/worktree.sh
   - .github/workflows/workflow.yml
