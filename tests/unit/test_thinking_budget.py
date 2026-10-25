@@ -109,13 +109,17 @@ class TestCreateLLMThinking:
 
     def test_thinking_budget_zero_no_thinking(self):
         """thinking_budget=0 sends thinking disabled (a model that thinks by default stops)."""
-        llm = create_llm(provider="anthropic", model="claude-haiku-5-5", thinking_budget=0)
+        llm = create_llm(
+            provider="anthropic", model="claude-haiku-5-5", thinking_budget=0
+        )
         assert isinstance(llm, ChatAnthropic)
         assert llm.thinking == {"type": "disabled"}
 
     def test_thinking_budget_zero_on_sonnet_5_5_is_between_tools(self):
         """Sonnet 5.5 refuses "disabled"; its off setting is "between_tools"."""
-        llm = create_llm(provider="anthropic", model="claude-sonnet-5-5", thinking_budget=0)
+        llm = create_llm(
+            provider="anthropic", model="claude-sonnet-5-5", thinking_budget=0
+        )
         assert llm.thinking == {"type": "between_tools"}
 
     def test_thinking_budget_zero_on_opus_5_5_raises(self):
@@ -292,3 +296,41 @@ edges:
         warnings = [i for i in result.issues if i.code == "W071-1"]
         assert len(warnings) == 1
         assert "temperature" in warnings[0].message.lower()
+
+
+@pytest.mark.req("REQ-YG-083")
+class TestAnthropicThinkingModule:
+    """FR-1150: the thinking rule and the Anthropic factory live in
+    ``anthropic_thinking``; ``llm_providers`` exposes the same objects."""
+
+    def test_names_import_from_llm_providers_as_the_same_objects(self):
+        from yamlgraph.utils import anthropic_thinking, llm_providers
+
+        assert (
+            llm_providers._anthropic_thinking_off
+            is anthropic_thinking._anthropic_thinking_off
+        )
+        assert (
+            llm_providers._ANTHROPIC_THINKING_ALWAYS_ON
+            is anthropic_thinking._ANTHROPIC_THINKING_ALWAYS_ON
+        )
+        assert (
+            llm_providers._create_anthropic_llm
+            is anthropic_thinking._create_anthropic_llm
+        )
+        assert (
+            llm_providers._PROVIDER_FACTORIES["anthropic"]
+            is anthropic_thinking._create_anthropic_llm
+        )
+
+    def test_thinking_off_outcomes_and_message(self):
+        from yamlgraph.utils.anthropic_thinking import _anthropic_thinking_off
+
+        with pytest.raises(ValueError) as err:
+            _anthropic_thinking_off("claude-opus-5-5")
+        assert str(err.value) == (
+            "thinking_budget=0: thinking cannot be turned off on claude-opus-5-5; "
+            "omit thinking_budget for this model"
+        )
+        assert _anthropic_thinking_off("claude-sonnet-5-5") == {"type": "between_tools"}
+        assert _anthropic_thinking_off("claude-haiku-5-5") == {"type": "disabled"}
