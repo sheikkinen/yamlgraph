@@ -186,4 +186,73 @@ FAILED .github/hooks/tests/test_size_gate.py::test_a_baselined_file_is_held_on_t
 AC-01's test fails for the missing function, the weak witness the judgement foresaw; AC-02's test fails on the
 defect itself on Windows (the held file is not held, the gate exits 1).
 
-**AC-03,** filled with the fixed commit's run.
+**AC-03,** Windows 11, at the fixed working tree (with the temporary entry):
+
+```text
+$ PYTHONUTF8=1 python scripts/size_gate.py
+(18 lines of ⚠ warnings for files between 400 and 450 lines; no ✗ line)
+exit 0
+```
+
+## Addendum 2026-10-25: the scope widened to every hook with the Windows path bug
+
+**Trigger [O]:** the operator, relayed by the producer: "fix paths, skip hooks as seen fit". The judgement above
+covered the size gate only; this addendum widens the scope, so it is not covered by that judgement's frozen scope
+and is recorded here for the reviewer.
+
+**Why:** running every hook by id on Windows (the config has `fail_fast`) found the same defect in two more hooks:
+
+| Script | The defect | The fix |
+|---|---|---|
+| `scripts/noqa_coverage.py` | `str(filepath.relative_to(root))` at two sites: every noqa's file is a backslash path on Windows, never the forward-slash path of `docs/confessions.md`, so all 259 noqa read as undocumented, and its `--fix` hook could not realign drift | `rel_key(filepath, root)` with `.as_posix()`, used at both sites |
+| `scripts/hedging_check.py` | `_finding_key` builds `f"{filepath}:{lineno}"` from the OS path, so no finding matches its forward-slash ALLOWLIST key on Windows (37 false findings) | `_finding_key` uses `PurePath(filepath).as_posix()` |
+
+**RED witness** for the two (Windows 11, against `origin/main`'s scripts):
+
+```text
+E       AttributeError: module 'scripts.noqa_coverage' has no attribute 'rel_key'
+tests\unit\test_noqa_coverage.py:246: AttributeError
+E       AssertionError: assert 'yamlgraph\\t...\\agent.py:68' == 'yamlgraph/tools/agent.py:68'
+E
+E         - yamlgraph/tools/agent.py:68
+E         ?          ^     ^
+E         + yamlgraph\tools\agent.py:68
+E         ?          ^     ^
+tests\unit\test_hedging_check.py:171: AssertionError
+FAILED tests/unit/test_noqa_coverage.py::test_rel_key_is_posix_for_a_windows_path
+```
+
+`noqa_coverage`'s is the weak form (the helper did not exist); `hedging_check`'s fails on the defect itself, and
+would on POSIX too (a `PureWindowsPath` argument).
+
+**Two consequences, fixed in the same change:**
+
+- `tests/unit/test_hedging_check.py::TestScanFile::test_allowlist_suppresses` built its ALLOWLIST key as
+  `f"{py_file}:2"`, the OS path; it passed on Windows only because both sides used backslashes. Its key is now
+  `py_file.as_posix()`.
+- `docs/confessions.md` had drifted on `main` (six line references in `copilot_runtime_claude.py` and
+  `copilot_runtime_opencode.py`). On macOS the `noqa-confession-fix` hook realigns drift before the strict check; on
+  Windows it could not (the same path bug). `python scripts/noqa_coverage.py --fix` realigned the six; the strict
+  check then passes.
+
+**The tests this change touches,** run on Windows:
+
+```text
+$ pytest -q --no-cov tests/unit/test_noqa_coverage.py tests/unit/test_hedging_check.py .github/hooks/tests/test_size_gate.py
+...................................                                      [100%]
+35 passed in 2.26s
+```
+
+**Skipped hooks (the operator's approval, the producer's rules):** the `pytest` hook (the whole unit suite) is
+skipped with `SKIP=pytest` on this branch's code commits only: on Windows it fails on 286 tests outside this
+change (ramp installer, pre-commit hooks, post-merge, copilot and worktree tests that need bash, WSL or POSIX
+paths). Every other hook runs and passes, the fixed size gate, noqa and hedging checks included. CI runs the
+full suite on the PR. Each skip is listed with its commit in the PR body.
+
+**Acceptance criteria added:**
+
+- [ ] AC-11: `noqa_coverage.rel_key` and `hedging_check._finding_key` give forward-slash keys for a Windows path
+  (tests in `test_noqa_coverage.py` and `test_hedging_check.py`, `REQ-YG-063`).
+- [ ] AC-12: on Windows, `python scripts/noqa_coverage.py --strict` and
+  `python scripts/hedging_check.py yamlgraph scripts --strict` exit 0.
+- [ ] AC-13: every skipped hook is recorded here and in the PR body; CI's full checks pass before merge.

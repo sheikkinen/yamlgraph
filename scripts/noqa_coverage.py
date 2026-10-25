@@ -13,7 +13,7 @@ from __future__ import annotations
 import re
 import sys
 from collections import defaultdict
-from pathlib import Path
+from pathlib import Path, PurePath
 
 # Directories to scan for noqa comments
 SCAN_DIRS = ["yamlgraph", "tests", "examples", "scripts"]
@@ -157,6 +157,12 @@ def scan_codebase(root: Path) -> list[tuple[Path, int, str]]:
     return results
 
 
+def rel_key(filepath: PurePath, root: PurePath) -> str:
+    """A file's path from the root with forward slashes, as docs/confessions.md writes it, on every OS
+    (FR-1149)."""
+    return filepath.relative_to(root).as_posix()
+
+
 def undocumented_noqa(root: Path, confessions_path: Path) -> list[tuple[str, int, str]]:
     """Suppressions present in the code but absent from the ledger.
 
@@ -170,7 +176,7 @@ def undocumented_noqa(root: Path, confessions_path: Path) -> list[tuple[str, int
 
     missing = []
     for filepath, line_num, code in scan_codebase(root):
-        rel_path = str(filepath.relative_to(root))
+        rel_path = rel_key(filepath, root)
         if (rel_path, line_num, code) not in documented:
             missing.append((rel_path, line_num, code))
     return sorted(missing)
@@ -228,7 +234,7 @@ def fix_confession_lines(root: Path, confessions_path: Path) -> int:
 
     actual_by_path: dict[str, list[tuple[int, str]]] = defaultdict(list)
     for filepath, line_num, code in scan_codebase(root):
-        actual_by_path[str(filepath.relative_to(root))].append((line_num, code))
+        actual_by_path[rel_key(filepath, root)].append((line_num, code))
 
     repaired = 0
     for path, entries in ledger_by_path.items():
