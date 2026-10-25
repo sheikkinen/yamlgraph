@@ -56,7 +56,7 @@ if not result:
 """
         py_file = tmp_path / "allowed.py"
         py_file.write_text(code, encoding="utf-8")
-        allowlist_key = f"{py_file}:2"
+        allowlist_key = f"{py_file.as_posix()}:2"  # FR-1149: keys use forward slashes
 
         with patch.object(hedging_check, "ALLOWLIST", {allowlist_key: "CONF-999"}):
             findings = hedging_check.scan_file(py_file)
@@ -160,3 +160,12 @@ if not result:
             exit_code = hedging_check.main()
 
         assert exit_code == 0
+
+
+@pytest.mark.req("REQ-YG-063")
+def test_finding_key_is_posix_for_a_windows_path():
+    """FR-1149: a finding is looked up in ALLOWLIST by its forward-slash path on every OS."""
+    from pathlib import PureWindowsPath
+
+    key = hedging_check._finding_key(PureWindowsPath("yamlgraph/tools/agent.py"), 68)
+    assert key == "yamlgraph/tools/agent.py:68"

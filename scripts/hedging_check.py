@@ -21,7 +21,7 @@ import io
 import re
 import sys
 import tokenize
-from pathlib import Path
+from pathlib import Path, PurePath
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
 CONFESSIONS_PATH = REPO_ROOT / "docs" / "confessions.md"
@@ -87,8 +87,9 @@ def _has_fb_token(text: str) -> bool:
     return "fallback" in text.lower()
 
 
-def _finding_key(filepath: Path, lineno: int) -> str:
-    return f"{filepath}:{lineno}"
+def _finding_key(filepath: PurePath, lineno: int) -> str:
+    """The finding's ALLOWLIST key, with forward slashes on every OS (FR-1149)."""
+    return f"{PurePath(filepath).as_posix()}:{lineno}"
 
 
 def _normalize_path(path_str: str) -> str:

@@ -905,7 +905,7 @@ Error propagation, timeout support, and interrupt detection for run_graph_stream
 
 Graph-level and per-node thinking_budget YAML field for Anthropic extended thinking.
 
-**Feature Request:** FR-071
+**Feature Request:** FR-071, FR-1148
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
@@ -3167,7 +3167,7 @@ Manual session-lane tooling: `scripts/worktree.sh session <id>` creates an isola
 
 Governed enforcement roots on the main checkout are OS-locked (chmod -R u-w) via scripts/worktree.sh lock-main/unlock-main/sync; the pre-command guard retains only edit-tool classification and a lock-mutator fence (git never fenced, sudo passes), with the FR-888 shell grammar deleted and a widened shrink-only file-size gate that also enforces the FR-942 instruction byte ceiling (33,966 combined bytes for .github/copilot-instructions.md + CLAUDE.md). The CI test job runs the unit suite under the same lock (FR-1094), so a test that writes into a governed root fails in CI, not only on a locked main.
 
-**Feature Request:** FR-889, FR-942, FR-1094
+**Feature Request:** FR-889, FR-942, FR-1094, FR-1149
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|

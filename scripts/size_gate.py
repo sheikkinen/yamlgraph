@@ -20,7 +20,7 @@ Exit 1 when any in-scope file exceeds its allowance.
 
 import argparse
 import sys
-from pathlib import Path
+from pathlib import Path, PurePath
 
 LIMIT = 450
 WARN = 400
@@ -43,7 +43,15 @@ BASELINE = {
     "scripts/example_taxonomy_scan.py": 589,
     "scripts/vscode/now.py": 510,
     "scripts/migrate_capabilities.py": 501,
+    # Temporary (FR-1149, operator decision): held at its size on c1db2321 so the fixed gate can be committed
+    # on Windows; FR-1148's split, the next PR, brings the file under LIMIT and removes this entry.
+    "yamlgraph/utils/llm_providers.py": 473,
 }
+
+
+def baseline_key(path: PurePath, root: PurePath) -> str:
+    """A file's BASELINE key: its path from the root with forward slashes, on every OS (FR-1149)."""
+    return path.relative_to(root).as_posix()
 
 
 def in_scope(root: Path) -> list[Path]:
@@ -92,7 +100,7 @@ def main() -> int:
             n = len(p.read_text(errors="replace", encoding="utf-8").splitlines())
         except OSError:
             continue
-        rel = str(p.relative_to(root))
+        rel = baseline_key(p, root)
         allowed = BASELINE.get(rel, LIMIT)
         if n > allowed:
             failures.append((rel, n, allowed))

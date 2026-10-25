@@ -236,3 +236,15 @@ class TestMain:
                 noqa_coverage.__file__ = original_file
 
         assert exit_code == 0
+
+
+@pytest.mark.req("REQ-YG-063")
+def test_rel_key_is_posix_for_a_windows_path():
+    """FR-1149: a noqa's file is looked up in docs/confessions.md by its forward-slash path on every OS."""
+    from pathlib import PureWindowsPath
+
+    key = noqa_coverage.rel_key(
+        PureWindowsPath("C:/r/examples/beautify/run.py"), PureWindowsPath("C:/r")
+    )
+    assert key == "examples/beautify/run.py"
+    assert "\\" not in key

@@ -121,3 +121,32 @@ def test_baseline_is_shrink_only_and_honest():
         actual = len(p.read_text(encoding="utf-8").splitlines())
         assert actual <= allowed, f"{rel} grew past its ratchet ({actual} > {allowed})"
         assert actual > size_gate.LIMIT or allowed >= actual
+
+
+# FR-1149: the baseline key is the POSIX path on every OS.
+def test_baseline_key_is_posix_for_a_windows_path():
+    """AC-01: a Windows path gives the forward-slash key BASELINE uses."""
+    from pathlib import PureWindowsPath
+
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    import size_gate  # noqa: PLC0415
+
+    key = size_gate.baseline_key(
+        PureWindowsPath("C:/r/.github/hooks/tests/x.py"), PureWindowsPath("C:/r")
+    )
+    assert key == ".github/hooks/tests/x.py"
+    assert (
+        "\\" not in key
+    )  # the cross-OS guard: CI on POSIX never builds a backslash path itself
+
+
+def test_a_baselined_file_is_held_on_this_os(tmp_path, monkeypatch):
+    """AC-02: a file over LIMIT but within its BASELINE entry passes on the running OS."""
+    sys.path.insert(0, str(REPO_ROOT / "scripts"))
+    import size_gate  # noqa: PLC0415
+
+    _mk_instructions(tmp_path)
+    _mk(tmp_path, ".github/hooks/tests/held.py", 500)
+    monkeypatch.setattr(size_gate, "BASELINE", {".github/hooks/tests/held.py": 520})
+    monkeypatch.setattr(sys, "argv", ["size_gate.py", "--root", str(tmp_path)])
+    assert size_gate.main() == 0
