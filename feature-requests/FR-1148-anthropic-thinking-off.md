@@ -2,14 +2,17 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged 2026-10-25 APPROVED WITH REVISIONS; R-1..R-9 folded
+([judgement](FR-1148-anthropic-thinking-off.judgement.md), [fold](#judgement-fold-2026-10-25))
 **Requested:** 2026-10-25
 **First consumer / first event:** the game-engine repository's
 *Voyage to Arcturus* chapter-text graph (`workflows/chapter-text/text.yaml`,
 `adapt` and `extract` nodes on `claude-sonnet-5-5`, `max_tokens: 32000`).
 On 2026-10-25 its chapter I `adapt` call spent the whole 32 000-token
 answer on thinking and returned no usable text. The first event is that
-graph's next chapter run with `thinking_budget: 0` on both nodes.
+graph's next chapter run with `thinking_budget: 0` on both nodes. (This
+witness is an out-of-repo report from the game-engine repository; the
+in-repo evidence that carries this FR is Probe B.)
 **Research:** in-body dispositioned [Alternatives Considered](#alternatives-considered)
 table (FR-889 style); every row rests on the probe in
 [evidence/FR-1148-thinking-off-probe.md](evidence/FR-1148-thinking-off-probe.md)
@@ -28,6 +31,9 @@ Anthropic constructor does with the value, not how it arrives;
 [FR-1146-anthropic-temperature-deprecated.md](FR-1146-anthropic-temperature-deprecated.md)
 — same model generation, sampling parameters; its Out of scope recorded
 the thinking-shape split this FR handles for the *off* case only.
+Rejected precedent: the five REJECTED FRs in `feature-requests/` (FR-084,
+FR-702, FR-737, FR-1091, FR-1145) are unrelated to Anthropic thinking; no
+rejected precedent stands against this proposal (R-8).
 
 ## Origin (process record)
 
@@ -35,17 +41,18 @@ This change first reached `main` as three direct pushes on 2026-10-25
 (`aa1589d7`, `8366d6c7`, merge `3a911ae2`), past the required checks and
 carrying `Co-Authored-By:` trailers. The check-only PR #756 was rejected,
 and the force-push scrub of `main` was refused by branch protection. This
-FR redoes the change through the normal route. The diary entry
-`docs/diary/diary-2026-10-25-reflection-fr-1148-the-push-that-skipped-the-gates.md`
-records the corrective actions.
+FR redoes the change through the normal route. A deliverable of this FR
+(D-8, AC-16) is the diary entry
+`docs/diary/diary-2026-10-25-reflection-fr-1148-the-push-that-skipped-the-gates.md`,
+which records the corrective actions.
 
 ## Summary
 
 `thinking_budget: 0` on an Anthropic node sends nothing today, so a model
 that thinks by default keeps thinking. Make `0` turn thinking off, in the
 form each model accepts: `{"type": "between_tools"}` on Claude Sonnet 5.5,
-`{"type": "disabled"}` on the other listed models, and a load-time
-`ValueError` on the models that cannot turn thinking off (Opus 5.5,
+`{"type": "disabled"}` on the other listed models, and a `ValueError` at
+`create_llm` on the models that cannot turn thinking off (Opus 5.5,
 Fable 5.x).
 
 ## Value Statement
@@ -66,8 +73,9 @@ Code read at `00742bd4`:
 
 Witnessed:
 
-1. **The empty answer (first consumer).** game-engine chapter I, 2026-10-25
-   (game-engine commit `0d7a9b8b`): Sonnet 5.5 "thinks by default and spent
+1. **The empty answer (first consumer, out-of-repo report).** game-engine
+   chapter I, 2026-10-25 (game-engine commit `0d7a9b8b`, not verifiable
+   from this repository): Sonnet 5.5 "thinks by default and spent
    chapter I's whole 32000-token adapt answer on it". The earlier run
    (`45e066da`) found both `adapt` answers unparseable.
 2. **Probe B, reproduced on demand**
@@ -98,8 +106,8 @@ Witnessed:
 
 `thinking_budget: 0` on an Anthropic node means "no thinking before the
 answer" on every model that can express it, in the one form that model
-accepts; on a model that cannot, the graph fails at client construction
-with a message naming the model, never with a 400 mid-run. Omitting
+accepts; on a model that cannot, `create_llm` raises a `ValueError` naming
+the model before the first request is sent, instead of an API 400. Omitting
 `thinking_budget` leaves the request exactly as today, and `>= 1024`
 behaves exactly as today.
 
@@ -109,19 +117,23 @@ behaves exactly as today.
 probes:
   - "Probe A over every models.list id x {absent, disabled, between_tools} — decides the prefix rules (done, evidence file)"
   - "Probe B on claude-sonnet-5-5, absent vs between_tools — decides whether the bug is real (done, evidence file)"
-  - "wc -l yamlgraph/utils/llm_providers.py after the edit — over the size gate's 450 means the rule lives in its own module"
-  - "pytest tests/unit/test_thinking_budget.py before edit — the FR-071 tests are the regression floor"
+  - "pytest tests/unit/test_thinking_budget.py before edit — test_thinking_budget_zero_no_thinking asserts the old contract and is amended (R-2)"
+  - "one live create_llm(model=claude-sonnet-5-5, thinking_budget=0, max_tokens=1500).invoke — decides whether between_tools survives ChatAnthropic (R-9)"
+  - "yamlgraph graph lint examples/demos/thinking/graph.yaml — the demo sets thinking_budget 0 with no model (AC-14)"
 branches:
-  - "a listed id contradicts the prefix rules → change the rules and the evidence, never add a runtime models.list call"
-  - "llm_providers.py over 450 lines → move the rule to yamlgraph/utils/anthropic_thinking.py"
+  - "a listed id contradicts the prefix rules → change the rules, the evidence and the AC-06 table in one commit (C-3), never add a runtime models.list call"
+  - "the live witness returns a thinking block or empty text → back to plan; the form survives the SDK but not the wrapper"
 delegations:
   - "judge.sh: 1 run (JUDGE_BACKEND=claude)"
 waits:
   - "judge"
   - "CI"
+  - "operator merge decision"
 commands:
   - JUDGE_BACKEND=claude scripts/judge.sh feature-requests/FR-1148-anthropic-thinking-off.md
   - pytest tests/unit/test_thinking_budget.py -q --no-cov
+  - python scripts/aggregate_capabilities.py
+  - yamlgraph graph lint examples/demos/thinking/graph.yaml
   - pytest tests/unit/ -q --no-cov -m "not slow" -n auto
   - python scripts/req_coverage.py --strict
   - pre-commit run --files <changed files>
@@ -129,16 +141,25 @@ commands:
 
 ## Proposed Solution
 
-One rule at the Anthropic constructor boundary, in its own small module
-so `llm_providers.py` stays under the size gate:
+One rule at the Anthropic constructor boundary, in its own small module.
+`llm_providers.py` is 442 lines at `00742bd4`, 8 from the size gate, so the
+new module is a deliverable, not a branch (R-6). The rule cannot live
+beside `ANTHROPIC_SAMPLING_MODEL_PREFIXES` in `llm_factory.py`:
+`llm_factory` imports `dispatch_provider` from `llm_providers`, so the
+reverse import would cycle.
 
 ```python
 # yamlgraph/utils/anthropic_thinking.py
-_THINKING_ALWAYS_ON = ("claude-opus-5-5", "claude-fable-5")  # Probe A
+# Probe A: these refuse both off forms. Opus 5.5 does not always think;
+# it has no off switch, hence the name (R-6).
+_THINKING_OFF_UNSUPPORTED = ("claude-opus-5-5", "claude-fable-5")
 
-def anthropic_thinking_off(model: str) -> dict:
-    if model.startswith(_THINKING_ALWAYS_ON):
-        raise ValueError(f"thinking_budget=0: thinking cannot be turned off on {model}; ...")
+def anthropic_thinking_off(model: str) -> dict[str, str]:
+    if model.startswith(_THINKING_OFF_UNSUPPORTED):
+        raise ValueError(
+            f"thinking_budget=0: thinking cannot be turned off on {model}; "
+            "omit thinking_budget, or use a model that accepts an off form"
+        )
     if model.startswith("claude-sonnet-5-5"):
         return {"type": "between_tools"}
     return {"type": "disabled"}
@@ -171,23 +192,33 @@ Constraints:
    FR.)
 3. `0` changes no temperature: thinking off has no temperature rule.
 4. The cache key already includes `thinking_budget`; no change.
-5. `reference/graph-yaml.md` documents the three outcomes of `0` in both
-   tables (defaults and node fields).
+5. `reference/graph-yaml.md` (L84 comment, L94 defaults table, L278 node
+   table, L1032 race table) and the `create_llm` docstring document the
+   outcomes of `0` (R-5).
+6. The raise happens inside `create_llm`, before the client is cached, so
+   a second identical call raises identically (R-7).
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `create_llm(provider="anthropic", model="claude-sonnet-5-5", thinking_budget=0)` → `llm.thinking == {"type": "between_tools"}`.
-- [ ] AC-02: `claude-haiku-5-5` (a listed id that accepts `disabled`) with `thinking_budget=0` → `{"type": "disabled"}`.
-- [ ] AC-03: `claude-opus-5-5` and `claude-fable-5-1` with `thinking_budget=0` raise `ValueError` matching `cannot be turned off` at `create_llm`.
-- [ ] AC-04: `thinking_budget=None` → `llm.thinking is None`.
-- [ ] AC-05: `thinking_budget=2048` → `{"type": "enabled", "budget_tokens": 2048}`.
-- [ ] AC-06: Every new test carries `@pytest.mark.req("REQ-YG-083")` (class marker); the RED commit precedes the GREEN commit.
-- [ ] AC-07: `yamlgraph/utils/llm_providers.py` ≤ 450 lines; `pre-commit run --files` on every changed file passes.
-- [ ] AC-08: `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` and `python scripts/req_coverage.py --strict` pass.
-- [ ] AC-09: `reference/graph-yaml.md` documents `0` as thinking off per model in both tables.
-- [ ] AC-10: `changelog/unreleased/fr-1148-anthropic-thinking-off.md` with `type: fix`, `scope: llm`, `req: REQ-YG-083`.
-- [ ] AC-11: Diary reflection for FR-1148 with the corrective actions and a **Seed:**.
-- [ ] AC-12: No commit on the branch carries a `Co-authored-by` trailer.
+Revised by judgement ([FR-1148-anthropic-thinking-off.judgement.md](FR-1148-anthropic-thinking-off.judgement.md)):
+
+- [ ] AC-01: `create_llm(provider="anthropic", model="claude-sonnet-5-5", thinking_budget=0)` → `llm._get_request_payload([HumanMessage("hi")])["thinking"] == {"type": "between_tools"}`; cache cleared in setup.
+- [ ] AC-02: same call with `model="claude-haiku-5-5"` → payload `thinking == {"type": "disabled"}`.
+- [ ] AC-03: `model="claude-opus-5-5"` and `model="claude-fable-5-1"` with `thinking_budget=0` raise `ValueError` from `create_llm` matching `cannot be turned off`; the message contains the model id; a second identical call raises identically (nothing cached).
+- [ ] AC-04: `thinking_budget=None` with a pinned model → `llm.thinking is None` and `"thinking"` is absent from the request payload.
+- [ ] AC-05: `thinking_budget=2048` with a pinned `claude-haiku-4-5` → payload `thinking == {"type": "enabled", "budget_tokens": 2048}` and `llm.temperature == 1` (FR-071 unchanged).
+- [ ] AC-06: a parametrised test over the 14 model ids of `evidence/FR-1148-thinking-off-probe.md` asserts the mapping recorded there (1 × `between_tools`, 3 × raise, 10 × `disabled`).
+- [ ] AC-07: `tests/unit/test_thinking_budget.py::TestCreateLLMThinking::test_thinking_budget_zero_no_thinking` is amended to the new contract with an explicit `model=`; no test in the file resolves its model from `ANTHROPIC_MODEL`.
+- [ ] AC-08: `yamlgraph/utils/anthropic_thinking.py` exists and holds the rule; `yamlgraph/utils/llm_providers.py` ≤ 450 lines; `lint-imports` passes; `pre-commit run --files <changed files>` passes.
+- [ ] AC-09: every new test carries `@pytest.mark.req("REQ-YG-083")` (class marker); the RED commit precedes the GREEN commit in `git log`.
+- [ ] AC-10: `capabilities/CAP-28-graph-level-thinking-budget.yaml` REQ-YG-083 description states the `0` contract and lists the two provider modules; `ARCHITECTURE.md` regenerated via `scripts/aggregate_capabilities.py`; `python scripts/req_coverage.py --strict` exits 0.
+- [ ] AC-11: `reference/graph-yaml.md` L84 comment, L94 defaults table, L278 node table and L1032 race table, plus the `create_llm` docstring, all state what `0` does per model and that `0` does not force `temperature=1`.
+- [ ] AC-12: `changelog/unreleased/fr-1148-anthropic-thinking-off.md` with `type: fix`, `scope: llm`, `req: REQ-YG-083`.
+- [ ] AC-13: the FR's Implementation Status records one executed `create_llm(..., model="claude-sonnet-5-5", thinking_budget=0, max_tokens=1500).invoke(...)` with `stop_reason`, block types and text length; text length > 0 and no thinking block.
+- [ ] AC-14: `yamlgraph graph lint examples/demos/thinking/graph.yaml` is clean and the graph compiles unchanged (no edit to the demo).
+- [ ] AC-15: `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` passes.
+- [ ] AC-16: `docs/diary/diary-2026-10-25-reflection-fr-1148-the-push-that-skipped-the-gates.md` exists, names the trap behind the gate-skipping push, and carries a **Seed:**.
+- [ ] AC-17: no commit on the branch carries a `Co-authored-by` trailer and none used `--no-verify`.
 
 ## Alternatives Considered
 
@@ -212,12 +243,45 @@ boundary; no per-item model judgement.
 - Unknown future ids default to `disabled`; a new model that refuses it
   fails with the API's 400, which names the form to use. Widening the rule
   then needs a probe folded into this FR's successor.
+- A `graph lint` check that flags `thinking_budget: 0` on a model that
+  cannot turn thinking off, before the run: a separate FR (judgement,
+  Not authorized).
+- Demo edits: `examples/demos/thinking/graph.yaml` (`provider: anthropic`,
+  `thinking_budget: 0`, no model) changes behaviour under this FR; AC-14
+  only verifies it still lints.
 
 ## Related
 
 - `yamlgraph/utils/llm_providers.py` — `_create_anthropic_llm`
+- `yamlgraph/utils/llm_factory.py` — `create_llm` docstring
+- `capabilities/CAP-28-graph-level-thinking-budget.yaml` — REQ-YG-083 text
+- `tests/integration/test_thinking_budget_integration.py` — live witness
 - `yamlgraph/utils/anthropic_thinking.py` — new, the rule
 - `tests/unit/test_thinking_budget.py` — FR-071 tests, extended
 - `reference/graph-yaml.md` — `thinking_budget` rows
 - [evidence/FR-1148-thinking-off-probe.md](evidence/FR-1148-thinking-off-probe.md)
 - PR #756 (rejected check-only PR for the direct pushes)
+
+## Judgement fold (2026-10-25)
+
+Round 1, `JUDGE_BACKEND=claude scripts/judge.sh`: APPROVED WITH
+REVISIONS. Folded:
+
+| # | Revision | Where folded |
+|---|---|---|
+| R-1 | Assert the request payload (`_get_request_payload`), not `llm.thinking` | AC-01..AC-05 |
+| R-2 | Pin `model=` in every test; amend `test_thinking_budget_zero_no_thinking` | AC-07, Planned Operations |
+| R-3 | Parametrised test over the 14 Probe A ids | AC-06 |
+| R-4 | REQ-YG-083 text and CAP-28 modules; regenerate `ARCHITECTURE.md` | AC-10 |
+| R-5 | Four `graph-yaml.md` sites plus the `create_llm` docstring | Constraint 5, AC-11 |
+| R-6 | New module unconditional; rename to `_THINKING_OFF_UNSUPPORTED`; record the import-cycle reason | Proposed Solution |
+| R-7 | "at `create_llm`", not "load-time"; message names the remedy; nothing cached | Summary, Ideal Result, Constraint 6, AC-03 |
+| R-8 | Diary as a deliverable; game-engine witness marked out-of-repo; rejected FRs dispositioned | Origin, header, Prior art |
+| R-9 | One live call through `create_llm` / `ChatAnthropic` | AC-13, Planned Operations |
+
+**Questions for the human, answered by default:** (1) loud failure on
+Opus 5.5 / Fable 5.x: the judge concurs with Alternative G, and the first
+consumer already avoids it (its Opus 5.5 judge node carries no
+`thinking_budget`); kept, and flagged in the PR for the operator's merge
+decision. (2) AC-13's one ~1500-token Sonnet 5.5 call is spent; it is the
+cost of C-6.
