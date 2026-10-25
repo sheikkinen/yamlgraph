@@ -115,16 +115,16 @@ the shrink-only ratchet holds it there; the refactor PR removes it.
 
 Revised by judgement ([FR-1149-size-gate-windows-paths.judgement.md](FR-1149-size-gate-windows-paths.judgement.md)):
 
-- [ ] AC-01: `baseline_key(PureWindowsPath(r"C:\r\.github\hooks\tests\x.py"), PureWindowsPath(r"C:\r"))` is `".github/hooks/tests/x.py"` and the result contains no `\`. The test runs and passes on every OS; the FR records accurately that against the pre-fix code it fails for a missing function, not for the old `str(...)` line (R-3).
-- [ ] AC-02: a tree with a baselined file over `LIMIT` but within its baseline length passes `main()` on the running OS. Non-regression only — the FR states that on POSIX this passes against the pre-fix code too, so AC-01 is the cross-OS regression witness (R-4).
-- [ ] AC-03: `PYTHONUTF8=1 python scripts/size_gate.py` exits 0 on Windows at the fixed commit; the command, exit code, and output (no `✗` lines; `llm_providers.py` held by AC-08's entry) are pasted into the FR's Implementation status (R-7).
-- [ ] AC-04: `pytest .github/hooks/tests/test_size_gate.py -q --no-cov` passes with every pre-existing test unchanged; the module-level `pytestmark = pytest.mark.req("REQ-YG-631")` covers the new tests (infrastructure scope, excluded from `req_coverage`).
-- [ ] AC-05: `changelog/unreleased/fr-1149-size-gate-windows-paths.md` exists with front matter `type: fix`, `scope: hooks`, `req: REQ-YG-631`, and `python scripts/check_changelog_req.py` passes (R-7).
-- [ ] AC-06: a `docs/diary/` reflection with a **Seed:**.
+- [x] AC-01: `baseline_key(PureWindowsPath(r"C:\r\.github\hooks\tests\x.py"), PureWindowsPath(r"C:\r"))` is `".github/hooks/tests/x.py"` and the result contains no `\`. The test runs and passes on every OS; the FR records accurately that against the pre-fix code it fails for a missing function, not for the old `str(...)` line (R-3).
+- [x] AC-02: a tree with a baselined file over `LIMIT` but within its baseline length passes `main()` on the running OS. Non-regression only — the FR states that on POSIX this passes against the pre-fix code too, so AC-01 is the cross-OS regression witness (R-4).
+- [x] AC-03: `PYTHONUTF8=1 python scripts/size_gate.py` exits 0 on Windows at the fixed commit; the command, exit code, and output (no `✗` lines; `llm_providers.py` held by AC-08's entry) are pasted into the FR's Implementation status (R-7).
+- [x] AC-04: `pytest .github/hooks/tests/test_size_gate.py -q --no-cov` passes with every pre-existing test unchanged; the module-level `pytestmark = pytest.mark.req("REQ-YG-631")` covers the new tests (infrastructure scope, excluded from `req_coverage`).
+- [x] AC-05: `changelog/unreleased/fr-1149-size-gate-windows-paths.md` exists with front matter `type: fix`, `scope: hooks`, `req: REQ-YG-631`, and `python scripts/check_changelog_req.py` passes (R-7).
+- [x] AC-06: a `docs/diary/` reflection with a **Seed:**.
 - [ ] AC-07: no `--no-verify`, no skipped hook, no `Co-authored-by` trailer; `PYTHONUTF8=1 pre-commit run --files <changed files>` passes.
-- [ ] AC-08: `BASELINE` holds exactly one temporary entry, `"yamlgraph/utils/llm_providers.py": 473`, with a comment naming FR-1149 and FR-1148 and stating that FR-1148's split removes it; the number equals the file's current line count, and `test_baseline_is_shrink_only_and_honest` passes on its live clauses — `p.is_file()` and `actual <= allowed` (R-5).
-- [ ] AC-09: `feature-requests/FR-1148-anthropic-thinking-off.md` names the removal of the FR-1149 temporary `BASELINE` entry in its Follow-up-owed paragraph, and FR-1149 cites FR-1148 AC-08 as that entry's owner (R-6).
-- [ ] AC-10: the FR's Implementation status records the pre-judgement landing of the code with its commit SHA (R-1) and the verbatim RED-witness output against the pre-fix line (R-2).
+- [x] AC-08: `BASELINE` holds exactly one temporary entry, `"yamlgraph/utils/llm_providers.py": 473`, with a comment naming FR-1149 and FR-1148 and stating that FR-1148's split removes it; the number equals the file's current line count, and `test_baseline_is_shrink_only_and_honest` passes on its live clauses — `p.is_file()` and `actual <= allowed` (R-5).
+- [x] AC-09: `feature-requests/FR-1148-anthropic-thinking-off.md` names the removal of the FR-1149 temporary `BASELINE` entry in its Follow-up-owed paragraph, and FR-1149 cites FR-1148 AC-08 as that entry's owner (R-6).
+- [x] AC-10: the FR's Implementation status records the pre-judgement landing of the code with its commit SHA (R-1) and the verbatim RED-witness output against the pre-fix line (R-2).
 
 ## Alternatives Considered
 
@@ -251,8 +251,33 @@ full suite on the PR. Each skip is listed with its commit in the PR body.
 
 **Acceptance criteria added:**
 
-- [ ] AC-11: `noqa_coverage.rel_key` and `hedging_check._finding_key` give forward-slash keys for a Windows path
+- [x] AC-11: `noqa_coverage.rel_key` and `hedging_check._finding_key` give forward-slash keys for a Windows path
   (tests in `test_noqa_coverage.py` and `test_hedging_check.py`, `REQ-YG-063`).
-- [ ] AC-12: on Windows, `python scripts/noqa_coverage.py --strict` and
+- [x] AC-12: on Windows, `python scripts/noqa_coverage.py --strict` and
   `python scripts/hedging_check.py yamlgraph scripts --strict` exit 0.
-- [ ] AC-13: every skipped hook is recorded here and in the PR body; CI's full checks pass before merge.
+- [x] AC-13: every skipped hook is recorded here and in the PR body; CI's full checks pass before merge.
+
+## Addendum 2026-10-25: the acceptance criteria at merge
+
+**R-1's SHA:** the `fix(hooks)` commit is `5fcb1ded`; the diary entry is `98492c8f`.
+
+**CI's first run failed one test,** `test_changelog_req_cross_wiring.py::TestChangelogReqIntegrity::
+test_no_req_collision_across_unrelated_frs` (3.14: 1 failed, 7630 passed; 3.11 cancelled):
+
+```text
+REQ-YG-083 claimed by FR-1148 (fragment) but FR-1148 capability has no capability
+REQ-YG-631 claimed by FR-1149 (fragment) but FR-1149 capability has no capability
+```
+
+Each fragment names a requirement whose capability did not list the FR in its `fr` field. `a2a3e459`
+(`chore(registry)`) adds FR-1148 to CAP-28 and FR-1149 to CAP-255; the capability-sync hook regenerated the two
+lines of `ARCHITECTURE.md`. No requirement text changed. That commit was also made with `SKIP=pytest`, for the
+same reason as `5fcb1ded`; the test above passes locally after the change (2 passed).
+
+**Met:** AC-01 to AC-06 and AC-08 to AC-13. On Windows, `noqa_coverage.py --strict` and
+`hedging_check.py yamlgraph scripts --strict` exit 0 (AC-12). Every CI check on PR #758 passed at `a2a3e459`
+(AC-13).
+
+**Not met as written: AC-07.** Its "no skipped hook" was overtaken by the operator's decision in the first
+addendum: the `pytest` hook was skipped on `5fcb1ded`, and AC-13 records that skip. The rest of AC-07 holds: no
+`--no-verify`, no `Co-authored-by` trailer, and every other hook passed.
