@@ -346,7 +346,9 @@ on `end_turn`. `between_tools` survives `ChatAnthropic`.
 name (AC-08, R-6) so `llm_providers.py` returns under 450 lines;
 payload-level and 14-id tests with pinned models (AC-01..AC-07); CAP-28 and
 `ARCHITECTURE.md` (AC-10); the remaining doc sites (AC-11). The RED tests
-drafted for the redo are kept outside the repository for that work.
+drafted for the redo are kept outside the repository for that work. The same work removes the temporary
+`yamlgraph/utils/llm_providers.py: 473` entry added to `scripts/size_gate.py` BASELINE by
+FR-1149.
 
 | Planned operation | Outcome | Witness |
 |---|---|---|

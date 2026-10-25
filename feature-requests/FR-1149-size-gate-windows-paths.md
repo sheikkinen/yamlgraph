@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Approved with revisions (R-1..R-7 folded), in enforcement
 **Requested:** 2026-10-25
 **First consumer / first event:** the FR-1148 follow-up on the Windows
 machine `Huutokauppakone`: its first `.py` commit after the FR-1148 split,
@@ -113,19 +113,18 @@ the shrink-only ratchet holds it there; the refactor PR removes it.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `baseline_key(PureWindowsPath(r"C:\r\.github\hooks\tests\x.py"), PureWindowsPath(r"C:\r"))`
-  is `".github/hooks/tests/x.py"` (a test that fails on the old `str(...)` line on every OS).
-- [ ] AC-02: a tree with a baselined file under its baseline length and over `LIMIT` passes `main()` on the
-  running OS.
-- [ ] AC-03: on Windows, `PYTHONUTF8=1 python scripts/size_gate.py` exits 0 at the fixed commit: the eight
-  false errors are gone and `llm_providers.py` is held by its temporary entry (AC-08).
-- [ ] AC-04: the existing `.github/hooks/tests/test_size_gate.py` tests pass unchanged; every new test carries
-  `REQ-YG-631`.
-- [ ] AC-05: `changelog/unreleased/fr-1149-size-gate-windows-paths.md` (`type: fix`, `scope: hooks`).
-- [ ] AC-06: a diary reflection with a **Seed:**.
-- [ ] AC-07: no `--no-verify`, no skipped hook, no `Co-authored-by` trailer.
-- [ ] AC-08: `BASELINE` holds `"yamlgraph/utils/llm_providers.py": 473` with a comment naming FR-1149 and FR-1148
-  and saying the next PR (the FR-1148 split) removes it; `test_baseline_is_shrink_only_and_honest` passes.
+Revised by judgement ([FR-1149-size-gate-windows-paths.judgement.md](FR-1149-size-gate-windows-paths.judgement.md)):
+
+- [ ] AC-01: `baseline_key(PureWindowsPath(r"C:\r\.github\hooks\tests\x.py"), PureWindowsPath(r"C:\r"))` is `".github/hooks/tests/x.py"` and the result contains no `\`. The test runs and passes on every OS; the FR records accurately that against the pre-fix code it fails for a missing function, not for the old `str(...)` line (R-3).
+- [ ] AC-02: a tree with a baselined file over `LIMIT` but within its baseline length passes `main()` on the running OS. Non-regression only — the FR states that on POSIX this passes against the pre-fix code too, so AC-01 is the cross-OS regression witness (R-4).
+- [ ] AC-03: `PYTHONUTF8=1 python scripts/size_gate.py` exits 0 on Windows at the fixed commit; the command, exit code, and output (no `✗` lines; `llm_providers.py` held by AC-08's entry) are pasted into the FR's Implementation status (R-7).
+- [ ] AC-04: `pytest .github/hooks/tests/test_size_gate.py -q --no-cov` passes with every pre-existing test unchanged; the module-level `pytestmark = pytest.mark.req("REQ-YG-631")` covers the new tests (infrastructure scope, excluded from `req_coverage`).
+- [ ] AC-05: `changelog/unreleased/fr-1149-size-gate-windows-paths.md` exists with front matter `type: fix`, `scope: hooks`, `req: REQ-YG-631`, and `python scripts/check_changelog_req.py` passes (R-7).
+- [ ] AC-06: a `docs/diary/` reflection with a **Seed:**.
+- [ ] AC-07: no `--no-verify`, no skipped hook, no `Co-authored-by` trailer; `PYTHONUTF8=1 pre-commit run --files <changed files>` passes.
+- [ ] AC-08: `BASELINE` holds exactly one temporary entry, `"yamlgraph/utils/llm_providers.py": 473`, with a comment naming FR-1149 and FR-1148 and stating that FR-1148's split removes it; the number equals the file's current line count, and `test_baseline_is_shrink_only_and_honest` passes on its live clauses — `p.is_file()` and `actual <= allowed` (R-5).
+- [ ] AC-09: `feature-requests/FR-1148-anthropic-thinking-off.md` names the removal of the FR-1149 temporary `BASELINE` entry in its Follow-up-owed paragraph, and FR-1149 cites FR-1148 AC-08 as that entry's owner (R-6).
+- [ ] AC-10: the FR's Implementation status records the pre-judgement landing of the code with its commit SHA (R-1) and the verbatim RED-witness output against the pre-fix line (R-2).
 
 ## Alternatives Considered
 
@@ -144,6 +143,47 @@ the shrink-only ratchet holds it there; the refactor PR removes it.
 - `.github/hooks/tests/test_size_gate.py` — REQ-YG-631
 - FR-1148 follow-up (the first commit this unblocks)
 
+## Judgement fold (2026-10-25)
+
+Round 1, `JUDGE_BACKEND=claude scripts/judge.sh`: APPROVED WITH REVISIONS. Folded:
+
+| # | Revision | Where folded |
+|---|---|---|
+| R-1 | Record that the code exists before the judgement | Implementation status: written in the working tree before the judgement, uncommitted; the judge read it as committed. Committed after this fold, its SHA recorded below |
+| R-2 | A real RED witness, verbatim | Implementation status, `RED witness` |
+| R-3 | AC-01 stated accurately; `"\\" not in key` | AC-01; `test_baseline_key_is_posix_for_a_windows_path` |
+| R-4 | AC-02 is non-regression on POSIX | AC-02 |
+| R-5 | AC-08 cites the live clauses of the honesty test | AC-08; line 123's tautology parked below |
+| R-6 | The temporary entry's owner named | AC-09; FR-1148's Follow-up owed paragraph carries the removal sentence |
+| R-7 | AC-03 and AC-05 recorded as facts | AC-03, AC-05; Implementation status |
+
+**Parked (not this FR):** `test_baseline_is_shrink_only_and_honest` line 123 asserts
+`actual > LIMIT or allowed >= actual`, a tautology after line 122; its repair is separate work.
+
+**The judge's question for the human:** the temporary entry has no mechanical expiry if FR-1148's split slips.
+The operator's decision of 2026-10-25 makes that split the PR after this one.
+
 ## Implementation status
 
-Filled at enforcement.
+**R-1, the record:** the fix and its tests were written in the working tree before the judgement and were not
+committed; the judge read them as committed. They are committed after this fold (`fix(hooks)` commit, its SHA
+in the PR). The `docs(fr)` commit `246f909e` holds the FR only.
+
+**RED witness (R-2),** Windows 11, Python 3.13, the two new tests against `origin/main`'s `scripts/size_gate.py`
+(`c1db2321`):
+
+```text
+E       AttributeError: module 'size_gate' has no attribute 'baseline_key'
+.github\hooks\tests\test_size_gate.py:134: AttributeError
+>       assert size_gate.main() == 0
+E       AssertionError: assert 1 == 0
+.github\hooks\tests\test_size_gate.py:149: AssertionError
+FAILED .github/hooks/tests/test_size_gate.py::test_baseline_key_is_posix_for_a_windows_path
+FAILED .github/hooks/tests/test_size_gate.py::test_a_baselined_file_is_held_on_this_os
+2 failed, 9 deselected in 0.38s
+```
+
+AC-01's test fails for the missing function, the weak witness the judgement foresaw; AC-02's test fails on the
+defect itself on Windows (the held file is not held, the gate exits 1).
+
+**AC-03,** filled with the fixed commit's run.
