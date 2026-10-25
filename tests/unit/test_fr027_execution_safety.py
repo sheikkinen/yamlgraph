@@ -1130,6 +1130,7 @@ class TestTokenUsageTracking:
             "total_output_tokens": 50,
             "total_tokens": 150,
             "total_calls": 1,
+            "total_reasoning_tokens": 0,
         }
 
     @pytest.mark.req("REQ-YG-064")
@@ -1145,6 +1146,7 @@ class TestTokenUsageTracking:
             "total_output_tokens": 0,
             "total_tokens": 0,
             "total_calls": 0,
+            "total_reasoning_tokens": 0,
         }
 
     @pytest.mark.req("REQ-YG-064")

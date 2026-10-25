@@ -6,6 +6,7 @@ description: >
 modules:
   - cli/__init__
   - cli/graph_commands
+  - cli/graph_run_helpers
   - config
   - executor
   - graph_loader
@@ -87,10 +88,14 @@ requirements:
     description: >
       Token usage tracking via `TokenUsageCallbackHandler` callback injected at
       graph-level; accumulates `input_tokens`, `output_tokens`, `total_calls`
-      across all LLM invocations; CLI `--token-usage` flag prints summary
+      and the thinking tokens (`output_token_details.reasoning`, a part of the
+      output count, never added to the total; FR-1152) across all LLM
+      invocations; CLI `--token-usage` flag prints summary, with `, N thinking`
+      when N > 0
     modules:
       - utils/token_tracker
       - cli/graph_commands
+      - cli/graph_run_helpers
       - cli/__init__
   - id: REQ-YG-113
     description: "Linter W015: warn when cycle node has explicit `skip_if_exists: true`"
@@ -107,4 +112,4 @@ requirements:
       - compile/loop_limits
       - graph_loader
       - node_factory/race_node
-fr: legacy
+fr: legacy, FR-027, FR-1152

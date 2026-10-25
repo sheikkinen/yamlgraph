@@ -266,6 +266,11 @@ def _emit_success_output(
             f"{s['total_input_tokens']} in / "
             f"{s['total_output_tokens']} out "
             f"({s['total_calls']} call{'s' if s['total_calls'] != 1 else ''})"
+            + (
+                f", {s['total_reasoning_tokens']} thinking"
+                if s["total_reasoning_tokens"]
+                else ""
+            )
         )
 
     if timing_tracker is not None and timing_tracker.total_calls > 0:

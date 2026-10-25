@@ -77,7 +77,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Decomposing would scatter cohesive validation logic across helper functions without meaningful abstraction gain. The function is linear and readable despite branching.
 
 ### CONF-002
-- **File**: [yamlgraph/utils/token_tracker.py](../yamlgraph/utils/token_tracker.py#L55)
+- **File**: [yamlgraph/utils/token_tracker.py](../yamlgraph/utils/token_tracker.py#L58)
 - **Code**: ARG002 (unused method argument)
 - **Sin**: `kwargs` parameter unused in callback handler.
 - **Penance**: Required by LangChain callback interface (`BaseCallbackHandler.on_llm_end`). Cannot remove without breaking signature compatibility.
