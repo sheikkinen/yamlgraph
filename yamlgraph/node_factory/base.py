@@ -13,6 +13,12 @@ logger = logging.getLogger(__name__)
 GraphState = dict[str, Any]
 
 
+def node_or_default(node_config: dict, defaults: dict, key: str) -> Any:
+    """The node's value for key, else the default's; an explicit falsy node value (0) wins (FR-1151)."""
+    value = node_config.get(key)
+    return defaults.get(key) if value is None else value
+
+
 def resolve_class(class_path: str) -> type:
     """Dynamically import and return a class from a module path.
 

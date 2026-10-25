@@ -55,6 +55,7 @@ def execute_prompt(
     state: dict | None = None,
     max_tokens: int | None = None,
     thinking_budget: int | None = None,
+    effort: str | None = None,
     retry_feedback: str | None = None,
 ) -> T | str:
     """Execute a YAML prompt with optional structured output.
@@ -86,6 +87,7 @@ def execute_prompt(
             state=state,
             max_tokens=max_tokens,
             thinking_budget=thinking_budget,
+            effort=effort,
             retry_feedback=retry_feedback,
         )
     )
@@ -127,6 +129,7 @@ class PromptExecutor:
         model: str | None = None,
         max_tokens: int | None = None,
         thinking_budget: int | None = None,
+        effort: str | None = None,
     ) -> BaseChatModel:
         """Get or create cached LLM instance.
 
@@ -138,6 +141,7 @@ class PromptExecutor:
             model=model,
             max_tokens=max_tokens,
             thinking_budget=thinking_budget,
+            effort=effort,
         )
 
     def _invoke_with_retry(
@@ -207,6 +211,7 @@ class PromptExecutor:
             model=resolved_model,
             max_tokens=request.max_tokens,
             thinking_budget=request.thinking_budget,
+            effort=request.effort,
         )
 
         return self._invoke_with_retry(llm, messages, request.output_model)

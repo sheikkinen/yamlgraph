@@ -12,7 +12,11 @@ from pydantic import BaseModel, Field, model_validator
 
 from yamlgraph.constants import ErrorHandler, NodeType
 from yamlgraph.models.guard_schema import GraphVerifyRule
-from yamlgraph.models.node_schema import NodeConfig, SubgraphNodeConfig
+from yamlgraph.models.node_schema import (
+    EFFORT_LEVELS,
+    NodeConfig,
+    SubgraphNodeConfig,
+)
 
 __all__ = [
     "EdgeConfig",
@@ -121,6 +125,11 @@ class GraphConfigSchema(BaseModel):
                 raise ValueError(
                     f"thinking_budget must be None, -1 (Google auto), 0, or a positive integer, got {v}"
                 )
+        effort = self.defaults.get("effort")
+        if effort is not None and effort not in EFFORT_LEVELS:
+            raise ValueError(
+                f"defaults.effort must be one of {', '.join(EFFORT_LEVELS)}, got {effort!r}"
+            )
         return self
 
     @model_validator(mode="after")

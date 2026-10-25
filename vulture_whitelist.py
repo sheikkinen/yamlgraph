@@ -129,6 +129,7 @@ DefaultsConfig.model_config
 NodeConfig.validate_timeout
 NodeConfig.validate_thinking_budget
 NodeConfig.validate_node_requirements
+NodeConfig.validate_effort_target
 NodeConfig.parse_cache
 NodeConfig.parse_verification
 NodeConfig.parse_guards
@@ -287,5 +288,7 @@ discover_graphs
 
 # FR-1125: tested projections of find_unconstrainable (judgement R-2 keeps them
 # for existing callers and focused tests); production code uses the unified walker.
+from yamlgraph.utils.schema_walk import find_open_objects, find_untyped_subschemas
+
 find_untyped_subschemas
 find_open_objects

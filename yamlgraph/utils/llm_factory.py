@@ -95,12 +95,36 @@ def _env_fingerprint(provider: str) -> tuple:
     return tuple(os.getenv(name) for name in names)
 
 
+def _refuse_unsupported_options(
+    provider: str, thinking_budget: int | None, effort: str | None
+) -> None:
+    """Refuse options the resolved provider cannot take, before any client is built.
+
+    ``thinking_budget >= 1024`` needs a THINKING_PROVIDERS provider (FR-071);
+    ``effort`` is Anthropic's ``output_config.effort`` (FR-1151).
+    """
+    if effort is not None and provider != "anthropic":
+        raise ValueError(
+            f"effort is only supported for provider 'anthropic', got provider='{provider}'"
+        )
+    if (
+        thinking_budget is not None
+        and thinking_budget >= 1024
+        and provider not in THINKING_PROVIDERS
+    ):
+        raise ValueError(
+            f"thinking_budget is only supported for providers: {', '.join(sorted(THINKING_PROVIDERS))}, "
+            f"got provider='{provider}'"
+        )
+
+
 def create_llm(
     provider: ProviderType | None = None,
     model: str | None = None,
     temperature: float | None = 0.7,
     max_tokens: int | None = None,
     thinking_budget: int | None = None,
+    effort: str | None = None,
 ) -> BaseChatModel:
     """Create an LLM instance with multi-provider support.
 
@@ -164,16 +188,7 @@ def create_llm(
             f"Must be one of: {', '.join(DEFAULT_MODELS.keys())}"
         )
 
-    # Validate thinking_budget is only used with supported providers
-    if (
-        thinking_budget is not None
-        and thinking_budget >= 1024
-        and selected_provider not in THINKING_PROVIDERS
-    ):
-        raise ValueError(
-            f"thinking_budget is only supported for providers: {', '.join(sorted(THINKING_PROVIDERS))}, "
-            f"got provider='{selected_provider}'"
-        )
+    _refuse_unsupported_options(selected_provider, thinking_budget, effort)
 
     # Ensure temperature has a value (some providers reject None)
     if temperature is None:
@@ -225,6 +240,7 @@ def create_llm(
         temperature,
         max_tokens,
         thinking_budget,
+        effort,
         _env_fingerprint(selected_provider),
     )
 
@@ -235,6 +251,7 @@ def create_llm(
         temperature,
         max_tokens,
         thinking_budget,
+        effort,
     )
 
     if temperature_overridden:
@@ -253,6 +270,7 @@ def _cached_or_create(
     temperature: float | None,
     max_tokens: int | None,
     thinking_budget: int | None,
+    effort: str | None = None,
 ) -> BaseChatModel:
     """Thread-safe cache lookup / construction (extracted for the CC gate).
 
@@ -271,6 +289,8 @@ def _cached_or_create(
         optional_kwargs: dict[str, object] = {}
         if max_tokens is not None:
             optional_kwargs["max_tokens"] = max_tokens
+        if effort is not None:  # anthropic only, checked in create_llm (FR-1151)
+            optional_kwargs["reasoning_effort"] = effort
 
         llm = dispatch_provider(
             provider,
