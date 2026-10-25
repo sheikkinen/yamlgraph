@@ -25,6 +25,28 @@ logger = logging.getLogger(__name__)
 # --- Provider-specific helper functions ---
 
 
+# Models whose thinking cannot be turned off (effort is their only control).
+_ANTHROPIC_THINKING_ALWAYS_ON = ("claude-opus-5-5", "claude-fable-5")
+
+
+def _anthropic_thinking_off(model: str) -> dict:
+    """The ``thinking`` field that turns thinking off on ``model``.
+
+    Claude Sonnet 5.5 refuses ``disabled`` and takes ``between_tools`` (its
+    lowest setting: no thinking before the answer); Opus 5.5 and Fable 5.x
+    cannot turn thinking off, so asking is an error here rather than a 400
+    from the API; every other model takes ``disabled``.
+    """
+    if any(model.startswith(prefix) for prefix in _ANTHROPIC_THINKING_ALWAYS_ON):
+        raise ValueError(
+            f"thinking_budget=0: thinking cannot be turned off on {model}; "
+            "omit thinking_budget for this model"
+        )
+    if model.startswith("claude-sonnet-5-5"):
+        return {"type": "between_tools"}
+    return {"type": "disabled"}
+
+
 def _create_anthropic_llm(
     model: str,
     temperature: float | None,
@@ -34,15 +56,16 @@ def _create_anthropic_llm(
     """Create Anthropic Claude LLM.
 
     ``thinking_budget``: ``None`` leaves the request as it is (the model's own
-    default); ``0`` sends ``thinking: {"type": "disabled"}``, so a model that
-    thinks by default (Sonnet 5.5) spends its ``max_tokens`` on the answer;
-    ``>= 1024`` enables thinking with that budget.
+    default); ``0`` turns thinking off in the form the model takes
+    (``_anthropic_thinking_off``), so a model that thinks by default (Sonnet
+    5.5) spends its ``max_tokens`` on the answer; ``>= 1024`` enables thinking
+    with that budget.
     """
     from langchain_anthropic import ChatAnthropic
 
     anthropic_kwargs = dict(kwargs)
     if thinking_budget == 0:
-        anthropic_kwargs["thinking"] = {"type": "disabled"}
+        anthropic_kwargs["thinking"] = _anthropic_thinking_off(model)
     elif thinking_budget is not None and thinking_budget >= 1024:
         anthropic_kwargs["thinking"] = {
             "type": "enabled",

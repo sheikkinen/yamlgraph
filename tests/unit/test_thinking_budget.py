@@ -109,9 +109,19 @@ class TestCreateLLMThinking:
 
     def test_thinking_budget_zero_no_thinking(self):
         """thinking_budget=0 sends thinking disabled (a model that thinks by default stops)."""
-        llm = create_llm(provider="anthropic", thinking_budget=0)
+        llm = create_llm(provider="anthropic", model="claude-haiku-5-5", thinking_budget=0)
         assert isinstance(llm, ChatAnthropic)
         assert llm.thinking == {"type": "disabled"}
+
+    def test_thinking_budget_zero_on_sonnet_5_5_is_between_tools(self):
+        """Sonnet 5.5 refuses "disabled"; its off setting is "between_tools"."""
+        llm = create_llm(provider="anthropic", model="claude-sonnet-5-5", thinking_budget=0)
+        assert llm.thinking == {"type": "between_tools"}
+
+    def test_thinking_budget_zero_on_opus_5_5_raises(self):
+        """Opus 5.5 cannot turn thinking off: an error here, not a 400 from the API."""
+        with pytest.raises(ValueError, match="cannot be turned off"):
+            create_llm(provider="anthropic", model="claude-opus-5-5", thinking_budget=0)
 
     def test_thinking_budget_absent_leaves_the_request_unchanged(self):
         """No thinking_budget: no thinking field at all, the model's default stands."""
