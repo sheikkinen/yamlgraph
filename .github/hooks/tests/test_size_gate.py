@@ -120,7 +120,9 @@ def test_baseline_is_shrink_only_and_honest():
         assert p.is_file(), f"stale baseline entry: {rel}"
         actual = len(p.read_text(encoding="utf-8").splitlines())
         assert actual <= allowed, f"{rel} grew past its ratchet ({actual} > {allowed})"
-        assert actual > size_gate.LIMIT or allowed >= actual
+        assert actual > size_gate.LIMIT, (
+            f"stale baseline entry: {rel} is {actual} lines, not over LIMIT"
+        )
 
 
 # FR-1149: the baseline key is the POSIX path on every OS.

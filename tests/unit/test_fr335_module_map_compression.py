@@ -149,7 +149,9 @@ class TestFR335ModuleMapCompression:
         # line; size-gate split of the top-level llm policy resolution).
         # FR-1125: 296 -> 298 for linter/checks_schema.py (the extracted
         # constrainability check, judgement R-5), merged with FR-1124.
-        assert line_count <= 298, f"module-map too large: {line_count} lines (max 298)"
+        # FR-1150: 298 -> 300 for utils/anthropic_thinking.py (entry +
+        # dependency line; size-gate split of llm_providers.py).
+        assert line_count <= 300, f"module-map too large: {line_count} lines (max 300)"
 
     def test_ac02_dependency_lists_contain_only_yamlgraph_imports(self) -> None:
         module_map = _run_generator()

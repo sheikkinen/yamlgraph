@@ -362,3 +362,20 @@ FR-1149.
 
 **Unplanned operations:** operator re-scope (code stays on `main`, no
 re-apply); the redo's RED tests written then withdrawn from the branch.
+
+## Addendum 2026-10-25: FR-1150 performed the module move
+
+[FR-1150](FR-1150-llm-providers-split.md) moved `_ANTHROPIC_THINKING_ALWAYS_ON`,
+`_anthropic_thinking_off` and `_create_anthropic_llm` byte-identically into
+`yamlgraph/utils/anthropic_thinking.py` and removed FR-1149's temporary
+`llm_providers.py: 473` BASELINE entry. `llm_providers.py` is 430 lines; the
+old names still import from it as the same objects.
+
+Of AC-08 this closes: the module holds the rule, `llm_providers.py` ≤ 450,
+`lint-imports`, `pre-commit`. Still owed to this FR: the
+`_THINKING_OFF_UNSUPPORTED` rename, and every test and doc clause of AC-01..AC-07,
+AC-10 and AC-11. FR-1150 added unit assertions of `_anthropic_thinking_off`'s
+three outcomes and of its error text under `REQ-YG-083`
+(`TestAnthropicThinkingModule` in `tests/unit/test_thinking_budget.py`);
+AC-01..AC-03's payload-level tests, AC-06's 14-id table and AC-07's amendment
+remain owed and are not covered by them.

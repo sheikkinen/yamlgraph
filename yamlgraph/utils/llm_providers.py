@@ -3,9 +3,11 @@
 Extracted from llm_factory.py (FR-263) to keep module sizes within the
 450-line gate.  Each ``_create_<provider>_llm`` function lazily imports its
 SDK dependency so that only the active provider's package is required at
-runtime.  Request bounds (FR-708/710) live in ``llm_bounds.py``; provider
-identity and capability classification (FR-998) live at the bottom of this
-module, behind the same lazy-import discipline.
+runtime.  Request bounds (FR-708/710) live in ``llm_bounds.py``; the
+Anthropic thinking rule and the Anthropic factory live in
+``anthropic_thinking.py`` (FR-1148, moved by FR-1150); provider identity and
+capability classification (FR-998) live at the bottom of this module,
+behind the same lazy-import discipline.
 """
 
 import logging
@@ -13,6 +15,13 @@ import os
 
 from langchain_core.language_models.chat_models import BaseChatModel
 
+from yamlgraph.utils.anthropic_thinking import (
+    _ANTHROPIC_THINKING_ALWAYS_ON as _ANTHROPIC_THINKING_ALWAYS_ON,
+)
+from yamlgraph.utils.anthropic_thinking import (
+    _anthropic_thinking_off as _anthropic_thinking_off,
+)
+from yamlgraph.utils.anthropic_thinking import _create_anthropic_llm
 from yamlgraph.utils.llm_bounds import (
     _VERTEX_CONSTRUCT_LOCK,
     _bounded,
@@ -23,58 +32,6 @@ from yamlgraph.utils.llm_bounds import (
 logger = logging.getLogger(__name__)
 
 # --- Provider-specific helper functions ---
-
-
-# Models whose thinking cannot be turned off (effort is their only control).
-_ANTHROPIC_THINKING_ALWAYS_ON = ("claude-opus-5-5", "claude-fable-5")
-
-
-def _anthropic_thinking_off(model: str) -> dict:
-    """The ``thinking`` field that turns thinking off on ``model``.
-
-    Claude Sonnet 5.5 refuses ``disabled`` and takes ``between_tools`` (its
-    lowest setting: no thinking before the answer); Opus 5.5 and Fable 5.x
-    cannot turn thinking off, so asking is an error here rather than a 400
-    from the API; every other model takes ``disabled``.
-    """
-    if any(model.startswith(prefix) for prefix in _ANTHROPIC_THINKING_ALWAYS_ON):
-        raise ValueError(
-            f"thinking_budget=0: thinking cannot be turned off on {model}; "
-            "omit thinking_budget for this model"
-        )
-    if model.startswith("claude-sonnet-5-5"):
-        return {"type": "between_tools"}
-    return {"type": "disabled"}
-
-
-def _create_anthropic_llm(
-    model: str,
-    temperature: float | None,
-    thinking_budget: int | None = None,
-    **kwargs: object,
-) -> BaseChatModel:
-    """Create Anthropic Claude LLM.
-
-    ``thinking_budget``: ``None`` leaves the request as it is (the model's own
-    default); ``0`` turns thinking off in the form the model takes
-    (``_anthropic_thinking_off``), so a model that thinks by default (Sonnet
-    5.5) spends its ``max_tokens`` on the answer; ``>= 1024`` enables thinking
-    with that budget.
-    """
-    from langchain_anthropic import ChatAnthropic
-
-    anthropic_kwargs = dict(kwargs)
-    if thinking_budget == 0:
-        anthropic_kwargs["thinking"] = _anthropic_thinking_off(model)
-    elif thinking_budget is not None and thinking_budget >= 1024:
-        anthropic_kwargs["thinking"] = {
-            "type": "enabled",
-            "budget_tokens": thinking_budget,
-        }
-
-    return ChatAnthropic(
-        model=model, temperature=temperature, **_bounded(anthropic_kwargs)
-    )
 
 
 def _create_azure_llm(
