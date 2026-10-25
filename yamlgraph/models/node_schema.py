@@ -6,20 +6,16 @@ GraphConfigSchema) stay in graph_schema. Public names are re-exported
 unchanged from yamlgraph.models.
 """
 
-from typing import Any, Literal, get_args
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
-from yamlgraph.constants import ErrorHandler, NodeType
+from yamlgraph.constants import EffortLevel, ErrorHandler, NodeType
 from yamlgraph.models.guard_schema import (
     CacheConfig,
     GuardConfig,
     VerificationConfig,
 )
-
-# FR-1151: Anthropic output_config.effort levels
-EffortLevel = Literal["low", "medium", "high", "xhigh", "max"]
-EFFORT_LEVELS = get_args(EffortLevel)
 
 
 class SubgraphNodeConfig(BaseModel):
@@ -87,10 +83,7 @@ class NodeConfig(BaseModel):
         default=None,
         description="Anthropic extended thinking budget_tokens (0 or ≥1024)",
     )
-    effort: EffortLevel | None = Field(
-        default=None,
-        description="Anthropic output_config.effort; llm and candidate-less router nodes (FR-1151)",
-    )
+    effort: EffortLevel | None = Field(default=None, description="FR-1151")
     on_error: str | None = Field(default=None)
     fallback: dict[str, Any] | None = Field(default=None)
     variables: dict[str, str] = Field(default_factory=dict)
@@ -362,20 +355,6 @@ class NodeConfig(BaseModel):
             from yamlgraph.models.schemas import OpenCodeCliFlags
 
             OpenCodeCliFlags.model_validate(self.cli_flags or {})
-        return self
-
-    @model_validator(mode="after")
-    def validate_effort_target(self) -> "NodeConfig":
-        """FR-1151: refuse effort where the node would drop it (race, router candidates)."""
-        if self.effort is not None and (
-            self.type not in (NodeType.LLM, NodeType.ROUTER)
-            or self.candidates is not None
-        ):
-            raise ValueError(
-                f"effort is not supported on a '{self.type}' node"
-                f"{' with candidates' if self.candidates is not None else ''}; "
-                "it applies to llm nodes and router nodes without candidates"
-            )
         return self
 
     @model_validator(mode="after")

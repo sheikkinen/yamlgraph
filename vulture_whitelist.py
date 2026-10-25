@@ -111,6 +111,7 @@ from yamlgraph.models.graph_schema import (  # noqa: F401 (CONF-126)
     CacheConfig,
     CheckpointConfig,
     DefaultsConfig,
+    GraphConfigSchema,
     NodeConfig,
     ObservabilityConfig,
     PostGuardRule,
@@ -129,13 +130,13 @@ DefaultsConfig.model_config
 NodeConfig.validate_timeout
 NodeConfig.validate_thinking_budget
 NodeConfig.validate_node_requirements
-NodeConfig.validate_effort_target
 NodeConfig.parse_cache
 NodeConfig.parse_verification
 NodeConfig.parse_guards
 PostGuardRule.validate_retry_fields
 VerificationConfig.validate_on_fail
 DefaultsConfig.validate_defaults_thinking_budget
+GraphConfigSchema.validate_effort_targets
 GraphConfig.validate_defaults_on_overflow
 GraphConfig.validate_defaults_on_error
 GraphConfig.validate_router_targets

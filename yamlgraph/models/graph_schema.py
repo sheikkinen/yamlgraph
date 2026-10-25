@@ -10,13 +10,9 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, model_validator
 
-from yamlgraph.constants import ErrorHandler, NodeType
+from yamlgraph.constants import EFFORT_LEVELS, ErrorHandler, NodeType
 from yamlgraph.models.guard_schema import GraphVerifyRule
-from yamlgraph.models.node_schema import (
-    EFFORT_LEVELS,
-    NodeConfig,
-    SubgraphNodeConfig,
-)
+from yamlgraph.models.node_schema import NodeConfig, SubgraphNodeConfig
 
 __all__ = [
     "EdgeConfig",
@@ -130,6 +126,21 @@ class GraphConfigSchema(BaseModel):
             raise ValueError(
                 f"defaults.effort must be one of {', '.join(EFFORT_LEVELS)}, got {effort!r}"
             )
+        return self
+
+    @model_validator(mode="after")
+    def validate_effort_targets(self) -> "GraphConfigSchema":
+        """FR-1151: refuse effort on a node that would drop it (race, router candidates)."""
+        for name, node in self.nodes.items():
+            if node.effort is not None and (
+                node.type not in (NodeType.LLM, NodeType.ROUTER)
+                or node.candidates is not None
+            ):
+                raise ValueError(
+                    f"node '{name}': effort is not supported on a '{node.type}' node"
+                    f"{' with candidates' if node.candidates is not None else ''}; "
+                    "it applies to llm nodes and router nodes without candidates"
+                )
         return self
 
     @model_validator(mode="after")
