@@ -12,6 +12,9 @@ from pydantic import ValidationError
 from yamlgraph.models.graph_schema import GraphConfigSchema, NodeConfig
 from yamlgraph.utils.llm_factory import clear_cache, create_llm
 
+# FR-1148 AC-07: every Anthropic test names its model; none resolves it from ANTHROPIC_MODEL.
+PINNED_MODEL = "claude-haiku-4-5-20251001"
+
 
 @pytest.mark.req("REQ-YG-083")
 class TestThinkingBudgetValidation:
@@ -103,7 +106,7 @@ class TestCreateLLMThinking:
 
     def test_thinking_budget_none_no_thinking(self):
         """thinking_budget=None does not enable thinking."""
-        llm = create_llm(provider="anthropic", thinking_budget=None)
+        llm = create_llm(provider="anthropic", model=PINNED_MODEL, thinking_budget=None)
         assert isinstance(llm, ChatAnthropic)
         # Check that thinking was not enabled (will check internals after implementation)
 
@@ -129,23 +132,28 @@ class TestCreateLLMThinking:
 
     def test_thinking_budget_absent_leaves_the_request_unchanged(self):
         """No thinking_budget: no thinking field at all, the model's default stands."""
-        llm = create_llm(provider="anthropic", thinking_budget=None)
+        llm = create_llm(provider="anthropic", model=PINNED_MODEL, thinking_budget=None)
         assert llm.thinking is None
 
     def test_thinking_budget_enabled_sets_the_budget(self):
         """thinking_budget >= 1024 still enables thinking with that budget."""
-        llm = create_llm(provider="anthropic", thinking_budget=2048)
+        llm = create_llm(provider="anthropic", model=PINNED_MODEL, thinking_budget=2048)
         assert llm.thinking == {"type": "enabled", "budget_tokens": 2048}
 
     def test_thinking_budget_enabled_anthropic(self):
         """thinking_budget >= 1024 with anthropic enables thinking."""
-        llm = create_llm(provider="anthropic", thinking_budget=8000)
+        llm = create_llm(provider="anthropic", model=PINNED_MODEL, thinking_budget=8000)
         assert isinstance(llm, ChatAnthropic)
         # After implementation, check llm.thinking is set correctly
 
     def test_thinking_budget_forces_temperature_one(self):
         """thinking_budget >= 1024 forces temperature=1."""
-        llm = create_llm(provider="anthropic", thinking_budget=8000, temperature=0.7)
+        llm = create_llm(
+            provider="anthropic",
+            model=PINNED_MODEL,
+            thinking_budget=8000,
+            temperature=0.7,
+        )
         assert isinstance(llm, ChatAnthropic)
         assert llm.temperature == 1
 
@@ -159,10 +167,18 @@ class TestCreateLLMThinking:
 
     def test_thinking_budget_in_cache_key(self):
         """thinking_budget is included in LLM cache key."""
-        llm1 = create_llm(provider="anthropic", thinking_budget=8000)
-        llm2 = create_llm(provider="anthropic", thinking_budget=8000)
-        llm3 = create_llm(provider="anthropic", thinking_budget=4096)
-        llm4 = create_llm(provider="anthropic", thinking_budget=None)
+        llm1 = create_llm(
+            provider="anthropic", model=PINNED_MODEL, thinking_budget=8000
+        )
+        llm2 = create_llm(
+            provider="anthropic", model=PINNED_MODEL, thinking_budget=8000
+        )
+        llm3 = create_llm(
+            provider="anthropic", model=PINNED_MODEL, thinking_budget=4096
+        )
+        llm4 = create_llm(
+            provider="anthropic", model=PINNED_MODEL, thinking_budget=None
+        )
 
         # llm1 and llm2 should be the same cached instance
         assert llm1 is llm2
@@ -174,9 +190,19 @@ class TestCreateLLMThinking:
     def test_temperature_override_before_cache_key(self):
         """Temperature override happens before cache key computation."""
         # First call with temperature=0.5 and thinking_budget=8000
-        llm1 = create_llm(provider="anthropic", thinking_budget=8000, temperature=0.5)
+        llm1 = create_llm(
+            provider="anthropic",
+            model=PINNED_MODEL,
+            thinking_budget=8000,
+            temperature=0.5,
+        )
         # Second call with temperature=1 and thinking_budget=8000
-        llm2 = create_llm(provider="anthropic", thinking_budget=8000, temperature=1)
+        llm2 = create_llm(
+            provider="anthropic",
+            model=PINNED_MODEL,
+            thinking_budget=8000,
+            temperature=1,
+        )
 
         # Both should return the same cached instance because both use temperature=1
         # after override

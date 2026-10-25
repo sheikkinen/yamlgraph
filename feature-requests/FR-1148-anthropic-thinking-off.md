@@ -379,3 +379,43 @@ three outcomes and of its error text under `REQ-YG-083`
 (`TestAnthropicThinkingModule` in `tests/unit/test_thinking_budget.py`);
 AC-01..AC-03's payload-level tests, AC-06's 14-id table and AC-07's amendment
 remain owed and are not covered by them.
+
+## Addendum 2026-10-25: the owed tests and docs
+
+The follow-up PR after FR-1150 (branch `test/fr-1148-owed-tests-docs`) adds what this FR still owed. No code
+changes; the rule is the one on `main` since `3a911ae2`, moved by FR-1150.
+
+**Deviation, witness tests (the producer's ruling [O-relayed]: "witness tests are fine, with the deviation
+recorded in the FR"):** the code landed on `main` before its tests (the re-scope above), so the new tests assert
+the shipped behaviour and there is no RED commit before a GREEN one; AC-09's second clause cannot hold and is not
+ticked. To show the tests can fail, the rule was mutated in the working tree (Sonnet 5.5's
+`{"type": "between_tools"}` changed to `{"type": "disabled"}`), the new file run, and the mutation reverted:
+
+```text
+$ PYTHONUTF8=1 pytest -q --no-cov tests/unit/test_fr1148_thinking_off_payload.py
+FAILED tests/unit/test_fr1148_thinking_off_payload.py::TestThinkingOffPayload::test_sonnet_5_5_zero_sends_between_tools
+FAILED tests/unit/test_fr1148_thinking_off_payload.py::TestThinkingOffPayload::test_probe_a_mapping[claude-sonnet-5-5]
+2 failed, 19 passed in 2.99s
+```
+
+**Deviation, the rename (R-6):** `_ANTHROPIC_THINKING_ALWAYS_ON` keeps its name. The producer's rule for this
+queue keeps the old names importable from `llm_providers` and allows an alias, not a rename; FR-1150 C-5 forbids an
+alias under that FR. The rename stays open, and nothing here depends on it.
+
+| AC | State | Witness |
+|---|---|---|
+| AC-01, AC-02 | met at the payload | `tests/unit/test_fr1148_thinking_off_payload.py` (`_get_request_payload`) |
+| AC-03 | met: raised from `create_llm`, names the model, twice, Opus 5.5 and Fable 5.1 | same file |
+| AC-04 | met: `llm.thinking is None` and no `thinking` key in the payload | same file |
+| AC-05 | met: `claude-haiku-4-5-20251001`, budget 2048, `temperature == 1` | same file |
+| AC-06 | met: the 14 Probe A ids, 1 / 3 / 10, and a count check | same file |
+| AC-07 | met: every Anthropic test in `test_thinking_budget.py` names `PINNED_MODEL` or an explicit model | `test_thinking_budget.py` |
+| AC-08 | met by FR-1150 | its addendum above |
+| AC-09 | first clause met (class marker `REQ-YG-083`); RED before GREEN **not met** (witness, above) | — |
+| AC-10 | met: REQ-YG-083 states the `0` contract, CAP-28 and the requirement list `llm_providers.py` and `anthropic_thinking.py`; `ARCHITECTURE.md` regenerated; `req_coverage.py --strict` exit 0 | `capabilities/CAP-28-graph-level-thinking-budget.yaml` |
+| AC-11 | met: L84 comment, L94 and L278 tables (`0` does not force `temperature=1`), L1032 race table, `create_llm` docstring | `reference/graph-yaml.md`, `yamlgraph/utils/llm_factory.py` |
+| AC-12..AC-14, AC-16 | met earlier (re-scope above) | — |
+| AC-15 | CI's full suite on this PR | the PR's checks |
+| AC-17 | met on this branch; not on `main`'s three direct-push commits (re-scope above) | — |
+
+Hooks: `SKIP=pytest` on the test and docs commits (the 286 Windows-only failures); every other hook passed.
