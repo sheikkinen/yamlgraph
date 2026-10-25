@@ -280,3 +280,27 @@ text= 'Red\nBlue\nYellow'
 
 **Parked (not this FR):** CONF-364 points at `executor_base.py#L172` for `_invoke_llm`, which is not there on
 `main`.
+
+## Addendum 2026-10-25: CI's first run
+
+CI's first full run on the PR (`d1c3d56c`, 3.11 and 3.14) failed two tests:
+
+```text
+test_fr1151_anthropic_effort.py::TestCreateLLMEffort::test_opus_5_5_low_effort_thinking_as_observed
+  AssertionError: assert 'thinking' not in {'model': 'claude-opus-5-5', ..., 'output_config': {'effort': 'low'}, ...}
+test_fr716_module_splits.py::TestSplitRelievesGate::test_graph_schema_bisected
+  AssertionError: assert 420 < 400
+```
+
+1. **AC-16.** CI installs `langchain-anthropic` 1.7.6, whose profile data lists `xhigh` for `claude-opus-5-5`, so
+   it sends `thinking: {type: adaptive, display: summarized}` with effort `low`; the local 1.7.0 sends none. The
+   observed value is a property of the installed version, not of yamlgraph. The test (`23b68761`) now asserts
+   langchain's rule: adaptive exactly when `_reasoning_effort_levels(llm.profile)` holds `xhigh`. The reference
+   docs say it depends on the version. `pyproject.toml`'s floor (`>=1.5.1`) needs no change: 1.5.2 already has
+   `reasoning_effort` (its wheel, checked).
+2. **`node_schema.py` under 400 (FR-716).** The field, the levels and the validator put it at 420. `84a59e05`:
+   the levels in `constants.py` (`EffortLevel`, `EFFORT_LEVELS`), the field on one line, and the refusal on race
+   nodes and routers with `candidates` as a `GraphConfigSchema` validator, which runs at load in the same call
+   (`validate_graph_schema`) and names the node. `node_schema.py` 399, `graph_schema.py` 261. AC-17's tests
+   validate the graph instead of building `NodeConfig` directly; the judged behaviour (refused at load) is the
+   same. CONF-221 (`constants.py` L48→L53) and CONF-240 (`node_schema.py` L95→L88) re-keyed.
