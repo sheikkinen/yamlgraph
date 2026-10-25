@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Round 1 judged (approved with revisions); R-1..R-9 folded with one redesign, for round 2
+**Status:** Round 2 judged (approved with revisions); R-1..R-5 folded, in enforcement
 **Requested:** 2026-10-25
 **First consumer / first event:** the next `.py` commit that touches
 `yamlgraph/utils/llm_providers.py` (FR-1148's owed tests and the effort
@@ -76,12 +76,16 @@ entry whose file is at or under `LIMIT`.
 ```yaml
 probes:
   - "wc -l of both modules after the move"
+  - "git diff --stat c1db2321..HEAD -- yamlgraph/utils/llm_providers.py before the move — empty is the precondition for the anchor (R-2)"
   - "byte-identity of the moved region against llm_providers.py:28-77 at c1db2321 (a script, output pasted)"
+  - "python scripts/hedging_check.py yamlgraph scripts --strict before and after the move (R-3)"
   - "the repaired honesty test with the 473 entry left in place, after the move — must fail (RED witness)"
   - "pytest on the tests that reach the moved names, before and after"
 branches:
   - "a moved name is imported or patched from llm_providers somewhere not listed below → keep it importable there and record the site"
   - "ruff F401 flags a same-name re-export → stop and report; no noqa"
+  - "the anchor diff is non-empty → re-anchor AC-02 to the HEAD the move is made from, record both SHAs"
+  - "a hedging finding exists in llm_providers.py after the move → re-key the ALLOWLIST entry and the CONF-352 anchor (FR-998:166); none → record it, touch neither"
 delegations:
   - "judge.sh: round 2 (JUDGE_BACKEND=claude)"
 waits:
@@ -129,8 +133,11 @@ changes in moved code.
    object. No test patches a name inside `llm_providers` that moves.
 3. **The FR-998 predicates do not move** (FR-998 review #599 P2).
 4. **`scripts/size_gate.py`**: the temporary entry and its comment removed.
-   **`.github/hooks/tests/test_size_gate.py`**: the tautological clause
-   becomes `assert actual > size_gate.LIMIT, f"stale baseline entry: {rel} is {actual} lines, not over LIMIT"`.
+   **`.github/hooks/tests/test_size_gate.py`**: the tautological disjunct
+   `or allowed >= actual` goes; the final assertion becomes
+   `assert actual > size_gate.LIMIT` with a message naming `rel` and
+   `actual` and containing `stale baseline entry`, laid out as
+   `ruff format` chooses.
    Every other entry's actual length is above `LIMIT` today: 807, 675, 549,
    615, 592, 589, 510, 501.
 5. `llm_providers.py`'s module docstring says the Anthropic thinking rule and
@@ -160,7 +167,11 @@ addendum only): FR-1150 performs the module move and removes FR-1149's
 entry. Of FR-1148 AC-08 this closes the module holding the rule,
 `llm_providers.py` ≤ 450, `lint-imports` and `pre-commit`; the
 `_THINKING_OFF_UNSUPPORTED` rename and every test and doc clause of
-AC-01..AC-07, AC-10 and AC-11 stay owed to FR-1148's next PR.
+AC-01..AC-07, AC-10 and AC-11 stay owed to FR-1148's next PR. FR-1150 adds
+unit assertions of `_anthropic_thinking_off`'s three outcomes and of its
+error text under `REQ-YG-083`; FR-1148's AC-01..AC-03 payload-level tests,
+AC-06's 14-id table and AC-07's amendment remain owed and are not covered
+by them.
 
 ## Alternatives Considered
 
@@ -194,7 +205,8 @@ fold is to delete the two `as` lines (nothing imports them from
   (output pasted into Implementation status).
 - [ ] AC-02: `yamlgraph/utils/anthropic_thinking.py` exists; its moved region
   is byte-identical to `llm_providers.py:28-77` at `c1db2321` (a script's
-  output pasted); it has no module-level `langchain_anthropic` or
+  output pasted); `git diff --stat c1db2321..HEAD -- yamlgraph/utils/llm_providers.py`
+  was empty before the move (pasted, round 2 R-2); it has no module-level `langchain_anthropic` or
   `anthropic` import.
 - [ ] AC-03: `_anthropic_thinking_off`, `_ANTHROPIC_THINKING_ALWAYS_ON` and
   `_create_anthropic_llm` import from `yamlgraph.utils.llm_providers` and are
@@ -210,9 +222,13 @@ fold is to delete the two `as` lines (nothing imports them from
   `is_anthropic_unsupported_structured_output` are still defined in
   `llm_providers.py`; `test_fr998_structured_output.py` is unchanged and
   passes.
-- [ ] AC-06: `.github/hooks/tests/test_size_gate.py` line 123 reads
-  `assert actual > size_gate.LIMIT, f"stale baseline entry: {rel} is {actual} lines, not over LIMIT"`;
-  `LIMIT`, `WARN`, `BYTE_CEILING` and every other `BASELINE` entry unchanged.
+- [ ] AC-06: in `test_baseline_is_shrink_only_and_honest`, the loop body's
+  final assertion is `assert actual > size_gate.LIMIT` with a message
+  interpolating `rel` and `actual` and containing `stale baseline entry`;
+  `or allowed >= actual` appears nowhere in the file;
+  `ruff format --check .github/hooks/tests/test_size_gate.py` exits 0;
+  `LIMIT`, `WARN`, `BYTE_CEILING` and every other `BASELINE` entry
+  unchanged (round 2 R-1).
 - [ ] AC-07: RED witness — at commit 2 (repaired assert, 473 entry present)
   `pytest .github/hooks/tests/test_size_gate.py -q --no-cov` fails naming
   `llm_providers.py`; the output is pasted verbatim; the three-commit order
@@ -220,11 +236,18 @@ fold is to delete the two `as` lines (nothing imports them from
 - [ ] AC-08: the targeted pytest command of Planned Operations passes at the
   final commit; the fast unit suite passes in CI.
 - [ ] AC-09: `lint-imports` exits 0; `python scripts/req_coverage.py --strict`
-  exits 0; `PYTHONUTF8=1 pre-commit run --files <changed files>` passes.
+  exits 0; `PYTHONUTF8=1 pre-commit run --files <changed files>` passes;
+  `python scripts/hedging_check.py yamlgraph scripts --strict` before and
+  after the move gives identical finding sets, both in Implementation
+  status (round 2 R-3).
 - [ ] AC-10: both module docstrings updated as Proposed Solution item 5 says.
 - [ ] AC-11: the PR title is as stated above, with no changelog fragment.
-- [ ] AC-12: FR-1148 carries the dated hand-off addendum.
-- [ ] AC-13: no new `# noqa`; no `--no-verify`; no `Co-authored-by` trailer;
+- [ ] AC-12: FR-1148 carries the dated hand-off addendum, including which
+  assertions FR-1150 adds and which of FR-1148's tests stay owed
+  (round 2 R-4).
+- [ ] AC-13: the ruff re-export probe's command and verbatim output are in
+  the FR (round 2 R-5, below).
+- [ ] AC-13a: no new `# noqa`; no `--no-verify`; no `Co-authored-by` trailer;
   every `SKIP=` recorded with its commit and reason in the PR body.
 - [ ] AC-14: a `docs/diary/` reflection with a **Seed:**.
 
@@ -250,3 +273,65 @@ P2 had already refused moving the predicates out of `llm_providers.py`. The
 second move is now the Anthropic factory, not the predicates; solution class
 A is unchanged, its sub-row changed. Round 1's frozen scope (D-2, D-6) no
 longer applies, so this fold goes to a round-2 judgement before any code.
+
+## Judgement fold, round 2 (2026-10-25)
+
+Round 2, `JUDGE_BACKEND=claude bash scripts/judge.sh`: APPROVED WITH
+REVISIONS, the fold needing no further round. Folded:
+
+| # | Revision | Where folded |
+|---|---|---|
+| R-1 | AC-06 must not pin a line `ruff format` rewrites | Proposed Solution 4; AC-06 |
+| R-2 | Prove the anchor `c1db2321` is the tree moved from | Planned Operations; AC-02; probe below |
+| R-3 | Probe the line-keyed CONF-352 confession | Planned Operations; AC-09; probe below |
+| R-4 | The FR-1148 addendum says what the new tests close | Proposed Solution, hand-off; AC-12 |
+| R-5 | The ruff re-export probe as output | Probe below; AC-13 |
+
+## Implementation status
+
+**R-2 probe,** before the move, at `e1a253fd`:
+
+```text
+$ git diff --stat c1db2321..HEAD -- yamlgraph/utils/llm_providers.py
+(no output)
+```
+
+The anchor holds: `c1db2321` is the file the move is made from.
+
+**R-3 probe,** before the move:
+
+```text
+$ PYTHONUTF8=1 python scripts/hedging_check.py yamlgraph scripts --strict
+No hedging patterns found.
+exit 0
+$ grep -c fallback yamlgraph/utils/llm_providers.py
+0
+```
+
+No finding exists in `llm_providers.py`: CONF-352 (`hedging_check.py:81`,
+`docs/confessions.md` `#L342`) already points at nothing. This FR touches
+neither file. **Parked (not this FR):** the dead CONF-352 entry, and the
+gap that `_validate_allowlist_for_scan` never checks an ALLOWLIST key still
+has a finding, belong to a separate FR.
+
+**R-5 probe,** the pinned hook (`ruff-pre-commit` `rev: v0.16.0`,
+`.pre-commit-config.yaml:8`), on a probe file:
+
+```text
+$ cat tmp/rufftest/probe.py
+from os.path import join as join
+from os.path import _joinrealpath as _joinrealpath
+from os import sep
+$ PYTHONUTF8=1 pre-commit run --config .git/pre-commit-config.windows.yaml ruff-check --files tmp/rufftest/probe.py
+ruff check...............................................................Failed
+- hook id: ruff-check
+- exit code: 1
+
+Found 2 errors (2 fixed, 0 remaining).
+$ cat tmp/rufftest/probe.py
+from os.path import _joinrealpath as _joinrealpath
+from os.path import join as join
+```
+
+The two errors are the unsorted block and the unused `from os import sep`;
+`--fix` removed only that line and kept both same-name `as` imports.
