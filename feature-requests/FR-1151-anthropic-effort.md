@@ -183,3 +183,22 @@ Round 1, `JUDGE_BACKEND=claude bash scripts/judge.sh`: APPROVED WITH REVISIONS. 
 (1) Spend: one live `claude-opus-5-5` call at about $0.01, on the key in this checkout's `.env`, which served
 FR-1148's probes; inside the Arcturus budget. (2) R-2 stays a load-time error: the FR's premise is that a dropped
 key is the defect, and no existing graph sets `effort` (it did nothing before this FR).
+
+## Addendum 2026-10-25: Problem 2 corrected by probe
+
+Problem 2 above says a node key `effort: low` "is accepted (the node schema allows extra keys) and dropped without
+a word". That is wrong for nodes. `NodeConfig` is `extra: forbid` (`node_schema.py:267`) and `load_graph_config`
+validates every node through it (`validators.validate_config` → `validate_graph_schema`, FR-673). Probe on
+`main` at `c0bea5a9`, a one-node graph:
+
+```text
+nodes.plan.effort
+  Extra inputs are not permitted [type=extra_forbidden, input_value='low', input_type=str]
+nodes.plan.output_config
+  Extra inputs are not permitted [type=extra_forbidden, input_value={'effort': 'low'}, input_type=dict]
+```
+
+The silent drop is real for `defaults` only, which is a free dict: `defaults: {provider: anthropic, effort: low}`
+loads, and the value reaches nothing. The FR's design is unchanged. Today a node cannot ask for effort at all, and a
+graph-wide `defaults.effort` is ignored. Judgement R-2 still holds: once `effort` is a `NodeConfig` field, a race
+node or a router with `candidates:` would accept it and drop it, so the validator stays.
