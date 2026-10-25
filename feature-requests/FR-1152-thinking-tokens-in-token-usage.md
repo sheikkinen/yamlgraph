@@ -125,3 +125,35 @@ form), R-8 (the naming rule), each where its text says.
 **The judge's questions, answered (technical, the enforcer's [M], within the producer's budget):** (1) AC-10's
 spend: one Haiku 4.5 call with `thinking_budget: 1024`, about a cent. (2) The printed line keeps the accepted format
 `, N thinking`; the docstring and REQ-YG-064 say the count is inside `out`. (3) Dollars stay outside yamlgraph.
+
+## Implementation status (2026-10-25)
+
+**RED** (`9e7fb71d`, the tests and the two dict expectations, no code):
+
+```text
+FAILED tests/unit/test_fr1152_thinking_tokens.py::test_reasoning_tokens_are_summed
+FAILED tests/unit/test_fr1152_thinking_tokens.py::test_missing_reasoning_adds_zero[no-details]
+FAILED tests/unit/test_fr1152_thinking_tokens.py::test_missing_reasoning_adds_zero[empty]
+FAILED tests/unit/test_fr1152_thinking_tokens.py::test_missing_reasoning_adds_zero[no-reasoning]
+FAILED tests/unit/test_fr1152_thinking_tokens.py::test_none_reasoning_adds_zero
+FAILED tests/unit/test_fr1152_thinking_tokens.py::test_printed_line_adds_thinking
+FAILED tests/unit/test_fr027_execution_safety.py::TestTokenUsageTracking::test_handler_summary_returns_dict
+FAILED tests/unit/test_fr027_execution_safety.py::TestTokenUsageTracking::test_handler_summary_empty
+8 failed, 2 passed, 49 deselected in 1.14s
+```
+
+The two that pass hold today by design: the unchanged line without thinking, and the total.
+
+**GREEN** (`5cfb0e3f`): `test_fr1152_thinking_tokens.py` and `test_fr027_execution_safety.py`: 56 passed, 3 skipped.
+The docstring lines moved `on_llm_end`'s ARG002 confession from L55 to L58 (`docs/confessions.md`).
+
+**AC-10, the live witness** (`claude-haiku-4-5-20251001`, `thinking_budget: 1024`, one question; key from `.env`, not
+printed). Two calls: `create_llm(...).invoke(...)` for the normalised `usage_metadata`, then a one-node graph run
+with `--token-usage` for the printed line (`tmp/w1152/`, not committed):
+
+```text
+usage_metadata = {'input_tokens': 55, 'output_tokens': 704, 'total_tokens': 759, 'input_token_details': {'cache_read': 0, 'cache_creation': 0, 'ephemeral_5m_input_tokens': 0, 'ephemeral_1h_input_tokens': 0}, 'output_token_details': {'reasoning': 603}}
+📊 Token usage: 55 in / 701 out (1 call), 568 thinking
+```
+
+`langchain-anthropic` 1.7.0 locally (AC-11).
