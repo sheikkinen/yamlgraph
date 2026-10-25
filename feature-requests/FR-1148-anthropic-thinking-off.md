@@ -2,7 +2,10 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged 2026-10-25 APPROVED WITH REVISIONS; R-1..R-9 folded
+**Status:** Implemented on `main` by direct push (`3a911ae2`), recorded
+retroactively; re-scoped by the operator 2026-10-25 (see
+[Re-scope](#re-scope-and-implementation-status-2026-10-25)); follow-ups
+owed. Judged 2026-10-25 APPROVED WITH REVISIONS; R-1..R-9 folded
 ([judgement](FR-1148-anthropic-thinking-off.judgement.md), [fold](#judgement-fold-2026-10-25))
 **Requested:** 2026-10-25
 **First consumer / first event:** the game-engine repository's
@@ -285,3 +288,75 @@ consumer already avoids it (its Opus 5.5 judge node carries no
 `thinking_budget`); kept, and flagged in the PR for the operator's merge
 decision. (2) AC-13's one ~1500-token Sonnet 5.5 call is spent; it is the
 cost of C-6.
+
+## Re-scope and implementation status (2026-10-25)
+
+**Operator decision [O]:** "yamlgraph history scrubbing optional - fr and
+changelog would block the pipeline on mac". `main` keeps the three direct
+pushes (`aa1589d7`, `8366d6c7`, `3a911ae2`); the force-push scrub was
+refused by branch protection before this decision and is not retried.
+This FR's PR therefore re-applies no code. It adds what `main` lacks for
+the change already there: this FR, its judgement and evidence, the
+changelog fragment, and the diary reflection.
+
+The code on `main` (`yamlgraph/utils/llm_providers.py`
+`_anthropic_thinking_off`, `_ANTHROPIC_THINKING_ALWAYS_ON`) implements the
+rule of Probe A: `between_tools` on `claude-sonnet-5-5`, `disabled`
+elsewhere, `ValueError` on `claude-opus-5-5` and `claude-fable-5*`.
+
+**Live witness (AC-13), run on `main`'s code 2026-10-25** (editable
+install of this checkout at `3a911ae2`):
+
+```text
+thinking field: {'type': 'between_tools'}
+stop_reason=end_turn blocks=['text(str)'] output_tokens=1065 text_chars=2641
+claude-opus-5-5 ValueError: thinking_budget=0: thinking cannot be turned off on claude-opus-5-5; omit thinking_budget for this model
+claude-fable-5-1 ValueError: thinking_budget=0: thinking cannot be turned off on claude-fable-5-1; omit thinking_budget for this model
+```
+
+`create_llm(provider="anthropic", model="claude-sonnet-5-5",
+thinking_budget=0, max_tokens=1500).invoke(<Probe B prompt>)`: the
+content came back as a plain string (no thinking block), non-empty, ended
+on `end_turn`. `between_tools` survives `ChatAnthropic`.
+
+**Acceptance criteria against `main` at `3a911ae2`:**
+
+| AC | State on `main` | Witness |
+|---|---|---|
+| AC-01 | met at the attribute, not the payload | `test_thinking_budget_zero_on_sonnet_5_5_is_between_tools` asserts `llm.thinking`; R-1 owed |
+| AC-02 | met at the attribute | `test_thinking_budget_zero_no_thinking` (`claude-haiku-5-5`) |
+| AC-03 | partly: raises, message names the model; fable and no-cache not tested | `test_thinking_budget_zero_on_opus_5_5_raises`; live witness above |
+| AC-04 | met at the attribute | `test_thinking_budget_absent_leaves_the_request_unchanged` |
+| AC-05 | met at the attribute | `test_thinking_budget_enabled_sets_the_budget` |
+| AC-06 | owed | no 14-id table test |
+| AC-07 | owed | several tests still resolve the model from `ANTHROPIC_MODEL` |
+| AC-08 | **not met** | rule lives in `llm_providers.py`, now 473 lines; `scripts/size_gate.py` reports it over 450, so the size gate fails on the next `.py` commit |
+| AC-09 | met | class marker `REQ-YG-083`; but no RED/GREEN split (direct push) |
+| AC-10 | owed | CAP-28 REQ-YG-083 text still says `0` or `≥ 1024` → `enabled` |
+| AC-11 | partly | `graph-yaml.md` L94 and L278 updated; L84, L1032 and the `create_llm` docstring not |
+| AC-12 | met by this PR | `changelog/unreleased/fr-1148-anthropic-thinking-off.md` |
+| AC-13 | met | live witness above |
+| AC-14 | met | `yamlgraph graph lint examples/demos/thinking/graph.yaml`: no issues |
+| AC-15 | met for the touched file | `pytest tests/unit/test_thinking_budget.py`: 22 passed; full suite left to CI |
+| AC-16 | met by this PR | the diary reflection |
+| AC-17 | **not met on `main`**; met on this PR | the three `main` commits carry `Co-Authored-By:`; this PR's commits carry none |
+
+**Follow-up owed (one FR or a fix PR, through checks):** move the rule to
+`yamlgraph/utils/anthropic_thinking.py` with the `_THINKING_OFF_UNSUPPORTED`
+name (AC-08, R-6) so `llm_providers.py` returns under 450 lines;
+payload-level and 14-id tests with pinned models (AC-01..AC-07); CAP-28 and
+`ARCHITECTURE.md` (AC-10); the remaining doc sites (AC-11). The RED tests
+drafted for the redo are kept outside the repository for that work.
+
+| Planned operation | Outcome | Witness |
+|---|---|---|
+| probe: Probe A, Probe B | ran | `evidence/FR-1148-thinking-off-probe.md` |
+| probe: FR-071 tests before edit | ran | 22 passed on `main` |
+| probe: live create_llm witness | ran | this section |
+| probe: demo lint | ran | this section |
+| branch: listed id contradicts the rules | did not run | 14/14 agree |
+| branch: live witness returns a thinking block | did not run | text only |
+| delegation: judge.sh 1 run | ran | `FR-1148-anthropic-thinking-off.judgement.md` |
+
+**Unplanned operations:** operator re-scope (code stays on `main`, no
+re-apply); the redo's RED tests written then withdrawn from the branch.
