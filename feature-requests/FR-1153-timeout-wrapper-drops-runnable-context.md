@@ -2,7 +2,8 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Approved with revisions (R-1..R-5 folded), ready for enforcement
+**Judgement:** [FR-1153-timeout-wrapper-drops-runnable-context.judgement.md](FR-1153-timeout-wrapper-drops-runnable-context.judgement.md)
 **Requested:** 2026-10-30
 **First consumer / first event:** the reporter of GitHub issue
 [#708](https://github.com/sheikkinen/yamlgraph/issues/708) (@sergesha), whose
@@ -77,10 +78,9 @@ concurrent invocations never see each other's context.
 probes:
   - "main-checkout tmp/issue708 python-node and map-node reproductions (done, table above)"
   - "in-process copy_context().run patch of ThreadPoolExecutor.submit, python node (done: a, b)"
-  - "new tests run against the unfixed lines — must fail with the get_config RuntimeError, not another reason"
-  - "grep for other pool.submit of a node function in yamlgraph/ — decides whether a third site is in scope"
+  - "new tests run against the unfixed lines — the four RED witnesses (R-5) must fail for the stated reason, not a fixture/import/barrier error"
 branches:
-  - "a third pool.submit of a node function without copy_context is found → fix it in this change with its own witness"
+  - "another context-losing execution boundary is discovered → separate FR, unless it prevents these two repairs from functioning (R-1)"
   - "copy_context breaks an existing timeout test → stop, record, back to judge"
 delegations:
   - "judge.sh: 1 run"
@@ -90,13 +90,15 @@ waits:
   - "operator merge decision"
 commands:
   - scripts/judge.sh feature-requests/FR-1153-timeout-wrapper-drops-runnable-context.md
-  - pytest tests/unit/test_fr1153_timeout_runnable_context.py -q --no-cov
-  - pytest tests/unit/test_map_node_timeout.py -q --no-cov
-  - grep -rn "\.submit(" yamlgraph/
+  - pytest tests/unit/test_fr1153_timeout_runnable_context.py tests/unit/test_map_node_timeout.py tests/unit/test_router_race.py tests/unit/test_race_node.py -q --no-cov
+  - python scripts/req_coverage.py --strict
+  - python scripts/check_changelog_req.py
 ```
 
 ## Proposed Solution
 
+Scope is frozen to exactly two production lines (R-1):
+`yamlgraph/node_timeout.py:44` and `yamlgraph/compile/map_compiler.py:119`.
 At both sites, copy the caller's context per invocation and run the node
 function inside it:
 
@@ -110,32 +112,30 @@ Constraints: the context is copied inside the wrapper call, never at compile
 time; the `except concurrent.futures.TimeoutError` branches, the returned
 error shapes, and `shutdown(wait=False, cancel_futures=True)` are unchanged;
 no change to `timed_fn`'s signature; no explicit config forwarding (FR-1058
-F-1).
+F-1); no change to `yamlgraph/compile/node_otel.py`; no claim about LangSmith
+callback parenting.
+
+Architecture (R-4): CAP-96 / REQ-YG-078 in `ARCHITECTURE.md` gains the clause
+"timeout wrapping preserves the caller's runnable context for the node
+execution" and lists `yamlgraph/node_timeout.py` and
+`tests/unit/test_fr1153_timeout_runnable_context.py` as key modules.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: a graph compiled from YAML with a `type: python` node and
-  `timeout: 2`, whose tool returns `get_config()["configurable"]["sentinel"]`,
-  returns `"a"` and `"b"` for two invocations with those sentinels. RED
-  against the unfixed line with the `get_config` `RuntimeError` (verbatim
-  output recorded in Implementation status).
-- [ ] AC-02: the same graph without `timeout:` returns `"a"` and `"b"`
-  (control).
-- [ ] AC-03: a map node with `timeout: 2` over two items, sub-node a python
-  tool returning the sentinel, collects two results equal to the sentinel for
-  each of two invocations. RED against the unfixed line with the same
-  `RuntimeError` in the `MapFailure` record.
-- [ ] AC-04: AC-01 passes with OTel wrapping enabled and disabled (no exporter
-  required).
-- [ ] AC-05: existing timeout behaviour holds: `tests/unit/test_map_node_timeout.py`
-  and every other test referencing `_maybe_wrap_timeout` pass unchanged.
-- [ ] AC-06: new tests carry `@pytest.mark.req("REQ-YG-078")`;
-  `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-07: `changelog/unreleased/fr-1153-timeout-runnable-context.md` with
-  `type: fix`, `scope: compile`, `req: REQ-YG-078`;
-  `python scripts/check_changelog_req.py` passes.
-- [ ] AC-08: RED and GREEN commits are separate; no `--no-verify`.
-- [ ] AC-09: a `docs/diary/` reflection with a **Seed:**.
+Revised by judgement ([FR-1153-timeout-wrapper-drops-runnable-context.judgement.md](FR-1153-timeout-wrapper-drops-runnable-context.judgement.md)):
+
+- [x] AC-01: R-1 through R-5 are folded into FR-1153 before enforcement begins.
+- [ ] AC-02: A graph compiled from YAML with a `type: python` node and `timeout: 2`, whose tool returns `get_config()["configurable"]["sentinel"]`, returns `a` and `b` for invocations configured with those sentinels; the same graph without `timeout` is the passing control.
+- [ ] AC-03: A YAML-compiled map node with `timeout: 2`, two items, and a Python sub-node that returns the runnable-config sentinel collects two results carrying `a` for an `a` invocation and two carrying `b` for a `b` invocation; the RED failure records `RuntimeError: Called get_config outside of a runnable context`.
+- [ ] AC-04: For both the non-map and map paths, two barrier-overlapped invocations of the same compiled graph with sentinels `a` and `b` each return only their own sentinel, proving per-invocation context copying and isolation (R-2).
+- [ ] AC-05: The timed non-map YAML witness passes with `YAMLGRAPH_OTEL_EXPORT` unset and with the shared `in_memory_exporter` fixture (`tests/unit/conftest.py`); the enabled case returns the correct sentinel and records one completed `yamlgraph.node.execute` span for that node. The witness carries both `REQ-YG-078` and `REQ-YG-570` (R-3).
+- [ ] AC-06: The production diff changes only the two frozen execution boundaries to submit `copy_context().run` with the original `node_fn` and `state`; callable signatures, timeout exception branches, error shapes, and executor shutdown calls remain unchanged.
+- [ ] AC-07: CAP-96 / REQ-YG-078 states that timeout wrapping preserves the caller's runnable context and lists `yamlgraph/node_timeout.py`, `yamlgraph/compile/map_compiler.py`, `tests/unit/test_map_node_timeout.py`, and `tests/unit/test_fr1153_timeout_runnable_context.py` as key modules (R-4).
+- [ ] AC-08: `pytest tests/unit/test_fr1153_timeout_runnable_context.py tests/unit/test_map_node_timeout.py tests/unit/test_router_race.py tests/unit/test_race_node.py -q --no-cov` passes (R-5).
+- [ ] AC-09: Every new test carries `@pytest.mark.req("REQ-YG-078")`, the OTEL composition witness additionally carries `@pytest.mark.req("REQ-YG-570")`, and `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-10: `changelog/unreleased/fr-1153-timeout-runnable-context.md` has `type: fix`, `scope: compile`, and `req: REQ-YG-078`; `python scripts/check_changelog_req.py` passes.
+- [ ] AC-11: A RED commit containing the four failures (non-map context loss, map context loss, non-map concurrent isolation, map concurrent isolation — R-5) precedes the GREEN implementation commit; Implementation Status records the RED outputs and final commands; no verification bypass is used.
+- [ ] AC-12: A `docs/diary/` reflection records the thread-boundary/context-boundary lesson and contains a **Seed:**.
 
 ## Alternatives Considered
 
