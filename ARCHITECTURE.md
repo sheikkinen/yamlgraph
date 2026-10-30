@@ -634,7 +634,7 @@ Transform validated configs into executable StateGraphs with node compilation, e
 
 Create executable node functions for LLM, streaming, tool, interrupt, and subgraph behavior.
 
-**Feature Request:** legacy, FR-263, FR-1146
+**Feature Request:** legacy, FR-263, FR-1146, FR-1154
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|

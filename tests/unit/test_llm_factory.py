@@ -7,7 +7,10 @@ from unittest.mock import patch
 import pytest
 from langchain_anthropic import ChatAnthropic
 
+from yamlgraph.utils import llm_factory
 from yamlgraph.utils.llm_factory import clear_cache, create_llm
+
+_REAL_API_VERSION = getattr(llm_factory, "_anthropic_api_version", None)
 
 
 class TestCreateLLM:
@@ -670,3 +673,138 @@ class TestAnthropicSamplingGuard:
                 provider="mistral", model="claude-sonnet-5-5", temperature=None
             )
         assert llm.temperature == 0.7
+
+
+class TestAnthropicApiVersionSamplingRemoved:
+    """FR-1154: API 2026-10-21 rejects temperature on every Anthropic model."""
+
+    def setup_method(self):
+        clear_cache()
+
+    @pytest.fixture
+    def api_version(self, monkeypatch):
+        def pin(version):
+            monkeypatch.setattr(
+                llm_factory, "_anthropic_api_version", lambda: version, raising=False
+            )
+
+        return pin
+
+    @pytest.mark.req("REQ-YG-010")
+    @pytest.mark.parametrize(
+        "model",
+        [
+            "claude-haiku-4-5",
+            "claude-sonnet-4-5-20250929",
+            "claude-sonnet-4-6",
+            "claude-opus-4-5-20251101",
+            "claude-opus-4-6",
+            "claude-haiku-5-5",
+        ],
+    )
+    def test_threshold_version_omits_temperature(self, api_version, model):
+        api_version("2026-10-21")
+        llm = create_llm(provider="anthropic", model=model, temperature=0.7)
+        assert _wire_temperature(llm) is _ABSENT
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_later_version_omits_temperature(self, api_version):
+        api_version("2027-01-01")
+        llm = create_llm(
+            provider="anthropic", model="claude-haiku-4-5", temperature=0.3
+        )
+        assert _wire_temperature(llm) is _ABSENT
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_thinking_keeps_budget_and_sends_no_temperature(self, api_version, caplog):
+        api_version("2026-10-21")
+        with caplog.at_level("INFO", logger="yamlgraph.utils.llm_factory"):
+            llm = create_llm(
+                provider="anthropic",
+                model="claude-haiku-4-5",
+                temperature=0.7,
+                max_tokens=4096,
+                thinking_budget=1024,
+            )
+        payload = llm._get_request_payload("hi")
+        assert payload["thinking"] == {"type": "enabled", "budget_tokens": 1024}
+        assert _wire_temperature(llm) is _ABSENT
+        omitted = [
+            r for r in caplog.records if "removed sampling parameters" in r.getMessage()
+        ]
+        assert len(omitted) == 1
+        assert omitted[0].levelname == "INFO"
+        assert "2026-10-21" in omitted[0].getMessage()
+        assert not [
+            r for r in caplog.records if "Temperature overridden" in r.getMessage()
+        ]
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_old_version_keeps_fr1146_rule(self, api_version):
+        api_version("2023-06-01")
+        accepted = create_llm(
+            provider="anthropic", model="claude-haiku-4-5", temperature=0.3
+        )
+        rejected = create_llm(
+            provider="anthropic", model="claude-sonnet-5-5", temperature=0.3
+        )
+        thinking = create_llm(
+            provider="anthropic",
+            model="claude-sonnet-5-5",
+            temperature=0.7,
+            thinking_budget=1024,
+        )
+        assert _wire_temperature(accepted) == 0.3
+        assert _wire_temperature(rejected) is _ABSENT
+        assert thinking.temperature == 1
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_non_anthropic_never_reads_api_version(self, monkeypatch):
+        def boom():
+            raise AssertionError("anthropic API version read for non-anthropic")
+
+        monkeypatch.setattr(llm_factory, "_anthropic_api_version", boom, raising=False)
+        with patch.dict(os.environ, {"MISTRAL_API_KEY": "test-key"}):
+            llm = create_llm(provider="mistral", temperature=None)
+        assert llm.temperature == 0.7
+
+
+class TestAnthropicApiVersionReader:
+    """FR-1154: the version is the installed SDK's own default header."""
+
+    @pytest.fixture(autouse=True)
+    def _fresh_cache(self):
+        assert _REAL_API_VERSION is not None, "_anthropic_api_version missing"
+        _REAL_API_VERSION.cache_clear()
+        yield
+        _REAL_API_VERSION.cache_clear()
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_reads_installed_sdk_header(self):
+        import anthropic
+
+        expected = anthropic.Anthropic(api_key="x").default_headers["anthropic-version"]
+        assert _REAL_API_VERSION() == expected
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_reads_once_per_process(self):
+        built = []
+
+        class FakeClient:
+            def __init__(self, **_):
+                built.append(1)
+                self.default_headers = {"anthropic-version": "2026-10-21"}
+
+        with patch("anthropic.Anthropic", FakeClient):
+            assert _REAL_API_VERSION() == "2026-10-21"
+            assert _REAL_API_VERSION() == "2026-10-21"
+        assert len(built) == 1
+
+    @pytest.mark.req("REQ-YG-010")
+    def test_missing_header_raises(self):
+        class FakeClient:
+            def __init__(self, **_):
+                self.default_headers = {}
+
+        with patch("anthropic.Anthropic", FakeClient), pytest.raises(KeyError):
+            _REAL_API_VERSION()

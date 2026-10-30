@@ -6,6 +6,7 @@ across different providers (Anthropic, Azure, Mistral, OpenAI, Replicate, etc.).
 Provider-specific creation functions live in ``llm_providers.py``.
 """
 
+import functools
 import logging
 import os
 import threading
@@ -49,6 +50,17 @@ ANTHROPIC_SAMPLING_MODEL_PREFIXES = (
     "claude-opus-4-5",
     "claude-opus-4-6",
 )
+
+# First Anthropic API version that rejects temperature/top_p/top_k on every model (FR-1154)
+ANTHROPIC_SAMPLING_REMOVED_API_VERSION = "2026-10-21"
+
+
+@functools.cache
+def _anthropic_api_version() -> str:
+    """The ``anthropic-version`` header the installed SDK sends (FR-1154)."""
+    import anthropic
+
+    return anthropic.Anthropic(api_key="unused").default_headers["anthropic-version"]
 
 
 _llm_cache: dict[tuple, BaseChatModel] = {}
@@ -222,7 +234,20 @@ def create_llm(
         logger.info(f"Omitting temperature for reasoning model: {selected_model}")
         temperature = None
 
+    anthropic_api_version = (
+        _anthropic_api_version() if selected_provider == "anthropic" else None
+    )
     if (
+        anthropic_api_version is not None
+        and anthropic_api_version >= ANTHROPIC_SAMPLING_REMOVED_API_VERSION
+    ):
+        logger.info(
+            "Omitting temperature: Anthropic API %s removed sampling parameters",
+            anthropic_api_version,
+        )
+        temperature = None
+        temperature_overridden = False
+    elif (
         selected_provider == "anthropic"
         and not temperature_overridden
         and not selected_model.startswith(ANTHROPIC_SAMPLING_MODEL_PREFIXES)
