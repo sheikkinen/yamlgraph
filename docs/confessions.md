@@ -600,49 +600,49 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Vulture's standard false-positive suppression mechanism. These functions are invoked via `python3 -c` in `scripts/enforce_worktree.sh`, invisible to static analysis. The import makes them visible to Vulture.
 
 ### CONF-133
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L287)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L298)
 - **Code**: ARG001
 - **Sin**: `capture_env(**kwargs)` side-effect helper ignores kwargs; it only captures `os.environ` state.
 - **Penance**: The `**kwargs` signature is required to match `ChatGoogleGenerativeAI`'s constructor call signature. The argument is intentionally unused.
 
 ### CONF-134
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L358)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L369)
 - **Code**: ARG001
 - **Sin**: `capture_env(**kwargs)` side-effect helper ignores kwargs; it only captures `os.environ` state.
 - **Penance**: The `**kwargs` signature is required to match `ChatGoogleGenerativeAI`'s constructor call signature. The argument is intentionally unused.
 
 ### CONF-135
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L383)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L394)
 - **Code**: SLF001
 - **Sin**: Accesses `llm_mod._VERTEX_CONSTRUCT_LOCK` directly in test.
 - **Penance**: Test validates the module-level lock exists and is the correct type. No public API to verify this.
 
 ### CONF-136
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L401)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L412)
 - **Code**: SLF001
 - **Sin**: Calls `llm_mod._masked_env()` directly in test.
 - **Penance**: Tests the private context manager in isolation. No public API wrapping it.
 
 ### CONF-137
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L421)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L432)
 - **Code**: SLF001
 - **Sin**: Same as CONF-136 — calls `llm_mod._masked_env()` inside `pytest.raises`.
 - **Penance**: Same as CONF-136.
 
 ### CONF-138
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L437)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L448)
 - **Code**: ARG001
 - **Sin**: `capture_env(**kwargs)` side-effect helper ignores kwargs; it only captures `os.environ` state.
 - **Penance**: The `**kwargs` signature is required to match `ChatGoogleGenerativeAI`'s constructor call signature. The argument is intentionally unused.
 
 ### CONF-139
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L469)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L480)
 - **Code**: ARG001
 - **Sin**: `capture_env(**kwargs)` ignores kwargs to capture env snapshot for FR-229 test.
 - **Penance**: `ChatGoogleGenerativeAI` is constructed with kwargs; the test only needs to inspect `os.environ`, not the constructor arguments.
 
 ### CONF-140
-- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L523)
+- **File**: [tests/unit/test_llm_factory.py](../tests/unit/test_llm_factory.py#L534)
 - **Code**: ARG001
 - **Sin**: Same as CONF-139 — `capture_env(**kwargs)` in ADC mode test ignores kwargs.
 - **Penance**: Same as CONF-139.
