@@ -8,6 +8,7 @@ import concurrent.futures
 import logging
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from contextvars import copy_context
 from typing import Any
 
 from langgraph.graph import StateGraph
@@ -116,7 +117,10 @@ def _execute_node_fn(
     if timeout is not None:
         pool = ThreadPoolExecutor(max_workers=1)
         try:
-            return pool.submit(node_fn, state).result(timeout=timeout)
+            # Pool threads start without contextvars; LangGraph's config lives there (FR-1153).
+            return pool.submit(copy_context().run, node_fn, state).result(
+                timeout=timeout
+            )
         finally:
             pool.shutdown(wait=False, cancel_futures=True)
     return node_fn(state)
