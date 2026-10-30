@@ -233,18 +233,47 @@ Enforced 2026-10-30.
 
 ### AC-08 SDK-2 witness (scratch venv, worktree build installed)
 
-Command: `/tmp/ddrepro/bin/python -m pip install <worktree>`, then
-`create_llm(provider="anthropic", model="claude-haiku-4-5", temperature=0.7, **kw)`.
-For each case the script prints `_get_request_payload("hi")` and makes one
-live `invoke`.
+Exact command, run from the repository root at the PR head with
+`ANTHROPIC_API_KEY` set (re-run 2026-10-30 after review P1):
+
+```bash
+set -euo pipefail
+VENV=/tmp/fr1154-sdk2
+rm -rf "$VENV"
+python3 -m venv "$VENV"
+"$VENV/bin/python" -m pip install -q "anthropic==2.3.0" "langchain-anthropic==1.7.7" .
+cd /tmp
+"$VENV/bin/python" - <<'EOF'
+import importlib.metadata as md
+import yamlgraph.utils.llm_factory as f
+from yamlgraph.utils.llm_factory import create_llm
+
+print("anthropic", md.version("anthropic"), "langchain-anthropic", md.version("langchain-anthropic"),
+      "header", f._anthropic_api_version())
+for kw in ({}, {"thinking_budget": 1024, "max_tokens": 4096}):
+    llm = create_llm(provider="anthropic", model="claude-haiku-4-5", temperature=0.7, **kw)
+    p = llm._get_request_payload("hi")
+    print(kw, "top-level temperature:", "temperature" in p, "extra_body:", p.get("extra_body"),
+          "thinking:", p.get("thinking"))
+    r = llm.invoke("Reply with the single word: ok")
+    print("  live:", repr(r.text if isinstance(r.text, str) else r.text())[:60])
+EOF
+```
+
+Output:
 
 ```text
+[INFO] yamlgraph.utils.llm_factory: Omitting temperature: Anthropic API 2026-10-21 removed sampling parameters
+[INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=None)
+[INFO] httpx2: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+[INFO] yamlgraph.utils.llm_factory: Omitting temperature: Anthropic API 2026-10-21 removed sampling parameters
+[INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-4-5 (temp=None)
+[INFO] httpx2: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
 anthropic 2.3.0 langchain-anthropic 1.7.7 header 2026-10-21
-[INFO] Omitting temperature: Anthropic API 2026-10-21 removed sampling parameters
 {} top-level temperature: False extra_body: None thinking: None
-  POST /v1/messages "HTTP/1.1 200 OK"   live: 'ok'
+  live: 'ok'
 {'thinking_budget': 1024, 'max_tokens': 4096} top-level temperature: False extra_body: None thinking: {'type': 'enabled', 'budget_tokens': 1024}
-  POST /v1/messages "HTTP/1.1 200 OK"   live: 'ok'
+  live: 'ok'
 ```
 
 The same model and SDK pair without the fix is the deviant-daily CI 400
