@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Approved with revisions (R-1..R-3 folded) — [judgement](FR-1154-anthropic-api-version-sampling-removed.judgement.md)
 **Requested:** 2026-10-30
 **First consumer / first event:** `sheikkinen/deviant-daily` daily publish.
 Its `describe` node (`create_llm(provider="anthropic")` →
@@ -133,14 +133,21 @@ def _anthropic_api_version() -> str:
     return anthropic.Anthropic(api_key="unused").default_headers["anthropic-version"]
 ```
 
-In `create_llm()`, after the FR-071 override and before the FR-1146 guard:
+In `create_llm()`, after the FR-071 override and before the FR-1146 guard
+(R-1: one Anthropic-only read, bound once, reused in the log):
 
 ```python
+anthropic_api_version = (
+    _anthropic_api_version() if selected_provider == "anthropic" else None
+)
 if (
-    selected_provider == "anthropic"
-    and _anthropic_api_version() >= ANTHROPIC_SAMPLING_REMOVED_API_VERSION
+    anthropic_api_version is not None
+    and anthropic_api_version >= ANTHROPIC_SAMPLING_REMOVED_API_VERSION
 ):
-    logger.info(f"Omitting temperature: Anthropic API {version} removed sampling parameters")
+    logger.info(
+        "Omitting temperature: Anthropic API %s removed sampling parameters",
+        anthropic_api_version,
+    )
     temperature = None
     temperature_overridden = False
 elif <FR-1146 guard, unchanged>:
@@ -161,29 +168,20 @@ Constraints:
 
 ## Acceptance Criteria
 
-- [ ] AC-01: With `_anthropic_api_version()` returning `2026-10-21`,
-  `create_llm(provider="anthropic", model="claude-haiku-4-5", temperature=0.7)`
-  builds a client whose request payload carries no temperature, neither top-level
-  nor in `extra_body`. This holds for every FR-1146 allowlisted prefix and for `claude-haiku-5-5`.
-- [ ] AC-02: Same version with `thinking_budget=1024` builds a payload with no
-  temperature. The `thinking` field is still enabled with that budget. No
-  "Temperature overridden" warning is logged.
-- [ ] AC-03: The omission logs one INFO record naming the API version.
-- [ ] AC-04: With `_anthropic_api_version()` returning `2023-06-01`, all
-  existing FR-1146 tests pass unchanged. The FR-1146 test class pins the
-  version explicitly, so it does not depend on the SDK that happens to be installed.
-- [ ] AC-05: Without patching, `_anthropic_api_version()` equals the installed
-  SDK's `anthropic.Anthropic(api_key=...).default_headers["anthropic-version"]`.
-- [ ] AC-06: Non-Anthropic providers are unaffected, and the FR-455 tests are unchanged.
-- [ ] AC-07: Scratch-venv witness on anthropic 2.3.0 / langchain-anthropic
-  1.7.7: the `create_llm` payload for `claude-haiku-4-5` has `extra_body`
-  without temperature. The output is recorded in this FR.
-- [ ] AC-08: New tests carry `@pytest.mark.req("REQ-YG-010")`, and the RED commit precedes GREEN.
-- [ ] AC-09: `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` and
-  `python scripts/req_coverage.py --strict` pass.
-- [ ] AC-10: `changelog/unreleased/fr-1154-anthropic-api-version-sampling-removed.md`
-  exists with `type: fix`, `scope: llm`, `req: REQ-YG-010`.
-- [ ] AC-11: This FR records implementation status and deviations.
+Revised by judgement (R-2, R-3):
+
+- [ ] AC-01: With `_anthropic_api_version()` returning `2026-10-21`, every FR-1146 accepting prefix and `claude-haiku-5-5` produce request payloads with no `temperature` key at the top level or in `extra_body`.
+- [ ] AC-02: With `_anthropic_api_version()` returning `2027-01-01`, `claude-haiku-4-5` also omits temperature (`>=`, not equality).
+- [ ] AC-03: At `2026-10-21`, `thinking_budget=1024` retains the enabled thinking payload and omits temperature; exactly one INFO record names `2026-10-21`, and no "Temperature overridden" warning is emitted.
+- [ ] AC-04: With `_anthropic_api_version()` returning `2023-06-01`, the existing FR-1146 assertions and model matrix retain their behavior (accepting prefixes keep temperature, rejecting models omit it, FR-071 thinking keeps `temperature=1`); the class has deterministic old-version setup.
+- [ ] AC-05: Without patching, `_anthropic_api_version()` equals `anthropic.Anthropic(api_key=...).default_headers["anthropic-version"]`; repeated calls construct/read the SDK client once per process.
+- [ ] AC-06: If the SDK default headers lack `anthropic-version`, `_anthropic_api_version()` raises `KeyError`; no fallback.
+- [ ] AC-07: Non-Anthropic providers do not call `_anthropic_api_version()`, preserve current temperature behavior, and the FR-455 tests remain unchanged.
+- [ ] AC-08: A recorded scratch-venv run on `anthropic==2.3.0` and `langchain-anthropic==1.7.7` shows `claude-haiku-4-5` payloads without temperature both normally and with `thinking_budget=1024`; the latter retains the enabled thinking field. The FR records the command, versions, and payloads.
+- [ ] AC-09: Every new test carries `@pytest.mark.req("REQ-YG-010")`; failing witnesses precede production implementation in git history.
+- [ ] AC-10: `.venv/bin/python -m pytest tests/unit/test_llm_factory.py -q --no-cov`, `.venv/bin/python -m pytest tests/unit/ -q --no-cov -m "not slow" -n auto`, and `python scripts/req_coverage.py --strict` pass.
+- [ ] AC-11: `changelog/unreleased/fr-1154-anthropic-api-version-sampling-removed.md` has `type: fix`, `scope: llm`, `req: REQ-YG-010`.
+- [ ] AC-12: The FR records the folded judgement revisions and, after enforcement, the scratch witness, implementation status, decisions, and deviations.
 
 ## Out of Scope
 
