@@ -49,7 +49,7 @@ def _reset(monkeypatch):
     _barrier = None
 
 
-def _python_graph(tmp_path, *, timeout: bool):
+def _python_graph(tmp_path, *, timeout: int | None):
     path = tmp_path / "graph.yaml"
     path.write_text(
         'version: "1.0"\n'
@@ -65,14 +65,16 @@ def _python_graph(tmp_path, *, timeout: bool):
         "  observe:\n"
         "    type: python\n"
         "    tool: observe\n"
-        "    on_error: fail\n" + ("    timeout: 5\n" if timeout else "") + "edges:\n"
+        "    on_error: fail\n"
+        + (f"    timeout: {timeout}\n" if timeout else "")
+        + "edges:\n"
         "  - {from: START, to: observe}\n"
         "  - {from: observe, to: END}\n"
     )
     return compile_graph(load_graph_config(path)).compile()
 
 
-def _map_graph(tmp_path):
+def _map_graph(tmp_path, *, timeout: int):
     path = tmp_path / "map.yaml"
     path.write_text(
         'version: "1.0"\n'
@@ -91,7 +93,7 @@ def _map_graph(tmp_path):
         '    over: "{state.items}"\n'
         "    as: item\n"
         "    max_items: 5\n"
-        "    timeout: 5\n"
+        f"    timeout: {timeout}\n"
         "    min_success: 0.0\n"
         "    node:\n"
         "      type: python\n"
@@ -126,33 +128,33 @@ def _overlapped(fn, *args_per_call):
 
 @pytest.mark.req("REQ-YG-078")
 def test_python_node_without_timeout_sees_config(tmp_path):
-    app = _python_graph(tmp_path, timeout=False)
+    app = _python_graph(tmp_path, timeout=None)
     assert [_invoke_python(app, s) for s in ("a", "b")] == ["a", "b"]
 
 
 @pytest.mark.req("REQ-YG-078")
 def test_timed_python_node_sees_config(tmp_path):
-    app = _python_graph(tmp_path, timeout=True)
+    app = _python_graph(tmp_path, timeout=2)
     assert [_invoke_python(app, s) for s in ("a", "b")] == ["a", "b"]
 
 
 @pytest.mark.req("REQ-YG-078")
 def test_timed_map_node_sees_config(tmp_path):
-    app = _map_graph(tmp_path)
+    app = _map_graph(tmp_path, timeout=2)
     assert _invoke_map(app, "a", [1, 2]) == ["a", "a"]
     assert _invoke_map(app, "b", [1, 2]) == ["b", "b"]
 
 
 @pytest.mark.req("REQ-YG-078")
 def test_timed_python_node_overlapping_invocations_are_isolated(tmp_path):
-    app = _python_graph(tmp_path, timeout=True)
+    app = _python_graph(tmp_path, timeout=5)
     got = _overlapped(_invoke_python, (app, "a"), (app, "b"))
     assert got == ["a", "b"]
 
 
 @pytest.mark.req("REQ-YG-078")
 def test_timed_map_node_overlapping_invocations_are_isolated(tmp_path):
-    app = _map_graph(tmp_path)
+    app = _map_graph(tmp_path, timeout=5)
     got = _overlapped(_invoke_map, (app, "a", [1]), (app, "b", [1]))
     assert got == [["a"], ["b"]]
 
@@ -160,7 +162,7 @@ def test_timed_map_node_overlapping_invocations_are_isolated(tmp_path):
 @requires_otel_sdk
 @pytest.mark.req("REQ-YG-078", "REQ-YG-570")
 def test_timed_python_node_sees_config_with_otel_enabled(tmp_path, in_memory_exporter):
-    app = _python_graph(tmp_path, timeout=True)
+    app = _python_graph(tmp_path, timeout=2)
     assert _invoke_python(app, "a") == "a"
 
     node_spans = [

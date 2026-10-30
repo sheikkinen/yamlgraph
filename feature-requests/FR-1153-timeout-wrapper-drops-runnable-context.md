@@ -176,9 +176,12 @@ Final commands (venv activated):
 
 **Decisions and deviations:**
 
-- Test graphs use `timeout: 5`, not `2`: the barrier in the overlap witnesses
-  waits up to 3, and a node timeout shorter than that would turn a slow
-  overlap into a `TIMEOUT_ERROR` instead of a context failure.
+- The sequential witnesses (AC-02, AC-03, AC-05) use the frozen `timeout: 2`.
+  Only the overlap witnesses (AC-04) use `timeout: 5`: their barrier waits up
+  to 3, and a shorter node timeout would turn a slow overlap into a
+  `TIMEOUT_ERROR` instead of a context failure. The first push used `5`
+  everywhere; PR #763 review P1 flagged it as drift from AC-02/AC-03 and it
+  was corrected.
 - The map overlap witness maps one item per invocation, so the barrier has
   exactly two parties regardless of LangGraph's branch scheduling. AC-03
   covers the two-item case sequentially.
