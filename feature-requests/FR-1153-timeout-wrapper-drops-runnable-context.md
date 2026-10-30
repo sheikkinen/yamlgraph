@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved with revisions (R-1..R-5 folded), ready for enforcement
+**Status:** Enforced (RED `8f956e02`, GREEN `fb7c59d2`); awaiting PR, CI, review
 **Judgement:** [FR-1153-timeout-wrapper-drops-runnable-context.judgement.md](FR-1153-timeout-wrapper-drops-runnable-context.judgement.md)
 **Requested:** 2026-10-30
 **First consumer / first event:** the reporter of GitHub issue
@@ -125,17 +125,88 @@ execution" and lists `yamlgraph/node_timeout.py` and
 Revised by judgement ([FR-1153-timeout-wrapper-drops-runnable-context.judgement.md](FR-1153-timeout-wrapper-drops-runnable-context.judgement.md)):
 
 - [x] AC-01: R-1 through R-5 are folded into FR-1153 before enforcement begins.
-- [ ] AC-02: A graph compiled from YAML with a `type: python` node and `timeout: 2`, whose tool returns `get_config()["configurable"]["sentinel"]`, returns `a` and `b` for invocations configured with those sentinels; the same graph without `timeout` is the passing control.
-- [ ] AC-03: A YAML-compiled map node with `timeout: 2`, two items, and a Python sub-node that returns the runnable-config sentinel collects two results carrying `a` for an `a` invocation and two carrying `b` for a `b` invocation; the RED failure records `RuntimeError: Called get_config outside of a runnable context`.
-- [ ] AC-04: For both the non-map and map paths, two barrier-overlapped invocations of the same compiled graph with sentinels `a` and `b` each return only their own sentinel, proving per-invocation context copying and isolation (R-2).
-- [ ] AC-05: The timed non-map YAML witness passes with `YAMLGRAPH_OTEL_EXPORT` unset and with the shared `in_memory_exporter` fixture (`tests/unit/conftest.py`); the enabled case returns the correct sentinel and records one completed `yamlgraph.node.execute` span for that node. The witness carries both `REQ-YG-078` and `REQ-YG-570` (R-3).
-- [ ] AC-06: The production diff changes only the two frozen execution boundaries to submit `copy_context().run` with the original `node_fn` and `state`; callable signatures, timeout exception branches, error shapes, and executor shutdown calls remain unchanged.
-- [ ] AC-07: CAP-96 / REQ-YG-078 states that timeout wrapping preserves the caller's runnable context and lists `yamlgraph/node_timeout.py`, `yamlgraph/compile/map_compiler.py`, `tests/unit/test_map_node_timeout.py`, and `tests/unit/test_fr1153_timeout_runnable_context.py` as key modules (R-4).
-- [ ] AC-08: `pytest tests/unit/test_fr1153_timeout_runnable_context.py tests/unit/test_map_node_timeout.py tests/unit/test_router_race.py tests/unit/test_race_node.py -q --no-cov` passes (R-5).
-- [ ] AC-09: Every new test carries `@pytest.mark.req("REQ-YG-078")`, the OTEL composition witness additionally carries `@pytest.mark.req("REQ-YG-570")`, and `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-10: `changelog/unreleased/fr-1153-timeout-runnable-context.md` has `type: fix`, `scope: compile`, and `req: REQ-YG-078`; `python scripts/check_changelog_req.py` passes.
-- [ ] AC-11: A RED commit containing the four failures (non-map context loss, map context loss, non-map concurrent isolation, map concurrent isolation — R-5) precedes the GREEN implementation commit; Implementation Status records the RED outputs and final commands; no verification bypass is used.
-- [ ] AC-12: A `docs/diary/` reflection records the thread-boundary/context-boundary lesson and contains a **Seed:**.
+- [x] AC-02: A graph compiled from YAML with a `type: python` node and `timeout: 2`, whose tool returns `get_config()["configurable"]["sentinel"]`, returns `a` and `b` for invocations configured with those sentinels; the same graph without `timeout` is the passing control.
+- [x] AC-03: A YAML-compiled map node with `timeout: 2`, two items, and a Python sub-node that returns the runnable-config sentinel collects two results carrying `a` for an `a` invocation and two carrying `b` for a `b` invocation; the RED failure records `RuntimeError: Called get_config outside of a runnable context`.
+- [x] AC-04: For both the non-map and map paths, two barrier-overlapped invocations of the same compiled graph with sentinels `a` and `b` each return only their own sentinel, proving per-invocation context copying and isolation (R-2).
+- [x] AC-05: The timed non-map YAML witness passes with `YAMLGRAPH_OTEL_EXPORT` unset and with the shared `in_memory_exporter` fixture (`tests/unit/conftest.py`); the enabled case returns the correct sentinel and records one completed `yamlgraph.node.execute` span for that node. The witness carries both `REQ-YG-078` and `REQ-YG-570` (R-3).
+- [x] AC-06: The production diff changes only the two frozen execution boundaries to submit `copy_context().run` with the original `node_fn` and `state`; callable signatures, timeout exception branches, error shapes, and executor shutdown calls remain unchanged.
+- [x] AC-07: CAP-96 / REQ-YG-078 states that timeout wrapping preserves the caller's runnable context and lists `yamlgraph/node_timeout.py`, `yamlgraph/compile/map_compiler.py`, `tests/unit/test_map_node_timeout.py`, and `tests/unit/test_fr1153_timeout_runnable_context.py` as key modules (R-4).
+- [x] AC-08: `pytest tests/unit/test_fr1153_timeout_runnable_context.py tests/unit/test_map_node_timeout.py tests/unit/test_router_race.py tests/unit/test_race_node.py -q --no-cov` passes (R-5).
+- [x] AC-09: Every new test carries `@pytest.mark.req("REQ-YG-078")`, the OTEL composition witness additionally carries `@pytest.mark.req("REQ-YG-570")`, and `python scripts/req_coverage.py --strict` passes.
+- [x] AC-10: `changelog/unreleased/fr-1153-timeout-runnable-context.md` has `type: fix`, `scope: compile`, and `req: REQ-YG-078`; `python scripts/check_changelog_req.py` passes.
+- [x] AC-11: A RED commit containing the four failures (non-map context loss, map context loss, non-map concurrent isolation, map concurrent isolation — R-5) precedes the GREEN implementation commit; Implementation Status records the RED outputs and final commands; no verification bypass is used.
+- [x] AC-12: A `docs/diary/` reflection records the thread-boundary/context-boundary lesson and contains a **Seed:**.
+
+## Implementation Status
+
+**RED** `8f956e02` — `tests/unit/test_fr1153_timeout_runnable_context.py`,
+committed with `SKIP=pytest` (Commandment 7). Against the unfixed lines,
+`pytest tests/unit/test_fr1153_timeout_runnable_context.py -q --no-cov -p no:randomly`:
+
+```text
+E           RuntimeError: Called get_config outside of a runnable context
+E       AssertionError: assert [MapFailure(m...erated=False)] == []
+E         Left contains 2 more items, first extra item: MapFailure(map='fan', dispatch='7f0281e94b91435bb29235daf6a7bdf9', index=0, error_type='RuntimeError', message='Called get_config outside of a runnable context', node='_map_f
+E           RuntimeError: Called get_config outside of a runnable context
+E         Left contains one more item: MapFailure(map='fan', dispatch='6aa53eb9294b4975ac58a4aa399db986', index=0, error_type='RuntimeError', message='Called get_config outside of a runnable context', node='_map_fan_sub', tolerate
+E           RuntimeError: Called get_config outside of a runnable context
+FAILED tests/unit/test_fr1153_timeout_runnable_context.py::test_timed_python_node_sees_config
+FAILED tests/unit/test_fr1153_timeout_runnable_context.py::test_timed_map_node_sees_config
+FAILED tests/unit/test_fr1153_timeout_runnable_context.py::test_timed_python_node_overlapping_invocations_are_isolated
+FAILED tests/unit/test_fr1153_timeout_runnable_context.py::test_timed_map_node_overlapping_invocations_are_isolated
+FAILED tests/unit/test_fr1153_timeout_runnable_context.py::test_timed_python_node_sees_config_with_otel_enabled
+5 failed, 1 passed in 0.43s
+```
+
+The four R-5 witnesses plus the OTEL witness fail with the `get_config`
+error (map paths: in the `MapFailure` record); the untimed control passes.
+The concurrency witnesses reached `get_config` after the barrier released, so
+the two invocations did overlap.
+
+**GREEN** `fb7c59d2` — `copy_context().run` at `yamlgraph/node_timeout.py`
+and `yamlgraph/compile/map_compiler.py`; CAP-96 / REQ-YG-078 amended and
+`ARCHITECTURE.md` regenerated; changelog fragment.
+
+Final commands (venv activated):
+
+- `pytest tests/unit/test_fr1153_timeout_runnable_context.py tests/unit/test_map_node_timeout.py tests/unit/test_router_race.py tests/unit/test_race_node.py -q --no-cov` → `96 passed`
+- `pytest tests/unit/ -q --no-cov -m "not slow" -n auto` → `7668 passed, 47 skipped, 1 xfailed`
+- `python scripts/req_coverage.py --strict` → exit 0 (`CAP-96 Per-Node Timeout: 1/1 reqs, 26 tests`)
+- `python scripts/check_changelog_req.py` → `2 passed, 0 failed`
+
+**Decisions and deviations:**
+
+- Test graphs use `timeout: 5`, not `2`: the barrier in the overlap witnesses
+  waits up to 3, and a node timeout shorter than that would turn a slow
+  overlap into a `TIMEOUT_ERROR` instead of a context failure.
+- The map overlap witness maps one item per invocation, so the barrier has
+  exactly two parties regardless of LangGraph's branch scheduling. AC-03
+  covers the two-item case sequentially.
+- The map test graph sets `min_success: 0.0` so the RED shows the
+  `MapFailure` reason instead of only `MapCompletenessError: accepted 0/2`.
+- CAP-96 `fr:` became `FR-069, FR-1153`: the first GREEN commit attempt failed
+  `test_no_req_collision_across_unrelated_frs` because the fragment's
+  `req: REQ-YG-078` was claimed by an FR the capability did not name.
+- The same full-suite run also showed `test_ramp_installer.py::test_wrapper_delegates`
+  failing with `No module named 'yaml'`: the venv was not activated, so
+  `scripts/ramp.sh`'s `python3` resolved to homebrew. With the venv activated
+  it passes; no code change.
+
+| Planned operation | Outcome (ran / did not run / changed) | Witness |
+|---|---|---|
+| main-checkout tmp/issue708 python and map reproductions | ran | Problem table; session before FR commit `6707e90b` |
+| in-process `copy_context().run` patch probe | ran | Problem table |
+| new tests run against the unfixed lines | ran | RED output above, commit `8f956e02` |
+| branch: another context-losing boundary found | did not run | none found beyond the two frozen sites |
+| branch: copy_context breaks an existing timeout test | did not run | `96 passed` |
+| judge.sh: 1 run | ran | judgement file, commit `1f6c0be9` |
+| `pytest` regression command (AC-08) | ran | `96 passed` |
+| `req_coverage.py --strict` | ran | exit 0 |
+| `check_changelog_req.py` | ran | exit 0 |
+
+**Unplanned operations:** full unit suite run (`7668 passed`), needed to
+diagnose the failed GREEN pre-commit hook; `scripts/validate_capabilities.py`
+and `scripts/aggregate_capabilities.py` after the CAP-96 edit.
 
 ## Alternatives Considered
 
