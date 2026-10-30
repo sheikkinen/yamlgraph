@@ -561,10 +561,16 @@ def test_consumers_registry_documents_schema():
 def test_wrapper_delegates(tmp_path):
     target = make_target(tmp_path)
     assert os.access(WRAPPER, os.X_OK)
+    # ramp.sh execs `python3`; resolve it to the test interpreter, not PATH luck.
+    env = {
+        **os.environ,
+        "PATH": os.pathsep.join([str(Path(sys.executable).parent), os.environ["PATH"]]),
+    }
     r = subprocess.run(
         [str(WRAPPER), str(target), "--tier", "1", "--dry-run"],
         capture_output=True,
         text=True,
+        env=env,
     )
     assert r.returncode == 0, r.stderr
     assert "create" in r.stdout

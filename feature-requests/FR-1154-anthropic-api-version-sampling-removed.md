@@ -226,10 +226,12 @@ Enforced 2026-10-30.
   `_anthropic_api_version` was missing, and 64 passed. The `claude-haiku-5-5`,
   old-version and non-Anthropic witnesses were already green; they are the
   regression floor.
-- GREEN: `tests/unit/test_llm_factory.py` gives 74 passed. The fast unit suite
-  gives 7675 passed. `test_ramp_installer.py::test_wrapper_delegates` fails only
-  when the venv is not activated (`python3` resolves to homebrew, the known
-  environment trap) and passes when activated. `req_coverage.py --strict` passes.
+- GREEN: `tests/unit/test_llm_factory.py` gives 74 passed.
+  `req_coverage.py --strict` passes.
+- AC-10, after review round 2: the exact command
+  `.venv/bin/python -m pytest tests/unit/ -q --no-cov -m "not slow" -n auto`,
+  run with no venv activated and `python3` resolving to
+  `/opt/homebrew/bin/python3`, gives `7675 passed, 47 skipped, 1 xfailed`.
 
 ### AC-08 SDK-2 witness (scratch venv, worktree build installed)
 
@@ -281,6 +283,18 @@ The same model and SDK pair without the fix is the deviant-daily CI 400
 
 ### Decisions and deviations
 
-- No deviation from the folded solution.
+- No deviation from the folded solution in `llm_factory.py`.
+- Scope deviation (review round 2, P1): AC-10's exact command was red on
+  `test_ramp_installer.py::test_wrapper_delegates`. The test ran
+  `scripts/ramp.sh`, which runs `exec python3`, and it inherited whatever `python3`
+  came first on PATH. Without an activated venv that was homebrew, which has no
+  PyYAML. The test now puts `Path(sys.executable).parent` first on the
+  subprocess PATH, following the precedent in `test_req_audit_runner.py` and
+  `test_issue_delegate_bundle.py`. This changes only the test; `ramp.sh` is
+  unchanged. The change is out of the judged scope but required by GATE C-5.
+  The test was RED under the mandated command at `33c9083c` and is GREEN after
+  this change. `test_race_node.py::TestRaceNodeFactory::test_concurrent_execution`
+  failed once on timing in the reviewer's run and passed in both of my full
+  runs. It is not changed here.
 - The consumer-side move of deviant-daily to `claude-haiku-5-5` is done in
   that repository under its own governance, not under this FR (C-6).
