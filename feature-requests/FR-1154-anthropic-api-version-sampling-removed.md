@@ -296,5 +296,13 @@ The same model and SDK pair without the fix is the deviant-daily CI 400
   this change. `test_race_node.py::TestRaceNodeFactory::test_concurrent_execution`
   failed once on timing in the reviewer's run and passed in both of my full
   runs. It is not changed here.
+- CI (run 41039786824, both 3.11 and 3.14) installs anthropic 2.x. Three
+  Anthropic tests outside `test_llm_factory.py` then saw header `2026-10-21`
+  and failed because they assert a temperature:
+  `test_fr1148_thinking_off_payload`, `test_llm_factory_async::test_creates_llm`
+  and `test_thinking_budget::test_thinking_budget_forces_temperature_one`.
+  The `2023-06-01` pin was module-local; it now lives in `tests/unit/conftest.py`
+  and covers every unit test. Locally, under SDK 2.3.0, the four affected
+  modules were RED with 3 failed and are GREEN with 130 passed.
 - The consumer-side move of deviant-daily to `claude-haiku-5-5` is done in
   that repository under its own governance, not under this FR (C-6).

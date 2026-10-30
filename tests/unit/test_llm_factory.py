@@ -13,14 +13,6 @@ from yamlgraph.utils.llm_factory import clear_cache, create_llm
 _REAL_API_VERSION = getattr(llm_factory, "_anthropic_api_version", None)
 
 
-@pytest.fixture(autouse=True)
-def _anthropic_api_version_pinned(monkeypatch):
-    """Tests assume the pre-2026-10-21 API unless they pin another (FR-1154)."""
-    monkeypatch.setattr(
-        llm_factory, "_anthropic_api_version", lambda: "2023-06-01", raising=False
-    )
-
-
 class TestCreateLLM:
     """Test the create_llm factory function."""
 

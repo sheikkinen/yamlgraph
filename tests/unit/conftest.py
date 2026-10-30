@@ -15,8 +15,15 @@ One exporter per process, owned here, is the fix.
 import pytest
 
 from yamlgraph.observability import otel
+from yamlgraph.utils import llm_factory
 
 _SHARED_EXPORTER = None
+
+
+@pytest.fixture(autouse=True)
+def _anthropic_api_version_pinned(monkeypatch):
+    """Unit tests assume the pre-2026-10-21 API, whatever SDK CI installs (FR-1154)."""
+    monkeypatch.setattr(llm_factory, "_anthropic_api_version", lambda: "2023-06-01")
 
 
 def _install_shared_provider_once():
