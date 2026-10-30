@@ -27,12 +27,16 @@ requirements:
       unchanged (callers pass error_type explicitly); lint warning
       W203 for map+agent without timeout; except
       concurrent.futures.TimeoutError before except Exception in
-      both paths
+      both paths; timeout wrapping preserves the caller's runnable
+      context for the node execution (contextvars copied per
+      invocation, FR-1153)
     modules:
       - yamlgraph/compile/map_compiler.py
       - yamlgraph/compile/node_compiler.py
+      - yamlgraph/node_timeout.py
       - yamlgraph/models/graph_schema.py
       - yamlgraph/models/schemas.py
       - yamlgraph/linter/patterns/map.py
       - tests/unit/test_map_node_timeout.py
-fr: FR-069
+      - tests/unit/test_fr1153_timeout_runnable_context.py
+fr: FR-069, FR-1153

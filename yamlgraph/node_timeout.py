@@ -9,6 +9,7 @@ from __future__ import annotations
 import concurrent.futures
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
+from contextvars import copy_context
 from typing import Any
 
 
@@ -41,7 +42,10 @@ def _maybe_wrap_timeout(
     def timed_fn(state: dict) -> dict:
         pool = ThreadPoolExecutor(max_workers=1)
         try:
-            return pool.submit(node_fn, state).result(timeout=timeout)
+            # Pool threads start without contextvars; LangGraph's config lives there (FR-1153).
+            return pool.submit(copy_context().run, node_fn, state).result(
+                timeout=timeout
+            )
         except concurrent.futures.TimeoutError as e:
             from yamlgraph.models import PipelineError
             from yamlgraph.models.schemas import ErrorType
