@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved with revisions (R-1..R-3 folded) — [judgement](FR-1154-anthropic-api-version-sampling-removed.judgement.md)
+**Status:** Enforced — [judgement](FR-1154-anthropic-api-version-sampling-removed.judgement.md) APPROVED WITH REVISIONS (R-1..R-3 folded); RED `0e9f2129`, GREEN on `fix/fr-1154-anthropic-api-sampling`
 **Requested:** 2026-10-30
 **First consumer / first event:** `sheikkinen/deviant-daily` daily publish.
 Its `describe` node (`create_llm(provider="anthropic")` →
@@ -211,4 +211,47 @@ FR-1146, FR-455, FR-071, FR-1148, FR-1151.
 
 ## Implementation Status
 
-Not started.
+Enforced 2026-10-30.
+
+- D-1: `yamlgraph/utils/llm_factory.py` adds `ANTHROPIC_SAMPLING_REMOVED_API_VERSION`,
+  the cached `_anthropic_api_version()` reader, and the version-first branch
+  exactly as in the R-1 shape.
+- D-2: `tests/unit/test_llm_factory.py` adds `TestAnthropicApiVersionSamplingRemoved`
+  and `TestAnthropicApiVersionReader` (AC-01..AC-07). A module-level autouse
+  fixture pins `2023-06-01`, so the FR-1146 class and every other Anthropic
+  test are deterministic regardless of the installed SDK (AC-04). The existing
+  assertions are unchanged.
+- RED `0e9f2129`: 7 failed for the right reason (temperature on the wire,
+  forced `1.0` with the "Temperature overridden" warning), 3 errors because
+  `_anthropic_api_version` was missing, and 64 passed. The `claude-haiku-5-5`,
+  old-version and non-Anthropic witnesses were already green; they are the
+  regression floor.
+- GREEN: `tests/unit/test_llm_factory.py` gives 74 passed. The fast unit suite
+  gives 7675 passed. `test_ramp_installer.py::test_wrapper_delegates` fails only
+  when the venv is not activated (`python3` resolves to homebrew, the known
+  environment trap) and passes when activated. `req_coverage.py --strict` passes.
+
+### AC-08 SDK-2 witness (scratch venv, worktree build installed)
+
+Command: `/tmp/ddrepro/bin/python -m pip install <worktree>`, then
+`create_llm(provider="anthropic", model="claude-haiku-4-5", temperature=0.7, **kw)`.
+For each case the script prints `_get_request_payload("hi")` and makes one
+live `invoke`.
+
+```text
+anthropic 2.3.0 langchain-anthropic 1.7.7 header 2026-10-21
+[INFO] Omitting temperature: Anthropic API 2026-10-21 removed sampling parameters
+{} top-level temperature: False extra_body: None thinking: None
+  POST /v1/messages "HTTP/1.1 200 OK"   live: 'ok'
+{'thinking_budget': 1024, 'max_tokens': 4096} top-level temperature: False extra_body: None thinking: {'type': 'enabled', 'budget_tokens': 1024}
+  POST /v1/messages "HTTP/1.1 200 OK"   live: 'ok'
+```
+
+The same model and SDK pair without the fix is the deviant-daily CI 400
+(Probe 2, cell `2026-10-21 × claude-haiku-4-5 × 0.7`).
+
+### Decisions and deviations
+
+- No deviation from the folded solution.
+- The consumer-side move of deviant-daily to `claude-haiku-5-5` is done in
+  that repository under its own governance, not under this FR (C-6).
