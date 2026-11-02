@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** In Progress — judged APPROVED WITH REVISIONS ([judgement](FR-1155-decision-node-calibration-audit.judgement.md)); R-1..R-6 folded 2026-11-02; authority active within frozen scope D-1..D-7
+**Status:** Completed 2026-11-02 — judged APPROVED WITH REVISIONS ([judgement](FR-1155-decision-node-calibration-audit.judgement.md)); R-1..R-6 folded; D-1..D-7 enforced (RED a38e7ff2, GREEN d1f11db8); AC-01..AC-14 met
 **Requested:** 2026-11-02
 **First consumer / first event:** `examples/demos/calibration-audit`, run by
 the operator against the mock decision provider at enforcement time. The
@@ -270,50 +270,50 @@ guards FR-998's single surface is untouched.
 Adopted verbatim from the [judgement](FR-1155-decision-node-calibration-audit.judgement.md)
 (R-6); requirement ID fixed as **REQ-YG-726** (capability CAP-302).
 
-- [ ] AC-01: A committed artifact contains 10 sanitized raw responses
+- [x] AC-01: A committed artifact contains 10 sanitized raw responses
       from the selected non-mock backend, and the FR cites all 10 with
       one sample-specific boundary observation each.
-- [ ] AC-02: The FR names exactly one non-mock backend and records
+- [x] AC-02: The FR names exactly one non-mock backend and records
       either its completed FR-761 governance result or the exact
       thin-client contract and rationale.
-- [ ] AC-03: A per-kind contract table defines required fields and typed
+- [x] AC-03: A per-kind contract table defines required fields and typed
       response fields for `choice`, `score`, and `noul`; unit tests
       accept every valid kind and reject unknown kinds, missing required
       fields, and choice cardinality above 255.
-- [ ] AC-04: Decision responses cross the provider boundary as Pydantic
+- [x] AC-04: Decision responses cross the provider boundary as Pydantic
       models with the documented answer, probabilities, and confidence
       contract; tests prove raw provider dictionaries do not enter graph
       state.
-- [ ] AC-05: The `decision` node registers and executes the same request
+- [x] AC-05: The `decision` node registers and executes the same request
       and normalized result through sync and async paths against the
       deterministic mock backend.
-- [ ] AC-06: A unit test proves a graph condition branches on the
+- [x] AC-06: A unit test proves a graph condition branches on the
       documented confidence field, and all decision tests carry
       `@pytest.mark.req("REQ-YG-726")`.
-- [ ] AC-07: Provider-specific imports exist only in the selected
+- [x] AC-07: Provider-specific imports exist only in the selected
       backend/factory boundary; `lint-imports` and any FR-761
       direct-import/dependency checks pass.
-- [ ] AC-08: The calibration reducer has a documented bucket rule,
+- [x] AC-08: The calibration reducer has a documented bucket rule,
       empty-bucket rule, ECE formula, output schema, and configurable
       pass threshold; unit tests assert the exact table and ECE for
       deterministic calibrated and planted-miscalibrated fixtures.
-- [ ] AC-09: `examples/demos/calibration-audit/graph.yaml` lints and
+- [x] AC-09: `examples/demos/calibration-audit/graph.yaml` lints and
       completes a keyless mock-provider smoke; its output flags the
       planted fixture and its README records the exact command and
       observed result.
-- [ ] AC-10: `examples/demos/smart-if/graph.yaml` lints and completes a
+- [x] AC-10: `examples/demos/smart-if/graph.yaml` lints and completes a
       keyless mock-provider smoke that visits both conditional branches
       across deterministic fixtures; its README contains the exact
       quickstart.
-- [ ] AC-11: Each demo is authored through `scripts/author.sh`; the
+- [x] AC-11: Each demo is authored through `scripts/author.sh`; the
       implementation record identifies the target and verdict from each
       distinct `tmp/draft-authoring-report.md` run.
-- [ ] AC-12: `python scripts/req_coverage.py --strict`, the targeted
+- [x] AC-12: `python scripts/req_coverage.py --strict`, the targeted
       unit tests, and the non-slow unit suite pass.
-- [ ] AC-13: The FR implementation record states that calibration is an
+- [x] AC-13: The FR implementation record states that calibration is an
       operator onboarding gate only and that no runtime
       certification/enforcement mechanism was added.
-- [ ] AC-14: A changelog fragment exists in `changelog/unreleased/`.
+- [x] AC-14: A changelog fragment exists in `changelog/unreleased/`.
 
 ## Alternatives Considered
 
@@ -360,6 +360,69 @@ Dispositions of the remaining research-retrieved precedents (R-5):
   standalone decision-harness: these demos stay in-repo where lint,
   smoke, and req-coverage gates reach them. **Distinct:** different
   artifact class entirely.
+
+## Implementation record (2026-11-02)
+
+Enforced in commits: RED `a38e7ff2` (failing suite, 28 tests), GREEN
+`d1f11db8` (primitive + demos + gates), judgement fold `3ffccf94`
+(raw samples + revisions), adapter-era fixes included in GREEN.
+
+**AC-13 statement:** calibration is an operator onboarding gate only; no
+runtime certification store, execution guard, or enforcement mechanism
+was added. The audit reports; the operator decides.
+
+**Decisions and deviations:**
+
+- Backend closed as `system-one-adapter` 0.2.1 (optional extra
+  `decision`; MIT; rationale in `docs/dependency-rationale.yaml`;
+  lazy-imported in `yamlgraph/utils/decision_factory.py`; AC-07
+  witnessed by `test_factory_module_does_not_import_vendor_sdk`).
+  pip-audit runs in CI's existing dependency lane; the extra is not a
+  core dependency.
+- The calibration-audit demo asks ten parallel choice questions in ONE
+  decision call (the System One parallel-questions shape) instead of a
+  map fan-out: map sub-node dispatch does not include decision nodes and
+  that integration is outside frozen scope (C-6 territory).
+- Two size-gate splits were forced by the addition and performed at
+  cohesive seams: `SubgraphNodeConfig` → `yamlgraph/models/subgraph_schema.py`
+  (node_schema crossed 400) and cache-policy helpers →
+  `yamlgraph/compile/cache_policy.py` (node_compiler crossed 450).
+- The linter's hard-coded `VALID_NODE_TYPES` omitted `decision` (E005) —
+  found honestly by the first authoring run and fixed in GREEN.
+- The authoring adapter's pinned CLI model `gpt-5.5` is retired from CLI
+  accounts; re-pinned to `gpt-5.6-sol` (the judge/review adapters' pin) —
+  route fixed, never bypassed (FR-767).
+- `noul` answers have no confidence field (confirmed in raw samples 1–3);
+  the smart-if demo branches on the `noul` probability itself, and
+  confidence-branching tests use `choice`.
+
+**Planned-operations reconciliation:**
+
+| Planned operation | Outcome | Witness |
+|---|---|---|
+| PyPI metadata probe for system-one-adapter | ran | FR R-2 section (recorded result); `docs/dependency-rationale.yaml` entry |
+| Read typesafe_sdk SystemOneResponse source | ran | R-2 contract table (per-kind fields incl. int-keyed score maps) |
+| grep node-type registry and executor seams | ran | GREEN commit `d1f11db8` touches `compile/node_compiler.py`, `constants.py`, `compile/loop_limits.py` |
+| Live Noul question through adapter | changed — expanded to the full 10-sample probe | `feature-requests/FR-1155-raw-samples.json` (commit `3ffccf94`) |
+| Read 10 raw adapter responses before reducer design | ran | R-1 table, one boundary observation per sample |
+| adapter fails FR-761 → thin client | did not run (adapter passed: MIT, clean install, pins satisfied) | R-2 backend decision |
+| question type without confidence → scope exclusion | ran (noul) | R-2 contract table; smart-if branches on `noul` |
+| harness misses planted miscalibration → fix first | did not run (tests condemned reducer before implementation, C-3) | RED `a38e7ff2` then GREEN `d1f11db8` |
+| graph artifacts via author.sh | ran (2 runs) | `tmp/draft-authoring-report.md` (both runs concatenated, per-run copies preserved); adapter model re-pin was required first |
+| research.sh 1 run | ran | `FR-1155.research.md` |
+| judge.sh 1 run | ran | `FR-1155-decision-node-calibration-audit.judgement.md` |
+| author.sh 2 runs | ran (3 invocations: 1 failed on retired model pin, 2 succeeded) | `tmp/author-*.log`; chore note in GREEN commit |
+| yamlgraph graph lint (both demos) | ran | demo READMEs; `demo-output.log` files |
+| yamlgraph graph run calibration-audit | ran — ECE 0.4, flagged true | `examples/demos/calibration-audit/demo-output.log` |
+| pytest non-slow unit suite | ran — 7711 passed | GREEN commit pre-commit gate |
+| req_coverage --strict | ran — exit 0 | GREEN commit pre-commit gate |
+
+**Unplanned operations:** authoring-adapter model re-pin (`gpt-5.5` →
+`gpt-5.6-sol`); linter `VALID_NODE_TYPES` fix; two size-gate module
+splits (`subgraph_schema.py`, `cache_policy.py`); FR-1050 loop-limit
+classification + builders for the decision type; hedging-allowlist and
+noqa-confession line-shift updates; demo-proof success log line in
+`decision_nodes.py`.
 
 ## Related
 
