@@ -43,7 +43,54 @@ reliability table says otherwise.
 |------|------|----------|
 | **Available now** | The question/answer contract (Choice/Score/Noul; `state` + named questions → typed answers + probabilities); public docs; `system-one-adapter` on PyPI (MIT) | Fetched docs; adapter installed and run live in this repo (10 probes, `feature-requests/FR-1155-raw-samples.json`) |
 | **Real but ordinary** | The adapter's behavior: it generates a JSON schema, has a chat LLM fill in probabilities, and derives confidence with a six-line formula (`(p_max−1/n)/(1−1/n)` choice; MAD-from-mode score). Latency 0.585–3.108 s/call; the LLM emits quantized, anchor-prone probabilities (exactly 1.0/0.0/0.5 on clear/ambiguous noul) | Adapter source read; probe measurements |
-| **Unverified (wishware until measured)** | Jev itself: 70–500 ms, $0.042/MTok + free output, calibrated confidence, parallel sampling, frontier-parity intelligence | Waitlist-gated; vendor evals use frontier-LLM *agreement* as reference; pricing sustainability unproven by their own admission |
+| **Unverified (wishware until measured)** | Jev's *performance* claims: 70–500 ms, $0.042/MTok + free output, calibrated confidence, parallel sampling, frontier-parity intelligence | Vendor evals use frontier-LLM *agreement* as reference; pricing sustainability unproven by their own admission; no independent benchmark published |
+
+**Addendum (2026-11-02, same day):** a Microsoft Tech Community post moves
+Jev's *existence* out of the unverified tier — see the third-party
+corroboration section below. Its *performance and calibration* claims stay
+unverified.
+
+## Third-party corroboration — Microsoft Foundry (addendum 2026-11-02)
+
+Fetched 2026-11-02:
+<https://techcommunity.microsoft.com/blog/AzureDevCommunityBlog/using-jev-with-agents-in-microsoft-foundry-for-model-evaluation/4559851>
+(Azure Dev Community Blog, published 2026-09-30). The post wires Jev into
+a Microsoft Foundry agent as an OpenAPI tool and shows a real evaluation.
+What it adds to the record:
+
+- **The wire API is public now**: `POST https://api.typesafe.ai/v1/systemone`,
+  bearer auth, model `jev-latest` / `jev-1.13.0`, request = `state` +
+  named Noul/Choice/Score questions — the full OpenAPI schema is printed
+  in the post. It matches the contract this note was built against,
+  field for field.
+- **A real Jev response payload is shown** (customer-complaint triage,
+  three questions): `billing: {noul: 0.02}`, `tone: {choice: frustrated,
+  confidence: 0.6, probabilities: {frustrated: 0.74, calm: 0.26,
+  angry: 0.0}}`, `urgency: {score: 1.81, confidence: 0.72}`, usage 466
+  tokens in / 75 out. Two details matter against our adapter probes: the
+  real model's noul answer also **carries no confidence field** (the
+  contract table is now confirmed against Jev itself, not just SDK
+  source), and its probabilities are fine-grained (0.02, 1.81,
+  0.74/0.26) rather than the chat-LLM wrapper's quantized anchors
+  (1.0/0.0/0.5) — consistent with, though not proof of, a genuinely
+  different sampling mechanism.
+- **Access is preview-but-real**: third parties apply, receive API keys
+  and free credit, and publish working integrations. Published rate
+  limits: 250,000 tokens/sec, 1,200 requests/min.
+- **Ecosystem signal**: a Microsoft-platform author documents the
+  "generate → Jev judges → code decides" pattern (guardrails, routing,
+  agent evaluation) — the same judgement-layer role this note assigns to
+  the decision shape.
+- **What it does not add**: the author repeats latency and pricing as
+  TypeSafe's advertised numbers ("TypeSafe reports…", "advertises…") and
+  measures nothing. Speed, cost sustainability, and calibration remain
+  independent-measurement-free.
+
+Net effect: Jev is a **real, externally exercised preview service**, not
+vapor — the wishware label now applies only to its performance and
+calibration claims, which still await independent measurement. A thin
+internal client is also now trivially specifiable from the published
+endpoint and schema, should the adapter dependency ever need replacing.
 
 ## What they built (vendor description)
 
