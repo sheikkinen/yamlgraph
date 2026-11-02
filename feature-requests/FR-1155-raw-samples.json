@@ -1,0 +1,931 @@
+[
+  {
+    "case": "noul_clear_true",
+    "state": "Subject: Cannot export invoices since this morning. Body: Since the 4.2 update e...",
+    "questions": {
+      "blocking": {
+        "type": "noul",
+        "instructions": "The reported issue blocks the customer's work."
+      }
+    },
+    "answers": {
+      "blocking": {
+        "type": "noul",
+        "noul": 1.0
+      }
+    },
+    "usage": {
+      "input_tokens_total": 327,
+      "output_tokens_total": 8,
+      "n_retries": 0,
+      "latency_s": 3.108
+    },
+    "raw_llm_text": {
+      "format": {
+        "name": "evaluation",
+        "schema": {
+          "$defs": {
+            "TypeSafeAnswers": {
+              "additionalProperties": false,
+              "description": "Exactly one answer per property below. Use these property names verbatim and do not add, rename, or nest them under any other key.",
+              "properties": {
+                "blocking": {
+                  "description": "Probability that the answer is yes or the assertion is true. 0 means no or false, 0.5 means uncertain, and 1 means yes or true.\nQuestion: The reported issue blocks the customer's work.",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "blocking"
+              ],
+              "type": "object"
+            }
+          },
+          "additionalProperties": false,
+          "properties": {
+            "answers": {
+              "$ref": "#/$defs/TypeSafeAnswers"
+            }
+          },
+          "required": [
+            "answers"
+          ],
+          "type": "object"
+        },
+        "type": "json_schema",
+        "description": null,
+        "strict": true
+      },
+      "verbosity": "medium"
+    }
+  },
+  {
+    "case": "noul_clear_false",
+    "state": "This book was a delight from the first page to the last....",
+    "questions": {
+      "negative": {
+        "type": "noul",
+        "instructions": "The book review is negative."
+      }
+    },
+    "answers": {
+      "negative": {
+        "type": "noul",
+        "noul": 0.0
+      }
+    },
+    "usage": {
+      "input_tokens_total": 271,
+      "output_tokens_total": 8,
+      "n_retries": 0,
+      "latency_s": 0.585
+    },
+    "raw_llm_text": {
+      "format": {
+        "name": "evaluation",
+        "schema": {
+          "$defs": {
+            "TypeSafeAnswers": {
+              "additionalProperties": false,
+              "description": "Exactly one answer per property below. Use these property names verbatim and do not add, rename, or nest them under any other key.",
+              "properties": {
+                "negative": {
+                  "description": "Probability that the answer is yes or the assertion is true. 0 means no or false, 0.5 means uncertain, and 1 means yes or true.\nQuestion: The book review is negative.",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "negative"
+              ],
+              "type": "object"
+            }
+          },
+          "additionalProperties": false,
+          "properties": {
+            "answers": {
+              "$ref": "#/$defs/TypeSafeAnswers"
+            }
+          },
+          "required": [
+            "answers"
+          ],
+          "type": "object"
+        },
+        "type": "json_schema",
+        "description": null,
+        "strict": true
+      },
+      "verbosity": "medium"
+    }
+  },
+  {
+    "case": "noul_ambiguous",
+    "state": "The plot dragged in the middle and the ending felt rushed, but the prose is gorg...",
+    "questions": {
+      "positive": {
+        "type": "noul",
+        "instructions": "The book review is positive."
+      }
+    },
+    "answers": {
+      "positive": {
+        "type": "noul",
+        "noul": 0.5
+      }
+    },
+    "usage": {
+      "input_tokens_total": 281,
+      "output_tokens_total": 10,
+      "n_retries": 0,
+      "latency_s": 2.0
+    },
+    "raw_llm_text": {
+      "format": {
+        "name": "evaluation",
+        "schema": {
+          "$defs": {
+            "TypeSafeAnswers": {
+              "additionalProperties": false,
+              "description": "Exactly one answer per property below. Use these property names verbatim and do not add, rename, or nest them under any other key.",
+              "properties": {
+                "positive": {
+                  "description": "Probability that the answer is yes or the assertion is true. 0 means no or false, 0.5 means uncertain, and 1 means yes or true.\nQuestion: The book review is positive.",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "positive"
+              ],
+              "type": "object"
+            }
+          },
+          "additionalProperties": false,
+          "properties": {
+            "answers": {
+              "$ref": "#/$defs/TypeSafeAnswers"
+            }
+          },
+          "required": [
+            "answers"
+          ],
+          "type": "object"
+        },
+        "type": "json_schema",
+        "description": null,
+        "strict": true
+      },
+      "verbosity": "medium"
+    }
+  },
+  {
+    "case": "choice_easy",
+    "state": "Subject: Cannot export invoices since this morning. Body: Since the 4.2 update e...",
+    "questions": {
+      "category": {
+        "type": "choice",
+        "instructions": "Primary category of the ticket.",
+        "criteria": {
+          "billing": "Invoicing, payments, exports of financial documents",
+          "bug": "A defect in the product",
+          "feature_request": "A request for new functionality"
+        }
+      }
+    },
+    "answers": {
+      "category": {
+        "type": "choice",
+        "choice": "billing",
+        "confidence": 0.7000000000000001,
+        "probabilities": {
+          "billing": 0.8,
+          "bug": 0.2,
+          "feature_request": 0.0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens_total": 375,
+      "output_tokens_total": 24,
+      "n_retries": 0,
+      "latency_s": 0.826
+    },
+    "raw_llm_text": {
+      "format": {
+        "name": "evaluation",
+        "schema": {
+          "$defs": {
+            "ProbabilityMap0": {
+              "additionalProperties": false,
+              "description": "Each property maps an option to the probability that it is the best answer.\nQuestion: Primary category of the ticket.",
+              "properties": {
+                "billing": {
+                  "description": "Invoicing, payments, exports of financial documents",
+                  "type": "number"
+                },
+                "bug": {
+                  "description": "A defect in the product",
+                  "type": "number"
+                },
+                "feature_request": {
+                  "description": "A request for new functionality",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "billing",
+                "bug",
+                "feature_request"
+              ],
+              "type": "object"
+            },
+            "TypeSafeAnswers": {
+              "additionalProperties": false,
+              "description": "Exactly one answer per property below. Use these property names verbatim and do not add, rename, or nest them under any other key.",
+              "properties": {
+                "category": {
+                  "$ref": "#/$defs/ProbabilityMap0"
+                }
+              },
+              "required": [
+                "category"
+              ],
+              "type": "object"
+            }
+          },
+          "additionalProperties": false,
+          "properties": {
+            "answers": {
+              "$ref": "#/$defs/TypeSafeAnswers"
+            }
+          },
+          "required": [
+            "answers"
+          ],
+          "type": "object"
+        },
+        "type": "json_schema",
+        "description": null,
+        "strict": true
+      },
+      "verbosity": "medium"
+    }
+  },
+  {
+    "case": "choice_ambiguous",
+    "state": "Subject: Cannot export invoices since this morning. Body: Since the 4.2 update e...",
+    "questions": {
+      "owner": {
+        "type": "choice",
+        "instructions": "Which team should own this ticket first?",
+        "criteria": {
+          "support": "Customer-facing triage and workarounds",
+          "engineering": "Code-level defect investigation",
+          "finance_ops": "Internal finance tooling and exports"
+        }
+      }
+    },
+    "answers": {
+      "owner": {
+        "type": "choice",
+        "choice": "engineering",
+        "confidence": 0.39999999999999997,
+        "probabilities": {
+          "support": 0.1,
+          "engineering": 0.6,
+          "finance_ops": 0.3
+        }
+      }
+    },
+    "usage": {
+      "input_tokens_total": 375,
+      "output_tokens_total": 26,
+      "n_retries": 0,
+      "latency_s": 0.691
+    },
+    "raw_llm_text": {
+      "format": {
+        "name": "evaluation",
+        "schema": {
+          "$defs": {
+            "ProbabilityMap0": {
+              "additionalProperties": false,
+              "description": "Each property maps an option to the probability that it is the best answer.\nQuestion: Which team should own this ticket first?",
+              "properties": {
+                "support": {
+                  "description": "Customer-facing triage and workarounds",
+                  "type": "number"
+                },
+                "engineering": {
+                  "description": "Code-level defect investigation",
+                  "type": "number"
+                },
+                "finance_ops": {
+                  "description": "Internal finance tooling and exports",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "support",
+                "engineering",
+                "finance_ops"
+              ],
+              "type": "object"
+            },
+            "TypeSafeAnswers": {
+              "additionalProperties": false,
+              "description": "Exactly one answer per property below. Use these property names verbatim and do not add, rename, or nest them under any other key.",
+              "properties": {
+                "owner": {
+                  "$ref": "#/$defs/ProbabilityMap0"
+                }
+              },
+              "required": [
+                "owner"
+              ],
+              "type": "object"
+            }
+          },
+          "additionalProperties": false,
+          "properties": {
+            "answers": {
+              "$ref": "#/$defs/TypeSafeAnswers"
+            }
+          },
+          "required": [
+            "answers"
+          ],
+          "type": "object"
+        },
+        "type": "json_schema",
+        "description": null,
+        "strict": true
+      },
+      "verbosity": "medium"
+    }
+  },
+  {
+    "case": "choice_high_cardinality",
+    "state": "Subject: Cannot export invoices since this morning. Body: Since the 4.2 update e...",
+    "questions": {
+      "module": {
+        "type": "choice",
+        "instructions": "Product module the ticket concerns.",
+        "criteria": {
+          "auth": null,
+          "billing_export": null,
+          "dashboard": null,
+          "api": null,
+          "notifications": null,
+          "search": null,
+          "permissions": null,
+          "reporting": null,
+          "mobile": null,
+          "integrations": null,
+          "data_import": null,
+          "audit_log": null
+        }
+      }
+    },
+    "answers": {
+      "module": {
+        "type": "choice",
+        "choice": "billing_export",
+        "confidence": 0.890909090909091,
+        "probabilities": {
+          "auth": 0.1,
+          "billing_export": 0.9,
+          "dashboard": 0.0,
+          "api": 0.0,
+          "notifications": 0.0,
+          "search": 0.0,
+          "permissions": 0.0,
+          "reporting": 0.0,
+          "mobile": 0.0,
+          "integrations": 0.0,
+          "data_import": 0.0,
+          "audit_log": 0.0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens_total": 485,
+      "output_tokens_total": 84,
+      "n_retries": 0,
+      "latency_s": 1.699
+    },
+    "raw_llm_text": {
+      "format": {
+        "name": "evaluation",
+        "schema": {
+          "$defs": {
+            "ProbabilityMap0": {
+              "additionalProperties": false,
+              "description": "Each property maps an option to the probability that it is the best answer.\nQuestion: Product module the ticket concerns.",
+              "properties": {
+                "auth": {
+                  "description": "No additional instructions.",
+                  "type": "number"
+                },
+                "billing_export": {
+                  "description": "No additional instructions.",
+                  "type": "number"
+                },
+                "dashboard": {
+                  "description": "No additional instructions.",
+                  "type": "number"
+                },
+                "api": {
+                  "description": "No additional instructions.",
+                  "type": "number"
+                },
+                "notifications": {
+                  "description": "No additional instructions.",
+                  "type": "number"
+                },
+                "search": {
+                  "description": "No additional instructions.",
+                  "type": "number"
+                },
+                "permissions": {
+                  "description": "No additional instructions.",
+                  "type": "number"
+                },
+                "reporting": {
+                  "description": "No additional instructions.",
+                  "type": "number"
+                },
+                "mobile": {
+                  "description": "No additional instructions.",
+                  "type": "number"
+                },
+                "integrations": {
+                  "description": "No additional instructions.",
+                  "type": "number"
+                },
+                "data_import": {
+                  "description": "No additional instructions.",
+                  "type": "number"
+                },
+                "audit_log": {
+                  "description": "No additional instructions.",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "auth",
+                "billing_export",
+                "dashboard",
+                "api",
+                "notifications",
+                "search",
+                "permissions",
+                "reporting",
+                "mobile",
+                "integrations",
+                "data_import",
+                "audit_log"
+              ],
+              "type": "object"
+            },
+            "TypeSafeAnswers": {
+              "additionalProperties": false,
+              "description": "Exactly one answer per property below. Use these property names verbatim and do not add, rename, or nest them under any other key.",
+              "properties": {
+                "module": {
+                  "$ref": "#/$defs/ProbabilityMap0"
+                }
+              },
+              "required": [
+                "module"
+              ],
+              "type": "object"
+            }
+          },
+          "additionalProperties": false,
+          "properties": {
+            "answers": {
+              "$ref": "#/$defs/TypeSafeAnswers"
+            }
+          },
+          "required": [
+            "answers"
+          ],
+          "type": "object"
+        },
+        "type": "json_schema",
+        "description": null,
+        "strict": true
+      },
+      "verbosity": "medium"
+    }
+  },
+  {
+    "case": "choice_no_instructions",
+    "state": "The plot dragged in the middle and the ending felt rushed, but the prose is gorg...",
+    "questions": {
+      "sentiment": {
+        "type": "choice",
+        "criteria": {
+          "positive": "Overall positive",
+          "negative": "Overall negative",
+          "mixed": "Clearly both"
+        }
+      }
+    },
+    "answers": {
+      "sentiment": {
+        "type": "choice",
+        "choice": "positive",
+        "confidence": 0.25,
+        "probabilities": {
+          "positive": 0.5,
+          "negative": 0.25,
+          "mixed": 0.25
+        }
+      }
+    },
+    "usage": {
+      "input_tokens_total": 315,
+      "output_tokens_total": 26,
+      "n_retries": 0,
+      "latency_s": 0.598
+    },
+    "raw_llm_text": {
+      "format": {
+        "name": "evaluation",
+        "schema": {
+          "$defs": {
+            "ProbabilityMap0": {
+              "additionalProperties": false,
+              "description": "Each property maps an option to the probability that it is the best answer.\nQuestion: No additional instructions.",
+              "properties": {
+                "positive": {
+                  "description": "Overall positive",
+                  "type": "number"
+                },
+                "negative": {
+                  "description": "Overall negative",
+                  "type": "number"
+                },
+                "mixed": {
+                  "description": "Clearly both",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "positive",
+                "negative",
+                "mixed"
+              ],
+              "type": "object"
+            },
+            "TypeSafeAnswers": {
+              "additionalProperties": false,
+              "description": "Exactly one answer per property below. Use these property names verbatim and do not add, rename, or nest them under any other key.",
+              "properties": {
+                "sentiment": {
+                  "$ref": "#/$defs/ProbabilityMap0"
+                }
+              },
+              "required": [
+                "sentiment"
+              ],
+              "type": "object"
+            }
+          },
+          "additionalProperties": false,
+          "properties": {
+            "answers": {
+              "$ref": "#/$defs/TypeSafeAnswers"
+            }
+          },
+          "required": [
+            "answers"
+          ],
+          "type": "object"
+        },
+        "type": "json_schema",
+        "description": null,
+        "strict": true
+      },
+      "verbosity": "medium"
+    }
+  },
+  {
+    "case": "score_three_level",
+    "state": "Subject: Cannot export invoices since this morning. Body: Since the 4.2 update e...",
+    "questions": {
+      "urgency": {
+        "type": "score",
+        "instructions": "How urgent is this ticket?",
+        "criteria": [
+          "Can wait indefinitely",
+          "Needs attention this week",
+          "Needs attention today"
+        ]
+      }
+    },
+    "answers": {
+      "urgency": {
+        "type": "score",
+        "score": 1.2,
+        "confidence": 0.3999999999999999,
+        "legend": {
+          "0": "Can wait indefinitely",
+          "1": "Needs attention this week",
+          "2": "Needs attention today"
+        },
+        "probabilities": {
+          "0": 0.1,
+          "1": 0.6,
+          "2": 0.3
+        }
+      }
+    },
+    "usage": {
+      "input_tokens_total": 366,
+      "output_tokens_total": 26,
+      "n_retries": 0,
+      "latency_s": 0.95
+    },
+    "raw_llm_text": {
+      "format": {
+        "name": "evaluation",
+        "schema": {
+          "$defs": {
+            "ProbabilityMap0": {
+              "additionalProperties": false,
+              "description": "Each property maps a rubric level to the probability that the document matches it.\nQuestion: How urgent is this ticket?",
+              "properties": {
+                "0": {
+                  "description": "Can wait indefinitely",
+                  "type": "number"
+                },
+                "1": {
+                  "description": "Needs attention this week",
+                  "type": "number"
+                },
+                "2": {
+                  "description": "Needs attention today",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "0",
+                "1",
+                "2"
+              ],
+              "type": "object"
+            },
+            "TypeSafeAnswers": {
+              "additionalProperties": false,
+              "description": "Exactly one answer per property below. Use these property names verbatim and do not add, rename, or nest them under any other key.",
+              "properties": {
+                "urgency": {
+                  "$ref": "#/$defs/ProbabilityMap0"
+                }
+              },
+              "required": [
+                "urgency"
+              ],
+              "type": "object"
+            }
+          },
+          "additionalProperties": false,
+          "properties": {
+            "answers": {
+              "$ref": "#/$defs/TypeSafeAnswers"
+            }
+          },
+          "required": [
+            "answers"
+          ],
+          "type": "object"
+        },
+        "type": "json_schema",
+        "description": null,
+        "strict": true
+      },
+      "verbosity": "medium"
+    }
+  },
+  {
+    "case": "score_five_level",
+    "state": "Subject: Cannot export invoices since this morning. Body: Since the 4.2 update e...",
+    "questions": {
+      "severity": {
+        "type": "score",
+        "instructions": "Severity of the underlying defect.",
+        "criteria": [
+          "Cosmetic",
+          "Minor inconvenience",
+          "Degraded workflow with workaround",
+          "Degraded workflow without workaround",
+          "Production outage or data loss"
+        ]
+      }
+    },
+    "answers": {
+      "severity": {
+        "type": "score",
+        "score": 2.0,
+        "confidence": 0.16666666666666663,
+        "legend": {
+          "0": "Cosmetic",
+          "1": "Minor inconvenience",
+          "2": "Degraded workflow with workaround",
+          "3": "Degraded workflow without workaround",
+          "4": "Production outage or data loss"
+        },
+        "probabilities": {
+          "0": 0.1,
+          "1": 0.2,
+          "2": 0.3,
+          "3": 0.4,
+          "4": 0.0
+        }
+      }
+    },
+    "usage": {
+      "input_tokens_total": 393,
+      "output_tokens_total": 37,
+      "n_retries": 0,
+      "latency_s": 2.3
+    },
+    "raw_llm_text": {
+      "format": {
+        "name": "evaluation",
+        "schema": {
+          "$defs": {
+            "ProbabilityMap0": {
+              "additionalProperties": false,
+              "description": "Each property maps a rubric level to the probability that the document matches it.\nQuestion: Severity of the underlying defect.",
+              "properties": {
+                "0": {
+                  "description": "Cosmetic",
+                  "type": "number"
+                },
+                "1": {
+                  "description": "Minor inconvenience",
+                  "type": "number"
+                },
+                "2": {
+                  "description": "Degraded workflow with workaround",
+                  "type": "number"
+                },
+                "3": {
+                  "description": "Degraded workflow without workaround",
+                  "type": "number"
+                },
+                "4": {
+                  "description": "Production outage or data loss",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "0",
+                "1",
+                "2",
+                "3",
+                "4"
+              ],
+              "type": "object"
+            },
+            "TypeSafeAnswers": {
+              "additionalProperties": false,
+              "description": "Exactly one answer per property below. Use these property names verbatim and do not add, rename, or nest them under any other key.",
+              "properties": {
+                "severity": {
+                  "$ref": "#/$defs/ProbabilityMap0"
+                }
+              },
+              "required": [
+                "severity"
+              ],
+              "type": "object"
+            }
+          },
+          "additionalProperties": false,
+          "properties": {
+            "answers": {
+              "$ref": "#/$defs/TypeSafeAnswers"
+            }
+          },
+          "required": [
+            "answers"
+          ],
+          "type": "object"
+        },
+        "type": "json_schema",
+        "description": null,
+        "strict": true
+      },
+      "verbosity": "medium"
+    }
+  },
+  {
+    "case": "score_subjective",
+    "state": "The plot dragged in the middle and the ending felt rushed, but the prose is gorg...",
+    "questions": {
+      "quality": {
+        "type": "score",
+        "instructions": "Literary quality implied by the review.",
+        "criteria": [
+          "Poor",
+          "Mediocre",
+          "Good",
+          "Excellent"
+        ]
+      }
+    },
+    "answers": {
+      "quality": {
+        "type": "score",
+        "score": 1.6,
+        "confidence": 0.4,
+        "legend": {
+          "0": "Poor",
+          "1": "Mediocre",
+          "2": "Good",
+          "3": "Excellent"
+        },
+        "probabilities": {
+          "0": 0.1,
+          "1": 0.3,
+          "2": 0.5,
+          "3": 0.1
+        }
+      }
+    },
+    "usage": {
+      "input_tokens_total": 327,
+      "output_tokens_total": 31,
+      "n_retries": 0,
+      "latency_s": 0.753
+    },
+    "raw_llm_text": {
+      "format": {
+        "name": "evaluation",
+        "schema": {
+          "$defs": {
+            "ProbabilityMap0": {
+              "additionalProperties": false,
+              "description": "Each property maps a rubric level to the probability that the document matches it.\nQuestion: Literary quality implied by the review.",
+              "properties": {
+                "0": {
+                  "description": "Poor",
+                  "type": "number"
+                },
+                "1": {
+                  "description": "Mediocre",
+                  "type": "number"
+                },
+                "2": {
+                  "description": "Good",
+                  "type": "number"
+                },
+                "3": {
+                  "description": "Excellent",
+                  "type": "number"
+                }
+              },
+              "required": [
+                "0",
+                "1",
+                "2",
+                "3"
+              ],
+              "type": "object"
+            },
+            "TypeSafeAnswers": {
+              "additionalProperties": false,
+              "description": "Exactly one answer per property below. Use these property names verbatim and do not add, rename, or nest them under any other key.",
+              "properties": {
+                "quality": {
+                  "$ref": "#/$defs/ProbabilityMap0"
+                }
+              },
+              "required": [
+                "quality"
+              ],
+              "type": "object"
+            }
+          },
+          "additionalProperties": false,
+          "properties": {
+            "answers": {
+              "$ref": "#/$defs/TypeSafeAnswers"
+            }
+          },
+          "required": [
+            "answers"
+          ],
+          "type": "object"
+        },
+        "type": "json_schema",
+        "description": null,
+        "strict": true
+      },
+      "verbosity": "medium"
+    }
+  }
+]
