@@ -209,6 +209,62 @@ conflates two needs — decision quality and audit trail — that calibration
 decouples. Whether to decouple is an FR-sized question, not a research
 note's.
 
+## Proposed Jev-native samples
+
+The census above covers retrofits. These are *native* samples — each is
+pointless on a chat LLM and exists only because of a System One property
+(parallel sampling, calibrated probability, free output, ~100 ms latency).
+Proposals only: building any of them goes through the graph-authoring
+route (`scripts/author.sh`), and since Jev is early-access, each would
+ship against a **mock decision provider** (same pattern as the existing
+mock-LLM test fixtures: fixed decisions + synthetic confidence), so the
+graphs run today and swap in a real provider later.
+
+1. **`demos/smart-if`** — the hello-world. One decision node as a fuzzy
+   if-statement in ordinary control flow: classify an inbound message,
+   branch on the enum. Property demoed: decision-as-function-call; the
+   whole graph is `decide → branch → act`, no prompt engineering, no
+   parsing. The decision-provider analog of `demos/hello`.
+2. **`demos/confidence-ladder`** — branch on *probability*, not verdict.
+   High confidence → auto-act; mid → cheap LLM generates a justification;
+   low → `interrupt` to a human. Property demoed: calibration as a routing
+   signal — the lazy-justification Seed made runnable, composing the
+   existing interrupt/human-in-loop machinery.
+3. **`demos/parallel-intake`** — the side-by-side-demo shape: one state
+   blob (support ticket), N independent questions (urgency, sentiment,
+   category, churn risk, language, PII present) answered in a *single
+   parallel query*. Property demoed: free output tokens kill the
+   question-per-call economics; today this is either one brittle mega-
+   schema call or N calls.
+4. **`demos/stream-gate`** — real-time guardrail: score every chunk of a
+   streaming LLM output (or every tool call) at 10 decisions/sec; trip a
+   circuit breaker on a hostile score. Property demoed: latency — the
+   gate is faster than the stream it guards, which no chat-LLM judge can
+   claim. Builds on `hook_classifier` and the streaming layer.
+5. **`demos/calibration-audit`** — the skeptic's sample, most repo-native.
+   Run N labeled decisions, bucket by reported confidence, emit a
+   reliability table (confidence vs observed accuracy). Property demoed:
+   *testing the vendor's central claim* instead of trusting it
+   (`read_raw_output_first`, Commandment 9). This graph is the acceptance
+   gate any real decision provider must pass before use cases 1–4 are
+   allowed to trust confidence; against the mock provider it demos the
+   harness with planted miscalibration.
+6. **`demos/reflex-npc`** — the Doom analog on existing assets: the `npc`
+   encounter loop re-timed to a decision per game tick instead of per
+   scene, generation reserved for dialogue only. Property demoed:
+   interactive-rate intelligence in a control loop (~$7/hr at 10/sec per
+   vendor pricing).
+7. **`demos/census-ab`** — side-by-side census map: the same
+   `corpus_census` rubric run with (a) chat-LLM structured output and
+   (b) the decision provider, reducing to one cost/latency/agreement
+   table. Property demoed: the map-reduce economics claim, measured on
+   this repo's own census harness rather than vendor evals.
+
+Suggested order: 5 before everything (the gate), then 1–2 (primitives),
+then 3–4 (native shapes), 6–7 (showcases). Each sample is also the witness
+for one claim in the vendor table above — the suite doubles as our
+independent verification checklist once API access exists.
+
 ## Seeds
 
 - **Seed:** Can a hybrid node be split declaratively — one schema, decision
