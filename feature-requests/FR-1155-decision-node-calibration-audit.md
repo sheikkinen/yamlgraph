@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (authority gated on R-1..R-6; see [FR-1155-decision-node-calibration-audit.judgement.md](FR-1155-decision-node-calibration-audit.judgement.md))
 **Requested:** 2026-11-02
 **First consumer / first event:** `examples/demos/calibration-audit`, run by
 the operator against the mock decision provider at enforcement time — the
