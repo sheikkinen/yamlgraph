@@ -104,13 +104,20 @@ class TestSplitRelievesGate:
 class TestSplitIsPureMove:
     @pytest.mark.req("REQ-YG-544")
     def test_node_schema_has_no_logic_changes(self):
-        """Both halves parse and expose the same class set the monolith
-        had (SubgraphNodeConfig, NodeConfig | EdgeConfig, GraphConfigSchema)."""
+        """All three slices parse and expose the monolith's class set
+        (NodeConfig | SubgraphNodeConfig | EdgeConfig, GraphConfigSchema).
+        FR-1155 moved SubgraphNodeConfig to subgraph_schema.py when the
+        decision fields pushed node_schema past the 400-line gate."""
         node_src = ast.parse(
             (REPO_ROOT / "yamlgraph/models/node_schema.py").read_text(encoding="utf-8")
         )
         graph_src = ast.parse(
             (REPO_ROOT / "yamlgraph/models/graph_schema.py").read_text(encoding="utf-8")
+        )
+        subgraph_src = ast.parse(
+            (REPO_ROOT / "yamlgraph/models/subgraph_schema.py").read_text(
+                encoding="utf-8"
+            )
         )
         node_classes = {
             n.name for n in ast.walk(node_src) if isinstance(n, ast.ClassDef)
@@ -118,5 +125,9 @@ class TestSplitIsPureMove:
         graph_classes = {
             n.name for n in ast.walk(graph_src) if isinstance(n, ast.ClassDef)
         }
-        assert {"SubgraphNodeConfig", "NodeConfig"} <= node_classes
+        subgraph_classes = {
+            n.name for n in ast.walk(subgraph_src) if isinstance(n, ast.ClassDef)
+        }
+        assert {"NodeConfig"} <= node_classes
+        assert {"SubgraphNodeConfig"} <= subgraph_classes
         assert {"EdgeConfig", "GraphConfigSchema"} <= graph_classes

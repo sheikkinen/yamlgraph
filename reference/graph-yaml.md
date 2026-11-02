@@ -1001,6 +1001,76 @@ nodes:
         state_key: polished_{item.name}
 ```
 
+### `type: decision` - Typed Decision Questions (FR-1155)
+
+Ask atomic typed questions about a rendered state blob through a
+provider-agnostic decision client and branch on the normalized answers.
+No prompt files: questions are declared inline and answers are typed
+Pydantic values, never free text.
+
+```yaml
+nodes:
+  triage:
+    type: decision
+    provider: mock              # "mock" or "system_one_adapter"
+    state_template: "{state.ticket}"
+    questions:
+      urgent:
+        kind: noul              # 0–1 truth; answer field: noul
+        instructions: "The ticket is urgent."
+      category:
+        kind: choice            # pick one label; 1–255 options
+        instructions: "Primary category of the ticket."
+        options:
+          billing: "Invoicing and exports"
+          bug: "A defect"
+      severity:
+        kind: score             # ordered rubric levels from zero
+        instructions: "Severity of the underlying defect."
+        levels: ["Cosmetic", "Degraded workflow", "Outage"]
+    mock_responses:             # mock provider only: first substring match wins
+      - match: "invoice"
+        answers:
+          urgent: {kind: noul, noul: 0.9}
+          category:
+            kind: choice
+            choice: billing
+            confidence: 0.7
+            probabilities: {billing: 0.8, bug: 0.2}
+          severity:
+            kind: score
+            score: 1.4
+            confidence: 0.5
+            probabilities: {0: 0.1, 1: 0.5, 2: 0.4}
+    state_key: triage
+
+edges:
+  - from: triage
+    to: human_review
+    condition: triage.category.confidence < 0.6
+```
+
+Required: `provider`, `state_template`, `questions`, `state_key`. All
+questions are asked in one call. Answers land under `state_key` as a dict
+of question name → frozen Pydantic model:
+
+| Kind | Answer fields | Confidence |
+|------|---------------|------------|
+| `noul` | `noul: float` (P(true)) | none — branch on `noul` itself |
+| `choice` | `choice`, `confidence`, `probabilities` (per label) | yes |
+| `score` | `score` (expected value, may fall between levels), `confidence`, `legend`, `probabilities` (per level) | yes |
+
+Providers: `mock` (deterministic planted rules, keyless — raises when no
+rule matches) and `system_one_adapter` (`pip install 'yamlgraph[decision]'`;
+`model: "<llm_provider>:<model>"`, e.g. `model: "openai:gpt-4o-mini"`).
+Answer normalization is strict: kind mismatches, undeclared choice labels,
+undeclared score levels, or missing answers raise.
+
+Calibration note: branch on `confidence` only after running
+`examples/demos/calibration-audit` against representative labeled data for
+your provider and recording the result — the audit is the documented
+operator onboarding gate (FR-1155).
+
 ### `type: race` - Race Multiple Providers
 
 Fire the same prompt to multiple LLM provider/model candidates concurrently

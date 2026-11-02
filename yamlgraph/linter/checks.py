@@ -17,6 +17,7 @@ from pydantic import BaseModel
 VALID_NODE_TYPES = {
     "agent",
     "copilot",
+    "decision",
     "interactive_tool",
     "interrupt",
     "llm",

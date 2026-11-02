@@ -293,3 +293,13 @@ from yamlgraph.utils.schema_walk import find_open_objects, find_untyped_subschem
 
 find_untyped_subschemas
 find_open_objects
+
+# FR-1155 (REQ-YG-726): decision answer models — Pydantic fields read by
+# graph conditions (dotted state paths) and demo reducers, not by name in
+# framework code.
+from yamlgraph.models.decision_schema import ChoiceDecision, NoulDecision, ScoreDecision
+
+NoulDecision.noul
+ChoiceDecision.confidence
+ScoreDecision.score
+ScoreDecision.confidence

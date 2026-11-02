@@ -252,13 +252,13 @@ class TestResolveCachePolicy:
 
     @pytest.mark.req("REQ-YG-239")
     def test_none_returns_none(self):
-        from yamlgraph.compile.node_compiler import resolve_cache_policy
+        from yamlgraph.compile.cache_policy import resolve_cache_policy
 
         assert resolve_cache_policy(None) is None
 
     @pytest.mark.req("REQ-YG-239")
     def test_cache_config_no_ttl(self):
-        from yamlgraph.compile.node_compiler import resolve_cache_policy
+        from yamlgraph.compile.cache_policy import resolve_cache_policy
 
         policy = resolve_cache_policy(CacheConfig())
         assert isinstance(policy, CachePolicy)
@@ -266,7 +266,7 @@ class TestResolveCachePolicy:
 
     @pytest.mark.req("REQ-YG-239")
     def test_cache_config_with_ttl(self):
-        from yamlgraph.compile.node_compiler import resolve_cache_policy
+        from yamlgraph.compile.cache_policy import resolve_cache_policy
 
         policy = resolve_cache_policy(CacheConfig(ttl=600))
         assert isinstance(policy, CachePolicy)

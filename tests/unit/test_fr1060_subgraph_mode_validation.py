@@ -196,7 +196,7 @@ class TestReferenceMatchesSchema:
     def test_documented_modes_equal_schema_literal(self):
         from typing import get_args
 
-        from yamlgraph.models.node_schema import SubgraphNodeConfig
+        from yamlgraph.models.subgraph_schema import SubgraphNodeConfig
 
         schema_modes = set(get_args(SubgraphNodeConfig.model_fields["mode"].annotation))
         assert _documented_modes() == schema_modes

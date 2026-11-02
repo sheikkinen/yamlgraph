@@ -599,6 +599,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 297 | CAP-297 FR knowledge graph retired | `tests/unit/test_fr1134_retirements.py` | REQ-YG-720 |
 | 300 | CAP-300 Test Corpus Map | `examples/demos/test_map/graph.yaml`, `examples/demos/test_map/tools.py`, `examples/demos/test_map/extract.py`, `examples/demos/test_map/reconcile.py`, … | REQ-YG-723 |
 | 301 | CAP-301 Race Node Thinking Budget | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py`, `tests/unit/test_race_node.py`, `tests/unit/test_router_race.py` | REQ-YG-724 |
+| 302 | CAP-302 Decision Node | `yamlgraph/models/decision_schema.py`, `yamlgraph/utils/decision_factory.py`, `yamlgraph/node_factory/decision_nodes.py`, `yamlgraph/compile/node_compiler.py`, … | REQ-YG-726 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3469,6 +3470,16 @@ Race nodes and router nodes with race `candidates:` resolve `thinking_budget` th
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-724 | Direct `type: race` nodes and router nodes with race `candidates:` resolve `thinking_budget` as node value → graph `defaults` → None (explicit 0 is a value, not absence) and pass it to every candidate's `create_llm(..., thinking_budget=...)` call through the shared `_build_candidate_llms` seam; existing provider dispatch is unchanged (thinking providers such as vertex receive the value, non-thinking providers such as azure are called without it). | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py`, `tests/unit/test_race_node.py`, `tests/unit/test_router_race.py` |
+
+### 302. CAP-302 Decision Node
+
+Typed decision questions (noul, choice, score) asked against a rendered state blob through a provider-agnostic decision-client factory (create_decision_client). Answers normalize at the provider boundary into frozen Pydantic models (NoulDecision, ChoiceDecision, ScoreDecision) carrying probabilities and, for choice/score, confidence; graph conditions branch on these fields. Backends: a deterministic mock provider (planted {match, answers} rules, no network) and the vendor's LLM-backed system-one-adapter (optional extra `decision`, lazy import). The calibration-audit demo reducer computes a reliability table and ECE over labeled items as the documented operator onboarding gate — no runtime certification or enforcement machinery exists.
+
+**Feature Request:** FR-1155
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-726 | `type: decision` nodes require provider, state_template, questions, and state_key at load; question configs are a closed discriminated union (noul requires instructions; choice requires 1–255 described options; score requires ordered levels from zero) and unknown kinds or fields are refused. Execution renders state_template, asks all questions through create_decision_client, and commits only normalized Pydantic answers to state (answer kind must match question kind, choice labels and probability keys must be declared options, score probability keys must be declared levels, missing or extra answers raise). Noul answers carry no confidence field — the noul value is the probability; choice/score answers carry confidence that conditions branch on. The mock backend resolves the first substring-matching {match, answers} rule and raises on no match; the system_one_adapter backend imports lazily so the factory module loads without the optional dependency. Sync and async graph execution produce the identical normalized result. The calibration-audit reducer buckets reported confidence into five fixed-width buckets (half-open, last closed), weights empty buckets zero, computes ECE = Σ (n_b/N)·\|acc_b − conf_b\|, and flags ece > threshold; an empty item list raises. | `yamlgraph/models/decision_schema.py`, `yamlgraph/utils/decision_factory.py`, `yamlgraph/node_factory/decision_nodes.py`, `yamlgraph/compile/node_compiler.py`, `yamlgraph/models/node_schema.py`, `yamlgraph/compile/loop_limits.py`, `examples/demos/calibration-audit/tools.py`, `tests/unit/test_decision_node.py`, `tests/unit/test_calibration_reducer.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

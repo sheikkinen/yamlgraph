@@ -76,6 +76,7 @@ class TestNodeTypeRegistry:
             NodeType.ROUTER,
             NodeType.RACE,
             NodeType.VERIFY,
+            NodeType.DECISION,
         }
         registered = set(NODE_TYPE_HANDLERS.keys())
         assert expected_types == registered

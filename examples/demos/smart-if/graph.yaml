@@ -1,0 +1,49 @@
+version: "1.0"
+name: smart-if
+description: Route a message by asking one typed probability question.
+
+state:
+  message: str
+  outcome: str
+
+nodes:
+  gate:
+    type: decision
+    provider: mock
+    state_template: "{state.message}"
+    questions:
+      urgent:
+        kind: noul
+        instructions: "The message is urgent."
+    mock_responses:
+      - match: "outage"
+        answers:
+          urgent: {kind: noul, noul: 0.95}
+      - match: ""
+        answers:
+          urgent: {kind: noul, noul: 0.1}
+    state_key: gate
+
+  escalate:
+    type: passthrough
+    output:
+      outcome: escalated
+
+  archive:
+    type: passthrough
+    output:
+      outcome: archived
+
+edges:
+  - from: START
+    to: gate
+  - from: gate
+    to: escalate
+    condition: gate.urgent.noul >= 0.5
+  - from: gate
+    to: archive
+    condition: gate.urgent.noul < 0.5
+  - from: escalate
+    to: END
+  - from: archive
+    to: END

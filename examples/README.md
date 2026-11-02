@@ -81,6 +81,8 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | Demo | Node Types | Description |
 |------|------------|-------------|
 | [hello](demos/hello/) | `llm` | Minimal example — start here |
+| [smart-if](demos/smart-if/) | `decision`, `passthrough` | Typed decision question as a fuzzy if-statement — keyless mock provider, branches on probability (FR-1155) |
+| [calibration-audit](demos/calibration-audit/) | `decision`, `python` | Reliability table + ECE over labeled decisions — the operator onboarding gate for a decision provider's confidence (FR-1155) |
 | [hello-runpod](demos/hello-runpod/) | `llm` | Hello via the RunPod OpenAI-compatible provider (FR-766) |
 | [hellograph-speed](demos/hellograph-speed/) | `llm` | Provider latency comparison across Google, Vertex, and Azure |
 | [router](demos/router/) | `router` | Tone-based conditional routing |

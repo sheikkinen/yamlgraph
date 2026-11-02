@@ -12,7 +12,7 @@ from pathlib import Path
 
 import pytest
 
-pytestmark = [pytest.mark.req("REQ-YG-726"), pytest.mark.process]
+pytestmark = pytest.mark.process
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 TOOLS_PATH = REPO_ROOT / "examples" / "demos" / "calibration-audit" / "tools.py"
@@ -34,6 +34,7 @@ def _items(confidence: float, n: int, n_correct: int) -> list[dict]:
     ]
 
 
+@pytest.mark.req("REQ-YG-726")
 class TestReliabilityReport:
     def test_planted_miscalibration_flagged(self, tools):
         """FR R-3 fixture: 10 items at 0.9 confidence, 5 correct → ECE 0.4."""

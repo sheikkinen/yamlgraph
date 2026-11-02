@@ -13,11 +13,11 @@ from typing import TYPE_CHECKING, Any
 from langgraph.graph import StateGraph
 from langgraph.types import CachePolicy
 
+from yamlgraph.compile.cache_policy import parse_cache_field, resolve_cache_policy
 from yamlgraph.compile.llm_on_error import resolve_llm_on_error
 from yamlgraph.compile.map_compiler import compile_map_node
 from yamlgraph.compile.node_otel import _maybe_wrap_otel, node_config_get
 from yamlgraph.constants import NodeType
-from yamlgraph.models.guard_schema import CacheConfig
 from yamlgraph.node_factory import (
     create_copilot_node,
     create_interrupt_node,
@@ -26,6 +26,7 @@ from yamlgraph.node_factory import (
     create_race_node,
     create_tool_call_node,
 )
+from yamlgraph.node_factory.decision_nodes import create_decision_node
 from yamlgraph.node_timeout import _maybe_wrap_timeout
 from yamlgraph.tools.agent import create_agent_node
 from yamlgraph.tools.nodes import create_tool_node
@@ -80,39 +81,6 @@ class NodeCompileContext:
     prompts_relative: bool
     graph_tool_configs: dict[str, Any] = field(default_factory=dict)
     cache_policy: CachePolicy | None = field(default=None)
-
-
-# Cache policy resolution (FR-032)
-
-
-def resolve_cache_policy(cache_config: CacheConfig | None) -> CachePolicy | None:
-    """Convert CacheConfig → LangGraph CachePolicy.
-
-    Args:
-        cache_config: Parsed cache configuration from YAML, or None.
-
-    Returns:
-        CachePolicy instance, or None if caching not configured.
-    """
-    if cache_config is None:
-        return None
-    return CachePolicy(ttl=cache_config.ttl)
-
-
-def _parse_cache_field(raw: Any) -> CacheConfig | None:
-    """Parse raw cache field value from YAML node config.
-
-    Handles: True → CacheConfig(), False/None → None, dict → CacheConfig(**dict).
-    """
-    if raw is True:
-        return CacheConfig()
-    if raw is False or raw is None:
-        return None
-    if isinstance(raw, dict):
-        return CacheConfig(**raw)
-    if isinstance(raw, CacheConfig):
-        return raw
-    return None
 
 
 # Timeout wrapper (FR-069): see yamlgraph.node_timeout._maybe_wrap_timeout
@@ -265,6 +233,14 @@ def _compile_llm_node(ctx: NodeCompileContext) -> None:
     ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
 
 
+def _compile_decision_node(ctx: NodeCompileContext) -> None:
+    """FR-1155: typed decision questions through the decision-provider seam."""
+    node_fn = create_decision_node(ctx.node_name, ctx.node_config)
+    node_fn = _maybe_wrap_timeout(node_fn, ctx.node_config, ctx.node_name)
+    node_fn = _maybe_wrap_otel(node_fn, ctx.node_name, NodeType.DECISION)
+    ctx.graph.add_node(ctx.node_name, node_fn, cache_policy=ctx.cache_policy)
+
+
 def _compile_race_node(ctx: NodeCompileContext) -> None:
     node_fn = create_race_node(
         ctx.node_name,
@@ -296,6 +272,7 @@ NODE_TYPE_HANDLERS: dict[str, NodeTypeHandler] = {
     NodeType.LLM: _compile_llm_node,
     NodeType.ROUTER: _compile_llm_node,
     NodeType.RACE: _compile_race_node,
+    NodeType.DECISION: _compile_decision_node,
 }
 
 
@@ -346,7 +323,7 @@ def compile_node(
 
     # Resolve cache policy (FR-032)
     raw_cache = node_config.get("cache")
-    cache_config = _parse_cache_field(raw_cache)
+    cache_config = parse_cache_field(raw_cache)
     node_cache_policy = resolve_cache_policy(cache_config)
 
     # Dispatch via registry (FR-220)

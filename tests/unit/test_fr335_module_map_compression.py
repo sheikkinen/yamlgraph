@@ -151,7 +151,11 @@ class TestFR335ModuleMapCompression:
         # constrainability check, judgement R-5), merged with FR-1124.
         # FR-1150: 298 -> 300 for utils/anthropic_thinking.py (entry +
         # dependency line; size-gate split of llm_providers.py).
-        assert line_count <= 300, f"module-map too large: {line_count} lines (max 300)"
+        # FR-1155: 300 -> 310 for the decision node (models/decision_schema,
+        # utils/decision_factory, node_factory/decision_nodes), plus two
+        # size-gate splits it forced: models/subgraph_schema.py (node_schema
+        # crossed 400) and compile/cache_policy.py (node_compiler crossed 450).
+        assert line_count <= 310, f"module-map too large: {line_count} lines (max 310)"
 
     def test_ac02_dependency_lists_contain_only_yamlgraph_imports(self) -> None:
         module_map = _run_generator()

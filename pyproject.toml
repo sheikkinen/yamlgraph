@@ -74,6 +74,11 @@ tavily = [
 storyboard = [
     "replicate>=0.25.0",
 ]
+decision = [
+    # FR-1155 (REQ-YG-726): LLM-backed implementation of the System One
+    # decision contract; imported lazily inside the decision factory.
+    "system-one-adapter>=0.2.1",
+]
 replicate = [
     "langchain-litellm>=0.3.0",  # includes litellm as dependency
     "litellm>=1.0.0",  # FR-762: declared directly (direct-import honesty), not just transitive

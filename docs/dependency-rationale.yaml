@@ -217,6 +217,13 @@ dependencies:
     modules: ["examples/storyboard/"]
     added: "0.3.0"
 
+  # ─── Optional: Decision (FR-1155) ────────────────────────────────────
+
+  system-one-adapter:
+    rationale: "LLM-backed implementation of the System One decision contract for the decision node's system_one_adapter backend; imported lazily inside yamlgraph/utils/decision_factory.py (REQ-YG-726)"
+    modules: ["yamlgraph/utils/decision_factory.py"]
+    added: "0.6.5"
+
   # ─── Optional: Replicate (LiteLLM) ───────────────────────────────────
 
   langchain-litellm:

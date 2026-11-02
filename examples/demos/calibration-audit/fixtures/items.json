@@ -1,0 +1,52 @@
+[
+  {
+    "id": "item_01",
+    "text": "Fixture ticket 01: invoice export fails",
+    "expected": "billing"
+  },
+  {
+    "id": "item_02",
+    "text": "Fixture ticket 02: app crashes on login",
+    "expected": "bug"
+  },
+  {
+    "id": "item_03",
+    "text": "Fixture ticket 03: invoice export fails",
+    "expected": "billing"
+  },
+  {
+    "id": "item_04",
+    "text": "Fixture ticket 04: app crashes on login",
+    "expected": "bug"
+  },
+  {
+    "id": "item_05",
+    "text": "Fixture ticket 05: invoice export fails",
+    "expected": "billing"
+  },
+  {
+    "id": "item_06",
+    "text": "Fixture ticket 06: app crashes on login",
+    "expected": "bug"
+  },
+  {
+    "id": "item_07",
+    "text": "Fixture ticket 07: invoice export fails",
+    "expected": "billing"
+  },
+  {
+    "id": "item_08",
+    "text": "Fixture ticket 08: app crashes on login",
+    "expected": "bug"
+  },
+  {
+    "id": "item_09",
+    "text": "Fixture ticket 09: invoice export fails",
+    "expected": "billing"
+  },
+  {
+    "id": "item_10",
+    "text": "Fixture ticket 10: app crashes on login",
+    "expected": "bug"
+  }
+]

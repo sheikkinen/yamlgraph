@@ -393,6 +393,26 @@ def _supported_node(node_type: str, loop_limit: int):
                 "n", {"output": {"seen": "yes"}, "loop_limit": loop_limit}
             )
             yield node_fn, probe
+        elif node_type == NodeType.DECISION:
+            from yamlgraph.node_factory.decision_nodes import create_decision_node
+
+            probe = stack.enter_context(
+                patch("yamlgraph.node_factory.decision_nodes.create_decision_client")
+            )
+            node_fn = create_decision_node(
+                "n",
+                {
+                    "provider": "mock",
+                    "state_template": "constant",
+                    "questions": {"q": {"kind": "noul", "instructions": "?"}},
+                    "mock_responses": [
+                        {"match": "", "answers": {"q": {"kind": "noul", "noul": 1.0}}}
+                    ],
+                    "state_key": "out",
+                    "loop_limit": loop_limit,
+                },
+            )
+            yield node_fn, probe
         else:  # pragma: no cover - guarded by AC-07's coverage assertion
             raise AssertionError(f"no builder for supported type {node_type!r}")
 
@@ -413,6 +433,16 @@ _SUPPORTED_NODE_BODIES = {
     NodeType.PYTHON: "    type: python\n    tool: work\n    state_key: out",
     NodeType.TOOL: "    type: tool\n    tool: probe\n    state_key: out",
     NodeType.PASSTHROUGH: '    type: passthrough\n    output:\n      out: "hi"',
+    NodeType.DECISION: (
+        "    type: decision\n    provider: mock\n"
+        '    state_template: "constant"\n'
+        "    questions:\n      q:\n        kind: noul\n"
+        '        instructions: "?"\n'
+        "    mock_responses:\n"
+        '      - match: ""\n'
+        "        answers:\n          q: {kind: noul, noul: 1.0}\n"
+        "    state_key: out"
+    ),
 }
 
 

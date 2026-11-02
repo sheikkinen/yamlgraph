@@ -30,6 +30,7 @@ class NodeType(StrEnum):
     RACE = "race"
     PIPELINE = "pipeline"
     VERIFY = "verify"
+    DECISION = "decision"
 
     @classmethod
     def requires_prompt(cls, node_type: str) -> bool:

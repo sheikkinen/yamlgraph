@@ -2,8 +2,9 @@
 
 Split from graph_schema.py at the node/graph seam: this module holds the
 node-level config models; graph-level models (EdgeConfig,
-GraphConfigSchema) stay in graph_schema. Public names are re-exported
-unchanged from yamlgraph.models.
+GraphConfigSchema) stay in graph_schema, and SubgraphNodeConfig lives in
+subgraph_schema. Public names are re-exported unchanged from
+yamlgraph.models.
 """
 
 from typing import Any, Literal
@@ -18,56 +19,20 @@ from yamlgraph.models.guard_schema import (
 )
 
 
-class SubgraphNodeConfig(BaseModel):
-    """Configuration for a subgraph node."""
+def _validate_decision_requirements(node: "NodeConfig") -> None:
+    """FR-1155: decision nodes declare provider, template, questions, state_key."""
+    if not node.questions:
+        raise ValueError("Decision node requires 'questions' field")
+    if not node.state_key:
+        raise ValueError("Decision node requires 'state_key' field")
+    if not node.state_template:
+        raise ValueError("Decision node requires 'state_template' field")
+    if not node.provider:
+        raise ValueError("Decision node requires 'provider' field")
+    from yamlgraph.models.decision_schema import parse_question_config
 
-    type: Literal["subgraph"]
-    graph: str = Field(
-        ..., description="Path to subgraph YAML file (relative to parent)"
-    )
-    mode: Literal["invoke", "direct"] = Field(
-        default="invoke",
-        description="invoke: explicit state mapping; direct: shared schema",
-    )
-    input_mapping: dict[str, str] | Literal["auto", "*"] = Field(
-        default_factory=dict,
-        description="Map parent state fields to child input (mode=invoke only)",
-    )
-    output_mapping: dict[str, str] | Literal["auto", "*"] = Field(
-        default_factory=dict,
-        description="Map child output fields to parent state (mode=invoke only)",
-    )
-    interrupt_output_mapping: dict[str, str] | Literal["auto", "*"] = Field(
-        default_factory=dict,
-        description="Map child state to parent when subgraph interrupts (FR-006)",
-    )
-    checkpointer: str | None = Field(
-        default=None,
-        description="Override parent checkpointer",
-    )
-
-    model_config = {"extra": "allow"}
-
-    @model_validator(mode="after")
-    def validate_config(self) -> "SubgraphNodeConfig":
-        """Validate subgraph configuration."""
-        if not self.graph.endswith((".yaml", ".yml")):
-            raise ValueError(f"Subgraph must be a YAML file: {self.graph}")
-        if self.mode == "direct":
-            # Presence, not truthiness: `input_mapping: {}` is a declaration
-            # that direct mode has no boundary to map across, and accepting
-            # it would contradict the reference and the diagnostic.
-            present = [
-                name
-                for name in ("input_mapping", "output_mapping")
-                if name in self.model_fields_set
-            ]
-            if present:
-                raise ValueError(
-                    f"mode=direct shares the parent state schema and does not "
-                    f"support {', '.join(present)}"
-                )
-        return self
+    for question in node.questions.values():
+        parse_question_config(question)
 
 
 class NodeConfig(BaseModel):
@@ -265,6 +230,20 @@ class NodeConfig(BaseModel):
         default=None, description="Inline output schema definition"
     )
 
+    # Decision node fields (FR-1155, REQ-YG-726)
+    questions: dict[str, dict[str, Any]] | None = Field(
+        default=None,
+        description="Decision node: named typed questions (kind: noul|choice|score)",
+    )
+    state_template: str | None = Field(
+        default=None,
+        description="Decision node: template rendering the state blob to judge",
+    )
+    mock_responses: list[dict[str, Any]] | None = Field(
+        default=None,
+        description="Mock decision provider: ordered {match, answers} rules",
+    )
+
     model_config = {"extra": "forbid", "populate_by_name": True}
 
     @field_validator("cache", mode="before")
@@ -395,5 +374,8 @@ class NodeConfig(BaseModel):
                     raise ValueError(
                         f"Race candidate {i} must specify at least provider or model"
                     )
+
+        if self.type == NodeType.DECISION:
+            _validate_decision_requirements(self)
 
         return self

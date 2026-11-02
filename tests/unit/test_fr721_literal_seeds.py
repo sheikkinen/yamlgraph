@@ -15,7 +15,8 @@ from __future__ import annotations
 
 import pytest
 
-from yamlgraph.models.node_schema import NodeConfig, SubgraphNodeConfig
+from yamlgraph.models.node_schema import NodeConfig
+from yamlgraph.models.subgraph_schema import SubgraphNodeConfig
 
 # The interrai_ca init-node shape (NC-370's verbatim failure class):
 # all four literal shapes plus a template string in one output block.

@@ -17,6 +17,7 @@ LOOP_LIMIT_SUPPORTED_TYPES: frozenset[str] = frozenset(
         NodeType.TOOL,
         NodeType.PASSTHROUGH,
         NodeType.RACE,
+        NodeType.DECISION,
     }
 )
 

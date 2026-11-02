@@ -1,0 +1,163 @@
+version: "1.0"
+name: calibration-audit
+description: Audit planted decision confidence against labeled outcomes.
+
+data_files:
+  audit_items: fixtures/items.json
+
+state:
+  scored: list
+  report: dict
+
+tools:
+  score_audit:
+    type: python
+    path: tools.py
+    function: score_audit
+    description: Join labeled audit items with typed decision answers.
+  audit_report:
+    type: python
+    path: tools.py
+    function: audit_report
+    description: Reduce scored decisions to reliability buckets and ECE.
+
+nodes:
+  audit:
+    type: decision
+    provider: mock
+    state_template: "calibration-audit planted fixture v1"
+    questions:
+      item_01:
+        kind: choice
+        instructions: "Category of item 01."
+        options:
+          billing: "Invoicing and exports"
+          bug: "A defect"
+      item_02:
+        kind: choice
+        instructions: "Category of item 02."
+        options:
+          billing: "Invoicing and exports"
+          bug: "A defect"
+      item_03:
+        kind: choice
+        instructions: "Category of item 03."
+        options:
+          billing: "Invoicing and exports"
+          bug: "A defect"
+      item_04:
+        kind: choice
+        instructions: "Category of item 04."
+        options:
+          billing: "Invoicing and exports"
+          bug: "A defect"
+      item_05:
+        kind: choice
+        instructions: "Category of item 05."
+        options:
+          billing: "Invoicing and exports"
+          bug: "A defect"
+      item_06:
+        kind: choice
+        instructions: "Category of item 06."
+        options:
+          billing: "Invoicing and exports"
+          bug: "A defect"
+      item_07:
+        kind: choice
+        instructions: "Category of item 07."
+        options:
+          billing: "Invoicing and exports"
+          bug: "A defect"
+      item_08:
+        kind: choice
+        instructions: "Category of item 08."
+        options:
+          billing: "Invoicing and exports"
+          bug: "A defect"
+      item_09:
+        kind: choice
+        instructions: "Category of item 09."
+        options:
+          billing: "Invoicing and exports"
+          bug: "A defect"
+      item_10:
+        kind: choice
+        instructions: "Category of item 10."
+        options:
+          billing: "Invoicing and exports"
+          bug: "A defect"
+    mock_responses:
+      - match: "planted fixture"
+        answers:
+          item_01:
+            kind: choice
+            choice: billing
+            confidence: 0.9
+            probabilities: {billing: 0.95, bug: 0.05}
+          item_02:
+            kind: choice
+            choice: bug
+            confidence: 0.9
+            probabilities: {bug: 0.95, billing: 0.05}
+          item_03:
+            kind: choice
+            choice: billing
+            confidence: 0.9
+            probabilities: {billing: 0.95, bug: 0.05}
+          item_04:
+            kind: choice
+            choice: bug
+            confidence: 0.9
+            probabilities: {bug: 0.95, billing: 0.05}
+          item_05:
+            kind: choice
+            choice: billing
+            confidence: 0.9
+            probabilities: {billing: 0.95, bug: 0.05}
+          item_06:
+            kind: choice
+            choice: billing
+            confidence: 0.9
+            probabilities: {billing: 0.95, bug: 0.05}
+          item_07:
+            kind: choice
+            choice: bug
+            confidence: 0.9
+            probabilities: {bug: 0.95, billing: 0.05}
+          item_08:
+            kind: choice
+            choice: billing
+            confidence: 0.9
+            probabilities: {billing: 0.95, bug: 0.05}
+          item_09:
+            kind: choice
+            choice: bug
+            confidence: 0.9
+            probabilities: {bug: 0.95, billing: 0.05}
+          item_10:
+            kind: choice
+            choice: billing
+            confidence: 0.9
+            probabilities: {billing: 0.95, bug: 0.05}
+    state_key: audit
+
+  score:
+    type: python
+    tool: score_audit
+    state_key: scored
+
+  report:
+    type: python
+    tool: audit_report
+    state_key: report
+
+edges:
+  - from: START
+    to: audit
+  - from: audit
+    to: score
+  - from: score
+    to: report
+  - from: report
+    to: END

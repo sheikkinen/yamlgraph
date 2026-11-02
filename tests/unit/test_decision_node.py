@@ -11,14 +11,12 @@ import asyncio
 
 import pytest
 
-pytestmark = pytest.mark.req("REQ-YG-726")
-
-
 # =============================================================================
 # Question config validation (AC-03)
 # =============================================================================
 
 
+@pytest.mark.req("REQ-YG-726")
 class TestQuestionConfig:
     def test_valid_noul_config(self):
         from yamlgraph.models.decision_schema import parse_question_config
@@ -85,6 +83,7 @@ class TestQuestionConfig:
 # =============================================================================
 
 
+@pytest.mark.req("REQ-YG-726")
 class TestDecisionFactory:
     def test_unknown_provider_rejected(self):
         from yamlgraph.utils.decision_factory import create_decision_client
@@ -215,6 +214,9 @@ version: "1.0"
 name: decision_test
 description: FR-1155 decision node unit graph
 
+state:
+  ticket: str
+
 nodes:
   triage:
     type: decision
@@ -261,6 +263,10 @@ version: "1.0"
 name: decision_branch_test
 description: FR-1155 confidence branching unit graph
 
+state:
+  ticket: str
+  outcome: str
+
 nodes:
   triage:
     type: decision
@@ -291,12 +297,12 @@ nodes:
     state_key: triage
   auto_route:
     type: passthrough
-    state_key: outcome
-    value: "auto"
+    output:
+      outcome: "auto"
   human_review:
     type: passthrough
-    state_key: outcome
-    value: "review"
+    output:
+      outcome: "review"
 
 edges:
   - from: START
@@ -328,11 +334,11 @@ def branching_graph_file(tmp_path):
     return f
 
 
+@pytest.mark.req("REQ-YG-726")
 class TestDecisionNodeExecution:
     def test_sync_execution_typed_state(self, decision_graph_file):
-        from yamlgraph.models.decision_schema import ChoiceDecision, NoulDecision
-
         from yamlgraph.compile.graph_loader import load_and_compile
+        from yamlgraph.models.decision_schema import ChoiceDecision, NoulDecision
 
         compiled = load_and_compile(decision_graph_file).compile()
         result = compiled.invoke(
@@ -394,6 +400,7 @@ class TestDecisionNodeExecution:
 # =============================================================================
 
 
+@pytest.mark.req("REQ-YG-726")
 class TestDecisionNodeConfigValidation:
     def _load(self, tmp_path, nodes_yaml: str):
         from yamlgraph.compile.graph_loader import load_and_compile

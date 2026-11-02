@@ -12,7 +12,8 @@ from pydantic import BaseModel, Field, model_validator
 
 from yamlgraph.constants import EFFORT_LEVELS, ErrorHandler, NodeType
 from yamlgraph.models.guard_schema import GraphVerifyRule
-from yamlgraph.models.node_schema import NodeConfig, SubgraphNodeConfig
+from yamlgraph.models.node_schema import NodeConfig
+from yamlgraph.models.subgraph_schema import SubgraphNodeConfig
 
 __all__ = [
     "EdgeConfig",
