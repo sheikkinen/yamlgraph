@@ -265,6 +265,41 @@ then 3–4 (native shapes), 6–7 (showcases). Each sample is also the witness
 for one claim in the vendor table above — the suite doubles as our
 independent verification checklist once API access exists.
 
+## Integration feasibility (checked 2026-11-02)
+
+Follow-up check of <https://docs.typesafe.ai/introduction> and
+<https://github.com/typesafe-ai/system-one-adapter-python> — both public,
+updating the "API not publicly verifiable" caveat above:
+
+- **Public API surface.** Three primitives: **Choice** (pick from list →
+  `choice` + probabilities + confidence), **Score** (rubric score +
+  probabilities + confidence), **Noul** (is this statement true? → 0–1).
+  One call = `state` (text/JSON) + a dict of named questions, all evaluated
+  in parallel and in isolation; adding questions barely changes latency and
+  avoids context-rot. Doctrine-adjacent guidance: decompose into atomic
+  questions, combine with code ("change a coefficient, not a prompt").
+- **Public adapter = usable today without Jev access.** The
+  `system-one-adapter` package implements the same `system_one(state,
+  questions)` call and `SystemOneResponse` shape backed by
+  OpenAI/Anthropic/Gemini (structured-output mode, corrective retries,
+  full attempt debug trail). It exists so people can benchmark LLMs vs
+  Jev — which makes it a *better* mock than a hand-rolled one: a real,
+  provider-agnostic reference implementation of the interface.
+- **Jev itself remains access-gated** (waitlist/early access): pricing,
+  latency, and calibration claims still unverifiable first-hand.
+
+**Feasibility verdict:** integrating *Jev the model* — not feasible now
+(no API key without early access). Integrating the *System One interface*
+— feasible now: build the decision-node primitive against the public
+adapter, run `demos/calibration-audit` against it, and the eventual Jev
+adoption becomes a client swap. The schema mapping is clean: `enum` field
+→ Choice, `bool` field → Noul, bounded `int` → Score; free-text fields
+stay on the LLM path (the hybrid split above). The real integration cost
+is architectural, not vendor-side: YAMLGraph nodes assume a chat-model
+call shape (`messages` + schema via `create_llm()`), while System One is
+`state` + questions — a new node/provider class, not a provider swap.
+Dependency additions go through FR-761 governance; the work is FR-sized.
+
 ## Seeds
 
 - **Seed:** Can a hybrid node be split declaratively — one schema, decision
