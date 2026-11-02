@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.6]
+
+### Added
+- **FR-1152 `--token-usage` counts thinking tokens**: the token tracker also sums LangChain's normalised `output_token_details.reasoning` (Anthropic's thinking tokens), and `summary()` returns it as `total_reasoning_tokens`. The `--token-usage` line adds `, N thinking` when N > 0; the count is a part of `out`, never added to the total. A run with no thinking prints exactly what it printed before. (REQ-YG-064)
+- **FR-1151 An `effort` setting for Anthropic llm nodes**: `effort: low | medium | high | xhigh | max` on graph `defaults` and on `llm` nodes (and `router` nodes without `candidates`), node over defaults, is sent to the Anthropic API as `output_config.effort`. Omitted, every request is unchanged. On any other resolved provider it raises before a client is built; on a race node or a router with `candidates` it is refused at load. `effort` is part of the LLM cache key. (REQ-YG-725)
+
+### Fixed
+- **FR-1154 Omit sampling parameters under Anthropic API 2026-10-21**: with `anthropic>=2` installed (API version `2026-10-21`, which rejects `temperature`/`top_p`/`top_k` on every model with a 400), `create_llm()` now sends no temperature on any Anthropic model, including the `temperature=1` previously forced by `thinking_budget >= 1024`. The decision follows the `anthropic-version` header the installed SDK sends; on SDK 1.x the FR-1146 per-model rule is unchanged. (REQ-YG-010)
+- **FR-1153 `timeout:` keeps the runnable context**: a node with `timeout:` (python, tool, tool_call, agent, llm/router, and map sub-nodes) now runs with the caller's contextvars copied per invocation, so `langgraph.config.get_config()` inside it returns the run's config. Previously the timeout's worker thread started empty and `get_config()` raised `RuntimeError: Called get_config outside of a runnable context` (issue #708). Timeout values, error shapes, and the absence of cancellation are unchanged. (REQ-YG-078)
+- **FR-1149 The hooks key their files by POSIX paths on Windows**: `scripts/size_gate.py`, `scripts/noqa_coverage.py` and `scripts/hedging_check.py` now compare a file by its forward-slash path on every OS (`baseline_key`, `rel_key`, `_finding_key`), so on Windows the held oversize files, the documented noqa and the allowlisted findings are recognised instead of failing every commit. `yamlgraph/utils/llm_providers.py` is held at 473 lines by one temporary size-gate entry until FR-1148's split removes it; six drifted `docs/confessions.md` line references are realigned. Output on macOS and Linux is unchanged. (REQ-YG-631)
+- **FR-1148 `thinking_budget: 0` turns Anthropic thinking off**: `0` on an Anthropic node now sends the off switch each model accepts: `{"type": "between_tools"}` on `claude-sonnet-5-5`, `{"type": "disabled"}` on the other listed Claude models, and a `ValueError` at client construction on `claude-opus-5-5` and `claude-fable-5*`, which cannot turn thinking off. Previously `0` sent nothing, so Sonnet 5.5 could spend its whole `max_tokens` on thinking and return an empty or cut-off answer. Omitting `thinking_budget` and `>= 1024` are unchanged. (REQ-YG-083)
+
 ## [0.6.5]
 
 ### Added
