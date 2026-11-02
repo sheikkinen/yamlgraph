@@ -144,12 +144,77 @@ Both demos are *decision loops embedded in ordinary code* — exactly the
    (judges, gates) would require adversarial review regardless of the
    no-hallucination claim — calibrated ≠ aligned.
 
+## Census: System One–shaped nodes in `examples/` (2026-11-02 reflection)
+
+First Seed answered by a quick scan (grep for `enum:`, `type: bool`,
+`condition`-routing graphs; schemas read for ~10 representative examples).
+
+**Headline finding: pure System One nodes are rare — hybrids dominate.**
+Nearly every decision-shaped schema pairs its enum/bool/score with a
+free-text `reasoning` or `evidence_span` field. That is deliberate doctrine
+(`read_raw_output_first`, auditability, verbatim-quote evidence in
+`cwe-classifier`), but it means few nodes could move to Jev wholesale. The
+reasoning field is partly a *poor man's calibration* — it exists so humans
+can inspect decision quality. A provider with genuinely calibrated
+confidence changes the economics: justify lazily, only when confidence is
+low or the decision is contested, instead of generating a rationale on
+every call.
+
+### Candidate inventory (by fit)
+
+| Example | Decision shape | Jev fit |
+|---------|---------------|---------|
+| `cost-router` (`classify_complexity`) | enum {simple, medium, complex} | **Pure.** The router call itself costs an LLM round-trip — self-defeating today. A ~100 ms near-free router is the canonical "smart if-statement". |
+| `fsm-router`, `demos/router`, `demos/promptfoo-router`, `demos/router-race-candidates`, `demos/salvage_classify` | route enums | **Pure** (reasoning field droppable). Same routing family. |
+| `demos/hook_classifier` (`classify-tool-intent`) | intent enum + danger 1–5 + category enum | **Pure + latency-critical.** A PreToolUse hook adding seconds per tool call is unusable; 70–500 ms makes real-time hook classification viable. TypeSafe's "guardrail / detect jailbreaks" case verbatim. |
+| `demos/safety-guards`, `demos/enforcer` | bool gates | Pure. Same guardrail family. |
+| `demos/corpus_census` (`judge_item`) + census family (`session-shapes`, `cap_journey_census`, `pattern_model_census`, `person_profile_census`) | rubric enum + confidence + abstain + evidence_span | **Hybrid.** Judgement/confidence/abstain are Jev-shaped (calibrated abstain is *better* than self-reported `confidence: int`); `evidence_span` is string extraction Jev cannot do. Map phase would split: Jev judges, LLM extracts evidence only for non-abstained or low-confidence rows. |
+| `cwe-classifier` (`reason_cluster`) | match/partial_match per weakness in cluster | **Hybrid, high-cardinality.** Cluster-of-weaknesses choice mirrors the Wikiracing demo (score-then-choose); verbatim-quote evidence stays with an LLM. |
+| `demos/judge` (`JudgeVerdict`) | APPROVE/AMEND + per-criterion `passed: bool` | **Partial.** Verdict and criteria bools are System One shaped; the rationale is the product. Also the one place `model_as_trusted_peer` bars silent substitution. |
+| `npc` (`encounter_decide`, `npc_behavior`), `dungeon_master` (`turn_direct`) | in-game decisions, bools | **Pure + real-time.** The Doom-demo analog: structured game state in, decision out, 10/sec affordable. |
+| `booking`, `questionnaire` | branch-on-extracted-state | Hybrid (extraction is generative; branching decision is not). |
+
+### Proposed Jev use cases, ranked
+
+1. **Model/cost routing** (`cost-router` shape). Today the classifier can
+   cost more than the saving it enables; a two-orders-cheaper router makes
+   tiered routing default-on for every graph. First candidate for a
+   `decision provider` behind `create_llm()`.
+2. **Real-time guardrails** (`hook_classifier`, `safety-guards`,
+   `enforcer`). The PreToolUse hook budget is milliseconds, which is why
+   today's hooks are regex/shell; a calibrated intent classifier at 100 ms
+   would upgrade them without the latency tax. Caveat: an enforcement
+   surface — adversarial review applies (`model_as_trusted_peer`).
+3. **Census map phases** (corpus-map-reduce family). The biggest cost
+   lever: N-item map phases are classification-shaped, and calibrated
+   abstain directly replaces the hand-rolled abstain/confidence protocol
+   in `judge_item`. Evidence spans force a hybrid map (judge cheap,
+   extract selectively).
+4. **High-cardinality coding** (`cwe-classifier`). Cluster verdicts are
+   repeated bounded choices over hundreds of codes — the exact shape the
+   vendor's two-stage scoring targets.
+5. **Judge/review verdict extraction only.** Keep the LLM rationale;
+   let a calibrated verdict flag "the judge is unsure" — turning
+   `threshold_encodes_forecast` ambiguity into a measurable signal rather
+   than a forecast.
+6. **Interactive/game loops** (`npc`, `dungeon_master`). Decisions per
+   second instead of per scene; generation nodes stay LLM.
+
+### Reflection
+
+The census confirms the provider-class framing: Jev would not replace any
+node; it would split the hybrid nodes this repo already writes. The
+doctrine-relevant insight is that YAMLGraph's ubiquitous `reasoning` field
+conflates two needs — decision quality and audit trail — that calibration
+decouples. Whether to decouple is an FR-sized question, not a research
+note's.
+
 ## Seeds
 
-- **Seed:** Which existing YAMLGraph nodes are already System One shaped?
-  A census over `examples/` and production graphs — nodes whose schema is
-  pure enum/bool/score with no free-text field — would quantify the
-  addressable surface before any provider work is considered.
+- **Seed:** Can a hybrid node be split declaratively — one schema, decision
+  fields routed to a decision provider and justification fields generated
+  lazily (only below a confidence threshold)? That would adopt calibration
+  without surrendering the audit trail.
 - **Seed:** Should the graph schema distinguish *decision nodes* from
   *generation nodes*? Even without Jev, the distinction would let the
   linter flag free-text schemas used where an enum would do
