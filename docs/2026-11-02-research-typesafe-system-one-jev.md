@@ -18,18 +18,32 @@ whose whole premise is LLM nodes constrained by Pydantic schemas?
 
 ## Answer in one paragraph
 
-Jev is positioned as a "frontier-intelligence function call": unstructured
-state in, type-safe probabilistic decisions out — no string generation at
-all, so type errors are impossible by construction and every answer carries
-a calibrated probability. Claimed economics are dramatic: $0.042/MTok input,
-free output tokens, 70–500 ms end-to-end (vendor headline: ~194x faster,
-~445x cheaper than LLM workflows). The declared use cases — smart
-if-statements, classify/route/score/extract, map-reduce over large corpora,
-judging/verifying LLM outputs — overlap almost exactly with what YAMLGraph's
-schema-constrained LLM nodes, map nodes, and judge graphs do today. If the
-claims hold, this is a candidate *provider class* (decision provider, not
-chat provider) that would slot under existing `schema:` nodes; it is not a
-replacement for generation nodes, since Jev cannot produce strings.
+Jev is *positioned* as a "frontier-intelligence function call": unstructured
+state in, type-safe probabilistic decisions out — no string generation, so
+type errors are impossible by construction and every answer carries a
+calibrated probability, at claimed 70–500 ms and $0.042/MTok with free
+output. **As of this note, everything distinctive about Jev is
+unverifiable**: the model is waitlist-gated, and all headline numbers rest
+on vendor-run evals whose reference answer is agreement with other frontier
+LLMs, not correctness. What exists publicly and was exercised first-hand is
+(a) a well-specified question/answer *contract* (Choice/Score/Noul) and
+(b) an MIT adapter implementing that contract as a **prompt wrapper over
+ordinary chat models** — measured here at ordinary chat latency (0.6–3.1 s
+per call) with "confidence" *computed by formula from the emitted
+probabilities*, not calibrated. The contract overlaps YAMLGraph's
+decision-shaped nodes closely enough to be worth adopting on its own merits
+(done — FR-1155, with a calibration-audit harness standing by); the
+vendor's speed, cost, and calibration claims remain promises awaiting
+measurement on day one of access — treated here as wishware until the
+reliability table says otherwise.
+
+## Status ledger (2026-11-02)
+
+| Tier | What | Evidence |
+|------|------|----------|
+| **Available now** | The question/answer contract (Choice/Score/Noul; `state` + named questions → typed answers + probabilities); public docs; `system-one-adapter` on PyPI (MIT) | Fetched docs; adapter installed and run live in this repo (10 probes, `feature-requests/FR-1155-raw-samples.json`) |
+| **Real but ordinary** | The adapter's behavior: it generates a JSON schema, has a chat LLM fill in probabilities, and derives confidence with a six-line formula (`(p_max−1/n)/(1−1/n)` choice; MAD-from-mode score). Latency 0.585–3.108 s/call; the LLM emits quantized, anchor-prone probabilities (exactly 1.0/0.0/0.5 on clear/ambiguous noul) | Adapter source read; probe measurements |
+| **Unverified (wishware until measured)** | Jev itself: 70–500 ms, $0.042/MTok + free output, calibrated confidence, parallel sampling, frontier-parity intelligence | Waitlist-gated; vendor evals use frontier-LLM *agreement* as reference; pricing sustainability unproven by their own admission |
 
 ## What they built (vendor description)
 
