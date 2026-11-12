@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Approved with revisions (R-1, R-2 folded), in enforcement
 **Requested:** 2026-11-12
 
 **First consumer / first event:** game-engine's cost records, brief 441 (P0).
@@ -24,8 +24,8 @@
   thinking tokens: one more `usage_metadata` field summed, and a `, N thinking` suffix on the printed line. This FR
   follows it exactly.
 - [FR-1055-anthropic-prompt-cache-blocks-never-reach-api.md](FR-1055-anthropic-prompt-cache-blocks-never-reach-api.md)
-  made `cache_control` reach the API. It recorded its live hit verification as blocked; this FR's live witness closes
-  that gap.
+  made `cache_control` reach the API. It recorded its live hit verification as blocked. This FR's live witness closes
+  that gap only once it passes; a skipped or owed witness leaves it open (R-2).
 - [FR-276](FR-276.md) added `system_segments` and CAP-131.
 - REQ-YG-064 (CAP-17) is the tracker's requirement.
 - No rejected FR covers this area.
@@ -183,27 +183,38 @@ The follow-up FR also needs to settle:
   - result 2: `{cache_read: 2927, cache_creation: 0, ephemeral_5m_input_tokens: 0, ephemeral_1h_input_tokens: 0}`;
   - expected: `summary()["total_cache_write_tokens"] == 2927` and `summary()["total_cache_read_tokens"] == 2927`;
   - input, output and call counts are unchanged.
-- [ ] AC-02: The write rule:
+- [ ] AC-02: The write rule `max(cache_creation, ephemeral_5m + ephemeral_1h)`, with absent or `None` fields as 0:
   - `{cache_creation: 500}` with no breakdown counts 500;
   - `{ephemeral_1h_input_tokens: 700}` counts 700;
-  - `{cache_creation: 900, ephemeral_5m_input_tokens: 900}` counts 900, not 1800.
+  - `{cache_creation: 900, ephemeral_5m_input_tokens: 900}` counts 900, not 1800;
+  - (R-1) `{ephemeral_5m_input_tokens: 300, ephemeral_1h_input_tokens: 700}` counts 1000;
+  - (R-1) `{cache_creation: 1200, ephemeral_5m_input_tokens: 300, ephemeral_1h_input_tokens: 700}` counts 1200;
+  - (R-1) `{cache_creation: 800, ephemeral_5m_input_tokens: 300, ephemeral_1h_input_tokens: 700}` counts 1000.
 - [ ] AC-03: Each of these adds 0 to both counts and does not raise:
   - a result without `input_token_details`;
-  - one with an empty dict;
-  - one whose values are `None`.
+  - `input_token_details: None` (R-1);
+  - an empty dict;
+  - a dict with only unrelated details, e.g. `{audio: 5}` (R-1);
+  - a dict whose values are all `None`.
 - [ ] AC-04: `total_tokens` stays input + output when the cache counts are > 0. The handler docstring states that
   the cache counts are parts of the input.
 - [ ] AC-05: The printed line:
   - with read and write tokens, it ends `(2 calls), 2927 cache read, 2927 cache write`;
   - with thinking as well, it ends `, 64 thinking, 2927 cache read, 2927 cache write`;
+  - (R-1) read only: the full line is `📊 Token usage: 2938 in / 32 out (1 call), 2927 cache read`;
+  - (R-1) write only: the full line is `📊 Token usage: 2938 in / 32 out (1 call), 2927 cache write`;
   - with no cache activity, the full line equals today's literal string.
 - [ ] AC-06: The tests are in `tests/unit/test_fr1155_cache_tokens.py`.
   - Each carries a `@pytest.mark.req("REQ-YG-064")` decorator.
   - They are committed failing (RED) before the code (GREEN), and the RED output is pasted into this FR.
 - [ ] AC-07: The `tests/unit/test_fr027_execution_safety.py` exact-dict expectations gain both keys as 0. The rest of
   that file is unmodified.
-- [ ] AC-08: The live witness from Proposed Solution 4 passes, and its printed counts are pasted into this FR. If it
-  cannot run, the AC is recorded as **owed** with the blocker named. No simulated transcript.
+- [ ] AC-08 (R-2): The live witness from Proposed Solution 4:
+  - both calls attach the same tracker as a LangChain callback;
+  - it asserts the tracker's write count rose on call 1 and its read count rose on call 2;
+  - the per-call normalised `input_token_details` and tracker counts are pasted into this FR;
+  - an API-key skip is **owed**, never a pass; if blocked, the blocker is named in this FR and the PR body;
+  - FR-1055's live-hit gap is claimed closed only after this witness passes. No simulated transcript.
 - [ ] AC-09: The registry and housekeeping:
   - REQ-YG-064's description is updated and CAP-17's `fr:` gains FR-1155;
   - `ARCHITECTURE.md` is regenerated;
@@ -212,3 +223,19 @@ The follow-up FR also needs to settle:
   - there is a diary entry with a **Seed:**.
 - [ ] AC-10: `pre-commit run --files <changed files>` passes. Any `SKIP=pytest` is recorded with its commit. No
   `--no-verify` and no `Co-authored-by` trailer.
+
+## Judgement fold (2026-11-12)
+
+Round 1, `scripts/judge.sh` (copilot backend, `gpt-6.1-sol`):
+[APPROVED WITH REVISIONS](FR-1155-prompt-cache-tokens-in-token-usage.judgement.md). Scope frozen as D-1 to D-6.
+
+- **R-1** folded into AC-02, AC-03 and AC-05: mixed-TTL and unequal-overlap write cases, `None` and unrelated
+  details, and read-only and write-only literal lines.
+- **R-2** folded into AC-08 and the FR-1055 prior-art line: per-call increases on one tracker, owed is never a pass,
+  and FR-1055's gap closes only on a passing witness.
+- **GATE-3 (spend):** the operator requested the live caching spikes in this session (98 paid calls) and then
+  instructed "judge. amend fr as needed. enforce". The witness's two Haiku 5.5 calls (under one cent) are taken as
+  within that authorisation.
+- **Environment note:** the first two judge attempts failed before any verdict. `gpt-5.6-sol` was unavailable on the
+  account (the operator changed the adapter's model locally; not part of this FR), and the `claude` backend could not
+  spawn the npm `claude.cmd` shim on Windows (WinError 2). Neither is fixed here (GATE-5).
