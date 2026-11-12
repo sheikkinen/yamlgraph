@@ -91,7 +91,11 @@ requirements:
       and the thinking tokens (`output_token_details.reasoning`, a part of the
       output count, never added to the total; FR-1152) across all LLM
       invocations; CLI `--token-usage` flag prints summary, with `, N thinking`
-      when N > 0
+      when N > 0; the prompt-cache read and write counts
+      (`input_token_details.cache_read`; write =
+      `max(cache_creation, ephemeral_5m + ephemeral_1h)`; both parts of the
+      input count, never added; FR-1155) print as `, R cache read` and
+      `, W cache write` when greater than 0
     modules:
       - utils/token_tracker
       - cli/graph_commands
@@ -112,4 +116,4 @@ requirements:
       - compile/loop_limits
       - graph_loader
       - node_factory/race_node
-fr: legacy, FR-027, FR-1152
+fr: legacy, FR-027, FR-1152, FR-1155

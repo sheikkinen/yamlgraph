@@ -812,7 +812,7 @@ Linter cross-reference and semantic checks for edge endpoints, loop limits, stat
 
 Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaway execution.
 
-**Feature Request:** legacy, FR-027, FR-1152
+**Feature Request:** legacy, FR-027, FR-1152, FR-1155
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
@@ -824,7 +824,7 @@ Defense-in-depth guards against infinite loops, unbounded map fan-out, and runaw
 | REQ-YG-060 | `max_tokens` wired from YAML config/node config through `execute_prompt()` to `create_llm()` provider constructor | `config`, `graph_loader`, `llm_factory`, `executor`, `node_factory/llm_nodes` |
 | REQ-YG-061 | Global execution timeout via `config.timeout` and CLI `--timeout`, signal.alarm guard on Unix | `graph_loader`, `cli/graph_commands`, `cli/__init__` |
 | REQ-YG-062 | Linter W013: warn when map node `over:` is a dynamic expression without `max_items` or `config.max_map_items` | `linter/checks_semantic`, `linter/patterns/map` |
-| REQ-YG-064 | Token usage tracking via `TokenUsageCallbackHandler` callback injected at graph-level; accumulates `input_tokens`, `output_tokens`, `total_calls` and the thinking tokens (`output_token_details.reasoning`, a part of the output count, never added to the total; FR-1152) across all LLM invocations; CLI `--token-usage` flag prints summary, with `, N thinking` when N > 0 | `utils/token_tracker`, `cli/graph_commands`, `cli/graph_run_helpers`, `cli/__init__` |
+| REQ-YG-064 | Token usage tracking via `TokenUsageCallbackHandler` callback injected at graph-level; accumulates `input_tokens`, `output_tokens`, `total_calls` and the thinking tokens (`output_token_details.reasoning`, a part of the output count, never added to the total; FR-1152) across all LLM invocations; CLI `--token-usage` flag prints summary, with `, N thinking` when N > 0; the prompt-cache read and write counts (`input_token_details.cache_read`; write = `max(cache_creation, ephemeral_5m + ephemeral_1h)`; both parts of the input count, never added; FR-1155) print as `, R cache read` and `, W cache write` when greater than 0 | `utils/token_tracker`, `cli/graph_commands`, `cli/graph_run_helpers`, `cli/__init__` |
 | REQ-YG-113 | Linter W015: warn when cycle node has explicit `skip_if_exists: true` | `linter/checks_semantic`, `linter/graph_linter` |
 | REQ-YG-683 | `loop_limits` binds or fails compilation: an entry naming no node, or naming a node whose type never consults `check_loop_limit`, raises `GraphConfigError` at load time; standalone `race` nodes enforce their limit before firing candidates | `compile/loop_limits`, `graph_loader`, `node_factory/race_node` |
 

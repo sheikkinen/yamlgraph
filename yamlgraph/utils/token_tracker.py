@@ -44,6 +44,10 @@ class TokenUsageCallbackHandler(BaseCallbackHandler):
     ``{"input_tokens": N, "output_tokens": N, "total_tokens": N}``.
     FR-1152: ``output_token_details["reasoning"]`` (Anthropic's thinking
     tokens) is summed too; it is a part of ``output_tokens``, never added.
+    FR-1155: prompt-cache reads and writes from ``input_token_details`` are
+    parts of ``input_tokens``, never added. The write count is
+    ``max(cache_creation, ephemeral_5m + ephemeral_1h)``: langchain-anthropic
+    1.7.0 zeroes ``cache_creation`` when the per-TTL breakdown is present.
     """
 
     def __init__(self) -> None:
@@ -52,6 +56,8 @@ class TokenUsageCallbackHandler(BaseCallbackHandler):
         self.total_output_tokens: int = 0
         self.total_calls: int = 0
         self.total_reasoning_tokens: int = 0
+        self.total_cache_read_tokens: int = 0
+        self.total_cache_write_tokens: int = 0
 
     # -- LangChain callback ---------------------------------------------------
 
@@ -74,6 +80,13 @@ class TokenUsageCallbackHandler(BaseCallbackHandler):
                 self.total_output_tokens += usage.get("output_tokens", 0)
                 details = usage.get("output_token_details") or {}
                 self.total_reasoning_tokens += details.get("reasoning") or 0
+                cache = usage.get("input_token_details") or {}
+                self.total_cache_read_tokens += cache.get("cache_read") or 0
+                self.total_cache_write_tokens += max(
+                    cache.get("cache_creation") or 0,
+                    (cache.get("ephemeral_5m_input_tokens") or 0)
+                    + (cache.get("ephemeral_1h_input_tokens") or 0),
+                )
 
     # -- Public API ------------------------------------------------------------
 
@@ -82,8 +95,10 @@ class TokenUsageCallbackHandler(BaseCallbackHandler):
 
         Returns:
             Dict with ``total_input_tokens``, ``total_output_tokens``,
-            ``total_tokens`` (sum), ``total_calls`` and
-            ``total_reasoning_tokens`` (part of the output, FR-1152).
+            ``total_tokens`` (sum), ``total_calls``,
+            ``total_reasoning_tokens`` (part of the output, FR-1152) and
+            ``total_cache_read_tokens`` / ``total_cache_write_tokens``
+            (parts of the input, FR-1155).
         """
         return {
             "total_input_tokens": self.total_input_tokens,
@@ -91,6 +106,8 @@ class TokenUsageCallbackHandler(BaseCallbackHandler):
             "total_tokens": self.total_input_tokens + self.total_output_tokens,
             "total_calls": self.total_calls,
             "total_reasoning_tokens": self.total_reasoning_tokens,
+            "total_cache_read_tokens": self.total_cache_read_tokens,
+            "total_cache_write_tokens": self.total_cache_write_tokens,
         }
 
 

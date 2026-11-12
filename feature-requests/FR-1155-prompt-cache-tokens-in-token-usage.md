@@ -178,50 +178,50 @@ The follow-up FR also needs to settle:
 
 ## Acceptance Criteria
 
-- [ ] AC-01: Two fake results give summed totals:
+- [x] AC-01: Two fake results give summed totals:
   - result 1: `{cache_read: 0, cache_creation: 0, ephemeral_5m_input_tokens: 2927, ephemeral_1h_input_tokens: 0}`;
   - result 2: `{cache_read: 2927, cache_creation: 0, ephemeral_5m_input_tokens: 0, ephemeral_1h_input_tokens: 0}`;
   - expected: `summary()["total_cache_write_tokens"] == 2927` and `summary()["total_cache_read_tokens"] == 2927`;
   - input, output and call counts are unchanged.
-- [ ] AC-02: The write rule `max(cache_creation, ephemeral_5m + ephemeral_1h)`, with absent or `None` fields as 0:
+- [x] AC-02: The write rule `max(cache_creation, ephemeral_5m + ephemeral_1h)`, with absent or `None` fields as 0:
   - `{cache_creation: 500}` with no breakdown counts 500;
   - `{ephemeral_1h_input_tokens: 700}` counts 700;
   - `{cache_creation: 900, ephemeral_5m_input_tokens: 900}` counts 900, not 1800;
   - (R-1) `{ephemeral_5m_input_tokens: 300, ephemeral_1h_input_tokens: 700}` counts 1000;
   - (R-1) `{cache_creation: 1200, ephemeral_5m_input_tokens: 300, ephemeral_1h_input_tokens: 700}` counts 1200;
   - (R-1) `{cache_creation: 800, ephemeral_5m_input_tokens: 300, ephemeral_1h_input_tokens: 700}` counts 1000.
-- [ ] AC-03: Each of these adds 0 to both counts and does not raise:
+- [x] AC-03: Each of these adds 0 to both counts and does not raise:
   - a result without `input_token_details`;
   - `input_token_details: None` (R-1);
   - an empty dict;
   - a dict with only unrelated details, e.g. `{audio: 5}` (R-1);
   - a dict whose values are all `None`.
-- [ ] AC-04: `total_tokens` stays input + output when the cache counts are > 0. The handler docstring states that
+- [x] AC-04: `total_tokens` stays input + output when the cache counts are > 0. The handler docstring states that
   the cache counts are parts of the input.
-- [ ] AC-05: The printed line:
+- [x] AC-05: The printed line:
   - with read and write tokens, it ends `(2 calls), 2927 cache read, 2927 cache write`;
   - with thinking as well, it ends `, 64 thinking, 2927 cache read, 2927 cache write`;
   - (R-1) read only: the full line is `📊 Token usage: 2938 in / 32 out (1 call), 2927 cache read`;
   - (R-1) write only: the full line is `📊 Token usage: 2938 in / 32 out (1 call), 2927 cache write`;
   - with no cache activity, the full line equals today's literal string.
-- [ ] AC-06: The tests are in `tests/unit/test_fr1155_cache_tokens.py`.
+- [x] AC-06: The tests are in `tests/unit/test_fr1155_cache_tokens.py`.
   - Each carries a `@pytest.mark.req("REQ-YG-064")` decorator.
   - They are committed failing (RED) before the code (GREEN), and the RED output is pasted into this FR.
-- [ ] AC-07: The `tests/unit/test_fr027_execution_safety.py` exact-dict expectations gain both keys as 0. The rest of
+- [x] AC-07: The `tests/unit/test_fr027_execution_safety.py` exact-dict expectations gain both keys as 0. The rest of
   that file is unmodified.
-- [ ] AC-08 (R-2): The live witness from Proposed Solution 4:
+- [x] AC-08 (R-2): The live witness from Proposed Solution 4:
   - both calls attach the same tracker as a LangChain callback;
   - it asserts the tracker's write count rose on call 1 and its read count rose on call 2;
   - the per-call normalised `input_token_details` and tracker counts are pasted into this FR;
   - an API-key skip is **owed**, never a pass; if blocked, the blocker is named in this FR and the PR body;
   - FR-1055's live-hit gap is claimed closed only after this witness passes. No simulated transcript.
-- [ ] AC-09: The registry and housekeeping:
+- [x] AC-09: The registry and housekeeping:
   - REQ-YG-064's description is updated and CAP-17's `fr:` gains FR-1155;
   - `ARCHITECTURE.md` is regenerated;
   - `python scripts/req_coverage.py --strict` exits 0;
   - there is a changelog fragment with `type: feat` and `req: REQ-YG-064`;
   - there is a diary entry with a **Seed:**.
-- [ ] AC-10: `pre-commit run --files <changed files>` passes. Any `SKIP=pytest` is recorded with its commit. No
+- [x] AC-10: `pre-commit run --files <changed files>` passes. Any `SKIP=pytest` is recorded with its commit. No
   `--no-verify` and no `Co-authored-by` trailer.
 
 ## Judgement fold (2026-11-12)
@@ -239,3 +239,62 @@ Round 1, `scripts/judge.sh` (copilot backend, `gpt-6.1-sol`):
 - **Environment note:** the first two judge attempts failed before any verdict. `gpt-5.6-sol` was unavailable on the
   account (the operator changed the adapter's model locally; not part of this FR), and the `claude` backend could not
   spawn the npm `claude.cmd` shim on Windows (WinError 2). Neither is fixed here (GATE-5).
+
+## Implementation status (2026-11-12)
+
+**RED** (`5fbcda3f`: the tests, the live witness and the two FR-027 dict expectations, no code; `SKIP=pytest`):
+
+```text
+FAILED tests/unit/test_fr027_execution_safety.py::TestTokenUsageTracking::test_handler_summary_returns_dict
+FAILED tests/unit/test_fr027_execution_safety.py::TestTokenUsageTracking::test_handler_summary_empty
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_cache_reads_and_writes_are_summed
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_write_rule_is_max_of_creation_and_breakdown[creation-only]
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_write_rule_is_max_of_creation_and_breakdown[1h-only]
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_write_rule_is_max_of_creation_and_breakdown[equal-overlap]
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_write_rule_is_max_of_creation_and_breakdown[mixed-ttl]
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_write_rule_is_max_of_creation_and_breakdown[creation-larger]
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_write_rule_is_max_of_creation_and_breakdown[breakdown-larger]
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_missing_cache_details_add_zero[no-details]
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_missing_cache_details_add_zero[none-details]
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_missing_cache_details_add_zero[empty]
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_missing_cache_details_add_zero[unrelated]
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_missing_cache_details_add_zero[all-none]
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_cache_counts_are_part_of_input_not_added
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_printed_line_adds_cache_read_and_write
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_printed_line_orders_thinking_read_write
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_printed_line_read_only
+FAILED tests/unit/test_fr1155_cache_tokens.py::test_printed_line_write_only
+19 failed, 55 passed, 3 skipped in 4.33s
+```
+
+`test_printed_line_unchanged_without_cache` passes on RED by design: today's line must survive.
+
+**GREEN:** the three-file targeted command gives 74 passed, 3 skipped. The added docstring lines moved
+`on_llm_end`'s ARG002 confession from L58 to L64 (`docs/confessions.md`). `python scripts/req_coverage.py --strict`
+exits 0.
+
+The full unit run caught one more consumer: `test_graph_commands.py::test_token_usage_summary` mocks `summary()`
+with a hand-copied dict that lacked the two new keys (`KeyError: 'total_cache_read_tokens'`). The mock was given
+both keys as 0. A sweep (`git grep total_reasoning_tokens`) found no other copy.
+
+GREEN is committed with `SKIP=pytest`. The reason is this Windows host. `bash` resolves to System32's WSL stub, which
+has no working distro. Also, `signal.alarm` and POSIX symlinks/paths are missing here. To check that the change added
+no failures, the unit suite (`-m "not slow" -n auto`) was run twice: on `origin/main` in a detached worktree, and on
+this branch. Failure counts: 301 on main and 304 on the branch. The 4 failures found only on the branch
+(`test_fr931_sole_route_model_pin`, and the `test_fr960`/`test_fr1049` copilot-node pins) all come from the operator's
+uncommitted judge-model edit in `.github/skills/judge-fr/adapters/graph.yaml`. That edit is not in this branch, and
+pre-commit stashes it. Linux CI runs the suite as the gate.
+
+**AC-08, the live witness** (`claude-haiku-5-5`, key from `.env`, not printed;
+`pytest -s tests/integration/test_fr1155_cache_read_live.py`, 1 passed):
+
+```text
+call 1 input_token_details: {'cache_read': 0, 'cache_creation': 0, 'ephemeral_5m_input_tokens': 2947, 'ephemeral_1h_input_tokens': 0}
+after call 1: {'total_input_tokens': 2958, 'total_output_tokens': 32, 'total_tokens': 2990, 'total_calls': 1, 'total_reasoning_tokens': 0, 'total_cache_read_tokens': 0, 'total_cache_write_tokens': 2947}
+call 2 input_token_details: {'cache_read': 2947, 'cache_creation': 0, 'ephemeral_5m_input_tokens': 0, 'ephemeral_1h_input_tokens': 0}
+after call 2: {'total_input_tokens': 5916, 'total_output_tokens': 64, 'total_tokens': 5980, 'total_calls': 2, 'total_reasoning_tokens': 32, 'total_cache_read_tokens': 2947, 'total_cache_write_tokens': 2947}
+```
+
+The write rose on call 1 and the read rose on call 2, through `_build_system_message_from_segments`. FR-1055's
+live-hit verification gap is closed by this passing witness. Observed in `langchain-anthropic` 1.7.0; no dependency
+floor changes.
