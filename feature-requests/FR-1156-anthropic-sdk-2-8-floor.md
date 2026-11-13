@@ -281,6 +281,10 @@ operator's decision, recorded here.
 
 ### Round-3 amendment request (enforcement stopped per round-2 C-4)
 
+**Disposition:** `judge.sh` refused round 3 (round cap: "re-file a shorter
+plan as a new FR file"). The operator chose a separate small FR: D-8 is
+carried by [FR-1157](FR-1157-cap164-register-fr1156.md), landing in this PR.
+
 RED `da24ce0f` and GREEN `f69b58c6` are committed, not pushed. The AC-08
 fast-unit command, run on the committed GREEN candidate in a clean CI-mirror
 container (`python:3.11-slim`, non-root user, `git`+`curl`, the CI 3.11
