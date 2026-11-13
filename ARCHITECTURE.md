@@ -599,6 +599,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 297 | CAP-297 FR knowledge graph retired | `tests/unit/test_fr1134_retirements.py` | REQ-YG-720 |
 | 300 | CAP-300 Test Corpus Map | `examples/demos/test_map/graph.yaml`, `examples/demos/test_map/tools.py`, `examples/demos/test_map/extract.py`, `examples/demos/test_map/reconcile.py`, … | REQ-YG-723 |
 | 301 | CAP-301 Race Node Thinking Budget | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py`, `tests/unit/test_race_node.py`, `tests/unit/test_router_race.py` | REQ-YG-724 |
+| 302 | CAP-302 Map Memo Ships As Contrib | `yamlgraph/contrib/map_memo.py`, `examples/shared/map_memo_split.tool.yaml`, `examples/shared/map_memo_merge.tool.yaml`, `examples/demos/map_memo/graph.yaml` | REQ-YG-726 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3469,6 +3470,16 @@ Race nodes and router nodes with race `candidates:` resolve `thinking_budget` th
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-724 | Direct `type: race` nodes and router nodes with race `candidates:` resolve `thinking_budget` as node value → graph `defaults` → None (explicit 0 is a value, not absence) and pass it to every candidate's `create_llm(..., thinking_budget=...)` call through the shared `_build_candidate_llms` seam; existing provider dispatch is unchanged (thinking providers such as vertex receive the value, non-thinking providers such as azure are called without it). | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py`, `tests/unit/test_race_node.py`, `tests/unit/test_router_race.py` |
+
+### 302. CAP-302 Map Memo Ships As Contrib
+
+FR-1159: the FR-1116 map memo moves to `yamlgraph/contrib/map_memo.py`, so an installed wheel can memoize a map over a file corpus. The shared manifests resolve it by `module:`; `yamlgraph.contrib` does not import it eagerly. Demo: `examples/demos/map_memo`.
+
+**Feature Request:** FR-1159
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-726 | The built wheel contains `yamlgraph/contrib/map_memo.py` and no `examples/shared/map_memo.py`; installed non-editably, its split and merge load through inline `module: yamlgraph.contrib.map_memo` tool declarations and a second split over unchanged files returns no work. Importing `yamlgraph.contrib` does not load the memo module. The `examples/demos/map_memo` graph calls its summarize prompt once per note on the first run, zero times on an unchanged re-run (reporting `reused_ok` equal to the note count), and once after one note changes. | `yamlgraph/contrib/map_memo.py`, `examples/demos/map_memo/graph.yaml`, `tests/unit/test_fr1159_map_memo_contrib.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

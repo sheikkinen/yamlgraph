@@ -1,0 +1,28 @@
+id: CAP-302
+name: Map Memo Ships As Contrib
+description: >
+  FR-1159: the FR-1116 map memo moves to `yamlgraph/contrib/map_memo.py`, so
+  an installed wheel can memoize a map over a file corpus. The shared
+  manifests resolve it by `module:`; `yamlgraph.contrib` does not import it
+  eagerly. Demo: `examples/demos/map_memo`.
+modules:
+  - yamlgraph/contrib/map_memo.py
+  - examples/shared/map_memo_split.tool.yaml
+  - examples/shared/map_memo_merge.tool.yaml
+  - examples/demos/map_memo/graph.yaml
+requirements:
+  - id: REQ-YG-726
+    description: >
+      The built wheel contains `yamlgraph/contrib/map_memo.py` and no
+      `examples/shared/map_memo.py`; installed non-editably, its split and
+      merge load through inline `module: yamlgraph.contrib.map_memo` tool
+      declarations and a second split over unchanged files returns no work.
+      Importing `yamlgraph.contrib` does not load the memo module. The
+      `examples/demos/map_memo` graph calls its summarize prompt once per
+      note on the first run, zero times on an unchanged re-run (reporting
+      `reused_ok` equal to the note count), and once after one note changes.
+    modules:
+      - yamlgraph/contrib/map_memo.py
+      - examples/demos/map_memo/graph.yaml
+      - tests/unit/test_fr1159_map_memo_contrib.py
+fr: FR-1159
