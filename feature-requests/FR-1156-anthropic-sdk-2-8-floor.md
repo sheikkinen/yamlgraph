@@ -260,7 +260,7 @@ Revised by the round-2 judgement (R-1 folded verbatim):
 - [x] AC-05: A Pydantic model with `f: Literal["a", 1]` has no untyped finding and binds through `bind_structured_output` for Anthropic/json_schema. Adding neighboring `g: Any` produces refusal naming g and not f. Existing lint/compile refusal witnesses remain green; no literal-only YAML fixture or schema-loader change is required.
 - [x] AC-06: Real SDK-2.8 rejection and content parity execute without skips or deselection over the committed census, existing open-object fixtures and every Probe 2/5 row at root and nested. Unrelated SDK exceptions propagate. The independent content oracle does not reuse the production literal predicate; the sole private-SDK import remains in the existing parity module, with a platform-neutral path assertion.
 - [x] AC-07: Every new or changed test carries `@pytest.mark.req("REQ-YG-712")`. Behavioral RED witnesses fail for missing behavior, not missing imports/fixtures, and precede GREEN in separate commits with recorded identities.
-- [ ] AC-08: The four-file targeted pytest command in Planned Operations passes; the unchanged fast-unit command passes in a recorded clean supported environment; strict requirement coverage, ruff check/format and `lint-imports` pass; Linux CI is green. Baseline-relative red results alone do not satisfy acceptance, and assertions or selection must not be weakened.
+- [x] AC-08: The four-file targeted pytest command in Planned Operations passes; the unchanged fast-unit command passes in a recorded clean supported environment; strict requirement coverage, ruff check/format and `lint-imports` pass; Linux CI is green. Baseline-relative red results alone do not satisfy acceptance, and assertions or selection must not be weakened.
 - [x] AC-09: The fix fragment has `type: fix`, `scope: deps`, `req: REQ-YG-712`; the FR records judgement folds, implementation status, exact dependency changes, validation environments, command outcomes and deviations; the scoped diary entry contains a **Seed:**.
 - [x] AC-10: The FR records before/after radon CC and MI results for `schema_walk.py`, tied to baseline/candidate identities, and existing module-size checks pass. No unrelated structural cleanup is included.
 
@@ -345,8 +345,8 @@ all other blocks unchanged; MI A (59.81, −3.90). File 171 lines.
 - AC-02 freeze witness (Probe 6 recipe) on GREEN: install exit 0, FREEZE
   IDENTICAL. Constraints unchanged after GREEN.
 - Deviations: none from the round-2 frozen scope; the CAP-164 repair is
-  separately judged (FR-1157). AC-08 stays open until Linux CI on the PR is
-  green; the PR's required checks are that gate.
+  separately judged (FR-1157). Linux CI on PR #769 green (test 3.11 and 3.14, run 43374850780);
+  merged as `02f6827c`.
 
 ## Out of Scope
 
