@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Rejected ([judgement](FR-1158-cached-map-node.judgement.md)). Operator decision 2026-11-13: accept the contrib classification and ship the FR-1116 memo as `yamlgraph/contrib/map_memo` instead; re-filed as [FR-1159](FR-1159-map-memo-contrib.md).
+**Status:** Rejected ([judgement](FR-1158-cached-map-node.judgement.md)). Operator decision 2026-11-13: accept the contrib classification and ship the FR-1116 memo as `yamlgraph/contrib/map_memo` instead; re-filed as [FR-1159](FR-1159-map-memo-contrib.md). Operator, later on 2026-11-13: both FRs are rejected; they solved a cross-run result memo, while the request was the warm-first prompt-cache map of the [FR-1155 follow-up](FR-1155-prompt-cache-tokens-in-token-usage.md). See [FR-1160](FR-1160-remove-map-memo-contrib.md).
 **Requested:** 2026-11-13
 **First consumer / first event:** the new `examples/demos/cached_map`
 demo (in scope). Its second run over an unchanged item list makes zero

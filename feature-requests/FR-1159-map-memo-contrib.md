@@ -2,8 +2,12 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Implemented (approved with revisions R-1..R-3 folded; see
-[judgement](FR-1159-map-memo-contrib.judgement.md))
+**Status:** Rejected (operator, 2026-11-13, after merge in PR #771). It built a
+cross-run result memo; the request was the warm-first prompt-cache map of the
+[FR-1155 follow-up](FR-1155-prompt-cache-tokens-in-token-usage.md). Code and
+demo are removed by [FR-1160](FR-1160-remove-map-memo-contrib.md). Earlier:
+implemented, approved with revisions R-1..R-3 folded; see
+[judgement](FR-1159-map-memo-contrib.judgement.md).
 **Requested:** 2026-11-13
 **First consumer / first event:** the new provider-cheap demo
 `examples/demos/map_memo` (in scope). It declares the memo tools inline as
