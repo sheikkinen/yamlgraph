@@ -2,7 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Returned to planning: judge REJECTED with revisions R-1..R-6
+([judgement](FR-1161-cached-map-warm-first.judgement.md)); two human
+decisions open (standalone core node below the three-use-case bar; paid
+witness ceiling)
 **Requested:** 2026-11-13
 **First consumer / first event:** game-engine's library describe maps
 (`workflows/library/library.yaml`: `describe_chars`, `describe_places`,
