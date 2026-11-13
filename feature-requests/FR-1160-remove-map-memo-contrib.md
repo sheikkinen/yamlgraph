@@ -2,8 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Approved with revisions R-1..R-4 folded; see
-[judgement](FR-1160-remove-map-memo-contrib.judgement.md)
+**Status:** Implemented (approved with revisions R-1..R-4 folded; see
+[judgement](FR-1160-remove-map-memo-contrib.judgement.md))
 **Requested:** 2026-11-13
 **First consumer / first event:** the operator, on 2026-11-13, reading the
 merged FR-1159 against the request it answered. The request was a
@@ -205,41 +205,105 @@ Kept unchanged as history: both FR documents and judgements,
 
 Revised by the [judgement](FR-1160-remove-map-memo-contrib.judgement.md):
 
-- [ ] AC-01: R-1 through R-4 are folded into the committed FR before
+- [x] AC-01: R-1 through R-4 are folded into the committed FR before
   implementation; the research record answers `is_this_a_graph`; the
   operations contain no denial-evasion branch.
-- [ ] AC-02: A separate RED commit adds the process-marked REQ-YG-727
+- [x] AC-02: A separate RED commit adds the process-marked REQ-YG-727
   witnesses, registers the retirement capability and regenerates
   architecture. Recorded execution on its actual parent fails by the
   intended assertions; GREEN makes the same witnesses pass.
-- [ ] AC-03: Every listed deletion is absent, `examples/shared/map_memo.py`
+- [x] AC-03: Every listed deletion is absent, `examples/shared/map_memo.py`
   exists, both shared manifests declare `runtime.path: map_memo.py` without
   `runtime.module`, and the contrib initializer, vulture whitelist and
   examples index contain no `map_memo` token.
-- [ ] AC-04: A per-path intervening-change check is recorded. Unchanged
+- [x] AC-04: A per-path intervening-change check is recorded. Unchanged
   restoration paths, including the restored memo, equal `1c8b0b85~1`
   byte-for-byte; any changed path keeps unrelated hunks and has an explicit
   baseline/base/candidate reconciliation.
-- [ ] AC-05: CAP-302 / REQ-YG-726 are removed from the active registry and
+- [x] AC-05: CAP-302 / REQ-YG-726 are removed from the active registry and
   replaced by CAP-303 / REQ-YG-727. Generated architecture reflects the
   current registry without losing unrelated entries; strict requirement
   coverage passes; no test references REQ-YG-726.
-- [ ] AC-06: `git grep -n -F` for `contrib.map_memo`, `contrib/map_memo`,
+- [x] AC-06 (deviation recorded in § Implementation Status): `git grep -n -F` for `contrib.map_memo`, `contrib/map_memo`,
   `demos/map_memo`, `CAP-302` and `REQ-YG-726` hits only `feature-requests/`,
   `docs/diary/` and `tests/unit/test_fr1160_retirements.py`.
-- [ ] AC-07: The targeted selection (retirement witness, both memo suites,
+- [x] AC-07: The targeted selection (retirement witness, both memo suites,
   both consumer suites, module-map compression at budget 300) passes. No
   behavioural assertion is weakened.
-- [ ] AC-08: The committed validation recipe and the lint/format/import
+- [x] AC-08: The committed validation recipe and the lint/format/import
   checks pass on the recorded candidate; no result depends on an
   uncommitted helper or an unexplained deselection.
-- [ ] AC-09: FR-1158 and FR-1159 keep their committed Rejected statuses,
+- [x] AC-09: FR-1158 and FR-1159 keep their committed Rejected statuses,
   operator reason and FR-1160 links; their judgements, the authoring brief
   and the FR-1159 diary are unchanged. FR-1160 records status, decisions,
   commands, results and any restoration exceptions.
-- [ ] AC-10: The FR-1159 unreleased fragment is deleted, an FR-1160
+- [x] AC-10: The FR-1159 unreleased fragment is deleted, an FR-1160
   removal fragment is added, and the completion diary has a metacognitive
   insight and **Seed:**.
+
+## Implementation Status (2026-11-13)
+
+Implementation base `fb2f9908` (judgement commit, parent `933135a2`, on
+`origin/main` `1c8b0b85`). `git log 1c8b0b85..origin/main` was empty, so
+no restored path had an intervening commit and R-2's hand-reversal branch
+did not fire.
+
+- **RED `5badda5c`:** `tests/unit/test_fr1160_retirements.py` (11 cases),
+  CAP-303 / REQ-YG-727, regenerated `ARCHITECTURE.md`, and
+  `scripts/ci_mirror_fr1160.sh`. On parent `fb2f9908`: 11 failed, every
+  one an `AssertionError` (`assert not True`, `assert False`,
+  `assert None == 'map_memo.py'`, `assert 'map_memo' not in ...`). The
+  first draft read `manifest["runtime"]["path"]`, which would have failed
+  by `KeyError`; it was changed to `.get("path")` before the commit.
+  `req_coverage.py --strict` passed at RED.
+- **GREEN `cb724d6f`:** `git mv` of the memo back to
+  `examples/shared/map_memo.py`, then `git checkout 1c8b0b85~1 --` for the
+  twelve restore paths; `git rm` of the nine demo files, the FR-1159 test,
+  CAP-302 and the FR-1159 fragment; `ARCHITECTURE.md` regenerated; FR-1160
+  removal fragment added. `git diff --cached 1c8b0b85~1 -- <path>` was
+  empty for all twelve restored paths, including the memo.
+  `ARCHITECTURE.md` differs from `1c8b0b85~1` only by the 11-line CAP-303
+  row and section.
+- **Recipe fix `55d89235`:** the RED recipe ran `ruff check` over `tests/`
+  and `examples/`, which CI does not lint; the first mirror run on
+  `cb724d6f` failed only there (9 findings in `examples/rtm-hello`). The
+  recipe now mirrors `.github/workflows/workflow.yml`.
+- **Targeted selection** (host, Windows): retirement witness, FR-1116,
+  FR-1120 versions, FR-1113 meta_map, FR-1120 census memo graph, FR-335
+  module map at budget 300: 129 passed.
+- **CI mirror** on `55d89235`: 7676 passed, 57 skipped, 1 xfailed;
+  `req_coverage.py --strict` passed; both ruff steps "All checks passed!";
+  `lint-imports` 3 kept, 0 broken.
+- **Host pytest hook:** 281 failed / 17 errors, none in the memo,
+  retirement or module-map suites, matching the known Windows path
+  failures. GREEN was committed with `SKIP=pytest`; the mirror run above
+  is the gate.
+
+**Deviation (AC-06):** the literal grep also hits the retirement record
+itself: `capabilities/CAP-303-map-memo-contrib-retired.yaml`, its generated
+section in `ARCHITECTURE.md`, and
+`changelog/unreleased/fr-1160-remove-map-memo-contrib.md`. Each names what
+was removed. Every hit was inspected; none is a live reference. The
+allowlist missed that the retirement record must name what it retires.
+
+| Planned operation | Outcome | Witness |
+|---|---|---|
+| Probe: `git diff --name-status 1c8b0b85~1 1c8b0b85` | ran | closed restore/delete list in § Proposed Solution |
+| Probe: intervening commits per restored path | ran | empty `git log 1c8b0b85..origin/main`; base `fb2f9908` |
+| Probe: literal grep for retired tokens | ran | AC-06 deviation above |
+| Probe: CAP-303 / REQ-YG-727 free | ran | only FR-1160 docs referenced them before `5badda5c` |
+| Branch: intervening change → hand-reversal | did not run | no intervening commits |
+| Branch: guard denial on demo deletion | did not run | `git rm` succeeded in `cb724d6f` |
+| Branch: module-map test fails at 300 | did not run | targeted selection 129 passed |
+| Delegation: judge.sh, 1 run | ran | `fb2f9908` |
+| Command: aggregate_capabilities.py | ran | `5badda5c`, `cb724d6f` |
+| Command: req_coverage.py --strict | ran | host at RED and GREEN; mirror on `55d89235` |
+| Command: targeted pytest selection | ran | 129 passed on `cb724d6f` |
+| Command: Docker CI mirror | changed | recipe lint steps fixed in `55d89235`, then passed |
+
+**Unplanned operations:** removed the ignored
+`examples/demos/map_memo/__pycache__` directory left after `git rm`; the
+absence witness would otherwise have failed on the host.
 
 ## Alternatives Considered
 
