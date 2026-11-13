@@ -2,7 +2,8 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Approved with revisions (R-1, R-2 folded; see
+[judgement](FR-1157-cap164-register-fr1156.judgement.md))
 **REQ:** REQ-YG-712 (existing, CAP-164)
 **Requested:** 2026-11-13
 **First consumer / first event:** the FR-1156 PR (branch
@@ -60,7 +61,32 @@ waits:
 commands:
   - python -m pytest tests/unit/test_changelog_req_cross_wiring.py -q --no-cov
   - python scripts/req_coverage.py --strict
-  - docker run --rm -v <repo>:/src:ro python:3.11-slim sh /src/<FR-1156 CI-mirror script>
+  - "CI-mirror recipe below, on the committed candidate"
+```
+
+**CI-mirror recipe (R-2).** Run from the repository root on Docker; `/src`
+is the read-only checkout, the clone takes the committed `HEAD` only.
+Extras are the CI 3.11 leg's (`.github/workflows/workflow.yml`), unpinned
+as CI installs them:
+
+```sh
+docker run --rm -v "$PWD:/src:ro" python:3.11-slim sh -c '
+set -e
+apt-get update -qq && apt-get install -y -qq git curl >/dev/null
+useradd -m w
+su w -c "
+set -e
+git config --global --add safe.directory \"*\"
+git config --global user.email witness@example.invalid
+git config --global user.name witness
+git clone -q /src ~/r && cd ~/r && git log --oneline -1
+python -V; uname -sm; id -un
+python -m venv ~/v && . ~/v/bin/activate
+pip install -q --upgrade pip
+pip install -q -e \".[dev,digest,websearch,fsm,verify,rag,replicate,openai-proxy,examples-dungeon-master,otel,vision]\"
+pip show anthropic langchain-anthropic langchain-core | grep -E \"^(Name|Version)\"
+python -m pytest tests/unit -q --no-cov -m \"not slow\" -n auto
+"'
 ```
 
 ## Proposed Solution
@@ -72,18 +98,24 @@ One file, `capabilities/CAP-164-structured-output-fallback.yaml`:
 2. In REQ-YG-712 `text`, replace
    `untyped (lacking type/anyOf/oneOf/allOf/$ref, FR-1123)` with
    `untyped (lacking type/anyOf/oneOf/allOf/$ref and carrying no primitive
-   const or non-empty all-primitive enum, FR-1123/FR-1156)`.
+   const or non-empty all-primitive enum, FR-1123/FR-1156)`, and (R-1)
+   replace `object (type object with no declared properties, which the
+   transform` with `object (type object with no declared properties and
+   carrying no primitive const or non-empty all-primitive enum, which the
+   transform`. Only these two clause replacements; all other text unchanged.
 
 No new REQ, capability, test, or other field. It lands as a commit in the
 FR-1156 PR, because that PR cannot pass CI without it.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: CAP-164 `fr:` ends with `FR-1156`; no other `fr:` change.
-- [ ] AC-02: REQ-YG-712 `text` contains the replacement clause above; no other text change.
-- [ ] AC-03: `test_no_req_collision_across_unrelated_frs` passes; `req_coverage.py --strict` passes.
-- [ ] AC-04: The unchanged fast-unit command passes in the clean CI-mirror container on the committed candidate; Linux CI is green.
-- [ ] AC-05: FR records implementation status; changelog coverage is the FR-1156 fragment (same PR, same REQ); no separate fragment.
+Revised by the judgement (verbatim):
+
+- [ ] AC-01: CAP-164 `fr:` is exactly `FR-464, FR-998, FR-1121, FR-1123, FR-1125, FR-1156`; its prior entries and order are unchanged.
+- [ ] AC-02: REQ-YG-712 `text` contains exactly the proposed untyped replacement and R-1 open-object replacement; a baseline-relative diff proves no other capability field or requirement text changed.
+- [ ] AC-03: `python -m pytest tests/unit/test_changelog_req_cross_wiring.py -q --no-cov` and `python scripts/req_coverage.py --strict` exit zero without test or gate modifications.
+- [ ] AC-04: The committed R-2 recipe executes the unchanged fast-unit command on the committed candidate in the non-root Linux/3.11 CI mirror and exits zero; the implementation record contains its identity, environment, command and totals. The corresponding Linux CI test checks for that candidate also pass.
+- [ ] AC-05: FR-1157 records implementation status, revision folds and validation outcomes. The repair lands in the FR-1156 PR using its existing REQ-YG-712 fragment, without a separate fragment; the scoped Distill record contains a **Seed:**.
 
 ## Alternatives Considered
 
