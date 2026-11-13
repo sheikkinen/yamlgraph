@@ -155,6 +155,7 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [yamlgraph](demos/yamlgraph/) | `llm` | Multi-step pipeline |
 | [cache](demos/cache/) | `llm` | Per-node result caching with CachePolicy (FR-032) |
 | [prompt-caching](demos/prompt-caching/) | `llm` | Anthropic prompt caching with system_segments (FR-219) |
+| [cached_map](demos/cached_map/) | `cached_map`, `llm` | Warm-first fan-out reuses an Anthropic prompt cache (FR-1161) |
 | [prompt_theme_analyzer](demos/prompt_theme_analyzer/) | `map`, `python`, `llm` | Prompt theme classification with deterministic aggregation (FR-402) |
 | [philosopher_book](demos/philosopher_book/) | `copilot`, `map`, `python` | 21-chapter philosophical work on cognitive traps, one chapter per trap (FR-404) |
 

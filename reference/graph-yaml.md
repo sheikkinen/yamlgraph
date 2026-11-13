@@ -774,6 +774,8 @@ nodes:
 - **Frozen population:** the dispatch node stores the items and the state at dispatch time in `_cached_map_snapshot.<name>`. Both waves are built from that snapshot, so writes from item 0 (for example to `collect`) do not change what the other items see. The account node clears the snapshot.
 - **Release on any outcome:** items 1..N-1 start after item 0 returns, times out, is skipped, or fails. `min_success` is checked at the join over all N items, exactly as with `map`. After a `timeout`, item 0's thread may still be running while the rest start.
 - **Cost:** the run takes one item's latency longer than `map`. `max_concurrency`, `max_items` and `on_overflow` apply as with `map`. An overflow error is raised at dispatch, before item 0 starts.
+- **When not to use:** prompts with no `cache: true` segment, a provider without prompt caching, or a shared prefix below the model's cache minimum. In those cases you pay the extra latency and save nothing; use `map`.
+- **Measured (FR-1161, Haiku 5.5, 4 items):** `map` wrote the prefix 4 times and read it 0 times; `cached_map` wrote it once and read it 3 times. See [examples/demos/cached_map](../examples/demos/cached_map/).
 
 ### `type: interrupt` - Human-in-the-Loop
 

@@ -7,7 +7,7 @@
 Round 1's R-1..R-6 and round 2's R-2/R-3 are folded below. Round 2's R-1
 (the three-use-case bar for a framework primitive) is unmet and is
 overruled by the operator: "judgement is advisory. overruled. enforce".
-In enforcement.
+Implemented on `feat/fr-1161-warm-first-map` (§ Implementation Status).
 **Requested:** 2026-11-13
 **First consumer / first event:** game-engine's library describe maps
 (`workflows/library/library.yaml`: `describe_chars`, `describe_places`,
@@ -411,38 +411,111 @@ test marked with the allocated REQ; bounded `threading.Event` waits only):
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `type: cached_map` with the YAML of an existing `type: map`
+- [x] AC-01: `type: cached_map` with the YAML of an existing `type: map`
   node compiles and runs; unit tests 12 and 14 pass (schema, load, state,
   codegen, published schema, lint).
-- [ ] AC-02: Unit test 1: item 0's worker returns before any other item's
+- [x] AC-02: Unit test 1: item 0's worker returns before any other item's
   worker starts (sync and async invocation).
-- [ ] AC-03: Unit test 2: items 1..N−1 run concurrently, and
+- [x] AC-03: Unit test 2: items 1..N−1 run concurrently, and
   `max_concurrency: 2` caps them at 2 in flight.
-- [ ] AC-04: Unit test 3: normalized parity per § Parity.
-- [ ] AC-05: Unit tests 4 and 5: every warm outcome (exception, tolerated
+- [x] AC-04: Unit test 3: normalized parity per § Parity.
+- [x] AC-05: Unit tests 4 and 5: every warm outcome (exception, tolerated
   skip, timeout) releases the rest with full accounting; N = 0 and N = 1
   behave as `map`.
-- [ ] AC-06: Unit tests 6, 7, 11 and 13 pass (subgraph order, topology
+- [x] AC-06: Unit tests 6, 7, 11 and 13 pass (subgraph order, topology
   and diagnostic names, cap/overflow before warm, composition).
-- [ ] AC-07: The live witness passes the § Live witness protocol gate
+- [x] AC-07: The live witness passes the § Live witness protocol gate
   within the spend ceiling; the 4 cached_map raw records and the control's
   totals are quoted in this FR.
-- [ ] AC-08: `examples/demos/cached_map` exists, authored via
+- [x] AC-08: `examples/demos/cached_map` exists, authored via
   `scripts/author.sh` (`tmp/draft-authoring-report.md` recorded), lints,
   and its `demo-output.log` comes from a real run (inside the ceiling)
   showing cache read and write tokens.
-- [ ] AC-09: `reference/graph-yaml.md` documents `cached_map` (wiring,
+- [x] AC-09: `reference/graph-yaml.md` documents `cached_map` (wiring,
   snapshot, timeout overlap, parity limits, when not to use it); the
   capability, REQ, `ARCHITECTURE.md`, `examples/README.md` index and
   changelog fragment are added; `python scripts/req_coverage.py --strict`,
   `ruff check`, `ruff format --check` and `lint-imports` pass.
-- [ ] AC-10: No change to `type: map` behaviour: the existing-suite
+- [x] AC-10: No change to `type: map` behaviour: the existing-suite
   command in § Planned Operations passes unchanged, and the CI-mirror
   unit run is green.
-- [ ] AC-11: Unit tests 8, 9, 10 and 15 pass (snapshot: collect-as-over,
+- [x] AC-11: Unit tests 8, 9, 10 and 15 pass (snapshot: collect-as-over,
   common input, re-entry, type preservation).
 - [ ] AC-12: This FR records implementation status and decisions, and a
   diary entry with a `Seed:` is added under `docs/diary/`.
+
+## Implementation Status (2026-11-13)
+
+Commits: RED `2cc93b23`, GREEN `3d07d1d2`, node-type inventory tests
+`383e2a8e`, live witness `a6199407`, then demo, docs and this status.
+
+**Decisions and deviations**
+
+- `compile_map_node` was split into `_create_sub_node` and `_wire_map` so
+  that `cached_map` reuses the same worker, `wrap_for_reducer` and
+  `resolve_items`. `_wire_map` passes to `wire_cached_map` in
+  `yamlgraph/compile/cached_map_compiler.py` when the type is
+  `cached_map`. The node compiler registers `cached_map` with the same
+  handler as `map`.
+- The snapshot is built through `CachedMapSnapshot` and stored as
+  `dict(snapshot)` (shallow), so Pydantic items and inputs keep their
+  types (test 15).
+- Every recognition site named in § Proposed Solution treats `cached_map`
+  as `map`, plus the snapshot channel. Two existing inventory tests
+  (`test_constants`, `test_node_type_registry`) list the new type.
+- Line-keyed allowlists shifted by the edits: `docs/confessions.md`
+  (CONF-001/008/044, 221, 235–237) and `scripts/hedging_check.py` were
+  updated to the new line numbers. Module-map budget 302 → 304.
+- The test harness's `consume` tool originally read rows without `v`
+  (seed rows in test 8, child output in test 6); it now skips them. This
+  was a defect in the test harness, not in the node.
+- The live witness worker is a Python tool that calls `create_llm`
+  directly, so it can return each call's raw `usage_metadata`. The demo
+  covers the `type: llm` sub-node path.
+
+**Live witness (AC-07), run 1 of 3, raw records**
+
+```text
+map[0..3] input_token_details: cache_read 0, cache_creation 0, ephemeral_5m_input_tokens 2940 (each of 4)
+map totals: writes=11760 reads=0
+cached_map[0]: cache_read 0, cache_creation 0, ephemeral_5m_input_tokens 2946
+cached_map[1]: cache_read 2946, ephemeral_5m_input_tokens 0
+cached_map[2]: cache_read 2946, ephemeral_5m_input_tokens 0
+cached_map[3]: cache_read 2946, ephemeral_5m_input_tokens 0
+cached_map totals: writes=2946 reads=8838
+```
+
+P = 2946. Gate: the first call wrote P and read 0; writes 2946 ∈ [P, 1.5P];
+reads 8838 ≥ 2.5P = 7365. Passed. Things a generated dump would not show:
+`cache_creation` is 0 on every write, which is why FR-1155's max rule is
+needed, and `output_token_details.reasoning` was 0 on `map[0]` but 16 on
+the other seven calls (unexplained). The control wrote the prefix once
+per item: 4 writes and 0 reads at width 4.
+
+**Demo (AC-08), run 2 of 3.** `scripts/author.sh` authored
+`examples/demos/cached_map` (`tmp/draft-authoring-report.md`). The
+adapter's final check exited 65 because the report lists paths with
+Windows backslashes; the files exist. The agent's single run failed
+before any LLM call: with a state-only default, `{state.items}` resolved
+to the state dict's `items` method (`got builtin_function_or_method`).
+The agent moved the default to graph-level `variables`. One real run
+followed (`demo-output.log`): `35272 in / 44 out (4 calls), 26400 cache
+read, 8800 cache write`, labels for all 4 items, no failures.
+Total paid spend is about $0.06 of the $1 ceiling, with 2 of 3 runs used.
+
+**Deviation (operator decision, 2026-11-13): authoring-proof path
+separators.** The FR-767 commit backstop (`scripts/check_authoring_proof.py`)
+also rejected the demo commit: it searches the report for each staged
+path as written, and the report uses `\`. The operator chose to fix this
+inside FR-1161, not in a separate FR. Both checks now replace `\` with
+`/` when they read the report. In `scripts/author.sh` the extraction
+moved into `artifact_candidates()` so a test can call it. Witness:
+`tests/unit/test_fr1161_authoring_proof_separators.py` (RED before the
+fix, GREEN after; REQ-YG-423).
+
+**Follow-ups (not in scope):** a `{state.<name>}` expression should not
+resolve to a dict method name such as `items`, `keys` or `values`; this
+returns a plausible wrong answer.
 
 ## Alternatives Considered
 
