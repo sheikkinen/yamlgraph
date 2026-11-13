@@ -271,6 +271,16 @@ def _emit_success_output(
                 if s["total_reasoning_tokens"]
                 else ""
             )
+            + (
+                f", {s['total_cache_read_tokens']} cache read"
+                if s["total_cache_read_tokens"]
+                else ""
+            )
+            + (
+                f", {s['total_cache_write_tokens']} cache write"
+                if s["total_cache_write_tokens"]
+                else ""
+            )
         )
 
     if timing_tracker is not None and timing_tracker.total_calls > 0:
