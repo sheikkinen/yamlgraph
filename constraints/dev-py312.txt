@@ -17,17 +17,21 @@
 #   pip install -c constraints/dev-py312.txt -e ".[dev,digest,websearch,fsm,verify]"
 #
 # Generated: 2026-07-26
+# Amended (FR-1156): anthropic 2.8.0 / langchain-anthropic 1.7.10 and their
+#   cascade (langchain-core, langsmith, langchain-protocol, certifi, httpx2,
+#   httpcore2, truststore, opentelemetry-api); closure verified by
+#   pip install --dry-run --report against these pins.
 aiosqlite==0.22.1
 annotated-doc==0.0.4
 annotated-types==0.8.0
-anthropic==0.120.0
+anthropic==2.8.0
 anyio==4.14.2
 bandit==1.9.4
 beautifulsoup4==4.15.0
 boolean.py==5.0
 brotli==1.2.0
 CacheControl==0.14.4
-certifi==2026.7.22
+certifi==2026.10.23
 cffi==2.1.0
 cfgv==3.5.0
 charset-normalizer==3.4.9
@@ -57,8 +61,10 @@ h2==4.4.0
 hf-xet==1.5.2
 hpack==4.2.0
 httpcore==1.0.9
+httpcore2==2.12.0
 httpx==0.28.1
 httpx-sse==0.4.3
+httpx2==2.12.0
 huggingface_hub==1.24.0
 hyperframe==6.1.0
 identify==2.6.19
@@ -69,18 +75,18 @@ Jinja2==3.1.6
 jiter==0.16.0
 jsonpatch==1.33
 jsonpointer==3.1.1
-langchain-anthropic==1.5.2
-langchain-core==1.5.1
+langchain-anthropic==1.7.10
+langchain-core==1.8.0
 langchain-google-genai==4.3.1
 langchain-mistralai==1.1.6
 langchain-openai==1.4.1
-langchain-protocol==0.0.18
+langchain-protocol==0.0.21
 langgraph==1.2.9
 langgraph-checkpoint==4.1.1
 langgraph-checkpoint-sqlite==3.1.0
 langgraph-prebuilt==1.1.0
 langgraph-sdk==0.4.2
-langsmith==0.10.10
+langsmith==0.14.17
 license-expression==30.4.4
 limits==5.8.0
 lxml==6.1.1
@@ -91,6 +97,7 @@ mdurl==0.1.2
 msgpack==1.2.1
 nodeenv==1.10.0
 openai==2.48.0
+opentelemetry-api==1.45.2
 orjson==3.11.9
 ormsgpack==1.12.2
 packageurl-python==0.17.6
@@ -145,6 +152,7 @@ tokenizers==0.23.1
 tomli==2.4.1
 tomli_w==1.2.0
 tqdm==4.69.1
+truststore==0.10.4
 typing-inspection==0.4.2
 typing_extensions==4.16.0
 urllib3==2.7.0

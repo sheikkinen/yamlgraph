@@ -5,8 +5,11 @@ forces for Anthropic models) cannot express two shapes a prompt schema can
 declare:
 
 - **untyped** — a subschema with none of ``type``/``anyOf``/``oneOf``/``allOf``/
-  ``$ref`` (what ``Any`` and ``list[Any]`` produce). The SDK transform raises
-  before any request, naming neither prompt nor field (FR-1123).
+  ``$ref`` and no literal (a primitive ``const`` or a non-empty all-primitive
+  ``enum``, accepted since anthropic 2.8, FR-1156) — what ``Any`` and
+  ``list[Any]`` produce. The SDK transform raises before any request, naming
+  neither prompt nor field (FR-1123). A literal makes the SDK drop ``type``, so
+  the walk does not descend below it.
 - **open_object** — ``type: object`` with no declared ``properties`` (what
   ``dict``, ``dict[str, Any]`` and ``list[dict]`` produce). The API rejects
   ``additionalProperties: true``, so the SDK transform rewrites the object to
@@ -67,7 +70,7 @@ def find_unconstrainable(schema: dict) -> list[SchemaFinding]:
 
 
 def find_untyped_subschemas(schema: dict) -> list[str]:
-    """JSON paths of subschemas lacking type/anyOf/oneOf/allOf/$ref (FR-1123)."""
+    """JSON paths of subschemas lacking type/anyOf/oneOf/allOf/$ref/literal (FR-1123)."""
     return [f.path for f in find_unconstrainable(schema) if f.kind == "untyped"]
 
 
@@ -76,11 +79,23 @@ def find_open_objects(schema: dict) -> list[str]:
     return [f.path for f in find_unconstrainable(schema) if f.kind == "open_object"]
 
 
+def _is_primitive(value: object) -> bool:
+    return value is None or isinstance(value, str | int | float | bool)
+
+
+def _has_literals(schema: dict) -> bool:
+    enum = schema.get("enum")
+    if isinstance(enum, list) and enum and all(_is_primitive(v) for v in enum):
+        return True
+    return "const" in schema and _is_primitive(schema["const"])
+
+
 def _walk(schema: dict, path: list[str], found: list[SchemaFinding]) -> None:
     for name, sub in (schema.get("$defs") or {}).items():
         _walk(sub, [*path, "$defs", name], found)
     if "$ref" in schema:
         return
+    has_literals = _has_literals(schema)
     for keyword in _COMPOSITIONS:
         variants = schema.get(keyword)
         if isinstance(variants, list):
@@ -88,9 +103,11 @@ def _walk(schema: dict, path: list[str], found: list[SchemaFinding]) -> None:
                 _walk(variant, [*path, f"{keyword}[{i}]"], found)
             break
     else:
-        if schema.get("type") is None:
+        if schema.get("type") is None and not has_literals:
             found.append(SchemaFinding(".".join(path) or ROOT_PATH, "untyped"))
             return
+    if has_literals:
+        return
     kind = schema.get("type")
     if kind == "object":
         properties = schema.get("properties") or {}
