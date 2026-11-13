@@ -1,0 +1,99 @@
+version: "1.0"
+name: map-memo-demo
+description: Summarize notes once and reuse unchanged results through the contrib map memo.
+
+prompts_relative: true
+prompts_dir: prompts
+
+defaults:
+  provider: inception
+  model: mercury-2.5
+
+state:
+  notes_dir: str
+  store: str
+  plan: dict
+  memo: dict
+  summaries: list
+  summary_failures: list
+  merged: dict
+
+tools:
+  map_memo_split:
+    type: python
+    module: yamlgraph.contrib.map_memo
+    function: map_memo_split
+    description: Split items into reused and todo by content signature.
+  map_memo_merge:
+    type: python
+    module: yamlgraph.contrib.map_memo
+    function: map_memo_merge
+    description: Merge executed map results with reused ones and persist them.
+  prepare:
+    type: python
+    module: examples.demos.map_memo.tools
+    function: prepare
+    description: List note paths in name order and select the memo store.
+nodes:
+  prepare:
+    type: python
+    tool: prepare
+    state_key: plan
+
+  memo_split:
+    type: tool_call
+    tool: map_memo_split
+    on_error: fail
+    state_key: memo
+    args:
+      items: "{state.plan.paths}"
+      signature_files:
+        - examples/demos/map_memo/graph.yaml
+        - examples/demos/map_memo/subgraphs/summarize_one.yaml
+        - examples/demos/map_memo/prompts/summarize_note.yaml
+      store: "{state.plan.store}"
+
+  # memo_merge judges the threshold over the whole population, so min_success is 0 here.
+  summarize:
+    type: map
+    over: "{state.memo.result.todo}"
+    as: path
+    max_items: 20
+    on_overflow: error
+    min_success: 0
+    failures: summary_failures
+    collect: summaries
+    node:
+      type: subgraph
+      mode: invoke
+      graph: subgraphs/summarize_one.yaml
+      input_mapping:
+        path: path
+      output_mapping:
+        summary: summary
+      state_key: summary
+
+  memo_merge:
+    type: tool_call
+    tool: map_memo_merge
+    on_error: fail
+    state_key: merged
+    args:
+      plan: "{state.memo.result}"
+      results: "{state.summaries}"
+      failures: "{state.summary_failures}"
+      map_name: summarize
+      map_dispatch: "{state._map_verdict.summarize.dispatch}"
+      min_success: 1.0
+
+edges:
+  - from: START
+    to: prepare
+  - from: prepare
+    to: memo_split
+  - from: memo_split
+    to: summarize
+  - from: summarize
+    to: memo_merge
+  - from: memo_merge
+    to: END

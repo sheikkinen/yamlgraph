@@ -6,6 +6,8 @@ eliminate copy-paste duplication across projects.
 Modules:
 - utils: Core utilities (to_serializable)
 - progress: Skip/error reporting (SkipReport)
+- map_memo: SQLite map memo for file corpora (FR-1116, FR-1159); import it
+  directly, it is not re-exported here
 """
 
 from yamlgraph.contrib.progress import SkipReport
