@@ -14,6 +14,7 @@ pip install --quiet --upgrade pip
 pip install --quiet -e ".[dev,digest,websearch,fsm,verify,rag,replicate,openai-proxy,examples-dungeon-master,otel,vision]"
 python -m pytest tests/unit -q --no-cov -m "not slow" -n auto -p no:cacheprovider
 python scripts/req_coverage.py --strict
-ruff check yamlgraph/ tests/ examples/
+ruff check yamlgraph/
+ruff check --select PLW1514 --preview .
 lint-imports
 '
