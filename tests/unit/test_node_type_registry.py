@@ -67,6 +67,7 @@ class TestNodeTypeRegistry:
             NodeType.PYTHON,
             NodeType.AGENT,
             NodeType.MAP,
+            NodeType.CACHED_MAP,
             NodeType.TOOL_CALL,
             NodeType.INTERRUPT,
             NodeType.PASSTHROUGH,
