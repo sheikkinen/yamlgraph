@@ -2,7 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Proposed
+**Status:** Approved with revisions (R-1..R-3 folded; see
+[judgement](FR-1159-map-memo-contrib.judgement.md))
 **Requested:** 2026-11-13
 **First consumer / first event:** the new provider-cheap demo
 `examples/demos/map_memo` (in scope). It declares the memo tools inline as
@@ -60,7 +61,7 @@ probes:
   - "done: PythonRuntime supports `module:` (yamlgraph/tools/manifest.py:33)"
   - "done: map_memo.py imports only stdlib, pydantic, yamlgraph.models (contrib layer-legal)"
 branches:
-  - "any FR-1116/FR-1120/FR-1113 test changes behaviour → stop; move is wrong"
+  - "any behavioural assertion in FR-1116/FR-1120/FR-1113 tests must change → stop; move is wrong (R-2 manifest-source assertion is the sole exception)"
   - "judge round cap → re-file shorter FR"
 delegations:
   - "judge.sh: 1 run"
@@ -102,9 +103,12 @@ commands:
        function: map_memo_split
    ```
 
-   CAP-289 and CAP-292 do not change. A new capability, **CAP-302 /
-   REQ-YG-726** ("map memo ships in the distribution as contrib"), owns the
-   relocation witnesses.
+   CAP-289 and CAP-292 get mechanical module-path updates only (R-1):
+   every `examples/shared/map_memo.py` becomes `yamlgraph/contrib/map_memo.py`.
+   Their IDs, REQ text, and FR ownership are preserved. A new capability,
+   **CAP-302 / REQ-YG-726** ("map memo ships in the distribution as
+   contrib"), registers FR-1159 and owns the relocation witnesses. The
+   only `ARCHITECTURE.md` change is the regenerated output.
 5. Demo: `examples/demos/map_memo/`, authored through `scripts/author.sh`.
    Three small text notes are summarized by a subgraph worker (python
    read → llm). The pipeline is `memo_split → summarize (map, min_success: 0) → memo_merge`.
@@ -113,29 +117,70 @@ commands:
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `yamlgraph/contrib/map_memo.py` exists, and
-  `examples/shared/map_memo.py` does not. Nothing in the repository imports
-  `examples.shared.map_memo`. `git log --follow` shows the move.
-- [ ] AC-02: Both shared manifests load through FR-768 and resolve
-  `yamlgraph.contrib.map_memo` functions. The FR-1116 manifest witness is
-  updated accordingly.
-- [ ] AC-03: The FR-1116, FR-1120, FR-1113, and FR-1120-census tests pass.
-  Their assertion bodies are unchanged; only import or path lines change.
-- [ ] AC-04: A witness tagged REQ-YG-726 builds the wheel file list, or
-  inspects `setuptools` package discovery, and asserts that
-  `yamlgraph/contrib/map_memo.py` is included.
-- [ ] AC-05: `import yamlgraph.contrib` does not import `sqlite3`-backed
-  memo code (no eager re-export).
-- [ ] AC-06: A provider-free test of `examples/demos/map_memo` (patched
-  `execute_prompt` with a call counter) runs the graph twice in one
-  `tmp_path` store. Run 1 makes 3 calls, and run 2 makes 0 and reports
-  `reused_ok == 3`. Editing one note makes run 3 call exactly once.
-- [ ] AC-07: The demo is authored via `scripts/author.sh` with an honest
-  report. `yamlgraph graph lint` is clean. The live smoke (operator-approved
-  2026-11-13, ≤ 10 provider calls) shows run 2 with zero worker calls.
-- [ ] AC-08: `lint-imports`, `req_coverage --strict`, ruff, and the clean
-  CI-mirror suite pass. There is a changelog fragment of type `feat`, and
-  a diary entry with a **Seed:**.
+- [ ] AC-01: The implementation exists only at
+  `yamlgraph/contrib/map_memo.py`. A diff against the baseline shows no
+  executable changes. No executable import uses
+  `examples.shared.map_memo`, including source strings passed to
+  subprocesses. Git rename history identifies the move.
+- [ ] AC-02: Both existing manifests use
+  `runtime.module: yamlgraph.contrib.map_memo` and no `runtime.path`. The
+  FR-768 translation asserts the module source, and both resolved
+  functions run the existing split/merge witness successfully.
+- [ ] AC-03: The four named existing suites pass with their behavioural
+  assertions preserved. Only these may change:
+  - import lines and path references
+  - documentation that names the old path
+  - the R-2 manifest-source assertion, which becomes
+    `tool["module"] == "yamlgraph.contrib.map_memo"` and `"path" not in tool`
+
+  Existing consumer graphs and prompts are unchanged.
+- [ ] AC-04: A provider-free witness tagged REQ-YG-726 checks the
+  installed wheel (R-3):
+  - it builds the wheel;
+  - the archive contains `yamlgraph/contrib/map_memo.py` and no
+    `examples/shared/map_memo.py`;
+  - the wheel is installed non-editably into an isolated venv;
+  - a fresh interpreter, run outside the checkout with checkout paths
+    absent from `PYTHONPATH`, proves the module comes from that install;
+  - it loads both functions through inline `module:` tool declarations;
+  - it runs a split/merge round trip over temporary files, and a second
+    split returns no work.
+- [ ] AC-05: In a fresh interpreter, importing `yamlgraph.contrib` does
+  not load `yamlgraph.contrib.map_memo`. The contrib initializer adds only
+  module-list documentation, with no memo re-export.
+- [ ] AC-06: The compiled demo runs with only `execute_prompt` patched,
+  on isolated copies of its three notes and a temporary store, with fresh
+  graph state on each invocation.
+  - Provider calls per run are 3, then 0, then 1 after editing exactly
+    one note.
+  - Run 2 reports `reused_ok == 3`, and its ordered records equal run 1's.
+  - Run 3 keeps the records of the unchanged notes.
+- [ ] AC-07: The demo is authored with `scripts/author.sh`, has a
+  substantive and honest authoring report, and lints clean. The live
+  two-run smoke:
+  - starts from one empty, isolated store;
+  - makes at most 10 provider calls in total (operator authorization,
+    2026-11-13);
+  - shows zero worker calls and three reused successes on run 2.
+
+  Record the provider and model, the exact commands, and the observed
+  counts, not just exit codes. Missing credentials or an exhausted cap is
+  recorded as an unmet AC.
+- [ ] AC-08: CAP-289 and CAP-292 carry the new implementation path in
+  every affected location, with no change to behavioural requirements.
+  CAP-302 / REQ-YG-726 registers FR-1159 and its witnesses. Any
+  `ARCHITECTURE.md` regeneration is limited to the matching registry
+  output.
+- [ ] AC-09: All of these pass on the committed candidate:
+  - the targeted command in Planned Operations
+  - `python scripts/req_coverage.py --strict`
+  - `lint-imports`
+  - Ruff
+  - the FR-1157 clean CI-mirror fast suite
+
+  The FR records the candidate identity, commands, results, and
+  deviations. The README, the feature fragment, and the diary entry with
+  its **Seed:** are present.
 
 ## Alternatives Considered
 
