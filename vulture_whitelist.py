@@ -76,15 +76,6 @@ SkipReport.from_state
 SkipReport.log
 SkipReport.to_dict
 
-# --- contrib/map_memo: tool functions resolved by YAML `module:` declarations (FR-1159) ---
-from yamlgraph.contrib.map_memo import (  # noqa: F401 (CONF-126)
-    map_memo_merge,
-    map_memo_split,
-)
-
-map_memo_split
-map_memo_merge
-
 # --- graph_loader: attribute used in map_compiler and linter ---
 from yamlgraph.models.graph_schema import (  # noqa: F401 (CONF-126)
     GraphConfig,

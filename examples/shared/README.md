@@ -41,23 +41,7 @@ result: ImageResult = generate_image(
 
 **Requirements:** `pip install replicate` + `REPLICATE_API_TOKEN` env var
 
-### Map Memo For File Corpora (FR-1116, FR-1159)
-
-The implementation ships in the package as `yamlgraph.contrib.map_memo`
-(FR-1159). The two manifests here resolve it by `module:`; outside this
-repository, declare the tools inline instead:
-
-```yaml
-tools:
-  map_memo_split:
-    type: python
-    module: yamlgraph.contrib.map_memo
-    function: map_memo_split
-  map_memo_merge:
-    type: python
-    module: yamlgraph.contrib.map_memo
-    function: map_memo_merge
-```
+### `map_memo.py` - Map Memo For File Corpora (FR-1116)
 
 Skip map items whose file bytes and computation are unchanged since the
 last run. `map_memo_split` returns `todo` (the files to run) without
@@ -103,8 +87,7 @@ nodes:
 The signature covers the bytes of `signature_files` plus the optional
 `inputs` object; CLI or environment provider/model overrides are not
 covered unless passed in `inputs`. Delete the store to force a full run.
-Committed consumers: [demos/meta_map](../demos/meta_map/),
-[demos/map_memo](../demos/map_memo/) (inline `module:` declarations).
+Committed consumer: [demos/meta_map](../demos/meta_map/).
 
 ### `vision_tool.py` - Image Understanding (FR-769)
 

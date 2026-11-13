@@ -1,8 +1,5 @@
 """FR-1116: map memo for file corpora (CAP-289, REQ-YG-706).
 
-Shipped as contrib since FR-1159 (CAP-302): declare the tools inline with
-`module: yamlgraph.contrib.map_memo`.
-
 `map_memo_split` drops file items whose bytes and computation signature
 match a stored outcome. The caller maps over `todo`, then
 `map_memo_merge` stores the executed outcomes in one SQLite transaction

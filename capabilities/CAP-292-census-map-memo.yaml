@@ -6,7 +6,7 @@ description: >
   GitHub `updatedAt` as the per-PR version, so a re-run extracts and
   classifies only new or updated PRs.
 modules:
-  - yamlgraph/contrib/map_memo.py
+  - examples/shared/map_memo.py
   - examples/demos/corpus_census/adapters/corpus_adapters.py
   - examples/demos/person_profile_census/tools.py
   - examples/demos/person_profile_census/graph.yaml
@@ -26,7 +26,7 @@ requirements:
       re-runs everything when rubric, labels, model or a signature file
       changes; a missing `memo_store` fails before extraction.
     modules:
-      - yamlgraph/contrib/map_memo.py
+      - examples/shared/map_memo.py
       - examples/demos/corpus_census/adapters/corpus_adapters.py
       - examples/demos/person_profile_census/tools.py
       - tests/unit/test_fr1120_map_memo_versions.py

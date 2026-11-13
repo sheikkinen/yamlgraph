@@ -23,5 +23,5 @@ name: map_memo_split
 description: "Drop file items whose bytes and computation signature match a stored map outcome"
 runtime:
   type: python
-  module: yamlgraph.contrib.map_memo
+  path: map_memo.py
   function: map_memo_split
