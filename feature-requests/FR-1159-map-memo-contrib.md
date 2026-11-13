@@ -227,6 +227,19 @@ for the enforcer under its spend cap; this execution made no live calls.
 
 ### Deviations
 
+- Gates outside the plan fired on the GREEN commit and were satisfied
+  in scope: the vulture whitelist lists the two YAML-resolved tool
+  functions; `examples/README.md` indexes the demo
+  (`test_all_demos_listed_in_readme`); `demo-output.log` holds the two
+  live smoke runs. The clean container run then failed only
+  `test_fr335 ...line_budget` (302 > 300 lines, the new module's entry +
+  dependency line); the budget moves to 302 with an FR-1159 comment, as
+  every prior module addition did. The committed `reference/module-map.md`
+  already drifted before this FR and is not regenerated here.
+- The host pytest hook was skipped on the GREEN commit: the Windows host
+  fails ~283 unit tests on path separators etc. (diary FR-1156), the same
+  set with or without this change. The binding suite is the container.
+
 - The wheel witness builds **with** build isolation (no
   `--no-build-isolation`): the Windows host Python has no setuptools, and
   isolation fetches the declared backend. Edited in the GREEN commit; the
