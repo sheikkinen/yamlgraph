@@ -2,10 +2,10 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Returned to planning: judge REJECTED with revisions R-1..R-6
-([judgement](FR-1161-cached-map-warm-first.judgement.md)); two human
-decisions open (standalone core node below the three-use-case bar; paid
-witness ceiling)
+**Status:** Revised for re-judgement: first judgement REJECTED with
+revisions R-1..R-6 ([judgement](FR-1161-cached-map-warm-first.judgement.md));
+all six folded below; both human decisions answered 2026-11-13
+(§ Operator decisions)
 **Requested:** 2026-11-13
 **First consumer / first event:** game-engine's library describe maps
 (`workflows/library/library.yaml`: `describe_chars`, `describe_places`,
@@ -51,21 +51,25 @@ result caches, not provider prompt caches; out of scope.
 
 ## Summary
 
-Add a node type `cached_map`. Its YAML is the same as `type: map`. It runs
-item 0's worker alone, then fans out items 1..N−1 in parallel, so a worker
-whose prompt has a `cache: true` segment writes the provider's prompt
-cache once and every later branch reads it. Results, failures, accounting,
-verdict and outgoing edges are those of `type: map`. Ships with an example
-under `examples/demos/cached_map` and a live witness through a real graph.
-Folding the behaviour into `map` (as an option or automatically) is a
-follow-up.
+Add a node type `cached_map`. Its YAML is the same as `type: map`. It
+freezes the item population at dispatch, runs item 0's worker alone, then
+fans out items 1..N−1 in parallel from the frozen snapshot. For a cold
+cache and a byte-identical eligible prefix, the target is one prefix of
+cache writes and N − 1 prefixes of reads, where a cold parallel map writes
+up to min(W, N). `cached_map` changes ordering only; it memoizes nothing.
+Results, failures, accounting, verdict and outgoing edges follow the
+`type: map` contract (§ Parity). Ships with an example under
+`examples/demos/cached_map` and a bounded live witness. Folding the
+behaviour into `map` (as an option or automatically) is a follow-up.
 
 ## Value Statement
 
-Graph authors who map an Anthropic prompt with a cached shared prefix pay
-one cache write per run instead of one per concurrent branch, which turns
-caching from a loss (about 1.12× the uncached input cost at N = 9) into a
-saving (about 0.2× on Haiku, 0.15× on Sonnet).
+Graph authors who map an Anthropic prompt with a cached shared prefix pay,
+on a cold run, about one cache write instead of one per concurrent branch.
+In the measured N = 12, W = 8 case the input cost fell from 0.867× to
+0.199× of uncached on Haiku and from 0.851× to 0.154× on Sonnet. This is
+an observed target, not a guarantee: an already warm cache writes zero,
+and differing prefixes or expiry write more.
 
 ## Problem
 
@@ -93,39 +97,58 @@ by AC-07.
 
 ## Ideal Result
 
-An author changes `type: map` to `type: cached_map` and nothing else. The
-run's `--token-usage` shows cache writes of about one shared prefix and
-reads of about N − 1, the collected results and verdict are identical to
-`type: map`'s, and the extra wall time is one worker's latency.
+An author changes `type: map` to `type: cached_map` and nothing else. On a
+cold run with an identical eligible prefix, `--token-usage` shows cache
+writes of about one shared prefix and reads of about N − 1; results and
+verdict satisfy the map contract (§ Parity); the extra wall time is one
+worker's latency.
 
 ## Why a core node
 
-FR-1158's judgement asked a core primitive for three independent use
-cases and found the memo expressible as tools around a plain map. Warm-first
-is not expressible that way: the order of `Send`s is compiler wiring, and
-there is no node-type plugin hook (FR-1159 § Alternatives). The YAML
-workaround (a single-item map before the real map) splits one population
-into two dispatches, two verdicts and two collect keys, and the author
-must stitch them. Use cases: game-engine's four library maps (two
-prompts), any `examples/demos/prompt-caching`-style prompt put under a
-map, and the FR-1155 follow-up's automatic mode, which needs this
-mechanism to exist before a trigger can switch it on.
+Warm-first is not expressible as tools around a plain map: the order of
+`Send`s is compiler wiring, and there is no node-type plugin hook (FR-1159
+§ Alternatives). The YAML workaround (a single-item map before the real
+map) splits one population into two dispatches, two verdicts and two
+collect keys, and the author must stitch them.
+
+Committed evidence (R-1), counting only concrete workloads:
+
+| Workload | Shared-prefix contract | Gap in `type: map` |
+|---|---|---|
+| game-engine `library.yaml` `describe_chars` (and its `redo_chars` re-run, same prompt, not counted separately) | `prompts/describe_character.yaml` system text, about 5.9k characters, identical per item; item in the user turn | A cold map at width 8 writes the prefix up to 8 times; caching costs more than not caching below about N = 10 |
+| game-engine `library.yaml` `describe_places` (and `redo_places`, not counted separately) | `prompts/describe_place.yaml` system text, about 1.7k characters; whether it reaches the model's cache minimum is unmeasured | Same; if below the minimum, `cached_map` costs one worker's latency and saves nothing |
+
+That is one consumer repository with two prompts, below the doctrine's
+three-use-case bar for a framework primitive (`judge-fr/doctrine.md`).
+The demo and the FR-1155 automatic-mode follow-up are not counted.
+
+### Operator decisions (2026-11-13)
+
+1. **Standalone node despite the evidence gap.** Asked "Keep the
+   standalone `cached_map` node anyway?", the operator answered: "Yes,
+   standalone node (operator override, recorded in FR)". This is a
+   product decision by the operator, recorded here, not a judge waiver;
+   the evidence above stands as stated. Merging into `map` remains the
+   named follow-up.
+2. **Paid-run ceiling.** "$1 total, max 3 witness runs" covers the live
+   witness, the demo run and all retries (§ Live witness protocol).
 
 ## Planned Operations
 
 ```yaml
 probes:
   - "ls capabilities/CAP-30* and git grep -F REQ-YG-72 — FR-1160 claims CAP-303 / REQ-YG-727; take the next free ids at implementation time"
-  - "read map_compiler.compile_map_node and map_contract.make_dispatch_router — the warm and release routers reuse resolve_items and the count check"
+  - "read map_compiler.compile_map_node and map_contract.make_dispatch_node/make_dispatch_router — the cached_map dispatch node writes the snapshot; both routers read it"
   - "grep NodeType.MAP across yamlgraph/ — every map-recognition site must also recognise cached_map (state_builder, state_codegen, node_schema, validators, linter, loop_limits)"
-  - "read 4 raw usage_metadata records from the live witness before asserting on token sums (read_raw_output_first)"
+  - "read the 4 raw cached_map usage_metadata records and the map control's records before computing totals (read_raw_output_first); thresholds are fixed in § Live witness protocol, not after the run"
 branches:
   - "a NodeType.MAP site has no obvious cached_map meaning → treat cached_map exactly as map there and name the site in the FR"
   - "LangGraph runs the release Sends before item 0's branch has committed → stop; the design assumption is wrong, return to judge"
-  - "live witness shows more than one prefix of writes → read the raw records; check the cache minimum and the system-segment render before touching code"
+  - "live witness fails its gate → read the raw records; check the cache minimum and the system-segment render; if the planned gate itself is wrong, amend the FR and re-judge — never tune thresholds until green"
+  - "spend ceiling ($1 or 3 runs) reached → stop; AC-07/AC-08 stay unmet and are reported"
   - "authoring adapter fails → fix the route per its README, never author the demo by hand"
 delegations:
-  - "judge.sh: 1 run, 2 if revisions are disputed"
+  - "judge.sh: 2 runs (first REJECTED; this re-judgement)"
   - "author.sh: 1 run for examples/demos/cached_map"
   - "outsider.sh: 1 run on the PR"
   - "review.sh: 1 run from another session"
@@ -138,10 +161,14 @@ commands:
   - scripts/judge.sh feature-requests/FR-1161-cached-map-warm-first.md
   - scripts/author.sh tmp/fr-1161-cached-map-demo-brief.md
   - python -m pytest tests/unit/test_fr1161_cached_map.py -q --no-cov
-  - python -m pytest tests/integration/test_fr1161_cached_map_live.py -q --no-cov
+  - python -m pytest tests/unit/test_fr1073_map_result_contract.py tests/unit/test_fr1073_ocr_skip_report.py tests/unit/test_fr984_map_max_concurrency.py tests/unit/test_fr1113_meta_map.py tests/unit/test_fr1153_timeout_runnable_context.py tests/unit/test_map_node.py tests/unit/test_map_node_timeout.py tests/unit/test_compile_graph_map.py tests/unit/test_state_builder_map.py tests/unit/test_linter_patterns_map.py tests/unit/test_fr1119_lint_map_fields.py tests/unit/test_fr939_map_overflow_policy.py tests/unit/test_fr944_map_to_map_index.py tests/unit/test_map_flatten_output.py tests/unit/test_conditional_edge_to_map.py -q --no-cov
+  - python -m pytest tests/integration/test_fr1161_cached_map_live.py -q --no-cov -s
   - yamlgraph graph lint examples/demos/cached_map/graph.yaml
   - yamlgraph graph run examples/demos/cached_map/graph.yaml --token-usage
+  - ruff check yamlgraph/ tests/ && ruff format --check yamlgraph/ tests/
+  - lint-imports
   - python scripts/req_coverage.py --strict
+  - CI-mirror Docker run of pytest tests/unit -m "not slow" -n auto (the Windows host is not the binding gate)
 ```
 
 ## Proposed Solution
@@ -169,32 +196,89 @@ Every `type: map` key is accepted with the same meaning: `over`, `as`,
 
 `yamlgraph/compile/cached_map_compiler.py` builds the worker exactly as
 `compile_map_node` does (shared helper extracted from `map_compiler.py`,
-no behaviour change) and wires:
+no behaviour change to `map`) and wires:
 
 ```text
-<name> (dispatch) ──warm router──▶ _cmap_<name>_warm   (Send, index 0)
-                  └─ N = 0 ───────▶ _cmap_<name>_account
-_cmap_<name>_warm ──release router──▶ _cmap_<name>_sub (Send, indices 1..N−1)
-                  └─ N = 1 ─────────▶ _cmap_<name>_account
-_cmap_<name>_sub ──▶ _cmap_<name>_account ──▶ _cmap_<name>_join
+<name> (dispatch + snapshot) ──warm router──▶ _map_<name>_warm  (Send, index 0)
+                             └─ N = 0 ───────▶ _map_<name>_account
+_map_<name>_warm ──release router──▶ _map_<name>_sub  (Send, indices 1..N−1)
+                 └─ N = 1 ─────────▶ _map_<name>_account
+_map_<name>_sub ──▶ _map_<name>_account ──▶ _map_<name>_join
 ```
 
-- `dispatch`, `account` and `join` are FR-1073's `make_dispatch_node`,
-  `make_account_node` and `make_join_node`, unchanged: one token, one
-  `dispatched = N`, one accounting pass that requires indices 0..N−1.
+- **Names (R-4).** Registered node names keep the `_map_<name>_*` prefix
+  that the shared wrapper, failure, account and join factories already use
+  as diagnostic identifiers (`map_compiler.py:157`; `map_contract.py:51,203,217`).
+  Only `_map_<name>_warm` is new. Registered names and diagnostic names
+  therefore match; no factory is parameterized for naming.
+- `account` and `join` are FR-1073's `make_account_node` and
+  `make_join_node`, unchanged: one token, one `dispatched = N`, one
+  accounting pass that requires indices exactly 0..N−1.
 - `_warm` and `_sub` are the same wrapped worker function registered under
-  two node names. The warm router and the release router are
-  `make_dispatch_router` generalised to an index range (`[0, 1)` and
-  `[1, N)`); both re-resolve `over` and keep its count check.
-- Item 0 runs in its own superstep, so the release Sends start only after
-  its worker has returned and its result is committed. For a subgraph
-  worker this waits for the whole child graph.
-- Item 0 failing (exception, timeout, `on_error: skip`) still releases the
-  rest; they then run cold. The failure is accounted as in `map`.
+  two node names.
 - `max_concurrency` applies to the release wave as to any fan-out.
 - No provider check, no prompt inspection: the node always warms first.
   On a prompt without a cached segment it costs one worker's latency and
   nothing else.
+
+### Dispatch-time snapshot (R-2)
+
+A plain map's router copies the current state into every `Send`
+(`map_contract.py:151-170`). Re-resolving `over` after the warm superstep
+would see item 0's result already appended to `collect`; if `over` reads
+that channel the population changes, and a count check misses a
+same-length substitution. Later workers would also see post-warm state.
+So `cached_map` freezes everything at dispatch:
+
+- **Owner.** The `cached_map` dispatch node (a thin wrapper around
+  `make_dispatch_node`) resolves `over` once, applies `max_items` /
+  `on_overflow` (an overflow raise happens here, before any worker runs),
+  and writes one record to a private channel
+  `_cached_map_snapshot[<name>]`.
+- **Typed transport.** The record is a Pydantic model
+  `CachedMapSnapshot{dispatch: str, items: list[Any], inputs: dict[str, Any]}`
+  in `yamlgraph/models/map_results.py`, stored via `model_dump()` in
+  checkpointed graph state. `inputs` is the dispatch-time state minus
+  execution bookkeeping (`_map_open`, `_map_accounting`, `_map_verdict`,
+  `_cached_map_snapshot`). No process-global event, no mutable compiler
+  closure.
+- **Readers.** Both routers build `Send`s only from the snapshot:
+  `{**inputs, <as>: items[i], _map_index: i, _map_dispatch: dispatch}`.
+  Neither router reads `over` or current state. The release wave therefore
+  gets the same items, indices, token and common inputs as item 0.
+- **Lifetime.** The channel uses `merge_map_open`'s open/close semantics:
+  dispatch opens `{<name>: record}`; the cached_map account step closes it
+  with `{<name>: None}` in the same update that closes `_map_open`. A
+  re-entry dispatches with a fresh token and a fresh snapshot; an
+  unclosed snapshot on re-entry raises `MapAccountingError` as an
+  overlapping `_map_open` does.
+- **State.** `state_builder` adds `_cached_map_snapshot: Annotated[dict, merge_map_open]`
+  for `cached_map` nodes, alongside the map channels. The checkpoint holds
+  one extra copy of the inputs while the dispatch is open; documented in
+  the reference.
+
+### Release after a settled warm outcome (R-3)
+
+Item 0 runs in its own superstep. Release happens after its wrapped
+outcome has settled and committed: success, classified failure, tolerated
+skip, or wrapper timeout. Successful workers, including whole subgraph
+child graphs, finish before release. A timed-out worker's thread is not
+stopped by the existing wrapper (`Future.result(timeout=...)`, shutdown
+`wait=False`, `map_compiler.py:103-125`), so its background work may
+overlap the release wave. Timeout behaviour is unchanged; cancellation is
+out of scope. After any warm outcome the rest still run, cold if item 0
+did not write the cache.
+
+### Parity (R-4)
+
+`cached_map` satisfies the `map` result contract for equivalent
+deterministic worker outcomes: `collect` content ordered by `_map_index`,
+failures (index, type, message, tolerated) and `MapVerdict`
+(counts, policy, met) equal those of the same graph with `type: map`, with
+per-run dispatch ids normalized consistently. Missing, duplicate or
+misattributed indices are never normalized away. Ordering does not make
+stochastic LLM output or side-effect timing identical; the reference says
+so.
 
 ### Registration
 
@@ -203,7 +287,11 @@ check; `validate_map_node`; map recognition in `state_builder`,
 `state_codegen`, linter `VALID_NODE_TYPES`, map pattern checks,
 `checks_semantic`, `checks_schema._llm_nodes`, `loop_limits`; the
 `compile_nodes` map-like metadata path so outgoing edges leave from join.
-Each site treats `cached_map` exactly as `map`.
+Each site treats `cached_map` exactly as `map`, plus the snapshot channel
+in `state_builder` / `state_codegen`. The published
+`yamlgraph/schemas/graph-v1.json` does not enumerate node types (`type`
+is a free string defaulting to `llm`), so it needs no change; a test
+asserts that it still validates a `cached_map` graph.
 
 ### Documentation and example
 
@@ -223,63 +311,114 @@ Each site treats `cached_map` exactly as `map`.
 ### Tests
 
 Unit (`tests/unit/test_fr1161_cached_map.py`, offline, patched
-`execute_prompt` and Python workers, sync and async invocation):
+`execute_prompt` and Python workers, sync and async invocation, every
+test marked with the allocated REQ; bounded `threading.Event` waits only):
 
 1. Order: a recording worker shows item 0 returned before any other item
    started, for N = 5 and `max_concurrency` 8.
 2. Parallelism kept: items 1..N−1 overlap (peak in-flight > 1 with a
-   barrier), and `max_concurrency: 2` caps the release wave at 2.
-3. Same result as `map`: the same graph with `type: map` and
-   `type: cached_map` yields equal `collect`, failures and `MapVerdict`
-   (counts, met) for a mix of successes and one failure.
-4. Item 0 fails: the other N − 1 still run; the verdict counts the failure;
-   `min_success` 1.0 fails the join, `min_success: 0.5` passes.
+   bounded barrier), and `max_concurrency: 2` caps the release wave at 2.
+3. Parity (§ Parity): the same graph with `type: map` and
+   `type: cached_map` gives equal normalized `collect`, failures and
+   `MapVerdict` for a mix of successes and one failure.
+4. Warm failure, parameterized over exception, tolerated skip and wrapper
+   timeout: the other N − 1 still run; accounting covers indices 0..N−1;
+   tolerated and failed counts are distinguished; `min_success: 1.0`
+   fails the join, `min_success: 0.5` passes. The timeout worker waits on
+   an event the test sets in teardown, so no work leaks.
 5. N = 0 and N = 1: no release Sends; verdict as in `map`.
 6. Subgraph worker: item 0's whole child graph finishes before item 1
    starts.
-7. Topology: compiled node names are `<name>`, `_cmap_<name>_warm`,
-   `_cmap_<name>_sub`, `_cmap_<name>_account`, `_cmap_<name>_join`, and a
-   following edge leaves from `_cmap_<name>_join`.
-8. Lint: `yamlgraph graph lint` accepts a `cached_map` graph and reports
-   the same missing-field errors `map` reports.
+7. Topology: compiled node names are `<name>`, `_map_<name>_warm`,
+   `_map_<name>_sub`, `_map_<name>_account`, `_map_<name>_join`;
+   diagnostics in failure records name `_map_<name>_*`; a following edge
+   leaves from `_map_<name>_join`.
+8. Snapshot, collect-as-over: `over` and `collect` are the same
+   append-reduced channel. Exactly the original N item identities run,
+   each once; one token; indices exactly 0..N−1; no count-mismatch raise.
+9. Snapshot, common input: a worker reads a state variable that item 0's
+   result changes through collection; every release worker sees the
+   dispatch-time value.
+10. Re-entry: the graph loops back to the same `cached_map` twice with
+    different populations; the second dispatch uses a fresh token and
+    only its own items; the snapshot channel is closed after each account.
+11. Cap and overflow: `max_items` truncates before the warm worker;
+    `on_overflow: error` raises at dispatch with zero workers started.
+12. Schema, load and state: `node_schema` / `validate_map_node` reject a
+    `cached_map` missing `over`, `as`, `node` or `collect` with `map`'s
+    messages; inferred state carries `collect`, the failures channel, the
+    map channels and `_cached_map_snapshot`; `state_codegen` output for a
+    `cached_map` graph compiles; `graph-v1.json` validates it.
+13. Composition: `map → cached_map` and `cached_map → map` in one graph
+    each produce both verdicts with independent tokens.
+14. Lint: `yamlgraph graph lint` accepts a `cached_map` graph and reports
+    the same missing-field errors `map` reports.
 
-Live (`tests/integration/test_fr1161_cached_map_live.py`, skipped without
-`ANTHROPIC_API_KEY`, Haiku): two graphs over the same N = 4 items, one
-`type: map`, one `type: cached_map`, each with a fresh random nonce at the
-top of its cached system segment so neither reads the other's cache. With
-P the per-call prefix size read from the raw records:
+### Live witness protocol (R-5)
 
-- `type: map` writes more than 1.5 P (several branches wrote);
-- `type: cached_map` writes at most 1.5 P and reads at least 2.5 P.
+`tests/integration/test_fr1161_cached_map_live.py`, skipped without
+`ANTHROPIC_API_KEY`:
+
+- Model `claude-haiku-5-5` (the FR-1155 spike's Haiku id; a different id
+  is an FR amendment), `max_tokens: 16`, N = 4, `max_concurrency: 4` on both the
+  graph and the invocation.
+- Two graphs over the same 4 items: a control `type: map` and a
+  `type: cached_map`. Each variant's cached system segment is
+  byte-identical across its own 4 calls, above the model's cache minimum,
+  and starts with its own fresh random nonce so neither reads the other's
+  cache or a previous run's.
+- **P** is the cached_map warm call's write, by FR-1155's rule
+  `max(cache_creation, ephemeral_5m + ephemeral_1h)`. Missing or zero P
+  fails the witness; no threshold is derived from it.
+- **Gate (cached_map only):** the first call writes P and reads 0; total
+  writes in `[P, 1.5 P]`; total reads ≥ `2.5 P`.
+- **Control:** the ordinary map's writes and reads are recorded as
+  context. `writes > 1.5 P` is expected but not asserted: concurrency
+  bounds width; it does not guarantee overlapping misses at the provider.
+- The test prints all 4 cached_map raw `usage_metadata` records and the
+  control's records and totals; they are read and quoted in this FR before
+  the aggregate verdict is reported.
+- **Spend ceiling (operator, 2026-11-13):** $1 total and at most 3 witness
+  runs, covering this test, the demo run and every retry. One run is
+  8 Haiku calls of about a 3k-token prefix plus 16 output tokens
+  (estimated well under $0.05). Missing credentials, a reached ceiling or
+  a skipped test leave AC-07 unmet. If observations show the gate itself
+  is wrong, amend the FR and re-judge; never tune until green.
 
 ## Acceptance Criteria
 
 - [ ] AC-01: `type: cached_map` with the YAML of an existing `type: map`
-  node compiles and runs; `yamlgraph graph lint` accepts it and reports
-  the same missing-field errors as `map`.
+  node compiles and runs; unit tests 12 and 14 pass (schema, load, state,
+  codegen, published schema, lint).
 - [ ] AC-02: Unit test 1: item 0's worker returns before any other item's
   worker starts (sync and async invocation).
 - [ ] AC-03: Unit test 2: items 1..N−1 run concurrently, and
   `max_concurrency: 2` caps them at 2 in flight.
-- [ ] AC-04: Unit test 3: `collect`, failures and `MapVerdict` equal those
-  of the same graph with `type: map`.
-- [ ] AC-05: Unit tests 4 and 5: item 0's failure releases the rest; N = 0
-  and N = 1 behave as `map`.
-- [ ] AC-06: Unit tests 6, 7 and 8 pass (subgraph worker order, topology
-  and following edge, lint).
-- [ ] AC-07: The live witness passes, and four raw `usage_metadata` records
-  from it are quoted in this FR with the cache fields, before the
-  thresholds are fixed.
+- [ ] AC-04: Unit test 3: normalized parity per § Parity.
+- [ ] AC-05: Unit tests 4 and 5: every warm outcome (exception, tolerated
+  skip, timeout) releases the rest with full accounting; N = 0 and N = 1
+  behave as `map`.
+- [ ] AC-06: Unit tests 6, 7, 11 and 13 pass (subgraph order, topology
+  and diagnostic names, cap/overflow before warm, composition).
+- [ ] AC-07: The live witness passes the § Live witness protocol gate
+  within the spend ceiling; the 4 cached_map raw records and the control's
+  totals are quoted in this FR.
 - [ ] AC-08: `examples/demos/cached_map` exists, authored via
   `scripts/author.sh` (`tmp/draft-authoring-report.md` recorded), lints,
-  and its `demo-output.log` comes from a real run showing cache read and
-  write tokens.
-- [ ] AC-09: `reference/graph-yaml.md` documents `cached_map`; the
+  and its `demo-output.log` comes from a real run (inside the ceiling)
+  showing cache read and write tokens.
+- [ ] AC-09: `reference/graph-yaml.md` documents `cached_map` (wiring,
+  snapshot, timeout overlap, parity limits, when not to use it); the
   capability, REQ, `ARCHITECTURE.md`, `examples/README.md` index and
-  changelog fragment are added; `python scripts/req_coverage.py --strict`
-  passes.
-- [ ] AC-10: No change to `type: map` behaviour: the existing map test
-  suites (FR-1073, FR-984, FR-1113, FR-1153) pass unchanged.
+  changelog fragment are added; `python scripts/req_coverage.py --strict`,
+  `ruff check`, `ruff format --check` and `lint-imports` pass.
+- [ ] AC-10: No change to `type: map` behaviour: the existing-suite
+  command in § Planned Operations passes unchanged, and the CI-mirror
+  unit run is green.
+- [ ] AC-11: Unit tests 8, 9 and 10 pass (snapshot: collect-as-over,
+  common input, re-entry).
+- [ ] AC-12: This FR records implementation status and decisions, and a
+  diary entry with a `Seed:` is added under `docs/diary/`.
 
 ## Alternatives Considered
 
@@ -291,7 +430,7 @@ P the per-call prefix size read from the raw records:
 | Release at item 0's first streamed token | Rejected: unmeasured whether the cache is readable then, and the map wrapper does not stream. Whole-worker wait is the spike's measured `warm8` variant. |
 | YAML-only: a one-item map before the real map | Rejected: two dispatches, two verdicts, two collect keys for one population; authors must stitch results and thresholds. |
 | Warm with a synthetic call (no real item) | Rejected: costs one extra call; the first real item warms for free. |
-| Name `warm_map` instead of `cached_map` | Open for the judge. `cached_map` is the operator's term; FR-1158's use of it is rejected, and the reference section states the prompt-cache meaning. |
+| Name `warm_map` instead of `cached_map` | Rejected: `cached_map` is the operator's term. The reference states it means prompt-cache ordering, not result memoization (FR-1158's rejected meaning). |
 | Contrib / plugin node type | Rejected: no plugin hook exists; adding one is more core surface than this node. |
 
 ## Related
