@@ -176,7 +176,7 @@ def validate_map_node(node_name: str, node_config: dict[str, Any]) -> None:
     Raises:
         ValueError: If map node configuration is invalid
     """
-    if node_config.get("type") != NodeType.MAP:
+    if node_config.get("type") not in (NodeType.MAP, NodeType.CACHED_MAP):
         return
 
     required_fields = ["over", "as", "node", "collect"]

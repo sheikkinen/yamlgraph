@@ -259,7 +259,9 @@ def extract_node_fields(
             if node_config.get("candidates"):
                 fields["_race_winner"] = Any
 
-        elif node_type == "map":
+        elif node_type in ("map", "cached_map"):
+            if node_type == "cached_map":
+                fields["_cached_map_snapshot"] = Annotated[dict, merge_map_open]
             # Map node collect field needs sorted reducer for ordered fan-in
             if collect_key := node_config.get("collect"):
                 fields[collect_key] = Annotated[list, sorted_add]

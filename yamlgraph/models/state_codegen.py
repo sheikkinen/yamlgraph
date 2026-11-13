@@ -55,6 +55,20 @@ def _codegen_state_fields(state_config: dict) -> dict[str, str]:
     return fields
 
 
+def _map_codegen_fields(node_type: str, node_config: dict) -> dict[str, str]:
+    """FR-1073 map channels; FR-1161 adds the cached_map snapshot."""
+    fields: dict[str, str] = {}
+    if collect_key := node_config.get("collect"):
+        fields[collect_key] = "list"
+        fields[node_config.get("failures") or f"{collect_key}_failures"] = "list"
+    fields["_map_accounting"] = "list"
+    fields["_map_open"] = "dict"
+    fields["_map_verdict"] = "dict"
+    if node_type == "cached_map":
+        fields["_cached_map_snapshot"] = "dict"
+    return fields
+
+
 def generate_typeddict_code(
     config: dict,
     source_path: "str | Path | None" = None,
@@ -115,16 +129,8 @@ def generate_typeddict_code(
             # FR-272: router with candidates also emits _race_winner
             if node_config.get("candidates"):
                 fields["_race_winner"] = "dict"
-        elif node_type == "map":
-            if collect_key := node_config.get("collect"):
-                fields[collect_key] = "list"
-                # FR-1073: typed failures channel
-                fields[node_config.get("failures") or f"{collect_key}_failures"] = (
-                    "list"
-                )
-            fields["_map_accounting"] = "list"
-            fields["_map_open"] = "dict"
-            fields["_map_verdict"] = "dict"
+        elif node_type in ("map", "cached_map"):
+            fields.update(_map_codegen_fields(node_type, node_config))
         elif node_type == "race":
             fields["_race_winner"] = "dict"
         elif node_type == "subgraph" and subgraph_relay_capable(

@@ -130,11 +130,13 @@ def _build_known_state_fields(graph: dict) -> set[str]:
         collect = node_config.get("collect")
         if collect:
             fields.add(collect)
-        if node_config.get("type") == "map":
+        if node_config.get("type") in ("map", "cached_map"):
             # FR-1119: mirrors state_builder.extract_node_fields for map nodes
             if isinstance(collect, str) and collect:
                 fields.add(node_config.get("failures") or f"{collect}_failures")
             fields.update(("_map_accounting", "_map_open", "_map_verdict"))
+            if node_config.get("type") == "cached_map":
+                fields.add("_cached_map_snapshot")
     return fields
 
 

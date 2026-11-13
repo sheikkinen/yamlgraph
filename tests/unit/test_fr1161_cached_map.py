@@ -117,7 +117,7 @@ TOOLS_SRC = textwrap.dedent(
 
 
     def consume(state):
-        return {"seen": [r["v"] for r in state.get("results") or []]}
+        return {"seen": [r["v"] for r in state.get("results") or [] if "v" in r]}
     '''
 )
 

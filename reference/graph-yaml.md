@@ -752,6 +752,29 @@ See [Map Nodes Reference](map-nodes.md) for detailed examples and patterns.
 
 **Known limitation — thread leakage (FR-069):** When `Future.result(timeout=N)` raises `TimeoutError`, the submitted thread continues running until the callable returns naturally or the process exits. In a long-lived process, a high rate of timeouts may accumulate background threads. Cancellable futures are out of scope; a follow-on FR may address this using structured concurrency.
 
+### `type: cached_map` - Warm-First Fan-Out (FR-1161)
+
+Same keys and result contract as `type: map`. The difference is the order: item 0 runs alone first, then items 1..N-1 fan out together. Use it when every item's prompt shares a long prefix and the provider caches prompts (Anthropic). If you fan out all items at once, each concurrent call can write the same cache entry. Running item 0 first writes the entry once, and the rest read it.
+
+```yaml
+nodes:
+  review:
+    type: cached_map
+    over: "{state.files}"
+    as: file
+    node:
+      type: llm
+      prompt: review_file      # long shared system prompt + per-file tail
+      state_key: review
+    collect: reviews
+    min_success: 0.5
+```
+
+- **Topology:** `<name>` (dispatch) → `_map_<name>_warm` (index 0) → `_map_<name>_sub` (indices 1..N-1) → `_map_<name>_account` → `_map_<name>_join`. Outgoing edges start at the join. Failures of the warm item report `node: _map_<name>_sub`, the same as with `map`.
+- **Frozen population:** the dispatch node stores the items and the state at dispatch time in `_cached_map_snapshot.<name>`. Both waves are built from that snapshot, so writes from item 0 (for example to `collect`) do not change what the other items see. The account node clears the snapshot.
+- **Release on any outcome:** items 1..N-1 start after item 0 returns, times out, is skipped, or fails. `min_success` is checked at the join over all N items, exactly as with `map`. After a `timeout`, item 0's thread may still be running while the rest start.
+- **Cost:** the run takes one item's latency longer than `map`. `max_concurrency`, `max_items` and `on_overflow` apply as with `map`. An overflow error is raised at dispatch, before item 0 starts.
+
 ### `type: interrupt` - Human-in-the-Loop
 
 Pause execution to wait for human input. Requires a checkpointer.

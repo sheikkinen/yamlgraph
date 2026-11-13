@@ -190,7 +190,7 @@ def check_map_patterns(
     graph_config = graph.get("config", {})
 
     for node_name, node_config in graph.get("nodes", {}).items():
-        if node_config.get("type") == "map":
+        if node_config.get("type") in ("map", "cached_map"):
             # Check node structure
             issues.extend(check_map_node_structure(node_name, node_config))
 

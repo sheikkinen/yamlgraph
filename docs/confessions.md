@@ -71,7 +71,7 @@ Each confession must include:
 Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 
 ### CONF-001
-- **File**: [yamlgraph/linter/checks.py](../yamlgraph/linter/checks.py#L108)
+- **File**: [yamlgraph/linter/checks.py](../yamlgraph/linter/checks.py#L109)
 - **Code**: C901 (function too complex)
 - **Sin**: `check_state_declarations` has high cyclomatic complexity due to multiple validation passes over graph nodes, prompts, and tools.
 - **Penance**: Decomposing would scatter cohesive validation logic across helper functions without meaningful abstraction gain. The function is linear and readable despite branching.
@@ -95,7 +95,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Agent node factory has inherent setup complexity. Decomposition deferred to a future FR.
 
 ### CONF-008
-- **File**: [yamlgraph/linter/checks.py](../yamlgraph/linter/checks.py#L108)
+- **File**: [yamlgraph/linter/checks.py](../yamlgraph/linter/checks.py#L109)
 - **Code**: C901 (cognitive complexity 16 > 15)
 - **Sin**: `check_state_declarations` traverses graph YAML, resolves prompt references, and extracts template variables.
 - **Penance**: Barely above threshold (16 vs 15). Will be addressed when linter checks are decomposed.
@@ -209,7 +209,7 @@ Framework suppressions require elevated scrutiny. These live in `yamlgraph/`.
 - **Penance**: Same as CONF-002 — required by LangChain callback interface (`BaseCallbackHandler.on_llm_end`).
 
 ### CONF-044
-- **File**: [yamlgraph/linter/checks.py](../yamlgraph/linter/checks.py#L108)
+- **File**: [yamlgraph/linter/checks.py](../yamlgraph/linter/checks.py#L109)
 - **Code**: C901 (too complex)
 - **Sin**: `check_state_declarations` function exceeds cyclomatic complexity threshold.
 - **Penance**: The function must cross-reference prompt variables, tool inputs, and state declarations across the graph. Splitting would scatter related validation logic across multiple functions with no clarity gain. The complexity is inherent to the validation domain.
@@ -1056,7 +1056,7 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-221
-- **File**: [yamlgraph/constants.py](../yamlgraph/constants.py#L53)
+- **File**: [yamlgraph/constants.py](../yamlgraph/constants.py#L54)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
@@ -1140,19 +1140,19 @@ These are E402 suppressions and are acceptable as "glue code" patterns.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-235
-- **File**: [yamlgraph/linter/checks_semantic.py](../yamlgraph/linter/checks_semantic.py#L239)
+- **File**: [yamlgraph/linter/checks_semantic.py](../yamlgraph/linter/checks_semantic.py#L241)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-236
-- **File**: [yamlgraph/linter/checks_semantic.py](../yamlgraph/linter/checks_semantic.py#L251)
+- **File**: [yamlgraph/linter/checks_semantic.py](../yamlgraph/linter/checks_semantic.py#L253)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.
 
 ### CONF-237
-- **File**: [yamlgraph/linter/checks_semantic.py](../yamlgraph/linter/checks_semantic.py#L262)
+- **File**: [yamlgraph/linter/checks_semantic.py](../yamlgraph/linter/checks_semantic.py#L264)
 - **Code**: FB001
 - **Sin**: Contains lexical `fallback` token flagged by FR-418 fallback-token hygiene gate.
 - **Penance**: Retained intentionally for domain semantics or existing contract wording; explicitly allowlisted and audited.

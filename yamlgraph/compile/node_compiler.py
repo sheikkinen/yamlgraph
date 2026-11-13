@@ -287,6 +287,7 @@ NODE_TYPE_HANDLERS: dict[str, NodeTypeHandler] = {
     NodeType.PYTHON: _compile_python_node,
     NodeType.AGENT: _compile_agent_node,
     NodeType.MAP: _compile_map_node,
+    NodeType.CACHED_MAP: _compile_map_node,
     NodeType.TOOL_CALL: _compile_tool_call_node,
     NodeType.INTERRUPT: _compile_interrupt_node,
     NodeType.PASSTHROUGH: _compile_passthrough_node,
