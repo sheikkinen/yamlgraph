@@ -441,8 +441,9 @@ test marked with the allocated REQ; bounded `threading.Event` waits only):
   unit run is green.
 - [x] AC-11: Unit tests 8, 9, 10 and 15 pass (snapshot: collect-as-over,
   common input, re-entry, type preservation).
-- [ ] AC-12: This FR records implementation status and decisions, and a
-  diary entry with a `Seed:` is added under `docs/diary/`.
+- [x] AC-12: This FR records implementation status and decisions, and a
+  diary entry with a `Seed:` is added under `docs/diary/`
+  (`diary-2026-11-13-reflection-fr-1161-the-method-that-answered-for-the-missing-key.md`).
 
 ## Implementation Status (2026-11-13)
 
