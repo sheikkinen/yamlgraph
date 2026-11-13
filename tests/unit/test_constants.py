@@ -25,6 +25,7 @@ class TestNodeType:
             "agent",
             "python",
             "map",
+            "cached_map",
             "tool_call",
             "interrupt",
             "subgraph",

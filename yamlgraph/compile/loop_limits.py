@@ -27,6 +27,7 @@ LOOP_LIMIT_UNSUPPORTED_TYPES: frozenset[str] = frozenset(
     {
         NodeType.AGENT,
         NodeType.MAP,
+        NodeType.CACHED_MAP,
         NodeType.TOOL_CALL,
         NodeType.INTERRUPT,
         NodeType.SUBGRAPH,

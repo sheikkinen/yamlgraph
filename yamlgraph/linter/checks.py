@@ -21,6 +21,7 @@ VALID_NODE_TYPES = {
     "interrupt",
     "llm",
     "map",
+    "cached_map",
     "passthrough",
     "pipeline",
     "python",

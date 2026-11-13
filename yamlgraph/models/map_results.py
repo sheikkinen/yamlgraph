@@ -44,6 +44,14 @@ class MapVerdict(BaseModel):
     met: bool
 
 
+class CachedMapSnapshot(BaseModel):
+    """FR-1161: population and inputs frozen at cached_map dispatch."""
+
+    dispatch: str
+    items: list[Any]
+    inputs: dict[str, Any]
+
+
 class MapCompletenessError(RuntimeError):
     """The join found fewer accepted branches than `min_success` allows."""
 

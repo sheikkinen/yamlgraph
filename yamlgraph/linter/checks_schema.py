@@ -83,7 +83,7 @@ def _llm_nodes(nodes: dict) -> list[tuple[str, dict]]:
         kind = node.get("type", "llm")
         if kind in ("llm", "router"):
             out.append((name, node))
-        elif kind == "map" and isinstance(node.get("node"), dict):
+        elif kind in ("map", "cached_map") and isinstance(node.get("node"), dict):
             sub = node["node"]
             if sub.get("type", "llm") in ("llm", "router"):
                 out.append((f"{name}/node", sub))

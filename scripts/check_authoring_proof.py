@@ -44,6 +44,8 @@ def main() -> int:
         return 0
 
     report_text = REPORT.read_text(encoding="utf-8") if REPORT.exists() else ""
+    # Windows-written reports list paths with '\'; git paths use '/' (FR-1161).
+    report_text = report_text.replace("\\", "/")
     missing = [p for p in governed_new if p not in report_text]
     if not missing:
         return 0

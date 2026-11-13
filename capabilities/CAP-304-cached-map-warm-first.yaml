@@ -1,0 +1,31 @@
+id: CAP-304
+name: Cached Map Warm-First Dispatch
+description: >
+  FR-1161: `type: cached_map` takes the YAML of `type: map`, freezes its
+  population and common inputs at dispatch, runs item 0's worker alone,
+  then fans out items 1..N-1 from that snapshot, so a worker prompt with a
+  `cache: true` system segment writes the provider's prompt cache once on a
+  cold run instead of once per concurrent branch. Results, failures,
+  accounting and verdict follow the FR-1073 map contract. Demo:
+  `examples/demos/cached_map`.
+modules:
+  - yamlgraph/compile/cached_map_compiler.py
+  - yamlgraph/compile/map_compiler.py
+  - yamlgraph/models/map_results.py
+requirements:
+  - id: REQ-YG-728
+    description: >
+      A `type: cached_map` node runs item 0's worker to a settled outcome
+      before any other item's worker starts, then runs items 1..N-1 in
+      parallel under `max_concurrency`. Both waves use the items, indices,
+      dispatch token and common inputs frozen at dispatch, with Python and
+      Pydantic values unchanged. Every warm outcome (success, exception,
+      tolerated skip, timeout) releases the rest; accounting covers indices
+      exactly 0..N-1 under one token; the verdict follows `accepted =
+      succeeded + tolerated`. Load, lint, inferred and generated state, the
+      published schema, cap/overflow and composition with `type: map` treat
+      it as a map.
+    modules:
+      - yamlgraph/compile/cached_map_compiler.py
+      - tests/unit/test_fr1161_cached_map.py
+fr: FR-1161

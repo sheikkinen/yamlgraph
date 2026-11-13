@@ -1,0 +1,33 @@
+2026-11-13 23:23:15,761 [INFO] yamlgraph.compile.node_compiler: Added node: review (type=cached_map)
+2026-11-13 23:23:15,785 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a1d6cb-14c0-788b-9d60-d1b9617db01d", "artifact_hash": "sha256:4c7995c2f21bb6cdbec55c762803ded0eed5358930c6df70bd20e023cf3fcfc9", "graph": "C:/src/yamlgraph/tmp/worktrees/featfr-1161-warm-first-map/examples/demos/cached_map/graph.yaml", "yamlgraph_version": "0.6.5", "thread_id": null, "started_at": "2026-11-13T21:23:15Z"}
+2026-11-13 23:23:16,010 [INFO] yamlgraph.route: {"event": "route", "node": "review", "value": "cached_map", "target": "_map_review_warm", "thread_id": null, "ts": "2026-11-13T21:23:16Z", "fan_out": 1}
+2026-11-13 23:23:20,019 [INFO] yamlgraph.utils.llm_factory: Omitting temperature: Anthropic API 2026-10-21 removed sampling parameters
+2026-11-13 23:23:20,019 [INFO] yamlgraph.utils.llm_factory: Creating LLM: anthropic/claude-haiku-5-5 (temp=None)
+2026-11-13 23:23:23,090 [INFO] httpx2: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-11-13 23:23:23,119 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_review_sub completed successfully
+2026-11-13 23:23:23,120 [INFO] yamlgraph.route: {"event": "route", "node": "_map_review_warm", "value": "cached_map", "target": "_map_review_sub", "thread_id": null, "ts": "2026-11-13T21:23:23Z", "fan_out": 3}
+2026-11-13 23:23:23,163 [INFO] yamlgraph.utils.llm_factory: Omitting temperature: Anthropic API 2026-10-21 removed sampling parameters
+2026-11-13 23:23:23,164 [INFO] yamlgraph.utils.llm_factory: Omitting temperature: Anthropic API 2026-10-21 removed sampling parameters
+2026-11-13 23:23:23,170 [INFO] yamlgraph.utils.llm_factory: Omitting temperature: Anthropic API 2026-10-21 removed sampling parameters
+2026-11-13 23:23:24,235 [INFO] httpx2: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-11-13 23:23:24,238 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_review_sub completed successfully
+2026-11-13 23:23:24,678 [INFO] httpx2: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-11-13 23:23:24,681 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_review_sub completed successfully
+2026-11-13 23:23:24,920 [INFO] httpx2: HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 200 OK"
+2026-11-13 23:23:24,922 [INFO] yamlgraph.node_factory.llm_nodes: Node _map_review_sub completed successfully
+C:\Users\sheik\AppData\Local\Programs\Python\Python313\Lib\site-packages\langchain_core\tracers\langchain.py:343: LangSmithDeprecationWarning: get_run_url() is deprecated and will be removed after Jan 31, 2027. Use client.runs.get_url() instead. See https://docs.langchain.com/langsmith/smithdb-sdk-migration-runs#runs-get-url for the migration guide.
+  self.client.get_run_url(
+2026-11-13 23:23:25,109 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a1d6cb-14c0-788b-9d60-d1b9617db01d", "ended_at": "2026-11-13T21:23:25Z", "dropped_events": 0, "error_count": 0, "tolerated_error_count": 0}
+
+­ƒÜÇ Running graph: graph.yaml
+
+­ƒöù Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a1d6cb-14ce-7002-9d36-9e04526d5801?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: _map_review_join
+  items: ['The guide explains each step clearly.', 'This page repeats the same warning twice.', 'A useful example follows the introduction.', 'The final sentence needs a clearer subject.']
+  answers: [{'_map_index': 0, 'label': 'clear'}, {'_map_index': 1, 'label': 'revise'}, {'_map_index': 2, 'label': 'clear'}, {'_map_index': 3, 'label': 'revise'}]
+  answers_failures: []
+
+­ƒôè Token usage: 35272 in / 44 out (4 calls), 26400 cache read, 8800 cache write

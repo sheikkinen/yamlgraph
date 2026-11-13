@@ -372,7 +372,7 @@ class NodeConfig(BaseModel):
                 "to extract the route key from (e.g. route_field: intent)"
             )
 
-        if self.type == NodeType.MAP:
+        if self.type in (NodeType.MAP, NodeType.CACHED_MAP):
             if not self.over:
                 raise ValueError("Map node requires 'over' field")
             if not self.item_var:

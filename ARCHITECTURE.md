@@ -600,6 +600,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 300 | CAP-300 Test Corpus Map | `examples/demos/test_map/graph.yaml`, `examples/demos/test_map/tools.py`, `examples/demos/test_map/extract.py`, `examples/demos/test_map/reconcile.py`, … | REQ-YG-723 |
 | 301 | CAP-301 Race Node Thinking Budget | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py`, `tests/unit/test_race_node.py`, `tests/unit/test_router_race.py` | REQ-YG-724 |
 | 302 | CAP-302 Map Memo Ships As Contrib | `yamlgraph/contrib/map_memo.py`, `examples/shared/map_memo_split.tool.yaml`, `examples/shared/map_memo_merge.tool.yaml`, `examples/demos/map_memo/graph.yaml` | REQ-YG-726 |
+| 304 | CAP-304 Cached Map Warm-First Dispatch | `yamlgraph/compile/cached_map_compiler.py`, `yamlgraph/compile/map_compiler.py`, `yamlgraph/models/map_results.py` | REQ-YG-728 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3480,6 +3481,16 @@ FR-1159: the FR-1116 map memo moves to `yamlgraph/contrib/map_memo.py`, so an in
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-726 | The built wheel contains `yamlgraph/contrib/map_memo.py` and no `examples/shared/map_memo.py`; installed non-editably, its split and merge load through inline `module: yamlgraph.contrib.map_memo` tool declarations and a second split over unchanged files returns no work. Importing `yamlgraph.contrib` does not load the memo module. The `examples/demos/map_memo` graph calls its summarize prompt once per note on the first run, zero times on an unchanged re-run (reporting `reused_ok` equal to the note count), and once after one note changes. | `yamlgraph/contrib/map_memo.py`, `examples/demos/map_memo/graph.yaml`, `tests/unit/test_fr1159_map_memo_contrib.py` |
+
+### 304. CAP-304 Cached Map Warm-First Dispatch
+
+FR-1161: `type: cached_map` takes the YAML of `type: map`, freezes its population and common inputs at dispatch, runs item 0's worker alone, then fans out items 1..N-1 from that snapshot, so a worker prompt with a `cache: true` system segment writes the provider's prompt cache once on a cold run instead of once per concurrent branch. Results, failures, accounting and verdict follow the FR-1073 map contract. Demo: `examples/demos/cached_map`.
+
+**Feature Request:** FR-1161
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-728 | A `type: cached_map` node runs item 0's worker to a settled outcome before any other item's worker starts, then runs items 1..N-1 in parallel under `max_concurrency`. Both waves use the items, indices, dispatch token and common inputs frozen at dispatch, with Python and Pydantic values unchanged. Every warm outcome (success, exception, tolerated skip, timeout) releases the rest; accounting covers indices exactly 0..N-1 under one token; the verdict follows `accepted = succeeded + tolerated`. Load, lint, inferred and generated state, the published schema, cap/overflow and composition with `type: map` treat it as a map. | `yamlgraph/compile/cached_map_compiler.py`, `tests/unit/test_fr1161_cached_map.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

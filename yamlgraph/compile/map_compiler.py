@@ -13,6 +13,7 @@ from typing import Any
 
 from langgraph.graph import StateGraph
 
+from yamlgraph.compile.cached_map_compiler import wire_cached_map
 from yamlgraph.compile.map_contract import (
     branch_failure,
     classify_result,
@@ -249,14 +250,11 @@ def compile_map_node(
     Returns:
         Tuple of (dispatch_router, join_node_name)
     """
-    over_expr = config["over"]
     item_var = config["as"]
-    sub_node_name = f"_map_{name}_sub"
     collect_key = config["collect"]
     flatten_output = config.get("flatten_output", False)
     sub_node_config = dict(config["node"])  # Copy to avoid mutating original
     state_key = sub_node_config.get("state_key", "result")
-    sub_node_type = sub_node_config.get("type", "llm")
 
     # Auto-inject the 'as' variable into sub-node's variables
     # So the prompt can access it as {item_var}
@@ -264,7 +262,49 @@ def compile_map_node(
     sub_variables[item_var] = f"{{state.{item_var}}}"
     sub_node_config["variables"] = sub_variables
 
-    # Create sub-node based on type
+    sub_node = _create_sub_node(
+        name,
+        sub_node_config,
+        defaults,
+        tools_registry,
+        graph_path,
+        python_tools,
+        tools,
+    )
+
+    failures_key = config.get("failures") or f"{collect_key}_failures"
+    wrapped_node = wrap_for_reducer(
+        sub_node,
+        collect_key,
+        state_key,
+        flatten_output,
+        timeout=config.get("timeout"),
+        map_name=name,
+        failures_key=failures_key,
+    )
+    return _wire_map(
+        name,
+        config,
+        builder,
+        wrapped_node,
+        item_var,
+        graph_max_items,
+        graph_on_overflow,
+    )
+
+
+def _create_sub_node(
+    name: str,
+    sub_node_config: dict[str, Any],
+    defaults: dict[str, Any],
+    tools_registry: dict[str, Any] | None,
+    graph_path: Any | None,
+    python_tools: dict[str, Callable] | None,
+    tools: dict[str, Any] | None,
+) -> Callable[[dict], Any]:
+    """Build the per-item worker for a map node by its declared type."""
+    sub_node_name = f"_map_{name}_sub"
+    sub_node_type = sub_node_config.get("type", "llm")
     if sub_node_type == NodeType.TOOL_CALL:
         if tools_registry is None:
             raise ValueError(
@@ -322,17 +362,21 @@ def compile_map_node(
         sub_node = create_node_function(
             sub_node_name, sub_node_config, defaults, graph_path=graph_path
         )
+    return sub_node
 
-    failures_key = config.get("failures") or f"{collect_key}_failures"
-    wrapped_node = wrap_for_reducer(
-        sub_node,
-        collect_key,
-        state_key,
-        flatten_output,
-        timeout=config.get("timeout"),
-        map_name=name,
-        failures_key=failures_key,
-    )
+
+def _wire_map(
+    name: str,
+    config: dict[str, Any],
+    builder: StateGraph,
+    wrapped_node: Callable[[dict], dict],
+    item_var: str,
+    graph_max_items: int,
+    graph_on_overflow: str | None,
+) -> tuple[Callable[[dict], Any], str]:
+    """Add the dispatch/sub/account/join nodes (warm-first for cached_map)."""
+    over_expr = config["over"]
+    sub_node_name = f"_map_{name}_sub"
     join_name = f"_map_{name}_join"
     # FR-939: cap node > graph > 100; policy node > graph > "error"
     node_cap = config.get("max_items")
@@ -372,6 +416,11 @@ def compile_map_node(
                 )
             items = items[:max_items]
         return items
+
+    if config.get("type") == NodeType.CACHED_MAP:
+        return wire_cached_map(
+            name, config, builder, wrapped_node, resolve_items, item_var
+        )
 
     # FR-1073: dispatch -> sub -> account -> join
     account_name = f"_map_{name}_account"

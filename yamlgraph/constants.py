@@ -21,6 +21,7 @@ class NodeType(StrEnum):
     AGENT = "agent"
     PYTHON = "python"
     MAP = "map"
+    CACHED_MAP = "cached_map"  # FR-1161: warm-first map
     TOOL_CALL = "tool_call"
     INTERRUPT = "interrupt"
     SUBGRAPH = "subgraph"

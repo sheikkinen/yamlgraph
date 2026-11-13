@@ -1,0 +1,39 @@
+version: "1.0"
+name: cached-map-demo
+description: Warm a shared Anthropic prompt prefix with item zero, then review the remaining items in parallel.
+
+prompts_relative: true
+prompts_dir: prompts
+
+variables:
+  items:
+    - "The guide explains each step clearly."
+    - "This page repeats the same warning twice."
+    - "A useful example follows the introduction."
+    - "The final sentence needs a clearer subject."
+
+state:
+  items: list
+
+nodes:
+  review:
+    type: cached_map
+    over: "{state.items}"
+    as: item
+    max_items: 4
+    node:
+      type: llm
+      provider: anthropic
+      model: claude-haiku-5-5
+      max_tokens: 16
+      prompt: review
+      variables:
+        item: "{state.item}"
+      state_key: answer
+    collect: answers
+
+edges:
+  - from: START
+    to: review
+  - from: review
+    to: END
