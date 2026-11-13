@@ -224,6 +224,8 @@ for the enforcer under its spend cap; this execution made no live calls.
 - AC-08/AC-09: `aggregate_capabilities.py` regenerated `ARCHITECTURE.md`;
   `req_coverage --strict` exit 0; `lint-imports` exit 0; Ruff check and
   format clean.
+- AC-09 container (FR-1157 recipe, python:3.11-slim, non-root, committed
+  candidate `b9d0d8b5`): **7668 passed, 57 skipped, 1 xfailed**, exit 0.
 
 ### Deviations
 
