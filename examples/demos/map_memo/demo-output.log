@@ -1,0 +1,69 @@
+2026-11-13 20:27:30,336 [INFO] yamlgraph.compile.graph_loader: Parsed 3 Python tools: map_memo_split, map_memo_merge, prepare
+2026-11-13 20:27:30,336 [INFO] yamlgraph.compile.node_compiler: Added node: prepare (type=python)
+2026-11-13 20:27:30,337 [INFO] yamlgraph.compile.node_compiler: Added node: memo_split (type=tool_call)
+2026-11-13 20:27:30,345 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: read_note
+2026-11-13 20:27:30,345 [INFO] yamlgraph.compile.node_compiler: Added node: read_note (type=python)
+2026-11-13 20:27:30,347 [INFO] yamlgraph.compile.node_compiler: Added node: summarize (type=llm)
+2026-11-13 20:27:30,351 [INFO] yamlgraph.compile.node_compiler: Added node: summarize (type=map)
+2026-11-13 20:27:30,351 [INFO] yamlgraph.compile.node_compiler: Added node: memo_merge (type=tool_call)
+2026-11-13 20:27:30,398 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a1d62a-2bc2-7bbe-b2ba-496c81ff8ec4", "artifact_hash": "sha256:6864d2c65eede62000a81bd11ce88e09efba2cb11cbaaaedd1473d657539bab1", "graph": "C:/src/yamlgraph/examples/demos/map_memo/graph.yaml", "yamlgraph_version": "0.6.6", "thread_id": null, "started_at": "2026-11-13T18:27:30Z"}
+2026-11-13 20:27:30,636 [INFO] yamlgraph.tools.python_tool: ­ƒÉì Executing Python node: prepare -> prepare
+2026-11-13 20:27:30,658 [INFO] yamlgraph.route: {"event": "route", "node": "summarize", "value": "map", "target": "_map_summarize_sub", "thread_id": null, "ts": "2026-11-13T18:27:30Z", "fan_out": 3}
+2026-11-13 20:27:30,869 [INFO] yamlgraph.tools.python_tool: ­ƒÉì Executing Python node: read_note -> read_note
+2026-11-13 20:27:30,876 [INFO] yamlgraph.tools.python_tool: ­ƒÉì Executing Python node: read_note -> read_note
+2026-11-13 20:27:30,879 [INFO] yamlgraph.tools.python_tool: ­ƒÉì Executing Python node: read_note -> read_note
+2026-11-13 20:27:30,886 [INFO] yamlgraph.utils.llm_factory: Creating LLM: inception/mercury-2.5 (temp=0.7)
+2026-11-13 20:27:35,758 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-13 20:27:35,772 [INFO] yamlgraph.node_factory.llm_nodes: Node summarize completed successfully
+2026-11-13 20:27:35,831 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-13 20:27:35,832 [INFO] yamlgraph.node_factory.llm_nodes: Node summarize completed successfully
+2026-11-13 20:27:35,992 [INFO] httpx2: HTTP Request: POST https://api.inceptionlabs.ai/v1/chat/completions "HTTP/1.1 200 OK"
+2026-11-13 20:27:35,993 [INFO] yamlgraph.node_factory.llm_nodes: Node summarize completed successfully
+C:\Users\sheik\AppData\Local\Programs\Python\Python313\Lib\site-packages\langchain_core\tracers\langchain.py:343: LangSmithDeprecationWarning: get_run_url() is deprecated and will be removed after Jan 31, 2027. Use client.runs.get_url() instead. See https://docs.langchain.com/langsmith/smithdb-sdk-migration-runs#runs-get-url for the migration guide.
+  self.client.get_run_url(
+2026-11-13 20:27:36,189 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a1d62a-2bc2-7bbe-b2ba-496c81ff8ec4", "ended_at": "2026-11-13T18:27:36Z", "dropped_events": 0, "error_count": 0, "tolerated_error_count": 0}
+
+­ƒÜÇ Running graph: graph.yaml
+   Variables: {'store': 'outputs/map_memo_demo/smoke.sqlite'}
+
+­ƒöù Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a1d62a-2be3-7aa3-83af-ebd90bf89ad8?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: memo_merge
+  store: outputs/map_memo_demo/smoke.sqlite
+  plan: {'paths': ['examples\\demos\\map_memo\\notes\\alpha.md', 'examples\\demos\\map_memo\\notes\\beta.md', 'examples\\demos\\map_memo\\notes\\gamma.md'], 'store': 'outputs/map_memo_demo/smoke.sqlite'}
+  memo: {'task_id': None, 'tool': 'map_memo_split', 'success': True, 'result': {'store': 'C:\\src\\yamlgraph\\outputs\\map_memo_demo\\smoke.sqlite', 'signature': '186618bd0d46a9794fdcfa24e6a0952d0a71a1b706af8b8db386e3316156740e', 'current': [{'key': 'examples\\demos\\map_memo\\notes\\alpha.md', 'version': '02573a737fb9e7dbc9fa5c084054b286a5297f5212dc769df3a6a56d7173c1cf', 'index': 0, 'hit': 'none'}, {'key': 'examples\\demos\\map_memo\\notes\\beta.md', 'version': '0a7e2fae503c64f21f585e90580d86d2fbe05bec98a3f6644d15317a410a5ca5', 'index': 1, 'hit': 'none'}, {'key': 'examples\\demos\\map_memo\\notes\\gamma.md', 'version': '39663046540c53940509d46308407f44ac5614460e0c203d4c38acccd932caca', 'index': 2, 'hit': 'none'}], 'todo': ['examples\\demos\\map_memo\\notes\\alpha.md', 'examples\\demos\\map_memo\\notes\\beta.md', 'examples\\demos\\map_memo\\notes\\gamma.md'], 'hits': {}}, 'error': None}
+  summaries: [{'_map_index': 0, 'value': '\n\nMint thrives in a pot near a sunny window and requires watering when the soil surface feels dry.'}, {'_map_index': 1, 'value': '\n\nThe library reading corner features two comfortable chairs and a small lamp that creates a welcoming atmosphere on rainy afternoons.'}, {'_map_index': 2, 'value': '\n\nThe neighborhood walking trail features a quiet pond with benches for watching ducks.'}]
+  summary_failures: []
+  merged: {'task_id': None, 'tool': 'map_memo_merge', 'success': True, 'result': {'records': [{'value': '\n\nMint thrives in a pot near a sunny window and requires watering when the soil surface feels dry.', '_map_index': 0}, {'value': '\n\nThe library reading corner features two comfortable chairs and a small lamp that creates a welcoming atmosphere on rainy afternoons.', '_map_index': 1}, {'value': '\n\nThe neighborhood walking trail features a quiet pond with benches for watching ducks.', '_map_index': 2}], 'failures': [], 'verdict': {'dispatch': '8bdd72c9efa24848981dd79d96a83fdb', 'dispatched': 3, 'succeeded': 3, 'tolerated': 0, 'failed': 0, 'accepted': 3, 'min_success': 1.0, 'met': True}, 'counts': {'executed_ok': 3, 'executed_failed': 0, 'reused_ok': 0, 'reused_failed': 0}}, 'error': None}
+
+2026-11-13 20:27:39,071 [INFO] yamlgraph.compile.graph_loader: Parsed 3 Python tools: map_memo_split, map_memo_merge, prepare
+2026-11-13 20:27:39,072 [INFO] yamlgraph.compile.node_compiler: Added node: prepare (type=python)
+2026-11-13 20:27:39,072 [INFO] yamlgraph.compile.node_compiler: Added node: memo_split (type=tool_call)
+2026-11-13 20:27:39,080 [INFO] yamlgraph.compile.graph_loader: Parsed 1 Python tools: read_note
+2026-11-13 20:27:39,081 [INFO] yamlgraph.compile.node_compiler: Added node: read_note (type=python)
+2026-11-13 20:27:39,082 [INFO] yamlgraph.compile.node_compiler: Added node: summarize (type=llm)
+2026-11-13 20:27:39,086 [INFO] yamlgraph.compile.node_compiler: Added node: summarize (type=map)
+2026-11-13 20:27:39,086 [INFO] yamlgraph.compile.node_compiler: Added node: memo_merge (type=tool_call)
+2026-11-13 20:27:39,121 [INFO] yamlgraph.route: {"event": "run", "run_id": "01a1d62a-4de1-7627-95a4-6bd44be32cd7", "artifact_hash": "sha256:6864d2c65eede62000a81bd11ce88e09efba2cb11cbaaaedd1473d657539bab1", "graph": "C:/src/yamlgraph/examples/demos/map_memo/graph.yaml", "yamlgraph_version": "0.6.6", "thread_id": null, "started_at": "2026-11-13T18:27:39Z"}
+2026-11-13 20:27:39,339 [INFO] yamlgraph.tools.python_tool: ­ƒÉì Executing Python node: prepare -> prepare
+2026-11-13 20:27:39,346 [INFO] yamlgraph.route: {"event": "route", "node": "summarize", "value": "map", "target": "_map_summarize_account", "thread_id": null, "ts": "2026-11-13T18:27:39Z", "fan_out": 0}
+C:\Users\sheik\AppData\Local\Programs\Python\Python313\Lib\site-packages\langchain_core\tracers\langchain.py:343: LangSmithDeprecationWarning: get_run_url() is deprecated and will be removed after Jan 31, 2027. Use client.runs.get_url() instead. See https://docs.langchain.com/langsmith/smithdb-sdk-migration-runs#runs-get-url for the migration guide.
+  self.client.get_run_url(
+2026-11-13 20:27:40,085 [INFO] yamlgraph.route: {"event": "run_end", "run_id": "01a1d62a-4de1-7627-95a4-6bd44be32cd7", "ended_at": "2026-11-13T18:27:40Z", "dropped_events": 0, "error_count": 0, "tolerated_error_count": 0}
+
+­ƒÜÇ Running graph: graph.yaml
+   Variables: {'store': 'outputs/map_memo_demo/smoke.sqlite'}
+
+­ƒöù Trace: https://eu.smith.langchain.com/o/1c1b3d09-e172-4c82-bddb-5d1fe06a132a/projects/p/f889c0ec-fa9b-4025-b69c-2aa756283ef8/r/01a1d62a-4df6-7d01-9bf6-9f8019b90485?poll=true
+============================================================
+RESULT
+============================================================
+  current_step: memo_merge
+  store: outputs/map_memo_demo/smoke.sqlite
+  plan: {'paths': ['examples\\demos\\map_memo\\notes\\alpha.md', 'examples\\demos\\map_memo\\notes\\beta.md', 'examples\\demos\\map_memo\\notes\\gamma.md'], 'store': 'outputs/map_memo_demo/smoke.sqlite'}
+  memo: {'task_id': None, 'tool': 'map_memo_split', 'success': True, 'result': {'store': 'C:\\src\\yamlgraph\\outputs\\map_memo_demo\\smoke.sqlite', 'signature': '186618bd0d46a9794fdcfa24e6a0952d0a71a1b706af8b8db386e3316156740e', 'current': [{'key': 'examples\\demos\\map_memo\\notes\\alpha.md', 'version': '02573a737fb9e7dbc9fa5c084054b286a5297f5212dc769df3a6a56d7173c1cf', 'index': 0, 'hit': 'ok'}, {'key': 'examples\\demos\\map_memo\\notes\\beta.md', 'version': '0a7e2fae503c64f21f585e90580d86d2fbe05bec98a3f6644d15317a410a5ca5', 'index': 1, 'hit': 'ok'}, {'key': 'examples\\demos\\map_memo\\notes\\gamma.md', 'version': '39663046540c53940509d46308407f44ac5614460e0c203d4c38acccd932caca', 'index': 2, 'hit': 'ok'}], 'todo': [], 'hits': {'examples\\demos\\map_memo\\notes\\alpha.md': {'value': '\n\nMint thrives in a pot near a sunny window and requires watering when the soil surface feels dry.'}, 'examples\\demos\\map_memo\\notes\\beta.md': {'value': '\n\nThe library reading corner features two comfortable chairs and a small lamp that creates a welcoming atmosphere on rainy afternoons.'}, 'examples\\demos\\map_memo\\notes\\gamma.md': {'value': '\n\nThe neighborhood walking trail features a quiet pond with benches for watching ducks.'}}}, 'error': None}
+  summaries: []
+  summary_failures: []
+  merged: {'task_id': None, 'tool': 'map_memo_merge', 'success': True, 'result': {'records': [{'value': '\n\nMint thrives in a pot near a sunny window and requires watering when the soil surface feels dry.', '_map_index': 0}, {'value': '\n\nThe library reading corner features two comfortable chairs and a small lamp that creates a welcoming atmosphere on rainy afternoons.', '_map_index': 1}, {'value': '\n\nThe neighborhood walking trail features a quiet pond with benches for watching ducks.', '_map_index': 2}], 'failures': [], 'verdict': {'dispatch': '143a62b08f3a4e1e9aff9aba8db2b938', 'dispatched': 3, 'succeeded': 3, 'tolerated': 0, 'failed': 0, 'accepted': 3, 'min_success': 1.0, 'met': True}, 'counts': {'executed_ok': 0, 'executed_failed': 0, 'reused_ok': 3, 'reused_failed': 0}}, 'error': None}

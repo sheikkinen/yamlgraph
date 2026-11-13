@@ -85,9 +85,10 @@ def test_installed_wheel_ships_and_runs_memo(tmp_path):
         ignore=shutil.ignore_patterns("__pycache__", "*.pyc"),
     )
     dist = tmp_path / "dist"
+    # Build isolation fetches the declared backend: test envs need not ship setuptools.
     subprocess.run(
         [sys.executable, "-m", "pip", "wheel", str(src), "--no-deps"]
-        + ["--no-build-isolation", "-q", "-w", str(dist)],
+        + ["-q", "-w", str(dist)],
         check=True,
         cwd=tmp_path,
     )

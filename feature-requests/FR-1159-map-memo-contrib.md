@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Approved with revisions (R-1..R-3 folded; see
+**Status:** Implemented (approved with revisions R-1..R-3 folded; see
 [judgement](FR-1159-map-memo-contrib.judgement.md))
 **Requested:** 2026-11-13
 **First consumer / first event:** the new provider-cheap demo
@@ -117,16 +117,16 @@ commands:
 
 ## Acceptance Criteria
 
-- [ ] AC-01: The implementation exists only at
+- [x] AC-01: The implementation exists only at
   `yamlgraph/contrib/map_memo.py`. A diff against the baseline shows no
   executable changes. No executable import uses
   `examples.shared.map_memo`, including source strings passed to
   subprocesses. Git rename history identifies the move.
-- [ ] AC-02: Both existing manifests use
+- [x] AC-02: Both existing manifests use
   `runtime.module: yamlgraph.contrib.map_memo` and no `runtime.path`. The
   FR-768 translation asserts the module source, and both resolved
   functions run the existing split/merge witness successfully.
-- [ ] AC-03: The four named existing suites pass with their behavioural
+- [x] AC-03: The four named existing suites pass with their behavioural
   assertions preserved. Only these may change:
   - import lines and path references
   - documentation that names the old path
@@ -134,7 +134,7 @@ commands:
     `tool["module"] == "yamlgraph.contrib.map_memo"` and `"path" not in tool`
 
   Existing consumer graphs and prompts are unchanged.
-- [ ] AC-04: A provider-free witness tagged REQ-YG-726 checks the
+- [x] AC-04: A provider-free witness tagged REQ-YG-726 checks the
   installed wheel (R-3):
   - it builds the wheel;
   - the archive contains `yamlgraph/contrib/map_memo.py` and no
@@ -145,17 +145,17 @@ commands:
   - it loads both functions through inline `module:` tool declarations;
   - it runs a split/merge round trip over temporary files, and a second
     split returns no work.
-- [ ] AC-05: In a fresh interpreter, importing `yamlgraph.contrib` does
+- [x] AC-05: In a fresh interpreter, importing `yamlgraph.contrib` does
   not load `yamlgraph.contrib.map_memo`. The contrib initializer adds only
   module-list documentation, with no memo re-export.
-- [ ] AC-06: The compiled demo runs with only `execute_prompt` patched,
+- [x] AC-06: The compiled demo runs with only `execute_prompt` patched,
   on isolated copies of its three notes and a temporary store, with fresh
   graph state on each invocation.
   - Provider calls per run are 3, then 0, then 1 after editing exactly
     one note.
   - Run 2 reports `reused_ok == 3`, and its ordered records equal run 1's.
   - Run 3 keeps the records of the unchanged notes.
-- [ ] AC-07: The demo is authored with `scripts/author.sh`, has a
+- [x] AC-07: The demo is authored with `scripts/author.sh`, has a
   substantive and honest authoring report, and lints clean. The live
   two-run smoke:
   - starts from one empty, isolated store;
@@ -166,7 +166,7 @@ commands:
   Record the provider and model, the exact commands, and the observed
   counts, not just exit codes. Missing credentials or an exhausted cap is
   recorded as an unmet AC.
-- [ ] AC-08: CAP-289 and CAP-292 carry the new implementation path in
+- [x] AC-08: CAP-289 and CAP-292 carry the new implementation path in
   every affected location, with no change to behavioural requirements.
   CAP-302 / REQ-YG-726 registers FR-1159 and its witnesses. Any
   `ARCHITECTURE.md` regeneration is limited to the matching registry
@@ -193,8 +193,59 @@ commands:
 | Leave example-local | Rejected: installed users cannot reach it (Problem). |
 | is_this_a_graph | The memo is deterministic I/O (FR-1116); the demo is the graph-shaped deliverable. |
 
+## Demo Authoring Status
+
+The authoring execution created `examples/demos/map_memo/` and left its
+files uncommitted. Both graphs lint without graph warnings. The unchanged
+AC-06 witness passes: worker calls are 3, 0, then 1, with three reused
+successes on run 2 and two on run 3. Evidence and exact commands are in
+`tmp/draft-authoring-report.md`.
+
+Two brief corrections were necessary: Python tools return `plan` and
+`note` state-update envelopes because dict returns are merged directly,
+not wrapped by `state_key`; `read_note` is declared only in the worker,
+where it is used, rather than also as an unused parent tool. The pipeline
+and single plain-text prompt are unchanged. The live AC-07 smoke remains
+for the enforcer under its spend cap; this execution made no live calls.
+
+## Implementation Record
+
+- RED `066e6f0e` (witnesses, test import changes, CAP-302); GREEN follows
+  it on `feat/fr-1159-map-memo-contrib`.
+- AC-01: `git mv` recorded as a rename; the only content change is the
+  module docstring. `git grep` finds `examples/shared/map_memo.py` only in
+  CAP-302 prose and the wheel witness's negative assertion.
+- AC-03/AC-06: targeted command (Planned Operations) → **117 passed**.
+- AC-07 live smoke (inception / mercury-2.5, repo root, fresh store):
+  `yamlgraph graph run examples/demos/map_memo/graph.yaml --var store=outputs/map_memo_demo/smoke.sqlite --full`
+  run twice. Run 1: exit 0, 3 provider POSTs, counts
+  `executed_ok 3, reused_ok 0`. Run 2: exit 0, 0 provider POSTs, counts
+  `executed_ok 0, reused_ok 3`. Total 3 calls (cap 10). Lint: no issues.
+- AC-08/AC-09: `aggregate_capabilities.py` regenerated `ARCHITECTURE.md`;
+  `req_coverage --strict` exit 0; `lint-imports` exit 0; Ruff check and
+  format clean.
+
+### Deviations
+
+- The wheel witness builds **with** build isolation (no
+  `--no-build-isolation`): the Windows host Python has no setuptools, and
+  isolation fetches the declared backend. Edited in the GREEN commit; the
+  assertions are unchanged.
+- The demo's `prepare` / `read_note` return `plan` / `note` envelopes (see
+  Demo Authoring Status).
+- The first `author.sh` run failed in 6 s: its pinned model `gpt-5.5` is
+  no longer served (`copilot -p` probe: "Model gpt-5.5 is not available").
+  The rerun used `gpt-6.1-sol`, matching the operator's local judge-adapter
+  pin. That adapter edit is left uncommitted, outside this FR's scope,
+  like the judge-adapter one.
+- `test_fr1120_census_memo_graph::test_signature_file_change_reruns_everything`
+  failed once in an early combined run that included the then-missing demo.
+  It did not reproduce: 8/8 alone, with and without the GREEN changes, and
+  in three later combined runs (113 passed; 116 passed + the not-yet-authored
+  demo; 117 passed).
+
 ## Related
 
-- `examples/shared/map_memo.py`, `examples/shared/map_memo_*.tool.yaml`
+- `yamlgraph/contrib/map_memo.py`, `examples/shared/map_memo_*.tool.yaml`
 - `yamlgraph/tools/manifest.py` (`PythonRuntime.module`)
 - `capabilities/CAP-289-map-memo-file-corpus.yaml`
