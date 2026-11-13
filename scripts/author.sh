@@ -23,6 +23,15 @@ STALE_MIN=15  # 900s = graph timeout
 
 fail() { echo "author.sh: $1" >&2; exit "$2"; }
 
+# Candidate repo-relative paths from a report's Artifacts section:
+# backticked or bare tokens containing a slash and a file extension.
+# Windows-written reports use '\' — normalize at the boundary (FR-1161).
+artifact_candidates() {
+  awk '/^#+ *Artifacts/{flag=1; next} /^#+ /{flag=0} flag' "$1" \
+    | tr '\\' '/' \
+    | grep -oE '[A-Za-z0-9_./-]+\.[A-Za-z0-9]+' | grep '/' | sort -u
+}
+
 [ -n "$TASK_PATH" ] || fail "usage: scripts/author.sh [--no-preflight] <task-brief.md>" 64
 [ -f "$TASK_PATH" ] || fail "task brief not found: $TASK_PATH" 66
 
@@ -99,16 +108,13 @@ for heading in "Artifacts" "Precedent" "Validation" "Repairs" "Blocked validatio
 done
 
 # At least one listed repo-relative artifact path must exist (R-2).
-# Extract candidate paths from the Artifacts section: backticked or bare
-# tokens containing a slash and a file extension.
 FOUND_ARTIFACT=""
 while IFS= read -r candidate; do
   if [ -e "$WORKDIR/$candidate" ]; then
     FOUND_ARTIFACT="$candidate"
     break
   fi
-done < <(awk '/^#+ *Artifacts/{flag=1; next} /^#+ /{flag=0} flag' "$ARTIFACT" \
-  | grep -oE '[A-Za-z0-9_.\/-]+\.[A-Za-z0-9]+' | grep '/' | sort -u)
+done < <(artifact_candidates "$ARTIFACT")
 [ -n "$FOUND_ARTIFACT" ] || fail "contract violated: no listed artifact path under 'Artifacts' exists in $WORKDIR" 65
 
 echo "author.sh: report written: $ARTIFACT (artifact verified: $FOUND_ARTIFACT; advisory until human-reviewed and committed)"
