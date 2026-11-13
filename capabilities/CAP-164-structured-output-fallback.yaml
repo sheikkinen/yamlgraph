@@ -1,6 +1,6 @@
 id: CAP-164
 name: Structured Output JSON Fallback
-fr: FR-464, FR-998, FR-1121, FR-1123, FR-1125
+fr: FR-464, FR-998, FR-1121, FR-1123, FR-1125, FR-1156
 description: >
   When with_structured_output() fails (provider rejects response_format),
   fall back to extract_json() + model_validate(). Extends FR-456 pattern
@@ -57,8 +57,10 @@ requirements:
     text: >
       yamlgraph/utils/schema_walk.py owns one walker that returns typed
       findings for every subschema constrained decoding cannot express —
-      untyped (lacking type/anyOf/oneOf/allOf/$ref, FR-1123) and open
-      object (type object with no declared properties, which the transform
+      untyped (lacking type/anyOf/oneOf/allOf/$ref and carrying no primitive
+      const or non-empty all-primitive enum, FR-1123/FR-1156) and open
+      object (type object with no declared properties and carrying no
+      primitive const or non-empty all-primitive enum, which the transform
       hollows to {} , FR-1125) — traversing exactly as Anthropic's strict
       transform does, and one pure static
       provider resolver (node, defaults.provider, PROVIDER, "anthropic";

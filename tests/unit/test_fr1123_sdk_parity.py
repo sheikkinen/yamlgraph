@@ -13,6 +13,7 @@ import pytest
 
 from tests.unit.test_fr1123_prompt_census import ROOT, committed_prompt_schemas
 from tests.unit.test_fr1123_untyped_subschema import _model
+from tests.unit.test_fr1156_literal_subschema import LITERAL_ROWS
 from yamlgraph.schema_loader import load_schema_from_yaml
 from yamlgraph.utils.schema_walk import find_untyped_subschemas
 
@@ -20,7 +21,10 @@ transform = pytest.importorskip("anthropic.lib._parse._transform")
 
 pytestmark = [pytest.mark.slow, pytest.mark.process]
 
-MISSING_KEYWORD = "Schema must have a 'type', 'anyOf', 'oneOf', or 'allOf' field."
+MISSING_KEYWORD = (
+    "Schema must have a 'type', 'anyOf', 'oneOf', or 'allOf' field, "
+    "or a 'const' or non-empty 'enum' of strings, numbers, booleans, or null."
+)
 
 
 def sdk_rejects_untyped(schema: dict) -> bool:
@@ -61,6 +65,10 @@ _NESTED = [
             }
         },
     },
+    # FR-1156: anthropic 2.8 literal rule, at root and nested
+    *(schema for schema, _ in LITERAL_ROWS),
+    *({"type": "object", "properties": {"l": schema}} for schema, _ in LITERAL_ROWS),
+    {"type": "object", "properties": {"o": {"type": "object", "const": "x"}}},
 ]
 
 
@@ -93,7 +101,7 @@ def test_ac07_parity_committed_census() -> None:
 def test_ac07_private_sdk_import_lives_in_one_test_module() -> None:
     needle = "anthropic.lib._parse"
     hits = sorted(
-        str(p.relative_to(ROOT))
+        p.relative_to(ROOT).as_posix()
         for top in ("yamlgraph", "tests")
         for p in (ROOT / top).rglob("*.py")
         if needle in p.read_text(encoding="utf-8")
@@ -106,6 +114,15 @@ def test_ac07_private_sdk_import_lives_in_one_test_module() -> None:
 # branch as "<kw>[i]", then properties and items. Never dereference a $ref into a second path.
 
 HOLLOW = {"type": "object", "properties": {}, "additionalProperties": False}
+
+
+def _sdk_literal(schema: dict) -> bool:
+    """The SDK's own eligibility rule, restated here so the oracle stays walker-independent."""
+    prim = (str, int, float, bool, type(None))
+    enum = schema.get("enum")
+    if isinstance(enum, list) and enum and all(isinstance(v, prim) for v in enum):
+        return True
+    return "const" in schema and isinstance(schema["const"], prim)
 
 
 def _concrete_objects(
@@ -122,6 +139,8 @@ def _concrete_objects(
             for i, v in enumerate(variants):
                 out += _concrete_objects(v, (*path, f"{kw}[{i}]"))
             return out
+    if _sdk_literal(schema):
+        return out  # the SDK drops `type` beside a literal
     if schema.get("type") == "object":
         out.append((path, schema))
         for key, sub in (schema.get("properties") or {}).items():
