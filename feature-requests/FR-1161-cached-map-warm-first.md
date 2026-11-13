@@ -2,10 +2,12 @@
 
 **Priority:** MEDIUM
 **Type:** Feature
-**Status:** Revised for re-judgement: first judgement REJECTED with
-revisions R-1..R-6 ([judgement](FR-1161-cached-map-warm-first.judgement.md));
-all six folded below; both human decisions answered 2026-11-13
-(§ Operator decisions)
+**Status:** Approved by operator overrule (2026-11-13). Judge rounds 1 and
+2 REJECTED ([judgement](FR-1161-cached-map-warm-first.judgement.md)).
+Round 1's R-1..R-6 and round 2's R-2/R-3 are folded below. Round 2's R-1
+(the three-use-case bar for a framework primitive) is unmet and is
+overruled by the operator: "judgement is advisory. overruled. enforce".
+In enforcement.
 **Requested:** 2026-11-13
 **First consumer / first event:** game-engine's library describe maps
 (`workflows/library/library.yaml`: `describe_chars`, `describe_places`,
@@ -132,6 +134,14 @@ The demo and the FR-1155 automatic-mode follow-up are not counted.
    named follow-up.
 2. **Paid-run ceiling.** "$1 total, max 3 witness runs" covers the live
    witness, the demo run and all retries (§ Live witness protocol).
+3. **Overrule of round 2's verdict.** Round 2 held that the override in
+   decision 1 does not satisfy the judge rubric's three-use-case bar. A
+   search of yamlgraph and game-engine found no third eligible workload:
+   book-setup `settle` (about 3.7k chars), library `invent_look` (about
+   2.6k) and dungeon_master `intents` (about 3k) sit near or below the
+   cache minimum. The operator answered: "judgement is advisory.
+   overruled. enforce". Scope is the plan below with round 2's R-2 and
+   R-3 folded; no doctrine is changed.
 
 ## Planned Operations
 
@@ -235,10 +245,14 @@ So `cached_map` freezes everything at dispatch:
   `on_overflow` (an overflow raise happens here, before any worker runs),
   and writes one record to a private channel
   `_cached_map_snapshot[<name>]`.
-- **Typed transport.** The record is a Pydantic model
+- **Typed transport.** The record is a Pydantic envelope
   `CachedMapSnapshot{dispatch: str, items: list[Any], inputs: dict[str, Any]}`
-  in `yamlgraph/models/map_results.py`, stored via `model_dump()` in
-  checkpointed graph state. `inputs` is the dispatch-time state minus
+  in `yamlgraph/models/map_results.py`. It is stored as a shallow field
+  mapping (`{"dispatch": s.dispatch, "items": s.items, "inputs": s.inputs}`),
+  never `model_dump()`: contained items and inputs keep their Python
+  values (Pydantic models stay models), exactly as the plain map's `Send`
+  passes them (round 2 R-2). Checkpoint serialization is the existing
+  one. `inputs` is the dispatch-time state minus
   execution bookkeeping (`_map_open`, `_map_accounting`, `_map_verdict`,
   `_cached_map_snapshot`). No process-global event, no mutable compiler
   closure.
@@ -321,11 +335,17 @@ test marked with the allocated REQ; bounded `threading.Event` waits only):
 3. Parity (§ Parity): the same graph with `type: map` and
    `type: cached_map` gives equal normalized `collect`, failures and
    `MapVerdict` for a mix of successes and one failure.
-4. Warm failure, parameterized over exception, tolerated skip and wrapper
-   timeout: the other N − 1 still run; accounting covers indices 0..N−1;
-   tolerated and failed counts are distinguished; `min_success: 1.0`
-   fails the join, `min_success: 0.5` passes. The timeout worker waits on
-   an event the test sets in teardown, so no work leaks.
+4. Warm outcome truth table (round 2 R-3), N = 4, item 0 parameterized,
+   items 1..3 succeed:
+   - exception or wrapper timeout: `succeeded=3, tolerated=0, failed=1,
+     accepted=3`; `min_success: 1.0` unmet, `0.5` met;
+   - tolerated skip: `succeeded=3, tolerated=1, failed=0, accepted=4`;
+     both met.
+   Every case asserts release, indices exactly 0..3, one token, the
+   committed verdict and snapshot closure; an unmet policy raises at join
+   only after accounting commits. `compute_verdict` is unchanged. The
+   timeout worker waits on an event the test sets in teardown, so no work
+   leaks.
 5. N = 0 and N = 1: no release Sends; verdict as in `map`.
 6. Subgraph worker: item 0's whole child graph finishes before item 1
    starts.
@@ -353,6 +373,10 @@ test marked with the allocated REQ; bounded `threading.Event` waits only):
     each produce both verdicts with independent tokens.
 14. Lint: `yamlgraph graph lint` accepts a `cached_map` graph and reports
     the same missing-field errors `map` reports.
+15. Type preservation (round 2 R-2): items are Pydantic models and a
+    common input is a Pydantic model; a Python worker reads their
+    attributes and asserts their concrete types in the warm and release
+    calls; outputs equal the plain map's after dispatch-id normalization.
 
 ### Live witness protocol (R-5)
 
@@ -415,8 +439,8 @@ test marked with the allocated REQ; bounded `threading.Event` waits only):
 - [ ] AC-10: No change to `type: map` behaviour: the existing-suite
   command in § Planned Operations passes unchanged, and the CI-mirror
   unit run is green.
-- [ ] AC-11: Unit tests 8, 9 and 10 pass (snapshot: collect-as-over,
-  common input, re-entry).
+- [ ] AC-11: Unit tests 8, 9, 10 and 15 pass (snapshot: collect-as-over,
+  common input, re-entry, type preservation).
 - [ ] AC-12: This FR records implementation status and decisions, and a
   diary entry with a `Seed:` is added under `docs/diary/`.
 

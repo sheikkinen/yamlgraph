@@ -140,3 +140,122 @@ These are the minimum contract for reconsideration, not authorization to impleme
 | GATE-5 | Any later authorized implementation must preserve ordinary map behavior, use RED/GREEN witnesses and the graph-authoring route, and leave unsuccessful live evidence visibly unmet. | GATE |
 
 Authority granted: none; the measured optimization is worth pursuing, but the present standalone core-node plan must return to planning.
+
+---
+
+# Round 2 Judgement: FR-1161 `cached_map` Node: Warm-First Map Dispatch for Prompt Caching
+
+**Verdict:** REJECTED — The revised plan substantially repairs the scheduling contract, but the standalone primitive still fails the doctrine's demand threshold, snapshot serialization changes worker input types, and the tolerated-skip witness contradicts map completeness semantics.
+
+**Reviewed against:** Committed inputs at `c0f94cee65bfb9d8af3b8d2882e6b43d5e601ca9`:
+
+- `feature-requests/FR-1161-cached-map-warm-first.md`, entire file.
+- `feature-requests/FR-1161-cached-map-warm-first.judgement.md`, entire file.
+- `feature-requests/FR-1155.research.md`, entire file.
+- `feature-requests/FR-1155-prompt-cache-tokens-in-token-usage.md`, lines 1-240.
+- `feature-requests/FR-1158-cached-map-node.judgement.md`, entire file.
+- `feature-requests/FR-1159-map-memo-contrib.md`, lines 1-190.
+- `feature-requests/FR-1073-map-result-contract.md`, lines 1-200.
+- `feature-requests/FR-984-map-fan-out-max-concurrency.md`, lines 1-145.
+- `feature-requests/FR-1055-anthropic-prompt-cache-blocks-never-reach-api.md`, lines 1-115.
+- `feature-requests/FR-111-compiled-graph-cache.md`, lines 1-100.
+- `yamlgraph/compile/map_compiler.py`, lines 1-330.
+- `yamlgraph/compile/map_contract.py`, entire file.
+- `yamlgraph/models/map_results.py`, entire file.
+- `yamlgraph/models/state_builder.py` and `yamlgraph/models/state_codegen.py`, map-channel search excerpts only.
+- `.github/skills/judge-fr/doctrine.md` and `.github/skills/judge-fr/judgement.template.md`, entire files.
+- Repository doctrine supplied from `.github/copilot-instructions.md` and `CLAUDE.md`.
+
+The FR, research record and promoted first judgement match HEAD. No author transcript, working notes, external consumer checkout or dirty adapter content was consumed. The game-engine workloads and operator decisions are evaluated as committed FR assertions. This artifact is a draft only; it neither promotes another verdict nor changes the FR's status.
+
+## What is sound
+
+The strongest case **against** shipping is that a new public compiler primitive with broad registration/state obligations serves two prompts in one consumer repository, one of which has no measured eligible cache prefix. A smaller map option remains a deferred alternative, not a disproven one (`FR-1161:112-132,427-434`). The strongest case **for** the mechanism is equally concrete: the measured warm-first variant reduces eight writes to one while retaining most parallelism (`FR-1155.research.md:78-97`). This is a real scheduling optimization, not result memoization.
+
+The revision now specifies dispatch-time population/common-input ownership, snapshot cleanup, sequential re-entry, settled timeout outcomes, diagnostic names and normalized deterministic parity (`FR-1161:207-280`). These address most of the first judgement's technical objections. Separate supersteps avoid waiting branches occupying fan-out slots. The live gate no longer depends on forcing an ordinary-map provider race; a positive warm write, fixed thresholds, distinct nonces and a recorded $1/three-run ceiling are sound (`FR-1161:359-384`). No new paid authorization is inferred by this judge.
+
+| Rubric criterion | Assessment |
+|---|---|
+| 1. Scope | One scheduling concern, with supporting documentation/demo/tests. The standalone public node remains larger than the deferred map option on the current demand evidence (`FR-1161:103-132,427-434`). |
+| 2. Consistency | Not satisfied: recursively dumping arbitrary snapshot values conflicts with unchanged worker inputs; the strict-threshold failure assertion also includes tolerated skips (`FR-1161:238-248,324-328`). |
+| 3. Measurability | Ordering, release width, exact indices, re-entry and live cache thresholds are mechanically checkable. Fix the contradictory outcome expectations before they become acceptance assertions (`FR-1161:313-384`). |
+| 4. Feasibility | The existing wrapped worker and account/join factories support the topology. `merge_map_open` can carry records with a dispatch key, but the proposed snapshot dump does not preserve the plain map's arbitrary Python input values (`map_results.py:72-84`; `map_contract.py:160-170`). |
+| 5. Architecture alignment | Compiler-owned Send wiring and shared worker construction align. Typed transport must validate the envelope without silently converting contained model values into dictionaries (`FR-1161:186-205,238-248`). |
+| 6. Single responsibility | One cohesive ordering feature; registration, witnesses and the example support it. No SPLIT is warranted. |
+| 7. Strategic classification | **Contrib/example on evidenced demand**, with a compiler integration gap, not a qualifying framework primitive. The FR explicitly admits fewer than three use cases (`FR-1161:112-123`; judge doctrine:51-55). This classification does not authorize a plugin or an unusable contrib implementation. |
+| 8. Testability | Most tests are directly derivable. Add a model-valued input parity witness and correct the tolerated-skip truth table; otherwise tests either miss an input-boundary regression or demand a change to existing policy (`FR-1161:324-341`; `map_results.py:97-107`). |
+
+The research gate is satisfied: committed measured evidence, substantive alternatives and the `is_this_a_graph` answer exist (`FR-1161:21-26,423-434`). This is scheduling, not new measurement tooling; the measurement-tooling pre-authority raw-sample gate does not apply. Rejected memo precedent is explicitly distinguished rather than resurrected (`FR-1161:30-39`).
+
+## Required revisions
+
+These are return-to-plan requirements, not conditional implementation authority.
+
+### R-1: Resolve the standalone primitive's unmet classification requirement
+
+Retain the honest two-workload table and the operator's standalone-first decision. The product question from the first judgement has been answered; do not ask it again or manufacture another consumer.
+
+However, a committed product override does not amend the governing judge rubric, which requires three or more use cases for a framework primitive (`judge-fr/doctrine.md:51-55`). The FR itself acknowledges that threshold is unmet (`FR-1161:121-132`). Return with either committed evidence meeting that requirement or a smaller, separately judged extension of the existing map abstraction. Do not silently substitute contrib packaging or invent a plugin.
+
+If the operator intends to change the governance rule rather than the design, that requires a separate explicit doctrine change with human review; it is not authorized by this FR. Recording the override is useful decision provenance, but is not evidence that the present proposal satisfies the current rule.
+
+### R-2: Preserve Python value types across the snapshot boundary
+
+Replace the unconditional `CachedMapSnapshot.model_dump()` transport at `FR-1161:238-248` with a typed snapshot envelope whose contained `items` and `inputs` retain their Python values through dispatch and release. A shallow field mapping of the validated envelope is sufficient; do not recursively serialize the contents as a new scheduling requirement.
+
+Pydantic's recursive dump converts nested model instances into dictionaries even inside `Any` containers. Ordinary map passes those values through unchanged (`map_contract.py:160-170`). Thus an existing Python worker reading `state["item"].name`, or a model-valued common input through attribute access, can succeed under `map` and fail under this design. Applying the same conversion to both waves makes the waves consistent with each other, not with ordinary map.
+
+Add a provider-free compiled comparison using an existing supported Pydantic item type and a Pydantic common input. The worker must access their attributes and assert their concrete types in both warm and release calls. Compare deterministic outputs with ordinary map, normalizing only dispatch identity. Retain the collect-as-over, common-input and re-entry witnesses. Preserve existing checkpoint serialization support; no new general serializer, object-format restriction or deep-copy subsystem is requested.
+
+### R-3: Correct the warm-outcome completeness truth table
+
+Replace unit test 4's blanket assertion that `min_success: 1.0` fails for every parameter (`FR-1161:324-328`). Use N = 4, item 0 as the parameterized outcome, and three successful release workers:
+
+- Exception or wrapper timeout: `succeeded=3`, `tolerated=0`, `failed=1`, `accepted=3`; fraction `1.0` is unmet and fraction `0.5` is met.
+- Tolerated skip: `succeeded=3`, `tolerated=1`, `failed=0`, `accepted=4`; both fractions are met.
+
+In every case assert release, indices exactly `0..3`, one token, the committed verdict and snapshot closure. For unmet policy, assert that the later join raises only after accounting commits. Keep bounded timeout cleanup.
+
+This is existing policy, not a new exception: `accepted = succeeded + tolerated` (`FR-1073:183-194`; `map_results.py:97-107`). Do not change `compute_verdict` to make the mistaken witness pass.
+
+## Scope is frozen
+
+No implementation scope is granted by this rejected draft.
+
+| Deliverable | Surface |
+|---|---|
+| D-1: Draft judgement | `tmp/draft-judgement-copilot-FR-1161-cached-map-warm-first.md` only |
+| Candidate scheduling mechanism, not authorized | Dispatch snapshot, warm item 0, release remaining original indices, account once, enforce at join |
+| Candidate supporting artifacts, not authorized | Focused offline/live witnesses, governed demo, reference, capability/REQ, generated architecture and changelog |
+| Return-to-plan work | Committed design/evidence addressing R-1 through R-3; not performed by this judge |
+
+Not authorized: core `cached_map` implementation; an unjudged map option or automatic mode; plugin infrastructure; result memoization; consumer migrations; provider inspection; first-token release; physical timeout cancellation; token-meter changes; general serialization tooling; enforcement/doctrine edits; changes to ordinary-map outcome arithmetic.
+
+## Revised acceptance criteria
+
+These are the minimum contract for reconsideration, not authorization to implement.
+
+- [ ] AC-01: The committed plan meets the framework-primitive demand requirement or supplies a separately judged smaller design; hypothetical demonstrations and redo variants do not inflate demand.
+- [ ] AC-02: Load/schema/lint, inferred/generated state, failure channels and published-schema validation recognize the authorized design consistently.
+- [ ] AC-03: In sync and async invocation, successful item 0 commits before any later worker starts; successful subgraph warming waits for the entire child graph.
+- [ ] AC-04: Release workers overlap, and invoke-level concurrency 2 caps their peak at 2; synchronization is bounded.
+- [ ] AC-05: Both waves use exactly the capped dispatch-time items and common inputs. Collect-as-over, model-valued items/common inputs and common-input isolation pass without type conversion; re-entry uses fresh tokens/snapshots.
+- [ ] AC-06: Equivalent deterministic outcomes match ordinary map's ordered results, failure semantics and verdict policy/counts/met after only documented identity normalization. All indices and token attribution remain checked.
+- [ ] AC-07: N = 4 warm exception/timeout and tolerated-skip cases satisfy R-3's distinct truth table, release all remaining items, close the snapshot during accounting and commit the verdict before any unmet join raises.
+- [ ] AC-08: Empty/singleton populations, subgraph order, topology/diagnostic names, overflow before any worker, and both map/cached-map composition directions obey the declared contract.
+- [ ] AC-09: The fixed live witness uses the recorded model, N = 4, width 4, distinct cold nonces and positive P; warm reads are zero, writes total `[P, 1.5 P]` and reads total at least `2.5 P`. Raw records are read and explained before reporting the aggregate verdict; the ordinary-map race is context only.
+- [ ] AC-10: All paid attempts, including the demo and retries, stay within $1 and three runs. Missing credentials, an exhausted ceiling or a skip leave the relevant live criteria unmet.
+- [ ] AC-11: The demo follows the authoring route, has a substantive report, lints and records real cache-read/write output. Reference documentation includes snapshot/type semantics, timeout overlap, parity limits and cache eligibility; registry/REQ, generated architecture, index and feature fragment are consistent.
+- [ ] AC-12: The FR's named focused/new and existing map suites, clean CI-mirror unit run, Ruff/format, import boundaries and strict requirement coverage pass on the identified candidate. The FR records status/decisions/deviations; a diary entry includes a `Seed:`.
+
+## Conditions for enforcement
+
+| # | Condition | Severity |
+|---|---|---|
+| GATE-1 | No implementation authority. Folding these revisions does not convert REJECTED into approval. | GATE |
+| GATE-2 | Resolve strategic classification under the governing doctrine; a recorded product preference is not an implicit doctrine amendment. | GATE |
+| GATE-3 | Freeze type-preserving snapshot transport and the corrected tolerated-skip truth table before implementation. Preserve ordinary-map behavior and verdict arithmetic. | GATE |
+| GATE-4 | Respect the recorded combined paid-run ceiling and the graph-authoring route. Failed or unavailable live evidence remains visibly unmet. | GATE |
+| GATE-5 | Do not overwrite or promote judgement history here. If promotion produces two verdict lines in the canonical judgement, the FR-1022 round sentinel applies; this draft does not grant another round or an override. | GATE |
+
+Authority granted: none; return to planning with the demand/classification conflict and the two concrete contract defects resolved.
