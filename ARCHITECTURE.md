@@ -600,6 +600,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 300 | CAP-300 Test Corpus Map | `examples/demos/test_map/graph.yaml`, `examples/demos/test_map/tools.py`, `examples/demos/test_map/extract.py`, `examples/demos/test_map/reconcile.py`, … | REQ-YG-723 |
 | 301 | CAP-301 Race Node Thinking Budget | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py`, `tests/unit/test_race_node.py`, `tests/unit/test_router_race.py` | REQ-YG-724 |
 | 302 | CAP-302 Map Memo Ships As Contrib | `yamlgraph/contrib/map_memo.py`, `examples/shared/map_memo_split.tool.yaml`, `examples/shared/map_memo_merge.tool.yaml`, `examples/demos/map_memo/graph.yaml` | REQ-YG-726 |
+| 303 | CAP-303 Map memo contrib retired | `tests/unit/test_fr1160_retirements.py` | REQ-YG-727 |
 | 304 | CAP-304 Cached Map Warm-First Dispatch | `yamlgraph/compile/cached_map_compiler.py`, `yamlgraph/compile/map_compiler.py`, `yamlgraph/models/map_results.py` | REQ-YG-728 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
@@ -3481,6 +3482,16 @@ FR-1159: the FR-1116 map memo moves to `yamlgraph/contrib/map_memo.py`, so an in
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-726 | The built wheel contains `yamlgraph/contrib/map_memo.py` and no `examples/shared/map_memo.py`; installed non-editably, its split and merge load through inline `module: yamlgraph.contrib.map_memo` tool declarations and a second split over unchanged files returns no work. Importing `yamlgraph.contrib` does not load the memo module. The `examples/demos/map_memo` graph calls its summarize prompt once per note on the first run, zero times on an unchanged re-run (reporting `reused_ok` equal to the note count), and once after one note changes. | `yamlgraph/contrib/map_memo.py`, `examples/demos/map_memo/graph.yaml`, `tests/unit/test_fr1159_map_memo_contrib.py` |
+
+### 303. CAP-303 Map memo contrib retired
+
+The FR-1159 relocation of the FR-1116 map memo into `yamlgraph.contrib` and its `examples/demos/map_memo` demo are removed: the operator rejected FR-1158/FR-1159 because they built a cross-run result memo, not the requested warm-first prompt-cache map. The memo is back in `examples/shared/map_memo.py`, loaded by FR-768 `path:`.
+
+**Feature Request:** FR-1160
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-727 | yamlgraph/contrib/map_memo.py, examples/demos/map_memo, tests/unit/test_fr1159_map_memo_contrib.py, CAP-302 and the FR-1159 changelog fragment are absent; examples/shared/map_memo.py exists and both shared manifests load it by `path: map_memo.py` with no `module:`; yamlgraph/contrib/__init__.py, vulture_whitelist.py and examples/README.md contain no `map_memo` token — witnessed by tests/unit/test_fr1160_retirements.py. | `tests/unit/test_fr1160_retirements.py` |
 
 ### 304. CAP-304 Cached Map Warm-First Dispatch
 
