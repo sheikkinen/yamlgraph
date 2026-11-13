@@ -279,6 +279,49 @@ operator's decision, recorded here.
 **Radon baseline (AC-10)** at `f7943c62` (`schema_walk.py` identical to
 `origin/main`): `_walk` C (17); all other blocks A; MI A (63.71).
 
+### Round-3 amendment request (enforcement stopped per round-2 C-4)
+
+RED `da24ce0f` and GREEN `f69b58c6` are committed, not pushed. The AC-08
+fast-unit command, run on the committed GREEN candidate in a clean CI-mirror
+container (`python:3.11-slim`, non-root user, `git`+`curl`, the CI 3.11
+leg's extras installed unpinned exactly as `workflow.yml` does; resolved
+anthropic 2.8.0, langchain-anthropic 1.7.10, langchain-core 1.8.0), gave
+**1 failed, 7646 passed, 57 skipped**. The one failure is caused by this FR:
+
+```
+tests/unit/test_changelog_req_cross_wiring.py::TestChangelogReqIntegrity::test_no_req_collision_across_unrelated_frs
+REQ-YG-712 claimed by FR-1156 (fragment) but FR-1156 capability has no capability
+```
+
+AC-09 requires the fragment to carry `req: REQ-YG-712`; the cross-wiring
+gate requires every FR claiming a REQ in a fragment to be listed in the
+owning capability's `fr:` field. The precedent is FR-1125, which appended
+itself to `CAP-164`'s `fr:` for the same REQ. The fix lies in a file outside
+the round-2 frozen deliverables, so enforcement stopped here.
+
+**Requested deliverable D-8:** `capabilities/CAP-164-structured-output-fallback.yaml`:
+(a) append `FR-1156` to `fr:`; (b) amend REQ-YG-712's `text` so its
+untyped definition matches the shipped rule: "untyped (lacking
+type/anyOf/oneOf/allOf/$ref and carrying no primitive const or non-empty
+all-primitive enum, FR-1123/FR-1156)". No new REQ, no capability, no other
+field. The existing failing test is the condemning witness; no new test.
+
+**Other clean-environment evidence (diagnostic):** the same command in a
+`python:3.12-slim` container installed only from the constraints artifact's
+extras (`dev,digest,websearch,fsm,verify`), as root, without `curl`, gave
+7 failures: the REQ collision above, plus 6 environmental ones absent from
+the CI-mirror run (`test_example_extra_imports` for `pyarrow`/`litellm`/
+`unified_planning`, extras the constraints artifact does not cover;
+`test_curl_probe_*`, no `curl`; `test_fr1116_map_memo::test_failed_write_raises`,
+root ignores the read-only bit). The CI-mirror container is therefore the
+recorded clean supported environment for AC-08; the constraints container
+remains the AC-02 freeze witness (FREEZE IDENTICAL again on the committed
+GREEN candidate).
+
+**Radon after (AC-10)** at `f69b58c6`: `_walk` C (19, +2: the literal
+guard and early return); new `_has_literals` B (6), `_is_primitive` A (2);
+all other blocks unchanged; MI A (59.81, −3.90). File 171 lines.
+
 ## Out of Scope
 
 - **Retiring FR-1154's SDK-1 branch.** The FR-1146 `elif` in `create_llm` is
