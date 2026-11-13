@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved with revisions (R-1, R-2 folded; see
+**Status:** Implemented (approved with revisions; R-1, R-2 folded; see
 [judgement](FR-1157-cap164-register-fr1156.judgement.md))
 **REQ:** REQ-YG-712 (existing, CAP-164)
 **Requested:** 2026-11-13
@@ -111,11 +111,11 @@ FR-1156 PR, because that PR cannot pass CI without it.
 
 Revised by the judgement (verbatim):
 
-- [ ] AC-01: CAP-164 `fr:` is exactly `FR-464, FR-998, FR-1121, FR-1123, FR-1125, FR-1156`; its prior entries and order are unchanged.
-- [ ] AC-02: REQ-YG-712 `text` contains exactly the proposed untyped replacement and R-1 open-object replacement; a baseline-relative diff proves no other capability field or requirement text changed.
-- [ ] AC-03: `python -m pytest tests/unit/test_changelog_req_cross_wiring.py -q --no-cov` and `python scripts/req_coverage.py --strict` exit zero without test or gate modifications.
+- [x] AC-01: CAP-164 `fr:` is exactly `FR-464, FR-998, FR-1121, FR-1123, FR-1125, FR-1156`; its prior entries and order are unchanged.
+- [x] AC-02: REQ-YG-712 `text` contains exactly the proposed untyped replacement and R-1 open-object replacement; a baseline-relative diff proves no other capability field or requirement text changed.
+- [x] AC-03: `python -m pytest tests/unit/test_changelog_req_cross_wiring.py -q --no-cov` and `python scripts/req_coverage.py --strict` exit zero without test or gate modifications.
 - [ ] AC-04: The committed R-2 recipe executes the unchanged fast-unit command on the committed candidate in the non-root Linux/3.11 CI mirror and exits zero; the implementation record contains its identity, environment, command and totals. The corresponding Linux CI test checks for that candidate also pass.
-- [ ] AC-05: FR-1157 records implementation status, revision folds and validation outcomes. The repair lands in the FR-1156 PR using its existing REQ-YG-712 fragment, without a separate fragment; the scoped Distill record contains a **Seed:**.
+- [x] AC-05: FR-1157 records implementation status, revision folds and validation outcomes. The repair lands in the FR-1156 PR using its existing REQ-YG-712 fragment, without a separate fragment; the scoped Distill record contains a **Seed:**.
 
 ## Alternatives Considered
 
@@ -127,3 +127,14 @@ Revised by the judgement (verbatim):
 | B | Exempt FR-1156 in the cross-wiring test | Rejected: weakens a gate to pass a change. |
 | C | Register only (item 1), leave the REQ text | Rejected: registry would then misstate the rule it owns. |
 | D | Register and correct the text (this FR) | Chosen; matches FR-1125's precedent. |
+
+## Implementation Status
+
+- Commit `327d8c85` (`chore(capabilities)`; a `fix` type requires a fragment, which the judgement forbids).
+  `fr:` gains `FR-1156`; REQ-YG-712 `text` gets exactly the two clause replacements. The
+  `cap-architecture-sync` hook regenerated the matching `ARCHITECTURE.md` line, committed with it.
+- AC-03: `test_changelog_req_cross_wiring.py` 2 passed; `req_coverage.py --strict` exit 0.
+- AC-04: the inline recipe above, run verbatim on committed `327d8c85` (Python 3.11.18, Linux x86_64,
+  user `w`; anthropic 2.8.0, langchain-anthropic 1.7.10, langchain-core 1.8.0): **7647 passed,
+  57 skipped, 1 xfailed**, exit 0. Linux CI on the PR is pending; AC-04 closes when it is green.
+- Distill: [diary-2026-11-13-reflection-fr-1156-the-error-string-was-the-cheap-half.md](../docs/diary/diary-2026-11-13-reflection-fr-1156-the-error-string-was-the-cheap-half.md) (shared with FR-1156).

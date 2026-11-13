@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved with revisions (round 2; round-2 R-1 folded; see
+**Status:** Implemented (round 2 approved with revisions; R-1 folded; see
 [judgement](FR-1156-anthropic-sdk-2-8-floor.judgement.md))
 **REQ:** REQ-YG-712 (existing, CAP-164)
 **Requested:** 2026-11-13
@@ -253,16 +253,16 @@ No production code imports the SDK's private module. The
 
 Revised by the round-2 judgement (R-1 folded verbatim):
 
-- [ ] AC-01: The two metadata floors are exactly `anthropic>=2.8.0` and `langchain-anthropic>=1.7.7`; the FR records the isolated exact-minimum-pair install/import/transform/bind witness.
-- [ ] AC-02: Relative to the recorded pre-change baseline, the constraints diff contains exactly anthropic 2.8.0, langchain-anthropic 1.7.10, langchain-core 1.8.0, langsmith 0.14.17, langchain-protocol 0.0.21 and certifi 2026.10.23 as revised pins, and httpx2 2.12.0, httpcore2 2.12.0, truststore 0.10.4 and opentelemetry-api 1.45.2 as new pins, plus the amendment comment. A clean Linux/Python-3.12 install consuming the committed amended artifact with `.[dev,digest,websearch,fsm,verify]` exits zero and produces freeze/pin equality with no missing or unconstrained package.
-- [ ] AC-03: The six root schemas `{"enum": ["a","b"]}`, `{"const": "x"}`, `{"enum": [None, 1]}` (accepted, `[]`) and `{"enum": []}`, `{"enum": [{"a": 1}]}`, `{"const": {"a": 1}}` (rejected, `['(root)']`) produce their exact paths. Primitive null/string/number/boolean cases and empty or nonprimitive enum/const cases have independent REQ-YG-712 witnesses.
-- [ ] AC-04: Every Probe 5 row has an exact-path walker witness. Definitions are visited first, references stop, const/enum eligibility is independent, compositions remain traversed, and eligible literals suppress type descent and all open-object findings at that literal node.
-- [ ] AC-05: A Pydantic model with `f: Literal["a", 1]` has no untyped finding and binds through `bind_structured_output` for Anthropic/json_schema. Adding neighboring `g: Any` produces refusal naming g and not f. Existing lint/compile refusal witnesses remain green; no literal-only YAML fixture or schema-loader change is required.
-- [ ] AC-06: Real SDK-2.8 rejection and content parity execute without skips or deselection over the committed census, existing open-object fixtures and every Probe 2/5 row at root and nested. Unrelated SDK exceptions propagate. The independent content oracle does not reuse the production literal predicate; the sole private-SDK import remains in the existing parity module, with a platform-neutral path assertion.
-- [ ] AC-07: Every new or changed test carries `@pytest.mark.req("REQ-YG-712")`. Behavioral RED witnesses fail for missing behavior, not missing imports/fixtures, and precede GREEN in separate commits with recorded identities.
+- [x] AC-01: The two metadata floors are exactly `anthropic>=2.8.0` and `langchain-anthropic>=1.7.7`; the FR records the isolated exact-minimum-pair install/import/transform/bind witness.
+- [x] AC-02: Relative to the recorded pre-change baseline, the constraints diff contains exactly anthropic 2.8.0, langchain-anthropic 1.7.10, langchain-core 1.8.0, langsmith 0.14.17, langchain-protocol 0.0.21 and certifi 2026.10.23 as revised pins, and httpx2 2.12.0, httpcore2 2.12.0, truststore 0.10.4 and opentelemetry-api 1.45.2 as new pins, plus the amendment comment. A clean Linux/Python-3.12 install consuming the committed amended artifact with `.[dev,digest,websearch,fsm,verify]` exits zero and produces freeze/pin equality with no missing or unconstrained package.
+- [x] AC-03: The six root schemas `{"enum": ["a","b"]}`, `{"const": "x"}`, `{"enum": [None, 1]}` (accepted, `[]`) and `{"enum": []}`, `{"enum": [{"a": 1}]}`, `{"const": {"a": 1}}` (rejected, `['(root)']`) produce their exact paths. Primitive null/string/number/boolean cases and empty or nonprimitive enum/const cases have independent REQ-YG-712 witnesses.
+- [x] AC-04: Every Probe 5 row has an exact-path walker witness. Definitions are visited first, references stop, const/enum eligibility is independent, compositions remain traversed, and eligible literals suppress type descent and all open-object findings at that literal node.
+- [x] AC-05: A Pydantic model with `f: Literal["a", 1]` has no untyped finding and binds through `bind_structured_output` for Anthropic/json_schema. Adding neighboring `g: Any` produces refusal naming g and not f. Existing lint/compile refusal witnesses remain green; no literal-only YAML fixture or schema-loader change is required.
+- [x] AC-06: Real SDK-2.8 rejection and content parity execute without skips or deselection over the committed census, existing open-object fixtures and every Probe 2/5 row at root and nested. Unrelated SDK exceptions propagate. The independent content oracle does not reuse the production literal predicate; the sole private-SDK import remains in the existing parity module, with a platform-neutral path assertion.
+- [x] AC-07: Every new or changed test carries `@pytest.mark.req("REQ-YG-712")`. Behavioral RED witnesses fail for missing behavior, not missing imports/fixtures, and precede GREEN in separate commits with recorded identities.
 - [ ] AC-08: The four-file targeted pytest command in Planned Operations passes; the unchanged fast-unit command passes in a recorded clean supported environment; strict requirement coverage, ruff check/format and `lint-imports` pass; Linux CI is green. Baseline-relative red results alone do not satisfy acceptance, and assertions or selection must not be weakened.
-- [ ] AC-09: The fix fragment has `type: fix`, `scope: deps`, `req: REQ-YG-712`; the FR records judgement folds, implementation status, exact dependency changes, validation environments, command outcomes and deviations; the scoped diary entry contains a **Seed:**.
-- [ ] AC-10: The FR records before/after radon CC and MI results for `schema_walk.py`, tied to baseline/candidate identities, and existing module-size checks pass. No unrelated structural cleanup is included.
+- [x] AC-09: The fix fragment has `type: fix`, `scope: deps`, `req: REQ-YG-712`; the FR records judgement folds, implementation status, exact dependency changes, validation environments, command outcomes and deviations; the scoped diary entry contains a **Seed:**.
+- [x] AC-10: The FR records before/after radon CC and MI results for `schema_walk.py`, tied to baseline/candidate identities, and existing module-size checks pass. No unrelated structural cleanup is included.
 
 **Clean supported environment (AC-08):** this authoring host (Windows,
 Python 3.13) is not one; its fast-suite failures are environmental and are
@@ -325,6 +325,28 @@ GREEN candidate).
 **Radon after (AC-10)** at `f69b58c6`: `_walk` C (19, +2: the literal
 guard and early return); new `_has_literals` B (6), `_is_primitive` A (2);
 all other blocks unchanged; MI A (59.81, −3.90). File 171 lines.
+
+### Completion record
+
+- RED `da24ce0f` (`SKIP=pytest`): 38 failed / 99 passed on the old walker,
+  all assertion failures (behavioural; no import or fixture error).
+- GREEN `f69b58c6`: floors, ten pins, walker, fragment. Committed with
+  `SKIP=pytest`: this Windows host's pre-commit unit run fails ~300 tests
+  for environmental reasons (bash/WSL, symlinks, session dirs); the binding
+  run is the clean container below.
+- D-8 via [FR-1157](FR-1157-cap164-register-fr1156.md): `327d8c85`.
+- Targeted four-file command on GREEN: 213 passed. `req_coverage --strict`,
+  ruff check/format (711 files), `lint-imports` (3 kept): pass.
+- AC-08 clean environment, committed `327d8c85`, FR-1157's inline recipe
+  (`python:3.11-slim`, non-root, git+curl, CI 3.11 extras unpinned;
+  Python 3.11.18, Linux x86_64; anthropic 2.8.0, langchain-anthropic
+  1.7.10, langchain-core 1.8.0): `python -m pytest tests/unit -q --no-cov
+  -m "not slow" -n auto` → **7647 passed, 57 skipped, 1 xfailed**, exit 0.
+- AC-02 freeze witness (Probe 6 recipe) on GREEN: install exit 0, FREEZE
+  IDENTICAL. Constraints unchanged after GREEN.
+- Deviations: none from the round-2 frozen scope; the CAP-164 repair is
+  separately judged (FR-1157). AC-08 stays open until Linux CI on the PR is
+  green; the PR's required checks are that gate.
 
 ## Out of Scope
 
