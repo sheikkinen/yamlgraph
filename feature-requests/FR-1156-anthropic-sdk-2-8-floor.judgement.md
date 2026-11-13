@@ -119,3 +119,82 @@ These are re-submission criteria, not authority activated by satisfying them alo
 | C-6 | Any proposed CI, hook, or doctrine change is outside this scope and requires separate judgement and human review as enforcement infrastructure. | GATE |
 
 Authority granted: none. Only planning revisions and committed evidence for re-submission are permitted by this verdict.
+
+## Round 2 (2026-11-13, copilot backend via scripts/judge.sh) — APPROVED WITH REVISIONS, R-1 folded into the FR
+
+**Verdict:** APPROVED WITH REVISIONS — round 2 establishes substantive research, literal traversal, and dependency feasibility; implementation authority activates only after R-1 replaces the remaining baseline-relative regression allowance with passing checks and records scoped structural validation.
+
+**Reviewed against:** Committed inputs at `f7943c622aecd1157cf4d0fb578ca584cde1576a`: `feature-requests/FR-1156-anthropic-sdk-2-8-floor.md` (entire file, including in-body Probes 1-7, alternatives and witness scripts); `feature-requests/FR-1156-anthropic-sdk-2-8-floor.judgement.md` (round 1); `feature-requests/FR-1123-untyped-subschema-constrained-decoding-gate.md` (lines 1-240 and requirement/status matches); `feature-requests/FR-1125-refuse-unconstrained-objects-anthropic.md` (lines 1-240 and requirement/status matches); `feature-requests/FR-1154-anthropic-api-version-sampling-removed.md` (lines 1-230); `feature-requests/FR-1154-anthropic-api-version-sampling-removed.judgement.md`; `feature-requests/FR-761-reproducible-dependency-governance.md`; `yamlgraph/utils/schema_walk.py`; `yamlgraph/schema_loader.py` (lines 1-280); `tests/unit/test_fr1123_sdk_parity.py`; `pyproject.toml` (lines 1-200); `constraints/dev-py312.txt`; `.github/skills/judge-fr/doctrine.md`; `.github/skills/judge-fr/judgement.template.md`; `.github/copilot-instructions.md` (lines 1-49, 178-218 and cited doctrine matches, plus supplied repository instructions). These evidence paths had no differences from HEAD. SDK behavior, wheel metadata, Docker outcomes and CI outcomes are assessed as committed probe claims, not independently reproduced observations. No author's transcript, installed private SDK source, temporary probe report, or modified adapter graph was consumed.
+
+## What is sound
+
+The incident is specific and the proposed correction addresses both defects, not only the red oracle. The old rejection string is matched exactly in both test oracles (`tests/unit/test_fr1123_sdk_parity.py:23-33,161-167`); repairing it alone leaves the mixed-literal false refusal evidenced in `FR-1156:45-61,94-110`. Updating the existing pure walker is smaller and more coherent than a schema rewrite or a second provider rule.
+
+The strongest case against the migration is its cost to callers on older SDKs and its wider transitive dependency surface: a version-aware predicate could preserve those installations, whereas a floor forces an upgrade. Round 2 now acknowledges that alternative as feasible and rejects its maintenance cost explicitly, rather than claiming impossibility (`FR-1156:280-287`). The six classes are genuine competing solutions, the counterarguments are preserved, and the committed in-body Research reference is substantive (`FR-1156:15-17,271-287`). This is not measurement tooling; the special raw-output measurement gate does not apply.
+
+| Criterion | Finding and evidence |
+|---|---|
+| Scope | One provider-schema migration, bounded to two metadata floors, six revised pins, four new pins, the shared walker and directly dependent witnesses. The Windows path correction belongs to the edited oracle. Full regeneration and factory retirement are excluded (`FR-1156:203-240,262-269`). |
+| Consistency | Literal eligibility is independent for const and enum; literals suppress type descent and open-object findings but retain composition and definition traversal. This resolves round 1's early-return ambiguity (`FR-1156:128-150,224-234`). AC-08 still relaxes the required fast-suite result despite claiming round 1 R-4 was folded (`FR-1156:5-6,259`). |
+| Measurability | Exact versions, paths, pin differences, freeze equality and no-skip parity are mechanical criteria. AC-08 substitutes baseline comparison for a passing fast suite, and no structural result is requested (`FR-1156:252-260`; `.github/copilot-instructions.md:20,200`). R-1 closes these validation gaps. |
+| Feasibility | The recorded clean Linux/Python-3.12 install and minimum 2.8.0/1.7.7 transform/bind probe now address both previously missing witnesses. Appendix scripts describe reproducible operations; enforcement must rerun them against the actual amended artifact (`FR-1156:152-171,291-340`). |
+| Architecture alignment | The shared typed findings and pure traversal stay in the existing module. Private SDK use remains test-only; the independent content oracle gets its own literal stop rather than calling the implementation it verifies (`schema_walk.py:35-107`; `FR-1156:224-246`). |
+| Single responsibility | Dependency alignment, semantic alignment and their oracle are tightly coupled parts of one correction. No SPLIT is warranted. Old-header branch retirement and broad dependency refresh remain separately judged concerns (`FR-1156:262-269`). |
+| Strategic classification | **Framework primitive correction**, not a new primitive: the existing shared constrainability rule serves lint, compile and bind, but this newly accepted shape is reachable through Python-model binding. No new abstraction, capability or REQ is needed (`FR-1123:11-18,145-191`; `FR-1125:123-178`; `FR-1156:54-61,242-244`). |
+| Testability | Existing imports and fixtures allow direct behavioral RED tests for exact paths, independent eligibility, masked objects and neighboring Any refusal. Real-SDK rejection and content parity supplement those tests without replacing them (`FR-1156:228-238,254-258`; `test_fr1123_sdk_parity.py:36-90,111-190`). |
+
+Prior art is dispositioned. FR-1123 supplies the original untyped gate, FR-1125 supplies content preservation, and FR-761 requires actual reproduction rather than a resolver-only proxy (`FR-1156:18-38`; `FR-761:64-65,83`). FR-1154's dependency prohibition belongs to its own judgement, not to all future FRs (`FR-1154.judgement.md:72,98`); this proposal requests separate migration authority and keeps the old-header branch outside scope.
+
+Round 1's REJECTED disposition is not ignored. Its R-1 research defect is remedied by the six-class table; R-2 by Probe 5 and the frozen traversal; R-3 by the exact ten-pin amendment and Probes 6-7. Its R-4 request for literal-only YAML lint/compile fixtures is superseded by committed reachability evidence: `resolve_type` cannot express Literal and JSON-schema enums become str (`schema_loader.py:62-103,216-225`; `FR-1156:54-61,242-244`). Manufacturing a schema-loader extension to satisfy that witness would expand scope. Bind witnesses plus retained existing lint/compile tests are the correct boundary coverage. R-4's passing-suite requirement remains unresolved and becomes R-1 below.
+
+## Required revisions
+
+### R-1: Require passing regression checks and record structural drift
+
+Replace AC-08's final two sentences with:
+
+> The exact fast-unit command in Planned Operations must pass on the candidate change in a clean supported environment, with no weakened assertions or new skips/deselections. Green Linux CI supplements, rather than substitutes for, that command. Record the interpreter, platform, installed dependency versions, command and result. A red run is diagnostic evidence and blocks completion until its cause is corrected or the unchanged full command passes in the clean environment; equality with origin/main alone does not satisfy acceptance.
+
+Preserve the passing targeted command, strict requirement coverage, ruff check/format and import-boundary requirements. This does not authorize unrelated repairs: if a blocker requires changes outside the frozen files, stop and obtain separately judged authority.
+
+Add a validation criterion and Planned Operations entry using the existing `radon` dev dependency: record before/after `python -m radon cc yamlgraph/utils/schema_walk.py -s` and `python -m radon mi yamlgraph/utils/schema_walk.py -s`, with the baseline and candidate commit identities, in the FR implementation record. This is the scoped structural-drift witness required by `.github/copilot-instructions.md:200`; do not add tooling, arbitrary thresholds or unrelated refactoring. Keep the existing module-size limits enforced by repository checks.
+
+## Scope is frozen
+
+| Deliverable | Surface |
+|---|---|
+| D-1 | `pyproject.toml`: only `anthropic>=2.8.0` and `langchain-anthropic>=1.7.7` |
+| D-2 | `constraints/dev-py312.txt`: the six revised and four new pins in FR-1156 Proposed Solution 2, plus the FR-1156 amendment comment |
+| D-3 | `yamlgraph/utils/schema_walk.py`: eligible primitive literals, the frozen traversal contract and directly affected docstrings |
+| D-4 | `tests/unit/test_fr1123_sdk_parity.py`: SDK-2.8 error text, Probe 2/5 fixtures, independent literal-aware content traversal and `as_posix()` path assertion |
+| D-5 | `tests/unit/test_fr1156_literal_subschema.py`: SDK-independent exact-path, literal/open-object and Python-model bind witnesses |
+| D-6 | `feature-requests/FR-1156-anthropic-sdk-2-8-floor.md`: revision fold, validation operations, implementation status, exact dependency diff and evidence |
+| D-7 | `changelog/unreleased/fr-1156-anthropic-sdk-2-8-floor.md` and one scoped `docs/diary/` entry containing a **Seed:** |
+
+Not authorized: factory or old-header test changes; SDK-1 branch retirement; full constraints regeneration; additional pin changes; runtime version branching; schema normalization; provider fallbacks; production private-SDK imports; schema-loader extensions; graph or prompt edits; new capabilities or REQ IDs; consumer-repository edits; CI, hook or doctrine changes. Old-header retirement is a separate follow-up, not part of the validation revision.
+
+## Revised acceptance criteria
+
+- [ ] AC-01: The two metadata floors are exactly `anthropic>=2.8.0` and `langchain-anthropic>=1.7.7`; the FR records the isolated exact-minimum-pair install/import/transform/bind witness.
+- [ ] AC-02: Relative to the recorded pre-change baseline, the constraints diff contains exactly anthropic 2.8.0, langchain-anthropic 1.7.10, langchain-core 1.8.0, langsmith 0.14.17, langchain-protocol 0.0.21 and certifi 2026.10.23 as revised pins, and httpx2 2.12.0, httpcore2 2.12.0, truststore 0.10.4 and opentelemetry-api 1.45.2 as new pins, plus the amendment comment. A clean Linux/Python-3.12 install consuming the committed amended artifact with `.[dev,digest,websearch,fsm,verify]` exits zero and produces freeze/pin equality with no missing or unconstrained package.
+- [ ] AC-03: The six root schemas in original AC-03 produce their exact accepted/rejected paths. Primitive null/string/number/boolean cases and empty or nonprimitive enum/const cases have independent REQ-YG-712 witnesses.
+- [ ] AC-04: Every Probe 5 row has an exact-path walker witness. Definitions are visited first, references stop, const/enum eligibility is independent, compositions remain traversed, and eligible literals suppress type descent and all open-object findings at that literal node.
+- [ ] AC-05: A Pydantic model with `f: Literal["a", 1]` has no untyped finding and binds through `bind_structured_output` for Anthropic/json_schema. Adding neighboring `g: Any` produces refusal naming g and not f. Existing lint/compile refusal witnesses remain green; no literal-only YAML fixture or schema-loader change is required.
+- [ ] AC-06: Real SDK-2.8 rejection and content parity execute without skips or deselection over the committed census, existing open-object fixtures and every Probe 2/5 row at root and nested. Unrelated SDK exceptions propagate. The independent content oracle does not reuse the production literal predicate; the sole private-SDK import remains in the existing parity module, with a platform-neutral path assertion.
+- [ ] AC-07: Every new or changed test carries `@pytest.mark.req("REQ-YG-712")`. Behavioral RED witnesses fail for missing behavior, not missing imports/fixtures, and precede GREEN in separate commits with recorded identities.
+- [ ] AC-08: The four-file targeted pytest command in Planned Operations passes; the unchanged fast-unit command passes in a recorded clean supported environment; strict requirement coverage, ruff check/format and `lint-imports` pass; Linux CI is green. Baseline-relative red results alone do not satisfy acceptance, and assertions or selection must not be weakened.
+- [ ] AC-09: The fix fragment has `type: fix`, `scope: deps`, `req: REQ-YG-712`; the FR records judgement folds, implementation status, exact dependency changes, validation environments, command outcomes and deviations; the scoped diary entry contains a **Seed:**.
+- [ ] AC-10: The FR records before/after radon CC and MI results for `schema_walk.py`, tied to baseline/candidate identities, and existing module-size checks pass. No unrelated structural cleanup is included.
+
+## Conditions for enforcement
+
+| # | Condition | Severity |
+|---|---|---|
+| C-1 | Fold R-1 and the revised validation criteria into the committed FR before implementation. This draft is not a promoted judgement. | GATE |
+| C-2 | Behavioral RED must precede GREEN; preserve existing Any/open-object refusals, provider/method isolation and independent SDK parity. No production private-SDK import is permitted. | GATE |
+| C-3 | Rerun the Python-3.12 artifact reproduction on the committed candidate. Any additional pin or failed freeze equality stops enforcement for amendment and renewed authority; never regenerate the whole artifact. | GATE |
+| C-4 | Required checks must pass as specified. A matching baseline failure, a skipped parity module or a green unrelated CI job is not a replacement. Out-of-scope fixes require separate authority. | GATE |
+| C-5 | Leave factory retirement, schema-loader changes and all infrastructure untouched. Any proposed CI/hook/doctrine change needs a separate FR and explicit human review. | GATE |
+| C-6 | Human release decision: is requiring SDK 2.8+ acceptable for current consumers? Surface this upgrade decision to the operator before release; this technical judgement does not decide product or release policy. | GATE |
+
+Authority granted: after promotion and the R-1 fold, implementation may make only the named dependency alignment, literal-walker correction, dependent witnesses and scoped records; release additionally requires the explicit human upgrade decision.

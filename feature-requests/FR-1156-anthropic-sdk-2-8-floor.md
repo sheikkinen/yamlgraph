@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed (round 2: round 1 REJECTED, R-1..R-4 folded; see
+**Status:** Approved with revisions (round 2; round-2 R-1 folded; see
 [judgement](FR-1156-anthropic-sdk-2-8-floor.judgement.md))
 **REQ:** REQ-YG-712 (existing, CAP-164)
 **Requested:** 2026-11-13
@@ -194,7 +194,9 @@ waits:
 commands:
   - bash scripts/judge.sh feature-requests/FR-1156-anthropic-sdk-2-8-floor.md
   - python -m pytest tests/unit/test_fr1156_literal_subschema.py tests/unit/test_fr1123_sdk_parity.py tests/unit/test_fr1123_untyped_subschema.py tests/unit/test_fr1125_open_objects.py -q --no-cov -p no:randomly
-  - python -m pytest tests/unit -q --no-cov -m "not slow" -n auto
+  - python -m pytest tests/unit -q --no-cov -m "not slow" -n auto  # in the clean python:3.12-slim env (AC-08)
+  - python -m radon cc yamlgraph/utils/schema_walk.py -s  # before/after (AC-10)
+  - python -m radon mi yamlgraph/utils/schema_walk.py -s
   - python scripts/req_coverage.py --strict
   - ruff check yamlgraph/ tests/ && ruff format --check yamlgraph/ tests/ && lint-imports
   - docker run --rm -v <repo>:/src:ro python:3.12-slim sh /src/w312.sh  # Appendix script
@@ -249,15 +251,33 @@ No production code imports the SDK's private module. The
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `pyproject.toml` declares `anthropic>=2.8.0` and `langchain-anthropic>=1.7.7`; Probe 7 records the minimum-pair install/import/transform/bind witness.
-- [ ] AC-02: `constraints/dev-py312.txt` differs from `origin/main` by exactly the ten pins in Proposed Solution 2 plus the FR-1156 amendment comment; Probe 6 (clean Linux/Python 3.12 install via the artifact's documented command, freeze IDENTICAL to pins) passes on the committed artifact.
-- [ ] AC-03: `find_untyped_subschemas` returns `[]` for `{"enum": ["a","b"]}`, `{"const": "x"}` and `{"enum": [None, 1]}`, and `['(root)']` for `{"enum": []}`, `{"enum": [{"a": 1}]}` and `{"const": {"a": 1}}`; every primitive category and non-primitive case has its own row.
-- [ ] AC-04: Every Probe 5 row has an exact-path walker witness: literal stops type descent and open-object findings; compositions and `$defs` under a literal report their child paths; `$ref` stops; const/enum eligibility is independent.
-- [ ] AC-05: A pydantic model with `f: Literal["a", 1]` yields no untyped finding; `bind_structured_output` (Anthropic, `json_schema`) binds it, and refuses the same model with a neighbouring `g: Any`, naming `g` and not `f`.
-- [ ] AC-06: `tests/unit/test_fr1123_sdk_parity.py` executes (no skip, no deselect) and passes on `anthropic` 2.8.0 across the committed census, existing open-object fixtures, and every Probe 2/5 row at root and nested, for both rejection and content parity; the only private-SDK import remains in that module and its path assertion is platform-neutral.
-- [ ] AC-07: Every new or changed test carries `@pytest.mark.req("REQ-YG-712")`. The behavioural witnesses are committed failing (RED, `SKIP=pytest`) before the walker change (GREEN).
-- [ ] AC-08: The targeted command in Planned Operations passes with no failure; `req_coverage.py --strict`, ruff check/format and `lint-imports` pass; Linux CI is green. Any failure in the fast unit suite caused by this host is recorded with its cause and shown identical on `origin/main` in a temporary worktree; Linux CI is the binding gate.
-- [ ] AC-09: `changelog/unreleased/fr-1156-anthropic-sdk-2-8-floor.md` has `type: fix`, `scope: deps`, `req: REQ-YG-712`; the FR records each judgement fold, implementation status, the exact dependency diff, the validation environments, and deviations; a `docs/diary/` entry with a **Seed:** is added.
+Revised by the round-2 judgement (R-1 folded verbatim):
+
+- [ ] AC-01: The two metadata floors are exactly `anthropic>=2.8.0` and `langchain-anthropic>=1.7.7`; the FR records the isolated exact-minimum-pair install/import/transform/bind witness.
+- [ ] AC-02: Relative to the recorded pre-change baseline, the constraints diff contains exactly anthropic 2.8.0, langchain-anthropic 1.7.10, langchain-core 1.8.0, langsmith 0.14.17, langchain-protocol 0.0.21 and certifi 2026.10.23 as revised pins, and httpx2 2.12.0, httpcore2 2.12.0, truststore 0.10.4 and opentelemetry-api 1.45.2 as new pins, plus the amendment comment. A clean Linux/Python-3.12 install consuming the committed amended artifact with `.[dev,digest,websearch,fsm,verify]` exits zero and produces freeze/pin equality with no missing or unconstrained package.
+- [ ] AC-03: The six root schemas `{"enum": ["a","b"]}`, `{"const": "x"}`, `{"enum": [None, 1]}` (accepted, `[]`) and `{"enum": []}`, `{"enum": [{"a": 1}]}`, `{"const": {"a": 1}}` (rejected, `['(root)']`) produce their exact paths. Primitive null/string/number/boolean cases and empty or nonprimitive enum/const cases have independent REQ-YG-712 witnesses.
+- [ ] AC-04: Every Probe 5 row has an exact-path walker witness. Definitions are visited first, references stop, const/enum eligibility is independent, compositions remain traversed, and eligible literals suppress type descent and all open-object findings at that literal node.
+- [ ] AC-05: A Pydantic model with `f: Literal["a", 1]` has no untyped finding and binds through `bind_structured_output` for Anthropic/json_schema. Adding neighboring `g: Any` produces refusal naming g and not f. Existing lint/compile refusal witnesses remain green; no literal-only YAML fixture or schema-loader change is required.
+- [ ] AC-06: Real SDK-2.8 rejection and content parity execute without skips or deselection over the committed census, existing open-object fixtures and every Probe 2/5 row at root and nested. Unrelated SDK exceptions propagate. The independent content oracle does not reuse the production literal predicate; the sole private-SDK import remains in the existing parity module, with a platform-neutral path assertion.
+- [ ] AC-07: Every new or changed test carries `@pytest.mark.req("REQ-YG-712")`. Behavioral RED witnesses fail for missing behavior, not missing imports/fixtures, and precede GREEN in separate commits with recorded identities.
+- [ ] AC-08: The four-file targeted pytest command in Planned Operations passes; the unchanged fast-unit command passes in a recorded clean supported environment; strict requirement coverage, ruff check/format and `lint-imports` pass; Linux CI is green. Baseline-relative red results alone do not satisfy acceptance, and assertions or selection must not be weakened.
+- [ ] AC-09: The fix fragment has `type: fix`, `scope: deps`, `req: REQ-YG-712`; the FR records judgement folds, implementation status, exact dependency changes, validation environments, command outcomes and deviations; the scoped diary entry contains a **Seed:**.
+- [ ] AC-10: The FR records before/after radon CC and MI results for `schema_walk.py`, tied to baseline/candidate identities, and existing module-size checks pass. No unrelated structural cleanup is included.
+
+**Clean supported environment (AC-08):** this authoring host (Windows,
+Python 3.13) is not one; its fast-suite failures are environmental and are
+diagnostic only. The fast-unit command runs in a `python:3.12-slim` container
+installed from the committed constraints artifact (as Probe 6), with the
+repository copied in.
+
+**Release decision (round-2 C-6):** the operator requested this upgrade
+("fix FR - bump to anthropic 2.8.0", 2026-11-13); requiring SDK 2.8+ is the
+operator's decision, recorded here.
+
+## Implementation Status
+
+**Radon baseline (AC-10)** at `f7943c62` (`schema_walk.py` identical to
+`origin/main`): `_walk` C (17); all other blocks A; MI A (63.71).
 
 ## Out of Scope
 
