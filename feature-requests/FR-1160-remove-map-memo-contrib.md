@@ -2,7 +2,8 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Approved with revisions R-1..R-4 folded; see
+[judgement](FR-1160-remove-map-memo-contrib.judgement.md)
 **Requested:** 2026-11-13
 **First consumer / first event:** the operator, on 2026-11-13, reading the
 merged FR-1159 against the request it answered. The request was a
@@ -17,7 +18,9 @@ and `examples/demos/map_memo` no longer exists.
 **Research:** in-body dispositioned alternatives table (§ Alternatives
 Considered). This is a removal of an unreleased change; the only research
 question is what "before FR-1159" means per file, answered by
-`git show 1c8b0b85~1:<path>`.
+`git show 1c8b0b85~1:<path>`. `is_this_a_graph`: No -- deterministic
+reversal, registry reconciliation and absence witnesses; no model stage or
+new graph/prompt artifact is required.
 **Prior art:**
 [FR-1159](FR-1159-map-memo-contrib.md) is the change removed here
 (PR #771, squash `1c8b0b85`); this FR rejects it after merge.
@@ -29,15 +32,19 @@ contract in `examples/shared`; this FR restores them byte-for-byte and does
 not touch their behaviour.
 [FR-1134](FR-1134-retire-fr-knowledge-graph-and-fr275-meta-tests.md) is the retirement
 precedent: deleted capability, new retirement capability, absence witness
-test. This FR follows it.
+test. Its judgement was SPLIT; the retirement was implemented under the
+recorded operator override. This FR reuses the implementation shape, not
+that verdict's authority.
 [FR-1155](FR-1155-prompt-cache-tokens-in-token-usage.md) § "Follow-up:
 warm-first map dispatch" is the original use case. It is not implemented
 here; it needs its own FR.
 
 ## Summary
 
-Undo PR #771's code, example, test and registry changes, restoring every
-touched non-FR file to its content at `1c8b0b85~1`. FR documents, the
+Undo PR #771's code, example, test and registry changes. Every touched
+non-FR file with no change after `1c8b0b85` returns to its content at
+`1c8b0b85~1`; a file changed since keeps the later hunks and loses only
+the FR-1159 ones (R-2); `ARCHITECTURE.md` is regenerated, never restored. FR documents, the
 FR-1159 judgement, the FR-1159 authoring brief and the FR-1159 diary entry
 stay as history. FR-1158 and FR-1159 are marked Rejected with the
 operator's reason. CAP-302 / REQ-YG-726 are retired and replaced by a
@@ -79,13 +86,13 @@ CAP-302; FR-1158 and FR-1159 read Rejected with the reason.
 ```yaml
 probes:
   - "git diff --name-status 1c8b0b85~1 1c8b0b85 — the closed list of files to restore or delete"
-  - "git log 1c8b0b85..origin/main -- <each restored path> — any later commit on a restored path means merge by hand, not checkout"
-  - "grep -r 'contrib.map_memo\\|contrib/map_memo\\|demos/map_memo\\|CAP-302\\|REQ-YG-726' outside feature-requests/ and docs/diary/ — must be empty after GREEN"
+  - "git log --oneline 1c8b0b85..HEAD -- <each restored path> — record the implementation base SHA; any later commit on a restored path means hand-reversal of the FR-1159 hunks only (R-2)"
+  - "git grep -n -F -e contrib.map_memo -e contrib/map_memo -e demos/map_memo -e CAP-302 -e REQ-YG-726 — after GREEN, hits only in feature-requests/, docs/diary/, tests/unit/test_fr1160_retirements.py; inspect any other hit, never delete history to pass"
+  - "ls capabilities/CAP-303* and git grep -F REQ-YG-727 — both empty at implementation time, else take the next free ids"
   - "changelog/unreleased: does any released version contain fr-1159-map-memo-contrib.md — no means delete the fragment"
 branches:
-  - "a restored path changed after 1c8b0b85 → hand-merge only the FR-1159 hunk, record it in the FR"
-  - "the PreToolUse guard denies deleting examples/demos/map_memo/*.yaml → deletion is by git rm in a terminal, which the guard does not govern; if it does, stop and report rather than bypass"
-  - "commit-msg gate demands a changelog fragment for the GREEN commit → add a type: removal fragment naming FR-1160"
+  - "a restored path changed after 1c8b0b85 → reverse only the FR-1159 hunks, keep the later ones, record path, commits and retained differences in the reconciliation table; a semantic conflict stops the FR for revised authority"
+  - "a guard denies deleting the demo artifacts → stop and report the denial; do not retry through a different tool; any routing or guard correction needs separate authority"
   - "module-map test fails at 300 after restore → the generator still sees a contrib entry; find it, do not raise the budget"
 delegations:
   - "judge.sh: 1 run, 2 if revisions are disputed"
@@ -101,7 +108,8 @@ commands:
   - git rm -r examples/demos/map_memo yamlgraph/contrib/map_memo.py tests/unit/test_fr1159_map_memo_contrib.py capabilities/CAP-302-map-memo-contrib.yaml changelog/unreleased/fr-1159-map-memo-contrib.md
   - python scripts/aggregate_capabilities.py
   - python scripts/req_coverage.py --strict
-  - docker run --rm -v "C:\src\yamlgraph:/src:ro" python:3.11-slim sh /src/tmp/fr1156_w_ci.sh
+  - python -m pytest tests/unit/test_fr1160_retirements.py tests/unit/test_fr1116_map_memo.py tests/unit/test_fr1120_map_memo_versions.py tests/unit/test_fr1113_meta_map.py tests/unit/test_fr1120_census_memo_graph.py tests/unit/test_fr335_module_map_compression.py -q --no-cov -p no:cacheprovider
+  - docker run --rm -v "C:\src\yamlgraph:/src:ro" python:3.11-slim sh /src/scripts/ci_mirror_fr1160.sh  # recipe below, § Validation recipe
   - scripts/outsider.sh <pr> --comment
 ```
 
@@ -123,12 +131,16 @@ commands:
   `vulture_whitelist.py`, `examples/README.md`.
 
 Add `capabilities/CAP-303-map-memo-contrib-retired.yaml` (fr: FR-1160,
-REQ-YG-727, module: the test file) in the same commit so the requirement
-exists when the test references it.
+REQ-YG-727, module: the test file) and regenerate `ARCHITECTURE.md` in the
+same commit, so strict requirement coverage holds at RED (FR-1134 AC-01
+lesson). Every test fails on its actual parent by assertion, not by
+collection or import error; the RED parent SHA and failure output are
+recorded in this FR.
 
 **2. GREEN commit** (`revert(contrib): FR-1160 remove the FR-1159 map memo contrib and demo`):
 
-- Restore to `1c8b0b85~1` content: `ARCHITECTURE.md` (then regenerate),
+- Restore to `1c8b0b85~1` content (R-2: only paths with no later commit;
+  otherwise reverse just the FR-1159 hunks):
   `capabilities/CAP-289-map-memo-file-corpus.yaml`,
   `capabilities/CAP-292-census-map-memo.yaml`, `examples/README.md`,
   `examples/shared/README.md`, `examples/shared/map_memo_merge.tool.yaml`,
@@ -144,13 +156,45 @@ exists when the test references it.
   `tests/unit/test_fr1159_map_memo_contrib.py`,
   `capabilities/CAP-302-map-memo-contrib.yaml`,
   `changelog/unreleased/fr-1159-map-memo-contrib.md`.
-- Run `python scripts/aggregate_capabilities.py`: CAP-302 leaves
-  `ARCHITECTURE.md`, CAP-303 enters.
+- Run `python scripts/aggregate_capabilities.py` over the current registry:
+  CAP-302 leaves `ARCHITECTURE.md`; unrelated generated content is kept.
+- Add `changelog/unreleased/fr-1160-remove-map-memo-contrib.md`
+  (`type: removal`, `scope: contrib`, `req: REQ-YG-727`).
 
 **3. FR status.** The FR-1158 and FR-1159 **Status** lines were set to
 Rejected with the operator's reason in this FR's planning commit, so the
 judge reads them. The closing `docs(fr)` commit adds FR-1160's
 implementation status and the completion reconciliation table.
+
+### Validation recipe (R-4)
+
+Tracked as `scripts/ci_mirror_fr1160.sh`, added in the RED commit. It runs
+on the committed candidate (a clone of `/src` HEAD) as a non-root user in
+`python:3.11-slim`, with the CI 3.11 leg's extras:
+
+```sh
+#!/bin/sh
+set -e
+apt-get update -qq >/dev/null && apt-get install -y -qq git curl >/dev/null
+useradd -m w
+su w -c '
+set -e
+git config --global --add safe.directory "*"
+git clone -q /src ~/r && cd ~/r
+git log --oneline -1
+python -m venv ~/v && . ~/v/bin/activate
+pip install --quiet --upgrade pip
+pip install --quiet -e ".[dev,digest,websearch,fsm,verify,rag,replicate,openai-proxy,examples-dungeon-master,otel,vision]"
+python -m pytest tests/unit -q --no-cov -m "not slow" -n auto -p no:cacheprovider
+python scripts/req_coverage.py --strict
+ruff check yamlgraph/ tests/ examples/
+lint-imports
+'
+```
+
+`-m "not slow"` keeps `process`-marked tests, so the retirement witness
+runs. The candidate SHA (`git log --oneline -1`) and outcome are recorded
+in the implementation status.
 
 Kept unchanged as history: both FR documents and judgements,
 `feature-requests/authoring-briefs/fr-1159-map-memo-demo-brief.md`, and
@@ -158,24 +202,43 @@ Kept unchanged as history: both FR documents and judgements,
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `tests/unit/test_fr1160_retirements.py` is committed RED
-  (fails on `1c8b0b85`) before the GREEN commit, and passes after it.
-- [ ] AC-02: For every path in the restore list, `git diff 1c8b0b85~1 HEAD
-  -- <path>` is empty, except `ARCHITECTURE.md`, whose only diff against
-  `1c8b0b85~1` is the generated CAP-303 / REQ-YG-727 row and section (plus
-  any generated rows from FRs merged after `1c8b0b85~1`).
-- [ ] AC-03: `git diff 1c8b0b85~1 HEAD -- examples/shared/map_memo.py` is
-  empty.
-- [ ] AC-04: `git grep -n -e "contrib.map_memo" -e "contrib/map_memo" -e
-  "demos/map_memo" -e "CAP-302" -e "REQ-YG-726"` returns hits only under
-  `feature-requests/`, `docs/diary/` and `tests/unit/test_fr1160_retirements.py`.
-- [ ] AC-05: `python scripts/req_coverage.py --strict` passes; REQ-YG-727
-  is covered and REQ-YG-726 is not referenced by any test.
-- [ ] AC-06: The Docker CI-mirror run passes, including
-  `test_fr1116_map_memo.py`, `test_fr1120_map_memo_versions.py` and
-  `test_fr335_module_map_compression.py` at budget 300.
-- [ ] AC-07: FR-1158 and FR-1159 **Status** lines read Rejected with the
-  operator's reason and a link to this FR.
+Revised by the [judgement](FR-1160-remove-map-memo-contrib.judgement.md):
+
+- [ ] AC-01: R-1 through R-4 are folded into the committed FR before
+  implementation; the research record answers `is_this_a_graph`; the
+  operations contain no denial-evasion branch.
+- [ ] AC-02: A separate RED commit adds the process-marked REQ-YG-727
+  witnesses, registers the retirement capability and regenerates
+  architecture. Recorded execution on its actual parent fails by the
+  intended assertions; GREEN makes the same witnesses pass.
+- [ ] AC-03: Every listed deletion is absent, `examples/shared/map_memo.py`
+  exists, both shared manifests declare `runtime.path: map_memo.py` without
+  `runtime.module`, and the contrib initializer, vulture whitelist and
+  examples index contain no `map_memo` token.
+- [ ] AC-04: A per-path intervening-change check is recorded. Unchanged
+  restoration paths, including the restored memo, equal `1c8b0b85~1`
+  byte-for-byte; any changed path keeps unrelated hunks and has an explicit
+  baseline/base/candidate reconciliation.
+- [ ] AC-05: CAP-302 / REQ-YG-726 are removed from the active registry and
+  replaced by CAP-303 / REQ-YG-727. Generated architecture reflects the
+  current registry without losing unrelated entries; strict requirement
+  coverage passes; no test references REQ-YG-726.
+- [ ] AC-06: `git grep -n -F` for `contrib.map_memo`, `contrib/map_memo`,
+  `demos/map_memo`, `CAP-302` and `REQ-YG-726` hits only `feature-requests/`,
+  `docs/diary/` and `tests/unit/test_fr1160_retirements.py`.
+- [ ] AC-07: The targeted selection (retirement witness, both memo suites,
+  both consumer suites, module-map compression at budget 300) passes. No
+  behavioural assertion is weakened.
+- [ ] AC-08: The committed validation recipe and the lint/format/import
+  checks pass on the recorded candidate; no result depends on an
+  uncommitted helper or an unexplained deselection.
+- [ ] AC-09: FR-1158 and FR-1159 keep their committed Rejected statuses,
+  operator reason and FR-1160 links; their judgements, the authoring brief
+  and the FR-1159 diary are unchanged. FR-1160 records status, decisions,
+  commands, results and any restoration exceptions.
+- [ ] AC-10: The FR-1159 unreleased fragment is deleted, an FR-1160
+  removal fragment is added, and the completion diary has a metacognitive
+  insight and **Seed:**.
 
 ## Alternatives Considered
 
