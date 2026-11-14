@@ -13,6 +13,7 @@ from argparse import Namespace
 from pathlib import Path
 
 from yamlgraph.cli import graph_run_helpers as _graph_run_helpers
+from yamlgraph.cli.graph_run_failure import print_usage, report_execution_failure
 from yamlgraph.cli.graph_validate import cmd_graph_lint, cmd_graph_validate
 from yamlgraph.cli.helpers import (
     GraphLoadError,
@@ -64,6 +65,15 @@ def _run_streaming(graph_path: str, initial_state: dict, config: dict) -> bool:
         return saw_error
 
     return asyncio.run(_stream())
+
+
+def _stream_or_exit(
+    graph_path: str, initial_state: dict, config: dict, tracker, timing_tracker
+) -> None:
+    """Stream the run; on an error event report usage to stderr and exit 1."""
+    if _run_streaming(graph_path, initial_state, config):
+        print_usage(tracker, timing_tracker, on_failure=True, file=sys.stderr)
+        sys.exit(1)
 
 
 def _run_lint_gate(graph_path: Path, *, json_mode: bool) -> None:
@@ -147,6 +157,7 @@ def cmd_graph_run(args: Namespace) -> None:
     json_mode = getattr(args, "json", False)
     stream_mode = getattr(args, "stream", False)
     error_stream = sys.stderr if json_mode else sys.stdout
+    failure_reported = False
 
     if stream_mode and json_mode:
         print("❌ --stream and --json are mutually exclusive", file=sys.stderr)
@@ -216,8 +227,9 @@ def cmd_graph_run(args: Namespace) -> None:
 
         # FR-633: Streaming mode — bypass invoke, use native streaming
         if stream_mode:
-            if _run_streaming(str(graph_path), initial_state, config):
-                sys.exit(1)
+            _stream_or_exit(
+                str(graph_path), initial_state, config, tracker, timing_tracker
+            )
             return
 
         # FR-1097: errors present before this invocation never count.
@@ -258,9 +270,13 @@ def cmd_graph_run(args: Namespace) -> None:
                     json_mode=json_mode,
                     error_stream=error_stream,
                 )
-            except TimeoutError as te:
-                print(f"❌ {te}", file=error_stream)
-                sys.exit(1)
+            except Exception as e:
+                # FR-1163: report once here; re-raise so the span sees the original
+                report_execution_failure(
+                    e, args, tracker, timing_tracker, json_mode=json_mode
+                )
+                failure_reported = True
+                raise
             finally:
                 _teardown_timeout(timeout_ctx)
 
@@ -295,7 +311,8 @@ def cmd_graph_run(args: Namespace) -> None:
         report_tally(tally)
 
     except Exception as e:
-        print(f"❌ Error: {e}", file=error_stream)
+        if not failure_reported:
+            print(f"❌ Error: {e}", file=error_stream)
         sys.exit(1)
 
 

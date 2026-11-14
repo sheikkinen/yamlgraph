@@ -154,7 +154,9 @@ class TestFR335ModuleMapCompression:
         # FR-1159: 300 -> 302 for contrib/map_memo.py; FR-1160 removed it (302 -> 300).
         # FR-1161: 300 -> 302 for compile/cached_map_compiler.py (entry +
         # dependency line; warm-first map wiring).
-        assert line_count <= 302, f"module-map too large: {line_count} lines (max 302)"
+        # FR-1163: 302 -> 304 for cli/graph_run_failure.py (entry +
+        # dependency line; graph_commands.py was at the size gate).
+        assert line_count <= 304, f"module-map too large: {line_count} lines (max 304)"
 
     def test_ac02_dependency_lists_contain_only_yamlgraph_imports(self) -> None:
         module_map = _run_generator()

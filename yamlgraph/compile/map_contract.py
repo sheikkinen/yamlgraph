@@ -207,13 +207,38 @@ def make_account_node(name: str, min_success: Any) -> Callable[[dict], dict]:
     return account
 
 
-def make_join_node(name: str) -> Callable[[dict], dict]:
-    """Join: enforce the committed verdict; owns every outgoing edge."""
+def failures_key_of(config: dict) -> str:
+    """The map's failures channel: configured, else `<collect>_failures`."""
+    return config.get("failures") or f"{config['collect']}_failures"
+
+
+def make_join_node(
+    name: str, collect_key: str, failures_key: str
+) -> Callable[[dict], dict]:
+    """Join: enforce the committed verdict; owns every outgoing edge.
+
+    FR-1163: an unmet verdict raises with the collect snapshot and this
+    dispatch's failures, so the caller sees what the map did produce.
+    """
 
     def join(state: dict) -> dict:
         verdict = state["_map_verdict"][name]
         if not verdict.met:
-            raise MapCompletenessError(name, verdict)
+            failures = sorted(
+                (
+                    f
+                    for f in state.get(failures_key) or []
+                    if f.map == name and f.dispatch == verdict.dispatch
+                ),
+                key=lambda f: f.index,
+            )
+            raise MapCompletenessError(
+                name,
+                verdict,
+                collect_key,
+                state.get(collect_key) or [],
+                failures,
+            )
         return {"current_step": f"_map_{name}_join"}
 
     join.__name__ = f"{name}_map_join"

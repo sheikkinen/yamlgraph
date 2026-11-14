@@ -39,12 +39,17 @@ requirements:
       `PipelineError`. The join accounts every dispatched index against
       the exact dispatch token, writes a `MapVerdict` and raises
       `MapCompletenessError` when `min_success` (strict by default) is
-      unmet; same-map overlap raises `MapAccountingError`.
+      unmet; same-map overlap raises `MapAccountingError`. FR-1163: the
+      error carries the collect key, a collect snapshot and the failing
+      dispatch's failures, and `graph run` reports them with the enabled
+      usage summaries before exiting 1.
     modules:
       - map_compiler
       - compile/map_contract
       - models/map_results
+      - cli/graph_run_failure
       - tests/unit/test_fr1073_map_result_contract.py
+      - tests/unit/test_fr1163_map_failure_report.py
   - id: REQ-YG-699
     description: >
       FR-939 map overflow policy. The fan-out cap resolves node
@@ -60,4 +65,4 @@ requirements:
       - models/node_schema
       - models/graph_schema
       - tests/unit/test_fr939_map_overflow_policy.py
-fr: legacy, FR-797, FR-939, FR-1058, FR-1073
+fr: legacy, FR-797, FR-939, FR-1058, FR-1073, FR-1163
