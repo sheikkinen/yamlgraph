@@ -249,6 +249,9 @@ Decisions and deviations:
   FR-1124/1150/1161 precedent).
 - Streaming success bytes are not separately pinned; the streaming code is
   unchanged except the error-event branch.
+- CAP-11 now lists FR-1163 in `fr:`, and REQ-YG-692 names the new module
+  and suite. CI's `test_no_req_collision_across_unrelated_frs` required
+  this: FR-1073 and FR-1163 fragments both claim REQ-YG-692.
 
 ## Related
 

@@ -743,14 +743,14 @@ Export results/states in JSON/Markdown, handle serialization for persistence.
 
 Parallel fan-out and nested subgraph execution.
 
-**Feature Request:** legacy, FR-797, FR-939, FR-1058, FR-1073
+**Feature Request:** legacy, FR-797, FR-939, FR-1058, FR-1073, FR-1163
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-040 | Map node compilation | `map_compiler` |
 | REQ-YG-041 | Output wrapping for reduction | `map_compiler.wrap_for_reducer` |
 | REQ-YG-042 | Subgraph node creation. FR-1058: `mode: direct` registers the compiled child graph natively (no callable adapter), so the engine owns its checkpoint namespace and interrupts are durable across it; `mode: invoke` runs the child on a derived "<parent>:<node>" thread and strips the parent's checkpoint coordinates (checkpoint_id, checkpoint_ns, checkpoint_map) and internal __pregel_* keys, so a child cannot resume into its parent's checkpoint and two parents invoking the same child do not collide. User `configurable` keys are forwarded; the parent config is never mutated. | `node_factory/subgraph_nodes`, `compile/subgraph_relay`, `tests/unit/test_fr1058_subgraph_config_propagation.py` |
-| REQ-YG-692 | FR-1073 map result contract. A map compiles to a dispatch node, a sub-node and a join. Branch failures never enter `collect`; they land as typed `MapFailure` records in `failures` (default `<collect>_failures`), non-tolerated ones with exactly one `PipelineError`. The join accounts every dispatched index against the exact dispatch token, writes a `MapVerdict` and raises `MapCompletenessError` when `min_success` (strict by default) is unmet; same-map overlap raises `MapAccountingError`. | `map_compiler`, `compile/map_contract`, `models/map_results`, `tests/unit/test_fr1073_map_result_contract.py` |
+| REQ-YG-692 | FR-1073 map result contract. A map compiles to a dispatch node, a sub-node and a join. Branch failures never enter `collect`; they land as typed `MapFailure` records in `failures` (default `<collect>_failures`), non-tolerated ones with exactly one `PipelineError`. The join accounts every dispatched index against the exact dispatch token, writes a `MapVerdict` and raises `MapCompletenessError` when `min_success` (strict by default) is unmet; same-map overlap raises `MapAccountingError`. FR-1163: the error carries the collect key, a collect snapshot and the failing dispatch's failures, and `graph run` reports them with the enabled usage summaries before exiting 1. | `map_compiler`, `compile/map_contract`, `models/map_results`, `cli/graph_run_failure`, `tests/unit/test_fr1073_map_result_contract.py`, `tests/unit/test_fr1163_map_failure_report.py` |
 | REQ-YG-699 | FR-939 map overflow policy. The fan-out cap resolves node `max_items` > graph `config.max_map_items` > 100; the policy resolves node `on_overflow` > graph `defaults.on_overflow` > `error`. Only `error` and `truncate` load. Under `error` an over-cap map raises `ValueError` naming node, count and cap before any `Send` or sub-node runs; under `truncate` it keeps exactly the first cap items and logs one WARNING with the same numbers. | `map_compiler`, `compile/node_compiler`, `models/node_schema`, `models/graph_schema`, `tests/unit/test_fr939_map_overflow_policy.py` |
 
 ### 12. CAP-12 Utilities
