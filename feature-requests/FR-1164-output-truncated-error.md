@@ -2,16 +2,19 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Proposed (revised after the 2026-11-14 REJECTED judgement; R-1..R-5 folded)
 **Requested:** 2026-11-14
-**First consumer / first event:** the next map run where a model that
-thinks by default (Claude Sonnet 5.5, Opus 5.5, Gemini 3.5 Flash) hits a
-small per-item `max_tokens`. Today the item returns `""` or a cut-off
-answer as a success, or a parser error with an empty body. After this FR
-the item fails with "stopped at the output-token limit … N of M output
-tokens were thinking".
-**Research:** [FR-1164.research.md](FR-1164.research.md)
-(brief: `research-briefs/fr1164-truncated-reply-reported-empty-brief.md`)
+**First consumer / first event:** the next map run where a model hits a
+small per-item `max_tokens`, whether a model that thinks by default
+(Claude Sonnet 5.5, Opus 5.5, Gemini 3.5 Flash) or not. Today the item
+returns `""`, cut-off text, or a structured model with a fabricated
+trailing element as a success. After this FR the item fails with
+"stopped at the output-token limit (stop_reason=max_tokens) …".
+**Research:** [FR-1164.research.md](FR-1164.research.md) (dispositioned
+alternatives, provider evidence; brief:
+[research-briefs/fr1164-truncated-reply-reported-empty-brief.md](research-briefs/fr1164-truncated-reply-reported-empty-brief.md))
+**Evidence:** [evidence/FR-1164-truncation-probe.json](evidence/FR-1164-truncation-probe.json)
+(`scripts/probe_fr1164_truncation.py`, live, operator-approved spend)
 **Prior art:** FR-998 (structured-output policy; this FR adds a check
 inside its `invoke_structured`/`ainvoke_structured`, no second policy
 surface). FR-464 (JSON-extraction fallback; its re-invoke gets the same
@@ -21,24 +24,30 @@ the check lives there once). FR-1148 (its probe recorded
 this FR reports the case for models that cannot). FR-1152 (sums reasoning
 tokens in the usage summary; this FR reads the same field per call).
 FR-071/FR-230 (thinking budget). FR-465 (proposed: empty safety-blocked
-replies; different stop reason, not covered here). Retrieval hits FR-736,
-FR-931, FR-948, FR-959, FR-1060 share only vocabulary and are dismissed.
+replies; different stop reason, not covered here). FR-672 (REJECTED: the
+shared-attempt extraction, rejected because the duplication did not exist
+yet; FR-679 did it later on new evidence, `FR-679:26-29`). This FR adds a
+check inside FR-679's attempt and adds no retry, so it does not reopen
+FR-672. Retrieval hits FR-736, FR-931, FR-948, FR-959, FR-1060 share only
+vocabulary and are dismissed.
 
 ## Summary
 
-Read the provider's stop reason at the one place every LLM node call
-returns, and raise a typed `OutputTruncatedError` when the reply stopped on
-the output-token limit. The message names the stop reason, the output
-token count, how many of those were thinking, and how much visible text
-came back. This also covers the operator's third finding: thinking counts
-toward `max_tokens`, so a small limit cuts the answer short. The error
-makes that cause visible; the reference docs state the shared budget.
+Read the provider's stop reason on the raw reply at the three places
+yamlgraph first holds an LLM node's response, and raise a typed
+`OutputTruncatedError` when it reports the output-token limit. The message
+names the stop reason, the output token count, how many were thinking (or
+"unknown"), and how much visible text came back. This also covers the
+operator's third finding: thinking counts toward `max_tokens`, so a small
+limit cuts the answer short. The reference docs state the shared budget.
+
+This is deterministic boundary validation, not an LLM graph.
 
 ## Value Statement
 
 Operators see "the limit was hit, and thinking used most of it" instead of
-an empty answer that looks like a success or a parse error that shows
-nothing.
+an empty answer, cut text or a padded structured model that looks like a
+success.
 
 ## Problem
 
@@ -51,8 +60,12 @@ nothing.
   downstream as the answer.
 - Structured calls go through `invoke_structured`
   (`yamlgraph/utils/structured_output.py`), which returns only the parsed
-  model; on a cut-off reply the parser error is all that remains, and
-  `PipelineError` keeps `str(e)`.
+  model. The live probe shows what that hides: Haiku 4.5 at
+  `max_tokens=16` under `json_schema` stopped with `stop_reason:
+  max_tokens`, the library's partial-JSON parser closed the cut array, and
+  `invoke_structured` returned `Countries(countries=['Afghanistan',
+  'Albania', 'Algeria', 'Andorra', 'Angola', ''])` with no error. The
+  stop reason lives only on the raw message, which the binder discards.
 - The race node (`yamlgraph/node_factory/race_node.py`) has its own
   `ainvoke` and the same blind spot.
 - No stop-reason check exists in the LLM path (the only one is in
@@ -69,29 +82,43 @@ nothing.
 
 ## Ideal Result
 
-No LLM reply that stopped on the output-token limit is ever treated as a
-finished answer. The failure names the limit and the thinking share, at the
-node that made the call, on every provider that reports a stop reason.
+A reply whose provider reports a stop on the output-token limit is never
+returned as a finished answer by the executor attempt, the structured
+policy helpers or the race candidate. The failure names the limit and, when
+the provider reports it, the thinking share.
+
+Bounded guarantee (R-2): recognized output-limit stop reasons are rejected
+in `attempt_structured_invoke`, `invoke_structured`/`ainvoke_structured`
+and `_invoke_candidate_async`, including their existing re-invocations
+(FR-998 second attempt, FR-464 plain fallback). Out of scope and unchanged:
+direct `bind_structured_output` consumers (agent finalisation), agent tool
+loops, streaming/token delivery, and any direct provider call. Absent or
+unrecognized stop metadata is not proof that a reply is complete; it only
+means no new rejection.
 
 ## Planned Operations
 
 ```yaml
 probes:
-  - "live Haiku 4.5 call with max_tokens=16, plain and structured (json_schema), read raw response_metadata and the exception text — confirms the Anthropic stop_reason key and what the structured path raises today (cost < $0.01)"
-  - "read langchain-openai / langchain-google-genai response_metadata keys in the installed packages — confirms finish_reason values 'length' and 'MAX_TOKENS'"
-  - "grep tests for with_structured_output mocks — counts the tests that the include_raw change touches"
+  - "live Haiku 4.5 (claude-haiku-4-5-20251001), max_tokens=16, plain + json_schema include_raw + today's invoke_structured (done: 3 requests, ~$0.002; evidence/FR-1164-truncation-probe.json)"
+  - "offline read of langchain-anthropic 1.7.10 / langchain-openai 1.6.0 / langchain-google-genai 4.4.0 stop keys (done: research record table)"
+  - "grep tests for with_structured_output mocks — counts the tests the raw-binding change touches (at enforcement, before RED)"
 branches:
-  - "more than 30 tests mock with_structured_output().invoke returning a model → add a shared test helper that wraps the return in {raw, parsed, parsing_error}; never a production shim that accepts both shapes"
-  - "a provider in the probe reports truncation under a key not listed here → add it to the one classifier table, with a test"
+  - "more than 30 tests mock with_structured_output().invoke returning a model → add one shared test helper that wraps the return in {raw, parsed, parsing_error}; never a production path that accepts both shapes"
+  - "a raw-enabled call returns an envelope without 'raw' → stop, return to plan (no shim)"
 delegations:
-  - "research.sh: 1 run (done)"
-  - "judge.sh: 1 run"
+  - "research.sh: 1 run (done; dispositioned in the research record)"
+  - "judge.sh: 1 re-judge"
 waits:
-  - "judge"
+  - "re-judge"
 commands:
-  - scripts/judge.sh
-  - pytest tests/unit/test_fr1164_output_truncated.py tests/unit/test_fr998_structured_output.py
-  - yamlgraph graph run examples/demos/hello/graph.yaml
+  - scripts/judge.sh feature-requests/FR-1164-output-truncated-error.md
+  - python scripts/probe_fr1164_truncation.py   # needs ANTHROPIC_API_KEY and operator spend approval; 3-4 requests, <= $0.05
+  - pytest tests/unit/test_fr1164_output_truncated.py tests/unit/test_fr998_structured_output.py tests/unit/test_race_node.py -q --no-cov
+  - pytest tests/unit/ -q --no-cov -m "not slow" -n 4
+  - python scripts/req_coverage.py --strict
+  - lint-imports
+  - ruff check yamlgraph/ scripts/ tests/ && ruff format --check yamlgraph/ scripts/ tests/
 ```
 
 ## Proposed Solution
@@ -99,89 +126,165 @@ commands:
 New module `yamlgraph/utils/stop_reason.py`:
 
 ```python
-TRUNCATED = {"max_tokens", "length", "MAX_TOKENS"}  # anthropic | openai-compatible | google
+TRUNCATED = frozenset({"max_tokens", "length", "MAX_TOKENS"})  # anthropic | openai | google
 
 class OutputTruncatedError(RuntimeError):
-    stop_reason: str; output_tokens: int | None; reasoning_tokens: int | None
-    visible_chars: int; preview: str  # first 200 visible chars, never thinking text
+    stop_reason: str
+    output_tokens: int | None      # None when usage is unavailable
+    reasoning_tokens: int | None   # None when the provider does not report it
+    visible_chars: int             # len(normalize_content(message.content))
+    preview: str                   # first <= 200 chars of that same text
 
-def ensure_complete(message) -> None:
-    """Raise OutputTruncatedError when the message stopped on the output limit."""
+def ensure_complete(message: BaseMessage) -> None:
+    """Raise OutputTruncatedError when the raw reply stopped on the output limit."""
 ```
 
-`ensure_complete` reads `response_metadata["stop_reason"]`, else
-`response_metadata["finish_reason"]`; anything outside `TRUNCATED`, or no
-key at all, passes. Token counts come from `usage_metadata`
-(`output_tokens`, `output_token_details.reasoning`). Message form:
+Classification (R-4), frozen against the research record's provider table:
 
-`LLM reply stopped at the output-token limit (stop_reason=max_tokens): 2000 output tokens, 1921 of them thinking; 0 visible characters. Raise max_tokens, or lower thinking_budget where the model allows it.`
+- Stop value: the first nonempty of `response_metadata["stop_reason"]`,
+  then `response_metadata["finish_reason"]`. A value in `TRUNCATED`
+  raises; any other value, or neither key, passes unchanged.
+- Usage: `usage_metadata["output_tokens"]` and
+  `usage_metadata["output_token_details"]["reasoning"]`, each read
+  independently. A missing `usage_metadata`, key or `None` stays `None` and
+  renders as `unknown`; truncation raises regardless. Missing reasoning is
+  never reported as 0 (the probe's Haiku reply had no
+  `output_token_details`).
+- Visible text: only `normalize_content(message.content)`. No raw message,
+  thinking block or provider payload enters the message or the fields.
 
-Call sites (all of them, `partial_remediation`):
+Message form:
 
-1. `attempt_structured_invoke`: the plain path and the FR-464 fallback
+`LLM reply stopped at the output-token limit (stop_reason=max_tokens): 2000 output tokens, 1921 of them thinking; 0 visible characters. Raise max_tokens; where the model supports a thinking budget, lowering it leaves more for the answer.`
+
+With unknown usage: `… (stop_reason=max_tokens): unknown output tokens, unknown of them thinking; 38 visible characters. …`. The message never contains `response_format`, so the FR-464 fallback test (`"response_format" in str(err)`) cannot fire on it.
+
+Call sites (the bounded guarantee above):
+
+1. `bind_structured_output(llm, output_model, *, method=None,
+   include_raw=False)`: new keyword-only `include_raw`, forwarded to the
+   same single `.with_structured_output(...)` call only when `True`. Direct
+   callers (agent finalisation) keep the parsed-only result.
+2. `invoke_structured` / `ainvoke_structured`: both the primary and the
+   earned `function_calling` second attempt bind with `include_raw=True`
+   and pass the envelope to one private `_unwrap(out)`:
+   `ensure_complete(out["raw"])` first; then `raise out["parsing_error"]`
+   (the same object) if set; else `return out["parsed"]`. Provider errors
+   (the typed 400) still raise from the call itself, so
+   `_second_attempt_earned`, the second-attempt mark, `config` forwarding
+   and the async `second_attempt_config` are unchanged. A truncation raised
+   from the primary attempt is not a typed 400, so it earns no second
+   attempt; one raised from the second attempt is marked like any other
+   second-attempt error.
+3. `attempt_structured_invoke`: the plain path and the FR-464 fallback
    re-invoke call `ensure_complete(response)` before `normalize_content`.
-2. `invoke_structured` / `ainvoke_structured`: bind with
-   `include_raw=True`, call `ensure_complete(out["raw"])`, then re-raise
-   `out["parsing_error"]` if set, else return `out["parsed"]`. The
-   exception type on a non-truncated parse failure stays what it is today.
-   `bind_structured_output` (also used by agent finalisation) is unchanged.
-3. `race_node._invoke_candidate_async`: both `ainvoke` paths.
+   A truncation from `invoke_structured` propagates (it contains no
+   `response_format`), so it earns no FR-464 fallback.
+4. `race_node._invoke_candidate_async`: the FR-464 re-invoke and the plain
+   `ainvoke` call `ensure_complete(response)` before `normalize_content`;
+   the structured path inherits it from `ainvoke_structured`. A truncated
+   candidate raises like any failed candidate, so it cannot win.
 
-`OutputTruncatedError` is not in `RETRYABLE_EXCEPTIONS`: the same limit
-reproduces the same cut. Node `on_error` policies apply as for any error.
+`OutputTruncatedError` is not added to `RETRYABLE_EXCEPTIONS`
+(`executor_base.py:70`): the same limit reproduces the same cut. Node
+`on_error` policies are unchanged and apply as for any error.
+
+Requirement (R-5): new `REQ-YG-729` under `CAP-164` (structured output,
+which owns FR-998's REQ-YG-664 and the FR-464 REQs), `fr:` gains FR-1164,
+modules `utils/stop_reason.py`, `utils/structured_output.py`,
+`executor_base.py`, `node_factory/race_node.py`; ARCHITECTURE.md
+regenerated by `scripts/aggregate_capabilities.py`. Tests carry
+`@pytest.mark.req("REQ-YG-729")`.
 
 Docs: `reference/graph-yaml.md`, next to `max_tokens` and
-`thinking_budget`: thinking counts toward `max_tokens`; models that think
-by default spend it without a `thinking_budget` setting; a cut-off reply
-raises `OutputTruncatedError`.
+`thinking_budget`: on providers that count thinking as output (Anthropic
+`max_tokens`; OpenAI reasoning models' output limit), thinking and answer
+share one budget; models that think by default spend it without a
+`thinking_budget` setting; executor, structured and race calls that stop
+on the limit raise `OutputTruncatedError` (bounded as above, no universal
+completeness claim); lowering a thinking budget helps only where the model
+supports one.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: a fake `AIMessage` with `response_metadata={"stop_reason": "max_tokens"}`,
-  thinking-only content and `usage_metadata` output 2000 / reasoning 1921
-  makes `attempt_structured_invoke` (no output model) raise
-  `OutputTruncatedError` whose message contains `max_tokens`, `2000` and
-  `1921`.
-- [ ] AC-02: the same with `finish_reason: "length"` and with
-  `finish_reason: "MAX_TOKENS"`.
-- [ ] AC-03: `parse_json` path: truncated reply raises instead of returning
-  the text.
-- [ ] AC-04: structured path, sync and async: a raw message with
-  `stop_reason: max_tokens` raises `OutputTruncatedError`; a raw message
-  with `stop_reason: end_turn` and a `parsing_error` re-raises that same
-  exception object.
-- [ ] AC-05: race node candidate with a truncated reply raises
-  `OutputTruncatedError`.
-- [ ] AC-06: messages with no stop-reason key, or `end_turn`/`stop`, pass
-  unchanged (existing suite green).
-- [ ] AC-07: the error message contains no thinking text (assert a sentinel
-  string in the thinking block is absent).
-- [ ] AC-08: live probe recorded in this FR: Haiku 4.5, `max_tokens=16`,
-  plain call raises `OutputTruncatedError` naming `max_tokens`.
-- [ ] AC-09: `reference/graph-yaml.md` states that thinking counts toward
-  `max_tokens` and names `OutputTruncatedError`.
-- [ ] AC-10: RED commit precedes GREEN; unit suite and
-  `req_coverage --strict` pass.
+Adopted from the judgement's revised criteria; AC-01/02 are met by this
+revision and the rest are enforcement criteria.
+
+- [x] AC-01: the research record folds R-1..R-5: dispositioned alternatives
+  A1-A5 with code/precedent lines, the corrected factory-wrapper claim, the
+  failed data-process persona, the graph-fit answer, the FR-672/FR-679
+  disposition; the brief is committed.
+- [x] AC-02: provider evidence names package versions and stop keys/values
+  (research record table) and the live `include_raw` envelope; the FR
+  states the bounded guarantee and its exclusions.
+- [ ] AC-03: thinking-only, mixed thinking/text and partial-text messages,
+  with each of `max_tokens`, `length`, `MAX_TOKENS`, raise
+  `OutputTruncatedError` from `attempt_structured_invoke` (plain and
+  `parse_json`-style text) before normalization or JSON extraction; with
+  output 2000 / reasoning 1921 the message contains both numbers.
+- [ ] AC-04: missing `usage_metadata`, missing keys and `None` values still
+  raise on truncation, keep the fields `None` and print `unknown`, never 0;
+  `stop_reason` wins over `finish_reason` when both are present; an empty
+  `stop_reason` falls through to `finish_reason`.
+- [ ] AC-05: no stop key, an unrecognized value, and `end_turn`/`stop`
+  produce no error and return today's result.
+- [ ] AC-06: `invoke_structured` and `ainvoke_structured`, on the primary
+  and on the earned second attempt, raise `OutputTruncatedError` for a
+  truncated raw message even when `parsed` is a valid model (the probe's
+  case); a complete call returns `parsed`; a complete call with
+  `parsing_error` re-raises the identical object (`is`).
+- [ ] AC-07: `bind_structured_output` without `include_raw` passes no
+  `include_raw` kwarg (agent finalisation unchanged); the one production
+  `.with_structured_output(` call remains; `config` forwarding, the
+  exactly-one second attempt, its mark and the async
+  `second_attempt_config` run id stay as FR-998 tests pin them; a
+  primary-attempt truncation earns no second attempt (one invoke).
+- [ ] AC-08: executor and race FR-464 plain re-invokes raise on a truncated
+  reply, with no further call; a truncation from the structured attempt
+  earns no FR-464 fallback (invoke counts asserted; race run ids distinct).
+- [ ] AC-09: a truncated race candidate raises; in a race with a complete
+  candidate the complete one wins; existing race tests stay green;
+  `is_retryable(OutputTruncatedError(...))` is `False`.
+- [ ] AC-10: the error's fields carry the stop reason, available usage, the
+  visible-character count and a preview of at most 200 characters, both
+  from `normalize_content`; a sentinel in a thinking block is absent from
+  `str(err)` and from `err.preview`.
+- [x] AC-11: live probe reproducible from `python
+  scripts/probe_fr1164_truncation.py` (`ANTHROPIC_API_KEY`; operator spend
+  approval 2026-11-14, at most 4 requests / $0.05); result
+  `evidence/FR-1164-truncation-probe.json` records model
+  `claude-haiku-4-5-20251001`, `max_tokens=16`, package versions, SHA
+  `3fd52fec`, sanitized metadata, the include_raw envelope and today's
+  structured result (3 of the 4 approved requests used). A post-GREEN
+  re-run (3-4 more requests) needs a new operator approval; if granted,
+  its plain and `structured_today` entries must show
+  `OutputTruncatedError` and the result replaces the file; if not, the
+  unit witnesses built from the recorded envelope stand and the FR says so.
+- [ ] AC-12: `reference/graph-yaml.md` states the shared thinking/output
+  budget for providers that count it, the qualified advice, and the
+  bounded `OutputTruncatedError` behaviour without a universal claim.
+- [ ] AC-13: RED commit precedes GREEN; the commands under Planned
+  Operations pass; new tests carry `REQ-YG-729`.
+- [ ] AC-14: fix changelog fragment, Implementation Status with decisions
+  and deviations, and a diary entry with `**Seed:**` are committed.
 
 ## Alternatives Considered
 
-From the research record (four personas converged on the boundary check):
+Dispositioned in [FR-1164.research.md](FR-1164.research.md#dispositioned-alternatives)
+(the run's four rows were one idea; they are not counted as four):
 
-- Classify in the provider factory and attach a normalized field to
-  `response_metadata` (os-infra, yamlgraph-native): the factory builds
-  clients but never sees responses; the first code that sees every
-  response is `attempt_structured_invoke` plus the race node. Chosen
-  location is that boundary.
-- Carry stop reason and reasoning tokens as state/schema fields through
-  every node output (data-process persona, which failed schema validation
-  in the run): larger, and a field nobody reads does not stop a cut-off
-  answer from passing as finished. Rejected.
-- Raise only (subtractionist) vs. warn: warn-only keeps the plausible wrong
-  answer (Commandment 6). Raise chosen.
-- Validate `thinking_budget` against `max_tokens` at client build: the
-  Anthropic API already rejects `budget_tokens >= max_tokens` with a 400,
-  and models that think by default have no budget to compare. It does not
-  catch the witnessed cases. Rejected; the error message carries the cause.
+- A1 invocation-boundary rejection at the three call sites: chosen.
+- A2 a new provider-client response wrapper in `create_llm`: rejected. The
+  factory returns plain LangChain clients and never sees a response (the
+  run's "factory already wraps every invoke" claim is false); a wrapper
+  would have to cover `with_structured_output`, `bind_tools` and streaming.
+- A3 carrying stop reason and reasoning tokens downstream as schema fields
+  (the failed data-process persona): rejected; a field nobody reads does
+  not stop the probe's `Countries(..., '')` passing as finished.
+- A4 warn without rejecting: rejected (Commandment 6).
+- A5 validate `thinking_budget` against `max_tokens` at construction:
+  rejected; the probe's truncation had no thinking at all, and
+  default-thinking models have no budget to compare.
 
 ## Related
 
