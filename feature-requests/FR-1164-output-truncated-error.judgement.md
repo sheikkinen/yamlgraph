@@ -1,5 +1,122 @@
 # Judgement: FR-1164 Report replies cut off by the output-token limit, with the thinking share
 
+**Route:** scripts/judge.sh (copilot gpt-6.1-sol, session ea6177d4), re-judge of revised HEAD `c594f34c`, draft folded verbatim below. Disposition: APPROVED WITH REVISIONS; R-1 folded into the FR at fold time (AC-11, AC-13, Planned Operations).
+**Prior art:** FR-464, FR-672 (REJECTED, dispositioned via FR-679), FR-679, FR-998, FR-1148, FR-1152, FR-071/FR-230, FR-465 — dispositioned in the FR's Prior art line and judged in the rubric below.
+
+**Verdict:** APPROVED WITH REVISIONS - the revised research and bounded raw-response design support implementation; authority activates only after R-1 corrects the optional probe's impossible expectation and command gate.
+
+**Reviewed against:** committed HEAD `c594f34ca515437cd83ad430254ac1b45b2c31b7`, with a clean working tree at review:
+
+- `feature-requests/FR-1164-output-truncated-error.md`
+- `feature-requests/FR-1164.research.md`
+- `feature-requests/FR-1164-output-truncated-error.judgement.md`
+- `feature-requests/research-briefs/fr1164-truncated-reply-reported-empty-brief.md`
+- `feature-requests/evidence/FR-1164-truncation-probe.json`
+- `scripts/probe_fr1164_truncation.py`
+- `yamlgraph/utils/structured_output.py`
+- `yamlgraph/executor_base.py:45-115,360-447`
+- `yamlgraph/node_factory/race_node.py:90-220`
+- `yamlgraph/utils/content.py`
+- `yamlgraph/utils/json_extract.py`
+- `capabilities/CAP-164-structured-output-fallback.yaml`; capability registry searched only for the proposed `REQ-YG-729` allocation
+- `feature-requests/FR-672-extract-shared-retry-policy.md`
+- `feature-requests/FR-679-consolidate-retry-fallback-post-676.md:1-90`
+- `feature-requests/FR-998-anthropic-constrained-structured-output.judgement.md:1-145`
+- `feature-requests/FR-464-deepseek-structured-output-fallback.md:1-95`
+- `feature-requests/FR-1148-anthropic-thinking-off.md:65-110`
+- `feature-requests/FR-1152-thinking-tokens-in-token-usage.md:1-110`
+- `reference/graph-yaml.md` matched `max_tokens` and `thinking_budget` sections
+- `.github/skills/judge-fr/doctrine.md`
+- `.github/skills/judge-fr/judgement.template.md`
+- `.github/copilot-instructions.md` and `CLAUDE.md` as supplied repository doctrine
+
+No author conversation or uncommitted notes were consumed. The research brief was treated as historical problem input, not as implementation authority: its factory-only constraint is explicitly superseded by the corrected research and bounded FR. No provider request, installed-package inspection, or further judge execution was performed. Provider-package observations are assessed as claims in the committed research record, not independently reproduced observations.
+
+## What is sound
+
+The strongest case against approval is that changing structured helpers from parsed-only results to raw envelopes affects a central recovery policy, while detecting a few stop values cannot prove general completeness. The revision now answers that objection with an explicit invocation-surface boundary, an envelope-only contract for raw-enabled helpers, unchanged direct binder defaults, and composition witnesses for both existing recovery tiers (`FR-1164:90-97,164-190,229-247`). A new provider wrapper or a universal completeness claim would be unjustified; neither is needed for the witnessed defect.
+
+The raw evidence establishes a subtler failure than an empty parse result. The structured response ends inside a quoted array element, yet `parsing_error` is null and the returned model contains a fabricated empty trailing country (`feature-requests/evidence/FR-1164-truncation-probe.json:115-121`). That is substantive evidence for checking raw stop metadata before accepting even a valid parsed model. The absence of reasoning details in the same response also supports reporting unknown rather than inventing zero (`evidence:101-111`; `FR-1164.research.md:77-95`).
+
+The previous rejection's research gate is now satisfied. The committed record distinguishes five genuine alternatives, corrects the nonexistent factory-wrapper premise, preserves the failed persona as a failure, and explicitly answers the graph-fit question (`FR-1164.research.md:15-57`). Its OpenAI/Google rows are honestly offline-only, not represented as live probes (`research:63-71`). The rejected FR-672 is dispositioned against the later evidence in FR-679 rather than silently resurrected (`research:51-57`; `FR-679:26-36`). The repaired brief and evidence links resolve relative to the FR's directory and are tracked.
+
+| Criterion | Finding and evidence |
+|---|---|
+| Scope | Minimal for the named defect: one classifier and wiring at the existing executor, structured-policy and race seams. Agent/tool loops, streaming and arbitrary provider calls are explicitly excluded (`FR-1164:90-97,162-190`). |
+| Consistency | The earlier binder contradiction is resolved by keyword-only `include_raw=False` and raw-enabled invocation helpers (`FR-1164:164-178`). One contradiction remains: AC-11 requires a direct provider call to raise the new framework error despite excluding that surface; R-1 corrects it (`FR-1164:95,252-262`; `probe_fr1164_truncation.py:92-95`). |
+| Measurability | AC-03 through AC-10 specify observable stop values, counts, exception identity, call counts, run IDs and race outcomes (`FR-1164:219-251`). AC-11 and AC-13 need the conditional command gate made explicit under R-1 (`FR-1164:252-267`). |
+| Feasibility | The recorded live envelope supplies `raw`, `parsed` and `parsing_error`; existing helpers expose both primary and earned second attempts (`evidence:57-63,115-121`; `structured_output.py:100-147`). Stop vocabularies and package versions are recorded, with unsupported envelope shapes returning to plan rather than triggering a shim (`research:63-71`; `FR-1164:108`). |
+| Architecture alignment | The classifier belongs before normalization/parsing, while FR-998 remains the sole production library binder and FR-679 retains shared sync/threaded attempt ownership (`executor_base.py:404-447`; `race_node.py:150-182`; `structured_output.py:45-63,100-147`). Extending CAP-164 avoids a parallel policy registry (`FR-1164:192-197`; `CAP-164` requirements). |
+| Single responsibility | Detecting output-limit termination and explaining its available thinking share are one error-reporting concern. Safety blocks, thinking configuration and new retry policy remain separate (`FR-1164:24-32,188-206`). No split is needed. |
+| Strategic classification | **Framework primitive**, extending existing invocation policy rather than adding an orchestration abstraction. Plain text, JSON extraction, schema parsing and race candidates all need the same missing check; current abstractions place calls but do not reject this stop condition (`FR-1164:45-71,179-186`). This is deterministic validation, not an LLM graph (`research:37-39`). |
+| Testability | Real `AIMessage` fixtures and the recorded envelope can condemn the defect without network access. The criteria require valid parsed models alongside truncated raw replies, complete parsing-error identity, second-attempt marking, fallback call counts and a complete race winner (`FR-1164:219-251`). Keep those assertions when converting mocks; an envelope-shape/import failure alone is not the RED witness. |
+
+FR-464's JSON-extraction fallback remains a caller responsibility, and FR-998's typed unsupported-capability retry remains exactly one attempt. FR-1148's thinking switch and FR-1152's aggregate usage reporting do not replace per-response rejection. These precedents support the proposed placement without authorizing changes to those policies.
+
+## Required revisions
+
+### R-1: Align the optional post-GREEN probe and command gate with the bounded guarantee
+
+Replace AC-11's requirement that both `plain` and `structured_today` show `OutputTruncatedError` (`FR-1164:258-262`) with this executable contract:
+
+1. The committed pre-fix artifact remains evidence of the provider contract and defect, not evidence that the fix already works. Without fresh operator approval, perform no post-GREEN paid call; record that no such rerun occurred and use the offline acceptance witnesses.
+2. If a post-GREEN rerun receives fresh approval, keep the current probe's three logical calls. `plain` remains a direct `llm.invoke` metadata observation (`scripts/probe_fr1164_truncation.py:92-95`), and `structured_include_raw` remains a direct provider envelope observation (`probe:97-110`). Neither is required to raise the framework error. For a response reporting recognized truncation, `structured_today`, which invokes YAMLGraph's policy (`probe:112-116`), must record `OutputTruncatedError` instead of a parsed success. Validate the JSON entries, not the probe's exit code: `main` returns zero even when it records errors (`probe:118-120`).
+3. Keep the existing request/spend bound and record producing SHA, model, package versions and sanitized metadata for any authorized rerun. Do not modify the provider client or add a new executor probe just to satisfy the incorrect expectation. The plain executor path is covered by AC-03.
+4. Amend Planned Operations and AC-13 to distinguish completed research/judgement steps, mandatory offline enforcement checks, and the optional paid probe. Require the targeted pytest command, required unit suite, strict requirement coverage, import check, Ruff check and Ruff format check to pass. Do not require rerunning the judge during enforcement or running the optional paid command to satisfy "the commands ... pass" (`FR-1164:114-121,266-267`).
+
+This is a contract correction, not a request for additional spend or a wider implementation surface.
+
+## Scope is frozen
+
+| Deliverable | Surface |
+|---|---|
+| D-1 | `feature-requests/FR-1164-output-truncated-error.md`: fold R-1; record implementation status, decisions and deviations |
+| D-2 | `yamlgraph/utils/stop_reason.py`: typed `OutputTruncatedError` and one shared raw-message classifier |
+| D-3 | `yamlgraph/utils/structured_output.py`: keyword-only raw-binding option and one envelope unwrap path used by both attempts of both invocation helpers |
+| D-4 | `yamlgraph/executor_base.py` and `yamlgraph/node_factory/race_node.py`: checks on existing plain and FR-464 fallback replies before normalization |
+| D-5 | `tests/unit/test_fr1164_output_truncated.py` and directly affected structured-output/race tests: focused behavior witnesses and necessary raw-envelope mock conversions |
+| D-6 | `capabilities/CAP-164-structured-output-fallback.yaml` and generated `ARCHITECTURE.md`: FR-1164 / REQ-YG-729 traceability |
+| D-7 | `reference/graph-yaml.md`: shared output/thinking budget and bounded rejection behavior |
+| D-8 | Fix fragment in `changelog/unreleased/`, implementation record and `docs/diary/` reflection with `**Seed:**` |
+| D-9 | Existing `scripts/probe_fr1164_truncation.py` and `feature-requests/evidence/FR-1164-truncation-probe.json`: retain the committed reproduction; an explicitly reauthorized rerun may refresh evidence under R-1 |
+
+Not authorized: agent-finalization or tool-loop changes; streaming changes; provider-client wrappers; direct-provider rejection; automatic budget increases; thinking configuration changes; safety-block handling; new retries or reordered fallbacks; dependency changes; production acceptance of both parsed-only and envelope return shapes; graph/prompt authoring; enforcement-infrastructure changes; unrelated refactoring. Test helper extraction is permitted only for the directly affected mocks under the FR's stated threshold, not as a new production abstraction.
+
+## Revised acceptance criteria
+
+- [ ] AC-01: The committed FR retains the substantive A1-A5 research dispositions, corrected factory-wrapper claim, failed-persona disclosure, graph-fit answer, rejected FR-672 disposition and resolving brief/evidence links.
+- [ ] AC-02: Provider evidence retains exact versions, stop keys/values and the live raw envelope; the guarantee remains limited to the executor attempt, invocation helpers and race candidate, including their existing re-invocations.
+- [ ] AC-03: Thinking-only, mixed thinking/text and partial-text replies for each of `max_tokens`, `length` and `MAX_TOKENS` raise `OutputTruncatedError` before normalization or JSON extraction on the executor path; output 2000 / reasoning 1921 appear in the diagnostic.
+- [ ] AC-04: Missing metadata usage, missing individual counts and `None` values do not prevent truncation rejection; unavailable counts remain `None` and print `unknown`, independently of available counts. Nonempty `stop_reason` takes precedence; empty `stop_reason` falls through to `finish_reason`.
+- [ ] AC-05: Missing/unrecognized stop values and ordinary `end_turn`/`stop` responses retain existing results without a new rejection.
+- [ ] AC-06: Both sync/native-async structured helpers inspect raw truncation before accepting `parsed` or raising `parsing_error`, on primary and earned second attempts. A complete success returns the parsed model; a complete parsing failure re-raises the identical exception object.
+- [ ] AC-07: Default direct binder calls omit the `include_raw` keyword and retain parsed-only results; one production `.with_structured_output(` expression remains. Config forwarding, exactly-one typed second attempt, error marking and distinct async second-attempt run IDs are preserved. Primary truncation performs one invocation, not a second attempt.
+- [ ] AC-08: Executor and native-async race FR-464 plain fallback invocations reject truncated replies without another call; structured truncation earns no FR-464 fallback. Tests assert call counts and distinct race fallback run IDs.
+- [ ] AC-09: A truncated race candidate fails and cannot defeat a complete candidate; existing race/cancellation behavior stays intact. `is_retryable(OutputTruncatedError(...))` is false and node error-policy semantics are unchanged.
+- [ ] AC-10: Error fields expose only stop reason, available usage counts, normalized visible-character count and at most 200 normalized visible preview characters. A thinking-block sentinel is absent from both exception string and preview; the exception string cannot trigger the `response_format` fallback.
+- [ ] AC-11: The committed pre-fix probe remains reproducible and is labeled as baseline evidence. No new paid run is mandatory or authorized by this judgement. If separately approved, a post-GREEN rerun obeys R-1: direct calls remain observations, and recognized truncation through `structured_today` records `OutputTruncatedError`; inspect the artifact rather than exit status. Otherwise record that unit witnesses used the committed envelope and no paid rerun occurred.
+- [ ] AC-12: The reference documents shared thinking/output budgets only for applicable providers, qualifies thinking-budget advice by model support, and makes no universal completeness claim.
+- [ ] AC-13: A behavioral RED commit precedes GREEN; the mandatory offline targeted tests, required unit suite, strict requirement coverage, import check and Ruff check/format commands pass. New tests carry individual `@pytest.mark.req("REQ-YG-729")` decorators; CAP-164 and generated architecture register that requirement.
+- [ ] AC-14: The fix changelog fragment, implementation status with decisions/deviations and diary reflection with `**Seed:**` are committed within the frozen scope.
+
+## Conditions for enforcement
+
+| # | Condition | Severity |
+|---|---|---|
+| C-1 | Fold R-1 into the FR before implementation authority activates; this requested draft is not itself a promoted judgement artifact. | GATE |
+| C-2 | Preserve the sole production binder, explicit direct-binder defaults, typed FR-998 exactly-one second attempt, exception identity/marking, invocation configuration and FR-464/679 responsibilities. | GATE |
+| C-3 | Check recognized truncation before accepting parsed output, including valid-looking partial-JSON repairs; do not broaden metadata absence into a completeness claim. | GATE |
+| C-4 | Keep unknown counts unknown and hidden reasoning out of diagnostics. Preserve existing node error policies; add no automatic truncation retry. | GATE |
+| C-5 | Any raw-enabled response lacking the contracted raw message returns to plan; do not add a silent fallback, dual return shape or dependency/provider expansion. | GATE |
+| C-6 | A fresh paid rerun requires a fresh operator spend decision and credentials. This judgement answers no spend question on the operator's behalf; without approval, use the explicit offline branch. | GATE |
+| C-7 | Do not re-enter the judge during enforcement or change enforcement infrastructure under this FR. | GATE |
+
+Authority granted: conditional approval for the frozen truncation classifier, existing-call-site wiring and support artifacts only, after R-1 is folded into the FR and this draft is promoted through the existing route.
+
+---
+
+# Prior judgement (2026-11-14, first submission at `1cbf646d`): REJECTED
+
 **Route:** scripts/judge.sh (copilot gpt-6.1-sol), draft folded verbatim. Disposition: REJECTED; FR returned to plan, revisions R-1..R-5 folded, re-judge required.
 **Prior art:** dispositioned in the FR's Prior art line and judged in the rubric below.
 

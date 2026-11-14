@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed (revised after the 2026-11-14 REJECTED judgement; R-1..R-5 folded)
+**Status:** Approved (judged 2026-11-14: APPROVED WITH REVISIONS on the revised FR; R-1 folded)
 **Requested:** 2026-11-14
 **First consumer / first event:** the next map run where a model hits a
 small per-item `max_tokens`, whether a model that thinks by default
@@ -108,17 +108,17 @@ branches:
   - "a raw-enabled call returns an envelope without 'raw' → stop, return to plan (no shim)"
 delegations:
   - "research.sh: 1 run (done; dispositioned in the research record)"
-  - "judge.sh: 1 re-judge"
-waits:
-  - "re-judge"
+  - "judge.sh: re-judge (done 2026-11-14: APPROVED WITH REVISIONS, R-1 folded); not re-entered during enforcement"
+waits: []
 commands:
-  - scripts/judge.sh feature-requests/FR-1164-output-truncated-error.md
-  - python scripts/probe_fr1164_truncation.py   # needs ANTHROPIC_API_KEY and operator spend approval; 3-4 requests, <= $0.05
+  # mandatory offline enforcement gate (AC-13)
   - pytest tests/unit/test_fr1164_output_truncated.py tests/unit/test_fr998_structured_output.py tests/unit/test_race_node.py -q --no-cov
   - pytest tests/unit/ -q --no-cov -m "not slow" -n 4
   - python scripts/req_coverage.py --strict
   - lint-imports
   - ruff check yamlgraph/ scripts/ tests/ && ruff format --check yamlgraph/ scripts/ tests/
+  # optional paid probe: only with a fresh operator spend approval (AC-11); judge the JSON entries, not the exit code
+  - python scripts/probe_fr1164_truncation.py
 ```
 
 ## Proposed Solution
@@ -255,16 +255,24 @@ revision and the rest are enforcement criteria.
   `evidence/FR-1164-truncation-probe.json` records model
   `claude-haiku-4-5-20251001`, `max_tokens=16`, package versions, SHA
   `3fd52fec`, sanitized metadata, the include_raw envelope and today's
-  structured result (3 of the 4 approved requests used). A post-GREEN
-  re-run (3-4 more requests) needs a new operator approval; if granted,
-  its plain and `structured_today` entries must show
-  `OutputTruncatedError` and the result replaces the file; if not, the
-  unit witnesses built from the recorded envelope stand and the FR says so.
+  structured result (3 of the 4 approved requests used). This file is
+  baseline evidence of the provider contract and the defect, not of the
+  fix. A post-GREEN re-run needs a fresh operator spend approval; if
+  granted, `plain` and `structured_include_raw` stay direct-provider
+  observations (not required to raise), and for a reply reporting
+  truncation `structured_today` (YAMLGraph's policy) must record
+  `OutputTruncatedError`, checked in the JSON, not by exit code. If not
+  granted, the FR records that no paid re-run occurred and the unit
+  witnesses built from the recorded envelope stand.
 - [ ] AC-12: `reference/graph-yaml.md` states the shared thinking/output
   budget for providers that count it, the qualified advice, and the
   bounded `OutputTruncatedError` behaviour without a universal claim.
-- [ ] AC-13: RED commit precedes GREEN; the commands under Planned
-  Operations pass; new tests carry `REQ-YG-729`.
+- [ ] AC-13: a behavioural RED commit precedes GREEN; the mandatory offline
+  commands under Planned Operations pass (targeted tests, unit suite,
+  `req_coverage --strict`, `lint-imports`, ruff check and format); the
+  optional paid probe and the judge are not part of this gate; new tests
+  carry `@pytest.mark.req("REQ-YG-729")`, registered in CAP-164 and the
+  generated ARCHITECTURE.md.
 - [ ] AC-14: fix changelog fragment, Implementation Status with decisions
   and deviations, and a diary entry with `**Seed:**` are committed.
 
