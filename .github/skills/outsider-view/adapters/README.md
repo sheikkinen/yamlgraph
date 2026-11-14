@@ -29,7 +29,7 @@ Direct invocation (what the wrapper runs; use the wrapper instead):
 ```bash
 OUTSIDER_EXECUTION=1 yamlgraph graph run .github/skills/outsider-view/adapters/graph.yaml \
   --var input_path=<title-body-file> --var report_path=tmp/outsider-<label>-<stamp>.md \
-  --var model=gpt-5.6-sol --var repo=<owner/name|-> --var pr=<number|-> --var head_sha=<40-hex|-> \
+  --var model=gpt-6.1-sol --var repo=<owner/name|-> --var pr=<number|-> --var head_sha=<40-hex|-> \
   --var prompt_digest=<16-hex> --var tool_sha=<short-sha> --full
 ```
 

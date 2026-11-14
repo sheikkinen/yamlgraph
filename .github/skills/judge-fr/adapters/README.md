@@ -30,7 +30,7 @@ uv run yamlgraph graph run .github/skills/judge-fr/adapters/graph.yaml \
 
 **Backend selection (FR-960, REQ-YG-642; FR-1049, REQ-YG-682).** One graph, one
 prompt, one wrapper — still one route. The graph holds three `type: copilot`
-nodes that share `prompts/judge.yaml`: `judge` (Copilot CLI, `gpt-5.6-sol`, the
+nodes that share `prompts/judge.yaml`: `judge` (Copilot CLI, `gpt-6.1-sol`, the
 default), `judge_claude` (`backend: claude`, FR-959), and `judge_opencode`
 (`backend: opencode`, FR-1048). `scripts/judge.sh` reads `JUDGE_BACKEND`
 (`copilot` | `claude` | `opencode`; anything else exits 64 before the lock is

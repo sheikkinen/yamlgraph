@@ -15,7 +15,7 @@ B. inputs/plain-591.md  (the operator-approved plain account as if it were the P
      and at least one finding (two removal candidates, or half serve only developers)
 
 If A and B are not clearly separated on §2 and §3 count, the outsider is not an outsider.
-Model for both: gpt-5.6-sol (operator decision: PR-level content read by the judge-class model).
+Model for both: gpt-6.1-sol (operator decision: PR-level content read by the judge-class model).
 Second pass, if time: claude-haiku-4-5 via backend api — to see whether a cheap reader separates them too.
 
 ## Revision 2 (after §12.6) — written BEFORE the v2 runs
