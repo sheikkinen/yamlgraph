@@ -252,7 +252,13 @@ def test_counts_are_reported_independently():
 def test_none_reasoning_detail_stays_unknown():
     usage = _usage(40, None)
     usage["output_token_details"] = {"reasoning": None}
-    message = _msg("partial", stop={"finish_reason": "length"}, usage=usage)
+    # AIMessage validation rejects None here; a provider building the
+    # message without validation could still carry it.
+    message = AIMessage.model_construct(
+        content="partial",
+        response_metadata={"finish_reason": "length"},
+        usage_metadata=usage,
+    )
 
     with pytest.raises(OutputTruncatedError) as info:
         ensure_complete(message)

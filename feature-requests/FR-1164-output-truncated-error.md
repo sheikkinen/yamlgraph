@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Approved (judged 2026-11-14: APPROVED WITH REVISIONS on the revised FR; R-1 folded)
+**Status:** Implemented (judged 2026-11-14: APPROVED WITH REVISIONS on the revised FR; R-1 folded)
 **Requested:** 2026-11-14
 **First consumer / first event:** the next map run where a model hits a
 small per-item `max_tokens`, whether a model that thinks by default
@@ -217,35 +217,35 @@ revision and the rest are enforcement criteria.
 - [x] AC-02: provider evidence names package versions and stop keys/values
   (research record table) and the live `include_raw` envelope; the FR
   states the bounded guarantee and its exclusions.
-- [ ] AC-03: thinking-only, mixed thinking/text and partial-text messages,
+- [x] AC-03: thinking-only, mixed thinking/text and partial-text messages,
   with each of `max_tokens`, `length`, `MAX_TOKENS`, raise
   `OutputTruncatedError` from `attempt_structured_invoke` (plain and
   `parse_json`-style text) before normalization or JSON extraction; with
   output 2000 / reasoning 1921 the message contains both numbers.
-- [ ] AC-04: missing `usage_metadata`, missing keys and `None` values still
+- [x] AC-04: missing `usage_metadata`, missing keys and `None` values still
   raise on truncation, keep the fields `None` and print `unknown`, never 0;
   `stop_reason` wins over `finish_reason` when both are present; an empty
   `stop_reason` falls through to `finish_reason`.
-- [ ] AC-05: no stop key, an unrecognized value, and `end_turn`/`stop`
+- [x] AC-05: no stop key, an unrecognized value, and `end_turn`/`stop`
   produce no error and return today's result.
-- [ ] AC-06: `invoke_structured` and `ainvoke_structured`, on the primary
+- [x] AC-06: `invoke_structured` and `ainvoke_structured`, on the primary
   and on the earned second attempt, raise `OutputTruncatedError` for a
   truncated raw message even when `parsed` is a valid model (the probe's
   case); a complete call returns `parsed`; a complete call with
   `parsing_error` re-raises the identical object (`is`).
-- [ ] AC-07: `bind_structured_output` without `include_raw` passes no
+- [x] AC-07: `bind_structured_output` without `include_raw` passes no
   `include_raw` kwarg (agent finalisation unchanged); the one production
   `.with_structured_output(` call remains; `config` forwarding, the
   exactly-one second attempt, its mark and the async
   `second_attempt_config` run id stay as FR-998 tests pin them; a
   primary-attempt truncation earns no second attempt (one invoke).
-- [ ] AC-08: executor and race FR-464 plain re-invokes raise on a truncated
+- [x] AC-08: executor and race FR-464 plain re-invokes raise on a truncated
   reply, with no further call; a truncation from the structured attempt
   earns no FR-464 fallback (invoke counts asserted; race run ids distinct).
-- [ ] AC-09: a truncated race candidate raises; in a race with a complete
+- [x] AC-09: a truncated race candidate raises; in a race with a complete
   candidate the complete one wins; existing race tests stay green;
   `is_retryable(OutputTruncatedError(...))` is `False`.
-- [ ] AC-10: the error's fields carry the stop reason, available usage, the
+- [x] AC-10: the error's fields carry the stop reason, available usage, the
   visible-character count and a preview of at most 200 characters, both
   from `normalize_content`; a sentinel in a thinking block is absent from
   `str(err)` and from `err.preview`.
@@ -264,16 +264,16 @@ revision and the rest are enforcement criteria.
   `OutputTruncatedError`, checked in the JSON, not by exit code. If not
   granted, the FR records that no paid re-run occurred and the unit
   witnesses built from the recorded envelope stand.
-- [ ] AC-12: `reference/graph-yaml.md` states the shared thinking/output
+- [x] AC-12: `reference/graph-yaml.md` states the shared thinking/output
   budget for providers that count it, the qualified advice, and the
   bounded `OutputTruncatedError` behaviour without a universal claim.
-- [ ] AC-13: a behavioural RED commit precedes GREEN; the mandatory offline
+- [x] AC-13: a behavioural RED commit precedes GREEN; the mandatory offline
   commands under Planned Operations pass (targeted tests, unit suite,
   `req_coverage --strict`, `lint-imports`, ruff check and format); the
   optional paid probe and the judge are not part of this gate; new tests
   carry `@pytest.mark.req("REQ-YG-729")`, registered in CAP-164 and the
   generated ARCHITECTURE.md.
-- [ ] AC-14: fix changelog fragment, Implementation Status with decisions
+- [x] AC-14: fix changelog fragment, Implementation Status with decisions
   and deviations, and a diary entry with `**Seed:**` are committed.
 
 ## Alternatives Considered
@@ -293,6 +293,39 @@ Dispositioned in [FR-1164.research.md](FR-1164.research.md#dispositioned-alterna
 - A5 validate `thinking_budget` against `max_tokens` at construction:
   rejected; the probe's truncation had no thinking at all, and
   default-thinking models have no budget to compare.
+
+## Implementation Status
+
+Implemented 2026-11-14 on branch `fix/fr1164-output-truncated-error`.
+
+- RED `test(llm): FR-1164 RED ...`: 43 witnesses in
+  `tests/unit/test_fr1164_output_truncated.py`, 37 failing on behaviour
+  (DID NOT RAISE). `stop_reason.py` shipped the error class with a no-op
+  `ensure_complete` so failures were behavioural, not import errors; the
+  RED commit skipped vulture alongside pytest because the stub was not yet
+  wired in.
+- GREEN: `ensure_complete` as frozen; `bind_structured_output(...,
+  include_raw=False)`; `_unwrap` on both attempts of both helpers (the
+  second attempt's `_unwrap` is inside the marking `try`, so its
+  truncation is marked like any second-attempt error); `ensure_complete`
+  before `normalize_content` on the executor plain path, the executor
+  FR-464 re-invoke, and both race `ainvoke` paths.
+- Decision (branch rule): 31 existing tests mocked the structured
+  runnable's bare return, so one shared helper
+  `tests/unit/_structured_envelope.py` (`envelope(parsed)`) wraps mocks in
+  `{raw, parsed, parsing_error}`. FR-998's fake LLM now mirrors LangChain:
+  envelope only when bound with `include_raw=True`. Production accepts one
+  shape only.
+- Deviation: one witness (`None` reasoning detail) builds its message with
+  `AIMessage.model_construct`, because `AIMessage` validation rejects
+  `None` there; the classifier's `None` handling stays witnessed.
+- Module-map budget 304 → 306 for `utils/stop_reason.py`.
+- Gate: targeted tests 149 passed; unit suite shows no failure absent from
+  `main` at `6239c99b` (the remaining Windows shell/hook failures are
+  identical on `main`); `req_coverage --strict`, `lint-imports`, ruff check
+  and format clean.
+- AC-11: no paid post-GREEN re-run occurred; the unit witnesses built from
+  the recorded envelope stand.
 
 ## Related
 

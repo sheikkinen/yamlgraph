@@ -14,6 +14,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from tests.unit._structured_envelope import envelope
 from yamlgraph.schema_loader import load_schema_from_yaml
 from yamlgraph.tools.agent import _try_structured_output
 
@@ -93,8 +94,8 @@ class TestNarrowedStructuredOutputCatch:
         content = '{"unexpected_field": 123}'
 
         mock_structured = MagicMock()
-        mock_structured.invoke.return_value = output_model(
-            verdict="APPROVE", reasoning="recovered"
+        mock_structured.invoke.return_value = envelope(
+            output_model(verdict="APPROVE", reasoning="recovered")
         )
         llm_base = MagicMock()
         llm_base.with_structured_output.return_value = mock_structured
@@ -115,8 +116,8 @@ class TestNarrowedStructuredOutputCatch:
         content = "This is prose with no JSON at all."
 
         mock_structured = MagicMock()
-        mock_structured.invoke.return_value = output_model(
-            verdict="REJECT", reasoning="prose"
+        mock_structured.invoke.return_value = envelope(
+            output_model(verdict="REJECT", reasoning="prose")
         )
         llm_base = MagicMock()
         llm_base.with_structured_output.return_value = mock_structured
@@ -225,8 +226,8 @@ class TestNarrowedStructuredOutputCatch:
         content = '{"unexpected_field": 123}'
 
         mock_structured = MagicMock()
-        mock_structured.invoke.return_value = output_model(
-            verdict="APPROVE", reasoning="ok"
+        mock_structured.invoke.return_value = envelope(
+            output_model(verdict="APPROVE", reasoning="ok")
         )
         llm_base = MagicMock()
         llm_base.with_structured_output.return_value = mock_structured

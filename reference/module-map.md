@@ -4,7 +4,7 @@
 - source_root: `yamlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 147
+- module count: 148
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
@@ -83,8 +83,8 @@
   - import dependencies: `yamlgraph.config`, `yamlgraph.executor_base`, `yamlgraph.utils.llm_factory`
 - `yamlgraph/executor_async.py` - 366 lines; exports: `async execute_prompt_async(prompt_name, variables, output_model, temperature, provider, model, graph_path, prompts_dir, prompts_relative, state)`, `async execute_prompts_concurrent(prompts)`, `async execute_prompt_streaming(prompt_name, variables, temperature, provider, model, graph_path, prompts_dir, prompts_relative, state)`, `async compile_graph_async(graph, config)`, `async load_and_compile_async(path, *, cache)`, `async run_graph_streaming_native(graph_path, initial_state, config, node_filter, subgraphs, yield_events, timeout)`
   - import dependencies: `yamlgraph.config`, `yamlgraph.executor_base`, `yamlgraph.graph_cache`, `yamlgraph.models.streaming`, `yamlgraph.observability.otel`, `yamlgraph.streaming_events`, `yamlgraph.utils.llm_factory`, `yamlgraph.utils.llm_factory_async`, `yamlgraph.utils.route_log`, `yamlgraph.utils.validators`
-- `yamlgraph/executor_base.py` - 447 lines; exports: `class PromptRequest`, `is_retryable(exception)`, `format_prompt(template, variables, state)`, `prepare_messages(prompt_name, variables, provider, model, graph_path, prompts_dir, prompts_relative, state)`, `prepare_messages_async(prompt_name, variables, provider, model, graph_path, prompts_dir, prompts_relative, state)`, `build_schema_hint(output_model)`, `attempt_structured_invoke(llm, messages, output_model)`
-  - import dependencies: `yamlgraph.config`, `yamlgraph.utils.content`, `yamlgraph.utils.json_extract`, `yamlgraph.utils.prompts`, `yamlgraph.utils.structured_output`, `yamlgraph.utils.template`
+- `yamlgraph/executor_base.py` - 450 lines; exports: `class PromptRequest`, `is_retryable(exception)`, `format_prompt(template, variables, state)`, `prepare_messages(prompt_name, variables, provider, model, graph_path, prompts_dir, prompts_relative, state)`, `prepare_messages_async(prompt_name, variables, provider, model, graph_path, prompts_dir, prompts_relative, state)`, `build_schema_hint(output_model)`, `attempt_structured_invoke(llm, messages, output_model)`
+  - import dependencies: `yamlgraph.config`, `yamlgraph.utils.content`, `yamlgraph.utils.json_extract`, `yamlgraph.utils.prompts`, `yamlgraph.utils.stop_reason`, `yamlgraph.utils.structured_output`, `yamlgraph.utils.template`
 - `yamlgraph/graph_cache.py` - 31 lines; exports: `clear_cache()`
   - import dependencies: _none_
 - `yamlgraph/interactive_tool.py` - 183 lines; exports: `expand_interactive_tools(config)`
@@ -172,7 +172,7 @@
 - `yamlgraph/node_factory/llm_nodes.py` - 448 lines; exports: `class LLMNodeConfig`, `resolve_llm_node_config(node_name, node_config, defaults, graph_path)`, `create_node_function(node_name, node_config, defaults, graph_path)`
   - import dependencies: `yamlgraph.constants`, `yamlgraph.error_handlers`, `yamlgraph.executor`, `yamlgraph.models`, `yamlgraph.node_factory.base`, `yamlgraph.node_factory.llm_execution`, `yamlgraph.utils.expressions`, `yamlgraph.utils.guard_runtime`, `yamlgraph.utils.json_extract`, `yamlgraph.utils.schema_walk`
 - `yamlgraph/node_factory/race_node.py` - 450 lines; exports: `class AllCandidatesFailedError`, `create_race_node(node_name, node_config, defaults, graph_path)`
-  - import dependencies: `yamlgraph.constants`, `yamlgraph.error_handlers`, `yamlgraph.executor_base`, `yamlgraph.models`, `yamlgraph.models.schemas`, `yamlgraph.node_factory.base`, `yamlgraph.utils.bridge`, `yamlgraph.utils.content`, `yamlgraph.utils.expressions`, `yamlgraph.utils.json_extract`, `yamlgraph.utils.llm_factory`, `yamlgraph.utils.structured_output`
+  - import dependencies: `yamlgraph.constants`, `yamlgraph.error_handlers`, `yamlgraph.executor_base`, `yamlgraph.models`, `yamlgraph.models.schemas`, `yamlgraph.node_factory.base`, `yamlgraph.utils.bridge`, `yamlgraph.utils.content`, `yamlgraph.utils.expressions`, `yamlgraph.utils.json_extract`, `yamlgraph.utils.llm_factory`, `yamlgraph.utils.stop_reason`, `yamlgraph.utils.structured_output`
 - `yamlgraph/node_factory/router_race_node.py` - 146 lines; exports: _none_
   - import dependencies: `yamlgraph.constants`, `yamlgraph.executor_base`, `yamlgraph.models`, `yamlgraph.models.schemas`, `yamlgraph.node_factory.race_node`, `yamlgraph.utils.bridge`
 - `yamlgraph/node_factory/subgraph_nodes.py` - 313 lines; exports: `create_subgraph_node(node_name, node_config, parent_graph_path, parent_checkpointer)`
@@ -281,8 +281,10 @@
   - import dependencies: `yamlgraph.observability.otel`, `yamlgraph.utils.artifact_hash`, `yamlgraph.utils.regulated_evidence`
 - `yamlgraph/utils/schema_walk.py` - 171 lines; exports: `class SchemaFinding`, `class UnconstrainableSchemaError`, `resolve_static_provider(node_provider, default_provider)`, `find_unconstrainable(schema)`, `find_untyped_subschemas(schema)`, `find_open_objects(schema)`, `refusal_message(subject, findings)`, `node_subject(node, prompt, model)`, `refuse_static_anthropic_node(node, cfg)`
   - import dependencies: _none_
-- `yamlgraph/utils/structured_output.py` - 147 lines; exports: `bind_structured_output(llm, output_model, *, method)`, `is_second_attempt_error(err)`, `invoke_structured(llm, output_model, messages, *, config)`, `async ainvoke_structured(llm, output_model, messages, *, config, second_attempt_config)`
-  - import dependencies: `yamlgraph.utils.llm_providers`, `yamlgraph.utils.schema_walk`
+- `yamlgraph/utils/stop_reason.py` - 78 lines; exports: `class OutputTruncatedError`, `ensure_complete(message)`
+  - import dependencies: `yamlgraph.utils.content`
+- `yamlgraph/utils/structured_output.py` - 179 lines; exports: `bind_structured_output(llm, output_model, *, method, include_raw)`, `is_second_attempt_error(err)`, `invoke_structured(llm, output_model, messages, *, config)`, `async ainvoke_structured(llm, output_model, messages, *, config, second_attempt_config)`
+  - import dependencies: `yamlgraph.utils.llm_providers`, `yamlgraph.utils.schema_walk`, `yamlgraph.utils.stop_reason`
 - `yamlgraph/utils/template.py` - 204 lines; exports: `is_jinja(text)`, `class SimpleFieldScan`, `strip_jinja_raw_blocks(text)`, `scan_simple_fields(text)`, `extract_variables(template)`, `validate_variables(template, provided, prompt_name)`
   - import dependencies: _none_
 - `yamlgraph/utils/timing_tracker.py` - 87 lines; exports: `class ExecutionTimingCallbackHandler`, `create_timing_tracker()`
@@ -300,5 +302,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 57/147
+- mapped modules: 57/148
 - discovered tests: 60

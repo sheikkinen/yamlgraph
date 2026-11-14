@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import BaseModel, Field
 
+from tests.unit._structured_envelope import envelope
 from yamlgraph.tools.agent import create_agent_node
 from yamlgraph.tools.shell import ShellToolConfig
 
@@ -121,7 +122,7 @@ class TestAgentStructuredOutputMaxIterations:
         # Mock structured output fallback path
         mock_structured = MagicMock()
         mock_structured_result = JudgeVerdict(verdict="APPROVE", reasoning="Done")
-        mock_structured.invoke.return_value = mock_structured_result
+        mock_structured.invoke.return_value = envelope(mock_structured_result)
         mock_llm_base.with_structured_output.return_value = mock_structured
 
         mock_create_llm.return_value = mock_llm_base

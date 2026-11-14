@@ -13,6 +13,7 @@ import inspect
 import pytest
 from pydantic import BaseModel, Field
 
+from tests.unit._structured_envelope import envelope
 from yamlgraph import executor_base
 from yamlgraph.executor_base import attempt_structured_invoke
 
@@ -33,12 +34,12 @@ class _StructuredOK:
     def __init__(self, model_instance):
         self._model_instance = model_instance
 
-    def with_structured_output(self, model):
+    def with_structured_output(self, model, **kwargs):
         parent = self
 
         class _Bound:
             def invoke(self, messages):
-                return parent._model_instance
+                return envelope(parent._model_instance)
 
         return _Bound()
 
@@ -53,7 +54,7 @@ class _ResponseFormatReject:
         self._fallback_content = fallback_content
         self.plain_invocations = 0
 
-    def with_structured_output(self, model):
+    def with_structured_output(self, model, **kwargs):
         class _Bound:
             def invoke(self, messages):
                 raise ValueError("response_format is not supported by this provider")
@@ -68,7 +69,7 @@ class _ResponseFormatReject:
 class _NonResponseFormatError:
     """LLM whose structured path raises a non-response_format error (FR-678)."""
 
-    def with_structured_output(self, model):
+    def with_structured_output(self, model, **kwargs):
         class _Bound:
             def invoke(self, messages):
                 raise TypeError("programming defect, not a provider capability gap")

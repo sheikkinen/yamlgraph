@@ -30,6 +30,7 @@ import pytest
 from pydantic import BaseModel, Field, ValidationError
 
 import yamlgraph
+from tests.unit._structured_envelope import envelope
 from yamlgraph.executor_base import attempt_structured_invoke
 from yamlgraph.node_factory.race_node import _invoke_candidate_async
 from yamlgraph.tools.agent import _try_structured_output
@@ -74,17 +75,23 @@ class _FakeResponse:
 
 
 class _Bound:
-    def __init__(self, parent: _FakeLLM, method: str | None) -> None:
+    def __init__(
+        self, parent: _FakeLLM, method: str | None, include_raw: bool = False
+    ) -> None:
         self._parent = parent
         self._method = method
+        self._include_raw = include_raw
+
+    def _shape(self, parsed: Any) -> Any:
+        return envelope(parsed) if self._include_raw else parsed
 
     def invoke(self, messages: list, **kwargs: Any) -> Any:
         self._parent.invocations.append((self._method, messages, kwargs))
-        return self._parent.behaviours[self._method](messages)
+        return self._shape(self._parent.behaviours[self._method](messages))
 
     async def ainvoke(self, messages: list, **kwargs: Any) -> Any:
         self._parent.invocations.append((self._method, messages, kwargs))
-        return self._parent.behaviours[self._method](messages)
+        return self._shape(self._parent.behaviours[self._method](messages))
 
 
 class _FakeLLM:
@@ -107,7 +114,7 @@ class _FakeLLM:
         method = kwargs.get("method")
         if method not in self.behaviours:
             raise AssertionError(f"unexpected structured-output method {method!r}")
-        return _Bound(self, method)
+        return _Bound(self, method, kwargs.get("include_raw", False))
 
     def invoke(self, messages: list, **kwargs: Any) -> Any:
         self.invocations.append(("plain", messages, kwargs))
@@ -272,12 +279,12 @@ class TestBinder:
     def test_anthropic_default_selects_json_schema_via_executor(self, anthropic_llm):
         llm = anthropic_llm({"json_schema": _returns(TYPED)})
         assert attempt_structured_invoke(llm, MSGS, _Reading) is TYPED
-        assert llm.bind_calls == [{"method": "json_schema"}]
+        assert llm.bind_calls == [{"method": "json_schema", "include_raw": True}]
 
     def test_non_anthropic_default_omits_method_kwarg(self):
         llm = _FakeOther({None: _returns(TYPED)})
         assert attempt_structured_invoke(llm, MSGS, _Reading) is TYPED
-        assert llm.bind_calls == [{}]
+        assert llm.bind_calls == [{"include_raw": True}]
 
     def test_explicit_override_forwarded_unchanged_for_anthropic(self, anthropic_llm):
         llm = anthropic_llm({"function_calling": _returns(TYPED)})
@@ -449,7 +456,7 @@ class TestPropagation:
         with pytest.raises(type(err)) as excinfo:
             invoke_structured(llm, _Reading, MSGS)
         assert excinfo.value is err
-        assert llm.bind_calls == [{"method": "json_schema"}]
+        assert llm.bind_calls == [{"method": "json_schema", "include_raw": True}]
         assert len(llm.invocations) == 1
 
     @pytest.mark.parametrize("make_error", _PROPAGATING_ERRORS)
@@ -489,7 +496,7 @@ class TestPropagation:
         with pytest.raises(anthropic.BadRequestError) as excinfo:
             invoke_structured(llm, _Reading, MSGS)
         assert excinfo.value is err
-        assert llm.bind_calls == [{}]
+        assert llm.bind_calls == [{"include_raw": True}]
 
 
 # ---------------------------------------------------------------------------
@@ -594,7 +601,7 @@ class TestAgentComposition:
             "prose without json", msgs=[], output_model=_Reading, llm_base=llm
         )
         assert result == TYPED.model_dump()
-        assert llm.bind_calls == [{"method": "json_schema"}]
+        assert llm.bind_calls == [{"method": "json_schema", "include_raw": True}]
 
     def test_recovery_tier_stays_function_calling_for_anthropic(self, anthropic_llm):
         llm = anthropic_llm(

@@ -156,7 +156,9 @@ class TestFR335ModuleMapCompression:
         # dependency line; warm-first map wiring).
         # FR-1163: 302 -> 304 for cli/graph_run_failure.py (entry +
         # dependency line; graph_commands.py was at the size gate).
-        assert line_count <= 304, f"module-map too large: {line_count} lines (max 304)"
+        # FR-1164: 304 -> 306 for utils/stop_reason.py (entry + dependency
+        # line; one truncation classifier shared by three call surfaces).
+        assert line_count <= 306, f"module-map too large: {line_count} lines (max 306)"
 
     def test_ac02_dependency_lists_contain_only_yamlgraph_imports(self) -> None:
         module_map = _run_generator()

@@ -9,6 +9,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import BaseModel, Field
 
+from tests.unit._structured_envelope import envelope
 from yamlgraph.executor import PromptExecutor
 
 # ---------------------------------------------------------------------------
@@ -91,7 +92,7 @@ class TestInvokeWithRetrySuccess:
         expected = _OutputModel(answer="42")
         mock_llm = MagicMock()
         mock_structured = MagicMock()
-        mock_structured.invoke.return_value = expected
+        mock_structured.invoke.return_value = envelope(expected)
         mock_llm.with_structured_output.return_value = mock_structured
 
         result = executor._invoke_with_retry(
@@ -99,7 +100,9 @@ class TestInvokeWithRetrySuccess:
         )
 
         assert result == expected
-        mock_llm.with_structured_output.assert_called_once_with(_OutputModel)
+        mock_llm.with_structured_output.assert_called_once_with(
+            _OutputModel, include_raw=True
+        )
         mock_structured.invoke.assert_called_once_with(["msg"])
 
 
@@ -168,7 +171,7 @@ class TestInvokeWithRetryRetries:
         mock_structured = MagicMock()
         mock_structured.invoke.side_effect = [
             _FakeRateLimitError("rate limited"),
-            expected,
+            envelope(expected),
         ]
         mock_llm = MagicMock()
         mock_llm.with_structured_output.return_value = mock_structured

@@ -18,6 +18,11 @@ Policy:
   when, Anthropic answers a typed 400 saying the model does not support
   ``output_config`` (``llm_providers`` predicates). Every other error — including
   one raised by the second attempt — propagates unchanged.
+- FR-1164: both helpers bind with ``include_raw=True`` and check the raw
+  message's stop reason before the parse result, so a reply cut at the
+  output-token limit raises ``OutputTruncatedError`` (never retried) instead
+  of returning a parser-repaired model. A ``parsing_error`` is re-raised as the
+  same object. Direct ``bind_structured_output`` callers keep parsed-only.
 """
 
 from __future__ import annotations
@@ -35,6 +40,7 @@ from yamlgraph.utils.schema_walk import (
     find_unconstrainable,
     refusal_message,
 )
+from yamlgraph.utils.stop_reason import ensure_complete
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +49,11 @@ FORCED_TOOL_CALL_METHOD = "function_calling"
 
 
 def bind_structured_output(
-    llm: Any, output_model: type, *, method: str | None = None
+    llm: Any,
+    output_model: type,
+    *,
+    method: str | None = None,
+    include_raw: bool = False,
 ) -> Any:
     """Return the structured-output runnable for *llm* under the FR-998 policy.
 
@@ -59,7 +69,9 @@ def bind_structured_output(
         if paths:
             subject = f"Output model '{output_model.__name__}' on {_model_name(llm)}"
             raise UnconstrainableSchemaError(refusal_message(subject, paths))
-    kwargs = {} if method is None else {"method": method}
+    kwargs: dict[str, Any] = {} if method is None else {"method": method}
+    if include_raw:
+        kwargs["include_raw"] = True
     return llm.with_structured_output(output_model, **kwargs)
 
 
@@ -97,20 +109,34 @@ def _second_attempt_earned(llm: Any, err: BaseException) -> bool:
     return True
 
 
+def _unwrap(out: dict) -> Any:
+    """Raw stop reason first, then the parse result (FR-1164)."""
+    ensure_complete(out["raw"])
+    if out.get("parsing_error") is not None:
+        raise out["parsing_error"]
+    return out["parsed"]
+
+
 def invoke_structured(
     llm: Any, output_model: type, messages: list, *, config: dict | None = None
 ) -> Any:
     """One structured invocation (sync) under the policy above."""
     call = {} if config is None else {"config": config}
     try:
-        return bind_structured_output(llm, output_model).invoke(messages, **call)
+        return _unwrap(
+            bind_structured_output(llm, output_model, include_raw=True).invoke(
+                messages, **call
+            )
+        )
     except Exception as err:
         if not _second_attempt_earned(llm, err):
             raise
         try:
-            return bind_structured_output(
-                llm, output_model, method=FORCED_TOOL_CALL_METHOD
-            ).invoke(messages, **call)
+            return _unwrap(
+                bind_structured_output(
+                    llm, output_model, method=FORCED_TOOL_CALL_METHOD, include_raw=True
+                ).invoke(messages, **call)
+            )
         except Exception as second_err:
             _mark_second_attempt(second_err)
             raise
@@ -132,16 +158,22 @@ async def ainvoke_structured(
     """
     call = {} if config is None else {"config": config}
     try:
-        return await bind_structured_output(llm, output_model).ainvoke(messages, **call)
+        return _unwrap(
+            await bind_structured_output(llm, output_model, include_raw=True).ainvoke(
+                messages, **call
+            )
+        )
     except Exception as err:
         if not _second_attempt_earned(llm, err):
             raise
         if second_attempt_config is not None:
             call = {"config": second_attempt_config()}
         try:
-            return await bind_structured_output(
-                llm, output_model, method=FORCED_TOOL_CALL_METHOD
-            ).ainvoke(messages, **call)
+            return _unwrap(
+                await bind_structured_output(
+                    llm, output_model, method=FORCED_TOOL_CALL_METHOD, include_raw=True
+                ).ainvoke(messages, **call)
+            )
         except Exception as second_err:
             _mark_second_attempt(second_err)
             raise

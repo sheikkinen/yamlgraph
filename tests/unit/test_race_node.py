@@ -16,6 +16,7 @@ import pytest
 # =============================================================================
 from pydantic import BaseModel, Field
 
+from tests.unit._structured_envelope import envelope
 from yamlgraph.constants import NodeType
 from yamlgraph.models import PipelineError
 from yamlgraph.models.schemas import ErrorType
@@ -396,8 +397,8 @@ class TestRaceNodeFactory:
         mock_result = RaceTestOutput(answer="structured answer")
         llm1 = MagicMock()
         structured_llm = MagicMock()
-        structured_llm.invoke = MagicMock(return_value=mock_result)
-        structured_llm.ainvoke = AsyncMock(return_value=mock_result)
+        structured_llm.invoke = MagicMock(return_value=envelope(mock_result))
+        structured_llm.ainvoke = AsyncMock(return_value=envelope(mock_result))
         llm1.with_structured_output = MagicMock(return_value=structured_llm)
 
         llm2 = _make_mock_llm("fallback", delay=0.5)

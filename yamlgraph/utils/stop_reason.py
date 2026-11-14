@@ -16,6 +16,8 @@ from __future__ import annotations
 
 from langchain_core.messages import BaseMessage
 
+from yamlgraph.utils.content import normalize_content
+
 TRUNCATED = frozenset({"max_tokens", "length", "MAX_TOKENS"})
 PREVIEW_CHARS = 200
 
@@ -56,4 +58,21 @@ class OutputTruncatedError(RuntimeError):
 
 def ensure_complete(message: BaseMessage) -> None:
     """Raise :class:`OutputTruncatedError` when *message* stopped on the limit."""
-    return None
+    meta = getattr(message, "response_metadata", None) or {}
+    stop = meta.get("stop_reason") or meta.get("finish_reason")
+    if stop not in TRUNCATED:
+        return
+    usage = getattr(message, "usage_metadata", None) or {}
+    details = usage.get("output_token_details") or {}
+    text = normalize_content(message.content)
+    raise OutputTruncatedError(
+        stop_reason=stop,
+        output_tokens=_count(usage.get("output_tokens")),
+        reasoning_tokens=_count(details.get("reasoning")),
+        visible_chars=len(text),
+        preview=text[:PREVIEW_CHARS],
+    )
+
+
+def _count(value: object) -> int | None:
+    return value if isinstance(value, int) and not isinstance(value, bool) else None
