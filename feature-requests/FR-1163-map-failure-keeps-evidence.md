@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (R-1..R-4 folded)
 **Requested:** 2026-11-14
 **First consumer / first event:** the next `yamlgraph graph run --token-usage`
 of a graph whose `map` or `cached_map` has no `min_success` and one failing
@@ -61,74 +61,123 @@ token and timing totals.
 
 ## Planned Operations
 
+(Revised per judgement R-2: the open probes are replaced by a fixed
+boundary; a wrapping witness is added only if a committed failing test
+shows LangGraph wraps the exception.)
+
 ```yaml
 probes:
-  - "read _print_json_result and the --json failure path — decides the JSON error shape"
-  - "check how LangGraph re-raises a node exception under invoke, ainvoke (--async) and stream — confirms the same exception object (with attributes) reaches the CLI on all three"
+  - "RED witness: real compiled map / cached_map graphs raise the completeness error under invoke and ainvoke with the attributes intact — if a path wraps it, a failing test is committed before any __cause__ handling"
 branches:
-  - "LangGraph wraps or copies the exception on a path → read attributes from __cause__ on that path, with a test per path"
-  - "--stream path does not raise to graph_commands → print the summaries in the streaming handler's error branch too"
+  - "a committed witness shows wrapping on invoke or ainvoke → read the attributes from __cause__ on that path only"
 delegations:
   - "research.sh: 1 run (done)"
-  - "judge.sh: 1 run"
+  - "judge.sh: 1 run (done, APPROVED WITH REVISIONS)"
 waits:
-  - "judge"
+  - "CI on the PR"
 commands:
-  - scripts/judge.sh
-  - pytest tests/unit/test_fr1163_map_failure_report.py tests/unit/test_fr1073_map_result_contract.py tests/unit/test_fr1161_cached_map.py
-  - yamlgraph graph run examples/demos/cached_map/graph.yaml
+  - pytest tests/unit/test_fr1163_map_failure_report.py tests/unit/test_fr1073_map_result_contract.py tests/unit/test_fr1161_cached_map.py tests/unit/test_graph_commands.py -q --no-cov
+  - pytest tests/unit/ -q --no-cov -n 4
+  - python scripts/req_coverage.py --strict
 ```
+
+No paid run is part of acceptance (judgement R-4, C-7).
 
 ## Proposed Solution
 
-1. `MapCompletenessError(map_name, verdict, collected=None, failures=None)`:
-   two new attributes, `collected: list` (the map's `collect` list at the
-   join, in index order) and `failures: list[MapFailure]` (this dispatch's
-   failure records). The message is unchanged.
-2. `make_join_node(name, collect_key, failures_key)` reads both from state
-   and passes them on raise. `map_compiler` and `cached_map_compiler` pass
-   their keys.
-3. CLI (`graph_commands.py`, `graph_run_helpers.py`):
-   - initialise `tracker = timing_tracker = None` before the `try`;
-   - extract the token and timing print from `_emit_success_output` into
-     `_print_usage(tracker, timing_tracker, stream)`, called by the success
-     path (unchanged output) and by the error path;
-   - on `MapCompletenessError` (text mode): after the existing error line,
-     print one line per failure (`#<index> <error_type>: <message>`, message
-     cut at 200 characters), then `<n> succeeded results in '<collect>'`;
-     with `--full`, print the collected results with the existing result
-     display;
-   - on any exception after the invoke starts, call `_print_usage` before
-     `sys.exit(1)`;
-   - `--json`: stdout gets one object
-     `{"status": "failed", "error": str, "map": {"name", "verdict", "collected", "failures"}, "token_usage": {...}}`
-     (`map` only for `MapCompletenessError`, `token_usage` only when
-     tracked); exit 1.
-4. Downstream nodes, exports and `--export` files are not produced: the
-   FR-1073 block stands.
+(Revised per judgement R-1..R-3.)
+
+1. **Exception** (`yamlgraph/models/map_results.py`):
+   `MapCompletenessError(map_name, verdict, collect_key="", collected=(), failures=())`
+   carries `collect_key: str`, `collected: list` (a shallow copy of the
+   whole collect channel at the join, reducer order and row shapes kept;
+   it is not limited to the failing dispatch, because append channels,
+   shared channels and sequential reuse are supported and rows carry no
+   dispatch id) and `failures: list[MapFailure]`. The message is unchanged.
+   The two-argument form still works and carries empty evidence.
+2. **Capture** (`map_contract.make_join_node(name, collect_key, failures_key)`):
+   on an unmet verdict, select failures with
+   `f.map == name and f.dispatch == verdict.dispatch`, ordered by index,
+   and pass the collect channel snapshot. `map_compiler` and
+   `cached_map_compiler` pass their configured keys.
+3. **Text report** (`graph_commands.py`, `graph_run_helpers.py`), non-stream
+   `invoke` / `ainvoke`, on `MapCompletenessError`, after the existing
+   error line:
+   - one line per failure: `#<index> <error_type>: <message>` (message cut
+     at 200 characters in text only);
+   - `<len(collected)> collected results in '<collect_key>' (<verdict.succeeded> succeeded in failing dispatch)`;
+   - with `--full`, the snapshot through the existing result display.
+4. **Usage on execution failure** — one reporting policy at the CLI
+   boundary, never through `_emit_success_output` or an export helper:
+   - non-stream execution exceptions, including the inner `TimeoutError`
+     path: token and timing summaries printed exactly once, then exit 1;
+     timeout teardown unchanged;
+   - streaming error-event path: summaries printed once to stderr before
+     its existing exit 1; already-streamed tokens kept; no partial-map
+     evidence and no `StreamEvent` change (deferred);
+   - on failure an enabled tracker prints its summary even with zero calls;
+     disabled trackers print nothing; success output keeps its present
+     positive-call-only behavior and bytes;
+   - pre-execution refusals and post-success export failures are unchanged
+     (no added summary, no second JSON object).
+5. **JSON** (`--json`, non-stream execution failure): stdout gets exactly
+   one object
+   `{"status": "failed", "error": str, "map": {...}, "token_usage": {...}, "timing": {...}}`.
+   `map` only for the completeness error, with `name`, `collect_key`,
+   `verdict`, `collected`, `failures`; verdict and failures serialized as
+   structured objects (`model_dump`), collected through the existing state
+   serializer. `token_usage` / `timing` are the existing tracker summaries,
+   present only when the flag enabled them (zero-call included), with all
+   existing fields (reasoning, cache read/write). Human-readable text goes
+   to stderr only. Successful JSON is unchanged.
+6. The FR-1073 block stands: no node after the join runs, no `--export` or
+   `--export-state` output is written, exit status stays 1.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: a map of 3 Python sub-node items where index 1 raises, no
-  `min_success`: `MapCompletenessError.collected` holds the 2 succeeded
-  results in index order and `.failures` holds one record with index 1.
-  Same for `cached_map`.
-- [ ] AC-02: `graph run --token-usage` on a graph whose map fails (fake
-  LLM with usage metadata) prints `Token usage:` and the failure line for
-  index 1, and exits 1.
-- [ ] AC-03: with `--full` the succeeded results are printed; without it
-  only the count line.
-- [ ] AC-04: `--json`: stdout parses as one JSON object with
-  `status == "failed"`, `map.collected` of length 2, `token_usage` present;
-  exit 1.
-- [ ] AC-05: a non-map exception after invoke start (Python node raising)
-  with `--token-usage` still prints `Token usage:`; exit 1.
-- [ ] AC-06: no node after the join runs and no export file is written
-  (existing FR-1073 tests green, plus one assertion on `--export`).
-- [ ] AC-07: success-path output is byte-identical to before for the
-  existing CLI tests.
-- [ ] AC-08: RED commit precedes GREEN; unit suite and `req_coverage
-  --strict` pass.
+(Revised per judgement R-4.)
+
+- [ ] AC-01: for each of `map` and `cached_map`, a real compiled three-item
+  Python-worker graph with index 1 failing and no `min_success` raises the
+  completeness error, via both `invoke` and `ainvoke`, with unchanged
+  message/verdict, the configured `collect_key`, two collected rows ordered
+  0 then 2, and one typed index-1 failure.
+- [ ] AC-02: a join state holding historical and other-map failures selects
+  only records matching its map and verdict dispatch; the collected
+  snapshot keeps the whole channel unmutated; a fixture whose channel
+  length differs from `verdict.succeeded` shows both numbers correctly
+  labelled in the text.
+- [ ] AC-03: non-stream failure text has the original error line, the
+  collect label and the index/type/message failure line; `--full` shows the
+  snapshot, without it result values are absent; a long message is intact
+  in exception and JSON but cut in text.
+- [ ] AC-04: a controlled-usage map failure with `--token-usage --timing`
+  reports the expected token totals, call count, reasoning/cache totals and
+  timing totals exactly once, and exits 1; with both flags off neither
+  summary appears.
+- [ ] AC-05: JSON failure stdout parses as exactly one object; verdict and
+  failures are objects, collected matches the exception, enabled summaries
+  equal the controlled tracker summaries; a non-map failure omits `map`;
+  disabled tracker fields are absent; nothing decorative on stdout.
+- [ ] AC-06: a zero-call Python-node failure prints zero-call summaries for
+  enabled flags and exits 1; a run that records nonzero usage before a
+  non-map exception keeps those exact summaries.
+- [ ] AC-07: an invocation raising `TimeoutError` exits 1 after one usage
+  report with timeout cleanup done; a streaming error event exits 1 after
+  one stderr usage report, keeping token stdout and adding no partial-map
+  payload.
+- [ ] AC-08: for an unmet join a downstream sentinel never runs and neither
+  `--export` outputs nor the `--export-state` file is created; an unmet
+  explicit non-default threshold uses the same path; met-policy and
+  completed-error exit 3 unchanged.
+- [ ] AC-09: deterministic success snapshots stay byte-identical for text,
+  `--full`, tracked/untracked usage, JSON and streaming; configuration
+  refusal and post-success export failure add no summaries and no second
+  JSON object.
+- [ ] AC-10: a behavior-failing RED commit precedes GREEN; the targeted
+  tests, unit suite, lint/format and `python scripts/req_coverage.py
+  --strict` pass and are recorded here; every new test carries a
+  requirement marker.
 
 ## Alternatives Considered
 
@@ -152,5 +201,6 @@ boundary):
 
 ## Related
 
+- [FR-1163-map-failure-keeps-evidence.judgement.md](FR-1163-map-failure-keeps-evidence.judgement.md)
 - [FR-1163.research.md](FR-1163.research.md)
 - [FR-1073](FR-1073-map-result-contract.md), [FR-1161](FR-1161-cached-map-warm-first.md)
