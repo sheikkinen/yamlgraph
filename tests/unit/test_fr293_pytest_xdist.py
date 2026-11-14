@@ -27,12 +27,12 @@ def test_xdist_in_pyproject_dev_deps():
 
 @pytest.mark.req("REQ-YG-012")
 def test_precommit_uses_parallel_flag():
-    """Pre-commit pytest hook must include -n auto for parallel execution."""
+    """Pre-commit pytest hook runs 4 xdist workers (FR-1143 operator decision)."""
     from pathlib import Path
 
     config = Path(__file__).parents[2] / ".pre-commit-config.yaml"
     content = config.read_text(encoding="utf-8")
-    assert "-n auto" in content, "Pre-commit pytest hook missing -n auto flag"
+    assert "-n 4" in content, "Pre-commit pytest hook missing -n 4 flag"
 
 
 @pytest.mark.req("REQ-YG-012")
