@@ -33,6 +33,7 @@ See [CHANGELOG.md](../CHANGELOG.md) for version history.
 | `tool` | [§ Tool nodes](graph-yaml.md#type-tool---shell-tool-node) | - |
 | `python` | [§ Python nodes](graph-yaml.md#type-python---python-function-node) | - |
 | `map` | [§ Map nodes](graph-yaml.md#type-map---parallel-fan-out-node) | [map-nodes.md](map-nodes.md) |
+| `cached_map` | [§ Cached map nodes](graph-yaml.md#type-cached_map---warm-first-fan-out-fr-1161) | [map-nodes.md § Warm-first](map-nodes.md#warm-first-cached_map-fr-1161) |
 | `interrupt` | [§ Interrupt nodes](graph-yaml.md#type-interrupt---human-in-the-loop) | [interrupt-nodes.md](interrupt-nodes.md) |
 | `passthrough` | [§ Passthrough nodes](graph-yaml.md#type-passthrough---state-transformation) | [passthrough-nodes.md](passthrough-nodes.md) |
 | `tool_call` | [§ Tool call nodes](graph-yaml.md#type-tool_call---dynamic-tool-execution) | [tool-call-nodes.md](tool-call-nodes.md) |
