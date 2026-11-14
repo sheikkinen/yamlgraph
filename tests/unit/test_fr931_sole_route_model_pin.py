@@ -20,7 +20,7 @@ ADAPTERS = {
     "judge": REPO_ROOT / ".github/skills/judge-fr/adapters/graph.yaml",
     "review": REPO_ROOT / ".github/skills/review-pr/adapters/graph.yaml",
 }
-PINNED_MODEL = "gpt-5.6-sol"
+PINNED_MODEL = "gpt-6.1-sol"
 
 
 def _pins() -> dict[str, str]:
