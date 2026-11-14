@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS (R-1..R-3 folded)
 **Requested:** 2026-11-14
 **First consumer / first event:** the next graph author who writes
 `config: {max_tokens: N}` as `reference/graph-yaml.md` tells them to. Today
@@ -80,10 +80,17 @@ commands:
 1. `GraphConfig.__init__`: if `"max_tokens" in graph_level_config`, raise
    `ValueError("config.max_tokens is not applied to any LLM call; set defaults.max_tokens (graph-wide) or max_tokens on the node")`.
    Delete the `self.max_tokens` attribute.
-2. Remove `max_tokens` from the `config` block of the published graph JSON
-   schema, from `reference/graph-yaml.md` (the example and the table row),
-   and from CAP-17 REQ-YG-060's description (it becomes "node config or
-   defaults").
+   The refusal is by key presence, so `config.max_tokens: null` and a graph
+   that sets both `config.max_tokens` and `defaults.max_tokens` also fail.
+2. Remove `max_tokens` from the `config` properties of
+   `yamlgraph/schemas/graph-v1.json` (the schema stays permissive for other
+   keys, `additionalProperties: true`; the loader owns the refusal), from
+   `reference/graph-yaml.md` (the config example and table row; the node
+   property table's `max_tokens` default changes from "from config" to
+   "from defaults"; `defaults.max_tokens` is named as the graph-wide
+   setting), and from CAP-17 REQ-YG-060's description (it becomes "node
+   config or defaults"). The changelog fragment names the refusal and
+   `defaults.max_tokens`.
 3. Tests: replace `test_graph_config_max_tokens`,
    `test_graph_config_max_tokens_default_none` and
    `test_json_schema_has_max_tokens_in_config` with
@@ -100,30 +107,51 @@ which is also unread. Separate FR if wanted.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `load_graph_config` on a graph with `config: {max_tokens: 4096}`
-  raises `ValueError` whose message contains `defaults.max_tokens`.
-- [ ] AC-02: a graph with `defaults: {max_tokens: 123}` passes `123` to the
-  executor for an LLM node without its own `max_tokens`.
-- [ ] AC-03: `git grep -n "max_tokens" reference/graph-yaml.md` shows no row
-  or example under the `config:` block; the published schema's `config`
-  properties have no `max_tokens`.
-- [ ] AC-04: `GraphConfig` has no `max_tokens` attribute (vulture clean).
-- [ ] AC-05: RED commit (AC-01/AC-03 tests fail) precedes GREEN; unit suite
-  and `req_coverage --strict` pass.
+(Revised per judgement R-3.)
+
+- [ ] AC-01: Parameterized `load_graph_config` tests reject
+  `config.max_tokens: 4096` and `config.max_tokens: null` with `ValueError`
+  naming both `config.max_tokens` and `defaults.max_tokens`. A graph with
+  both config and defaults token values also fails.
+- [ ] AC-02: with `yamlgraph.node_factory.llm_nodes.execute_prompt` patched
+  and no network, load, compile and invoke a minimal LLM graph with
+  `defaults.max_tokens: 123`; the executor receives `max_tokens=123`. A node
+  override of `456` receives `456`; neither set receives `None`.
+- [ ] AC-03: parsed `graph-v1.json` has no `max_tokens` in
+  `properties.config.properties`; `reference/graph-yaml.md` has no config
+  token example or row, the node default says "from defaults", and the
+  graph-wide replacement is documented. Schema permissiveness for other keys
+  is unchanged.
+- [ ] AC-04: a loaded graph without the key has no `max_tokens` attribute;
+  CAP-17 REQ-YG-060 describes node/default propagation only.
+- [ ] AC-05: RED before GREEN; the forbidden-key and schema tests fail for
+  the defect in RED. Every new test carries `@pytest.mark.req("REQ-YG-060")`.
+- [ ] AC-06: recorded passes: the two targeted test files, `pytest
+  tests/unit/ -q --no-cov`, `python scripts/req_coverage.py --strict`, ruff
+  on changed files; scoped vulture/radon as context.
+- [ ] AC-07: FR records status, decisions and deviations; changelog
+  fragment names the refusal and `defaults.max_tokens`; diary entry has a
+  **Seed:**; the repo-user scan result is recorded.
 
 ## Alternatives Considered
 
-From the research record: four of five personas proposed wiring the key
-into the defaults chain (node → defaults → config → provider). Rejected:
-`defaults.max_tokens` already gives a graph-wide default, so wiring adds a
-second key for the same job and a precedence rule to document and test,
-with no consumer (no graph uses it). The subtractionist's deletion is
-chosen, with a load-time refusal instead of a new linter rule, so an
-external graph that sets the key learns at load, not only when linted. The
-librarian's Pydantic `extra="forbid"` for the whole config block is broader
-than this defect and would change behavior for every unknown key; parked.
+(Revised per judgement R-1.) The research record's `convergent x5` label
+counts persona rows, not solution classes; three personas proposed wiring,
+one deletion with a linter rule, one a Pydantic-level prohibition. The
+solution classes:
+
+| # | Alternative | Decision | Precedent | Addresses silent acceptance at load? |
+|---|---|---|---|---|
+| A | Wire `config.max_tokens` as a precedence level (node > defaults > config > provider) — os-infra, data-process, yamlgraph-native | reject | `llm_nodes.py:156` already resolves node then defaults; `node_compiler.py:342-346` copies `config.defaults` | Yes, but adds a second graph-wide key for the job `defaults.max_tokens` does, plus a precedence rule to document and test, with no consumer (no repo graph sets it) |
+| B | Delete the key, enforce with a new linter rule — subtractionist | reject | CAP-172 W026 (linter precedent) | No: `graph run` without `lint` still accepts it silently |
+| C | Delete the key, refuse it at load by presence | **pursue** | `graph_loader.py` already raises `ValueError` for invalid config at load | Yes, on every entry path (run, lint, compile) |
+| D | Pydantic `extra="forbid"` on the graph config — librarian | park | `graph_schema.py:112` permits extra fields today | Yes, but changes behavior for every unknown key; broader than this defect |
+
+C differs from B only in where enforcement lives: the loader is the
+boundary every graph crosses (`the_one_law`), the linter is optional.
 
 ## Related
 
+- [FR-1165-config-max-tokens-refused.judgement.md](FR-1165-config-max-tokens-refused.judgement.md)
 - [FR-1165.research.md](FR-1165.research.md)
 - `capabilities/CAP-17-execution-safety-guards.yaml` (REQ-YG-060)
