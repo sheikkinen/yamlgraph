@@ -2,7 +2,13 @@
 
 **Priority:** HIGH
 **Type:** Fix
-**Status:** Proposed (operator directive 2026-11-14: "upgrade all to 6.1-sol. pr. outsider. merge")
+**Status:** Implemented on operator overrule (2026-11-14). The judge
+REJECTED this FR ([judgement](FR-1162-adapter-model-pin-gpt61sol.judgement.md):
+no research record, no authoring exact-pin test, review and authoring routes
+not exercised live). The operator, shown the verdict and its C-2 question
+("does the operator approve gpt-6.1-sol for these four routes, including
+spend?"), chose "Overrule as-is: PR, outsider, merge". That choice is the
+human sign-off on model and spend. R-1..R-5 are not folded.
 **Requested:** 2026-11-14
 **First consumer / first event:** the next `scripts/review.sh` run (PR #771's
 review is waiting). Today it fails before producing a report because its pinned
@@ -68,9 +74,9 @@ login has expired on this host, so a replacement cannot be checked.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: No adapter graph or adapter wrapper script on the branch names
+- [x] AC-01: No adapter graph or adapter wrapper script on the branch names
   `gpt-5.5` or `gpt-5.6-sol`.
-- [ ] AC-02: The FR-931 witness pins `gpt-6.1-sol` and passes; it failed
+- [x] AC-02: The FR-931 witness pins `gpt-6.1-sol` and passes; it failed
   against the old adapters before the change (RED commit).
 - [ ] AC-03: The route runs live on the new pin. `scripts/judge.sh` renders a
   judgement of this FR, and `scripts/outsider.sh` produces a valid report for
@@ -79,7 +85,22 @@ login has expired on this host, so a replacement cannot be checked.
 
 ## Implementation Status
 
-Not started.
+- **Commits:** `2782164e` (this FR), `0cd8ba43` (RED: the pin assertions in
+  the FR-931, FR-960, FR-1049 and FR-995 wrapper tests expect `gpt-6.1-sol`),
+  `dc55faf0` (GREEN: pins, `outsider.sh`, docs; the CAP-211 `fr` list gains
+  FR-931 and FR-1162 because two fragments now claim REQ-YG-632).
+- **RED witness (host run, before GREEN):** failing pin assertions were
+  `test_sole_route_pins_agree_on_the_chosen_model`, the FR-960/FR-1049
+  `TestGraphRouting` cases and `test_adapter_pins_model_and_grants_no_access`.
+  After GREEN the only host failures are tests that spawn a bare `bash`, which
+  resolves to the broken WSL relay on this Windows host; the CI mirror runs
+  them.
+- **Live judge route:** `scripts/judge.sh` on this FR ran on `gpt-6.1-sol`
+  (`model='gpt-6.1-sol'`, exit 0) and wrote a contract-valid judgement
+  (REJECTED; see Status).
+- **Deviation:** the authoring adapter pin was edited directly, not through
+  `scripts/author.sh`, as part of the overrule. The judgement's R-4 names
+  this; it is not remediated.
 
 ## Related
 
