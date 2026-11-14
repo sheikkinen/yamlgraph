@@ -12,6 +12,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from tests.unit._structured_envelope import envelope
 from yamlgraph.node_factory.base import get_output_model_for_node
 from yamlgraph.tools.agent import _try_structured_output, create_agent_node
 from yamlgraph.tools.shell import ShellToolConfig
@@ -165,7 +166,7 @@ class TestAnthropicFallbackPath:
         mock_llm_base = MagicMock()
         mock_structured = MagicMock()
         mock_structured_result = output_model(verdict="APPROVE", reasoning="Solid")
-        mock_structured.invoke.return_value = mock_structured_result
+        mock_structured.invoke.return_value = envelope(mock_structured_result)
         mock_llm_base.with_structured_output.return_value = mock_structured
 
         result = _try_structured_output(
@@ -266,7 +267,7 @@ class TestPipelineSchemaResolution:
         # Mock the structured output fallback
         mock_structured = MagicMock()
         mock_structured_result = output_model(verdict="APPROVE", reasoning="Good")
-        mock_structured.invoke.return_value = mock_structured_result
+        mock_structured.invoke.return_value = envelope(mock_structured_result)
         mock_llm_base.with_structured_output.return_value = mock_structured
         mock_create_llm.return_value = mock_llm_base
 

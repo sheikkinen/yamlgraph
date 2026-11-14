@@ -13,6 +13,7 @@ from yamlgraph.config import DEFAULT_TEMPERATURE
 from yamlgraph.utils.content import normalize_content
 from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.prompts import load_prompt
+from yamlgraph.utils.stop_reason import ensure_complete
 from yamlgraph.utils.structured_output import (
     invoke_structured,
     is_second_attempt_error,
@@ -434,6 +435,7 @@ def attempt_structured_invoke(llm, messages, output_model):
                 schema_hint = build_schema_hint(output_model)
                 retry_msgs = list(messages) + [HumanMessage(content=schema_hint)]
                 response = llm.invoke(retry_msgs)
+                ensure_complete(response)
                 text = normalize_content(response.content)
                 parsed = extract_json(text)
                 if isinstance(parsed, dict | list):
@@ -444,4 +446,5 @@ def attempt_structured_invoke(llm, messages, output_model):
                 ) from struct_err
             raise
     response = llm.invoke(messages)
+    ensure_complete(response)
     return normalize_content(response.content)

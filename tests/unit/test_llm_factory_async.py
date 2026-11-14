@@ -4,6 +4,7 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
+from tests.unit._structured_envelope import envelope
 from yamlgraph.utils.llm_factory_async import (
     create_llm_async,
     get_executor,
@@ -116,14 +117,16 @@ class TestInvokeAsync:
         mock_llm = MagicMock()
         mock_structured_llm = MagicMock()
         mock_llm.with_structured_output.return_value = mock_structured_llm
-        mock_structured_llm.invoke.return_value = TestOutput(value="test")
+        mock_structured_llm.invoke.return_value = envelope(TestOutput(value="test"))
 
         messages = [MagicMock()]
         result = await invoke_async(mock_llm, messages, output_model=TestOutput)
 
         assert isinstance(result, TestOutput)
         assert result.value == "test"
-        mock_llm.with_structured_output.assert_called_once_with(TestOutput)
+        mock_llm.with_structured_output.assert_called_once_with(
+            TestOutput, include_raw=True
+        )
 
     @pytest.mark.asyncio
     @pytest.mark.req("REQ-YG-010", "REQ-YG-011")

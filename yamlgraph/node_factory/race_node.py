@@ -32,6 +32,7 @@ from yamlgraph.utils.content import normalize_content
 from yamlgraph.utils.expressions import resolve_node_variables
 from yamlgraph.utils.json_extract import extract_json
 from yamlgraph.utils.llm_factory import create_llm
+from yamlgraph.utils.stop_reason import ensure_complete
 from yamlgraph.utils.structured_output import (
     ainvoke_structured,
     is_second_attempt_error,
@@ -167,20 +168,19 @@ async def _invoke_candidate_async(
                     )
                     from langchain_core.messages import HumanMessage
 
-                    schema_hint = build_schema_hint(output_model)
-                    retry_msgs = list(messages) + [HumanMessage(content=schema_hint)]
+                    msgs = [*messages, HumanMessage(build_schema_hint(output_model))]
                     run_id = uuid4()
-                    response = await llm.ainvoke(retry_msgs, config={"run_id": run_id})
-                    content = normalize_content(response.content)
-                    parsed = extract_json(content)
+                    response = await llm.ainvoke(msgs, config={"run_id": run_id})
+                    ensure_complete(response)
+                    parsed = extract_json(normalize_content(response.content))
                     if isinstance(parsed, dict):
                         return candidate, output_model.model_validate(parsed)
                 raise
         else:
             response = await llm.ainvoke(messages, config={"run_id": run_id})
+            ensure_complete(response)
             content = normalize_content(response.content)
-            parsed = extract_json(content) if parse_json else content
-            return candidate, parsed
+            return candidate, extract_json(content) if parse_json else content
     except asyncio.CancelledError:
         _close_cancelled_run(run_id, race_ctx or {})
         raise

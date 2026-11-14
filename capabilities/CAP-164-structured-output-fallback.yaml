@@ -1,6 +1,6 @@
 id: CAP-164
 name: Structured Output JSON Fallback
-fr: FR-464, FR-998, FR-1121, FR-1123, FR-1125, FR-1156
+fr: FR-464, FR-998, FR-1121, FR-1123, FR-1125, FR-1156, FR-1164
 description: >
   When with_structured_output() fails (provider rejects response_format),
   fall back to extract_json() + model_validate(). Extends FR-456 pattern
@@ -14,6 +14,7 @@ modules:
   - yamlgraph/node_factory/race_node.py
   - yamlgraph/utils/structured_output.py
   - yamlgraph/utils/llm_providers.py
+  - yamlgraph/utils/stop_reason.py
   - yamlgraph/tools/agent.py
 
 requirements:
@@ -77,3 +78,24 @@ requirements:
       - yamlgraph/utils/llm_factory.py
       - yamlgraph/node_factory/llm_nodes.py
       - yamlgraph/linter/checks_prompts.py
+  - id: REQ-YG-729
+    description: Replies stopped at the output-token limit raise OutputTruncatedError at the invocation boundary
+    text: >
+      yamlgraph/utils/stop_reason.py owns one classifier: the first nonempty
+      of response_metadata stop_reason, then finish_reason; max_tokens,
+      length or MAX_TOKENS raise OutputTruncatedError carrying the stop
+      reason, output and reasoning token counts (None, printed "unknown",
+      when the provider does not report them) and a visible-character count
+      and at most 200-character preview taken from normalize_content only.
+      attempt_structured_invoke (plain path and FR-464 re-invoke),
+      invoke_structured / ainvoke_structured (both attempts, bound with
+      include_raw=True; raw checked before parsing_error or parsed) and
+      race_node._invoke_candidate_async (plain and FR-464 re-invoke) call it
+      before using the reply. Direct bind_structured_output callers keep the
+      parsed-only default. Not retryable; earns no FR-998 second attempt or
+      FR-464 fallback. Absent metadata is not proof of completeness (FR-1164).
+    modules:
+      - yamlgraph/utils/stop_reason.py
+      - yamlgraph/utils/structured_output.py
+      - yamlgraph/executor_base.py
+      - yamlgraph/node_factory/race_node.py

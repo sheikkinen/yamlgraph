@@ -1,0 +1,123 @@
+{
+  "model": "claude-haiku-4-5-20251001",
+  "max_tokens": 16,
+  "prompt": "List fifty countries of the world, one per entry, nothing else.",
+  "git_sha": "3fd52fec321d80bd316cbe8c170ba6f795d6633a",
+  "packages": {
+    "langchain-core": "1.8.0",
+    "langchain-anthropic": "1.7.10",
+    "anthropic": "2.8.0",
+    "langchain-openai": "1.6.0",
+    "langchain-google-genai": "4.4.0"
+  },
+  "plain": {
+    "response_metadata": {
+      "model": "claude-haiku-4-5-20251001",
+      "model_name": "claude-haiku-4-5-20251001",
+      "stop_reason": "max_tokens",
+      "usage": {
+        "cache_creation": {
+          "ephemeral_1h_input_tokens": 0,
+          "ephemeral_5m_input_tokens": 0
+        },
+        "cache_creation_input_tokens": 0,
+        "cache_read_input_tokens": 0,
+        "inference_geo": "not_available",
+        "input_tokens": 21,
+        "output_tokens": 16,
+        "output_tokens_details": null,
+        "server_tool_use": null,
+        "service_tier": "standard",
+        "speed": "standard"
+      }
+    },
+    "response_metadata_keys": [
+      "container",
+      "diagnostics",
+      "id",
+      "model",
+      "model_name",
+      "model_provider",
+      "stop_details",
+      "stop_reason",
+      "stop_sequence",
+      "usage"
+    ],
+    "usage_metadata": {
+      "input_tokens": 21,
+      "output_tokens": 16,
+      "total_tokens": 37,
+      "input_token_details": {
+        "cache_read": 0,
+        "cache_creation": 0,
+        "ephemeral_5m_input_tokens": 0,
+        "ephemeral_1h_input_tokens": 0
+      }
+    },
+    "content_block_types": [
+      "str"
+    ],
+    "visible_text": "1. Afghanistan\n2. Albania\n3. Algeria\n4."
+  },
+  "structured_include_raw": {
+    "envelope_keys": [
+      "parsed",
+      "parsing_error",
+      "raw"
+    ],
+    "raw": {
+      "response_metadata": {
+        "model": "claude-haiku-4-5-20251001",
+        "model_name": "claude-haiku-4-5-20251001",
+        "stop_reason": "max_tokens",
+        "usage": {
+          "cache_creation": {
+            "ephemeral_1h_input_tokens": 0,
+            "ephemeral_5m_input_tokens": 0
+          },
+          "cache_creation_input_tokens": 0,
+          "cache_read_input_tokens": 0,
+          "inference_geo": "not_available",
+          "input_tokens": 195,
+          "output_tokens": 16,
+          "output_tokens_details": null,
+          "server_tool_use": null,
+          "service_tier": "standard",
+          "speed": "standard"
+        }
+      },
+      "response_metadata_keys": [
+        "container",
+        "diagnostics",
+        "id",
+        "model",
+        "model_name",
+        "model_provider",
+        "stop_details",
+        "stop_reason",
+        "stop_sequence",
+        "usage"
+      ],
+      "usage_metadata": {
+        "input_tokens": 195,
+        "output_tokens": 16,
+        "total_tokens": 211,
+        "input_token_details": {
+          "cache_read": 0,
+          "cache_creation": 0,
+          "ephemeral_5m_input_tokens": 0,
+          "ephemeral_1h_input_tokens": 0
+        }
+      },
+      "content_block_types": [
+        "str"
+      ],
+      "visible_text": "{\"countries\":[\"Afghanistan\",\"Albania\",\"Algeria\",\"Andorra\",\"Angola\",\""
+    },
+    "parsed": "Countries(countries=['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', ''])",
+    "parsing_error": null
+  },
+  "structured_today": {
+    "returned": "Countries(countries=['Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', ''])"
+  }
+}

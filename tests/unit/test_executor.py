@@ -5,6 +5,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 from pydantic import BaseModel
 
+from tests.unit._structured_envelope import envelope
 from yamlgraph.executor_base import PromptRequest, format_prompt
 from yamlgraph.utils.prompts import load_prompt
 
@@ -284,7 +285,7 @@ class TestStructuredOutputFallback:
         expected = ExecutorFallbackOutput(summary="structured", count=10)
         mock_llm = MagicMock()
         structured_llm = MagicMock()
-        structured_llm.invoke.return_value = expected
+        structured_llm.invoke.return_value = envelope(expected)
         mock_llm.with_structured_output.return_value = structured_llm
 
         messages = [MagicMock()]
