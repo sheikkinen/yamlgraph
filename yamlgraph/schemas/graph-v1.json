@@ -299,11 +299,6 @@
           "default": 100,
           "description": "Default max fan-out items for map nodes"
         },
-        "max_tokens": {
-          "type": "integer",
-          "minimum": 1,
-          "description": "Default max output tokens for LLM calls"
-        },
         "timeout": {
           "type": "integer",
           "minimum": 1,

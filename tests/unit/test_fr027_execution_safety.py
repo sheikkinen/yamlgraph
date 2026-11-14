@@ -704,46 +704,6 @@ class TestMaxTokensWiring:
         assert "max_tokens" in sig.parameters
 
     @pytest.mark.req("REQ-YG-060")
-    def test_graph_config_max_tokens(self):
-        """GraphConfig must parse config.max_tokens from YAML."""
-        from yamlgraph.compile.graph_loader import GraphConfig
-
-        config = {
-            "nodes": {"a": {"type": "llm", "prompt": "test"}},
-            "edges": [{"from": "START", "to": "a"}, {"from": "a", "to": "END"}],
-            "config": {"max_tokens": 2048},
-        }
-        gc = GraphConfig(config)
-        assert gc.max_tokens == 2048
-
-    @pytest.mark.req("REQ-YG-060")
-    def test_graph_config_max_tokens_default_none(self):
-        """GraphConfig max_tokens should default to None (no cap)."""
-        from yamlgraph.compile.graph_loader import GraphConfig
-
-        config = {
-            "nodes": {"a": {"type": "llm", "prompt": "test"}},
-            "edges": [{"from": "START", "to": "a"}, {"from": "a", "to": "END"}],
-        }
-        gc = GraphConfig(config)
-        assert gc.max_tokens is None
-
-    @pytest.mark.req("REQ-YG-060")
-    def test_json_schema_has_max_tokens_in_config(self):
-        """graph-v1.json config block must include max_tokens."""
-        import json
-
-        schema_path = (
-            Path(__file__).parent.parent.parent
-            / "yamlgraph"
-            / "schemas"
-            / "graph-v1.json"
-        )
-        schema = json.loads(schema_path.read_text(encoding="utf-8"))
-        config_props = schema["properties"]["config"]["properties"]
-        assert "max_tokens" in config_props
-
-    @pytest.mark.req("REQ-YG-060")
     def test_cache_key_includes_max_tokens(self):
         """LLM cache key must include max_tokens to avoid serving wrong instance."""
         from unittest.mock import patch

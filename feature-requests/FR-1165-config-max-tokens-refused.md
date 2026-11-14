@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS (R-1..R-3 folded)
+**Status:** Enforced (judged APPROVED WITH REVISIONS; R-1..R-3 folded)
 **Requested:** 2026-11-14
 **First consumer / first event:** the next graph author who writes
 `config: {max_tokens: N}` as `reference/graph-yaml.md` tells them to. Today
@@ -149,6 +149,42 @@ solution classes:
 
 C differs from B only in where enforcement lives: the loader is the
 boundary every graph crosses (`the_one_law`), the linter is optional.
+
+## Implementation Status
+
+Enforced on branch `fix/fr1165-config-max-tokens-refused`.
+
+- Probes: the `graph-v1.json` `config` block is hand-written (no generator
+  owns it; `graph_schema.py` has no `config` model), so the property was
+  removed in place. Repo-user scan: 1102 tracked YAML files parsed, 0 graphs
+  set `config.max_tokens`; no graph migration.
+- RED `065bd4e3`: 6 defect witnesses failed (refusal x3, attribute, schema,
+  docs); 3 defaults-propagation witnesses passed, as allowed by AC-05.
+- GREEN: loader refusal by presence; schema property, docs example and row
+  removed; node row says "from defaults"; REQ-YG-060 narrowed; the three
+  parse/schema tests in `test_fr027_execution_safety.py` deleted.
+- Deviation (D-1 location): the refusal lives in
+  `yamlgraph/utils/validators.py::validate_config`, which `GraphConfig`
+  calls first, not inline in `graph_loader.py`: the inline form put
+  `graph_loader.py` at 454 lines and the file-size gate (max 450) refused
+  the commit. Same boundary, and `graph lint` now reports the key too. The
+  `GraphConfig.max_tokens` assignment is removed as planned.
+- Deviation (docs): the replacement note lives in the node-table row, not
+  the `config` section, so the docs witness can require that section be
+  free of `max_tokens`.
+- Local unit suite on Windows: 328 failures, all in shell/hook-script test
+  files; the files that could touch loading were re-run on `main`
+  (`c91e862d`) with the identical 40-failure set. CI is the authority.
+
+| AC | Witness | Result |
+|---|---|---|
+| AC-01 | `test_config_max_tokens_refused_at_load[value,null,with-defaults]` | pass |
+| AC-02 | `test_defaults_max_tokens_reaches_executor[defaults,node-override,neither]` | pass |
+| AC-03 | `test_schema_does_not_advertise_config_max_tokens`, `test_reference_documents_defaults_max_tokens_only` | pass |
+| AC-04 | `test_loaded_graph_has_no_max_tokens_attribute`; CAP-17 wording | pass |
+| AC-05 | RED `065bd4e3` before GREEN; all tests tagged REQ-YG-060 | pass |
+| AC-06 | targeted files, unit suite, `req_coverage --strict`, ruff | see PR |
+| AC-07 | this section; changelog fragment; diary entry with **Seed:** | pass |
 
 ## Related
 
