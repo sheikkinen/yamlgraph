@@ -593,13 +593,13 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 281 | CAP-281 Resolved Run Concurrency | `yamlgraph/utils/validators.py`, `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/compile/graph_loader.py`, `yamlgraph/executor_async.py`, … | REQ-YG-698 |
 | 283 | CAP-283 Completed-Run Error Exit Status | `yamlgraph/cli/graph_run_helpers.py`, `yamlgraph/cli/graph_commands.py`, `yamlgraph/models/schemas.py`, `yamlgraph/utils/route_log.py` | REQ-YG-700 |
 | 286 | CAP-286 Meta-Map Demo | `examples/demos/meta_map/tools.py`, `examples/demos/meta_map/graph.yaml`, `examples/demos/meta_map/subgraphs/summarize_one.yaml` | REQ-YG-703 |
-| 289 | CAP-289 Map Memo For File Corpora | `yamlgraph/contrib/map_memo.py`, `examples/shared/map_memo_split.tool.yaml`, `examples/shared/map_memo_merge.tool.yaml` | REQ-YG-706 |
-| 292 | CAP-292 Census Map Memo With Caller-Supplied Versions | `yamlgraph/contrib/map_memo.py`, `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/tools.py`, `examples/demos/person_profile_census/graph.yaml` | REQ-YG-709 |
+| 289 | CAP-289 Map Memo For File Corpora | `examples/shared/map_memo.py`, `examples/shared/map_memo_split.tool.yaml`, `examples/shared/map_memo_merge.tool.yaml` | REQ-YG-706 |
+| 292 | CAP-292 Census Map Memo With Caller-Supplied Versions | `examples/shared/map_memo.py`, `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/tools.py`, `examples/demos/person_profile_census/graph.yaml` | REQ-YG-709 |
 | 293 | CAP-293 FR Planned Operations Section | `feature-requests/TEMPLATE.md`, `ramp/assets/tier2/feature-requests/TEMPLATE.md`, `.github/skills/feature-request/SKILL.md`, `tests/unit/test_fr1129_planned_operations.py` | REQ-YG-716 |
 | 297 | CAP-297 FR knowledge graph retired | `tests/unit/test_fr1134_retirements.py` | REQ-YG-720 |
 | 300 | CAP-300 Test Corpus Map | `examples/demos/test_map/graph.yaml`, `examples/demos/test_map/tools.py`, `examples/demos/test_map/extract.py`, `examples/demos/test_map/reconcile.py`, … | REQ-YG-723 |
 | 301 | CAP-301 Race Node Thinking Budget | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py`, `tests/unit/test_race_node.py`, `tests/unit/test_router_race.py` | REQ-YG-724 |
-| 302 | CAP-302 Map Memo Ships As Contrib | `yamlgraph/contrib/map_memo.py`, `examples/shared/map_memo_split.tool.yaml`, `examples/shared/map_memo_merge.tool.yaml`, `examples/demos/map_memo/graph.yaml` | REQ-YG-726 |
+| 303 | CAP-303 Map memo contrib retired | `tests/unit/test_fr1160_retirements.py` | REQ-YG-727 |
 | 304 | CAP-304 Cached Map Warm-First Dispatch | `yamlgraph/compile/cached_map_compiler.py`, `yamlgraph/compile/map_compiler.py`, `yamlgraph/models/map_results.py` | REQ-YG-728 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
@@ -3414,13 +3414,13 @@ FR-1113: `examples/demos/meta_map/` runs a map node over the repository's own ma
 
 ### 289. CAP-289 Map Memo For File Corpora
 
-FR-1116: `yamlgraph/contrib/map_memo.py` with two FR-768 tool manifests. `map_memo_split` drops file items whose bytes and computation signature match a stored outcome; `map_memo_merge` stores the executed outcomes in one SQLite transaction and returns the whole current population in FR-1073 shapes, judging `min_success` after commit. First consumer: `examples/demos/meta_map`.
+FR-1116: `examples/shared/map_memo.py` with two FR-768 tool manifests. `map_memo_split` drops file items whose bytes and computation signature match a stored outcome; `map_memo_merge` stores the executed outcomes in one SQLite transaction and returns the whole current population in FR-1073 shapes, judging `min_success` after commit. First consumer: `examples/demos/meta_map`.
 
 **Feature Request:** FR-1116
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-706 | Split is read-only and returns in `todo` exactly the file items whose byte hash or computation signature (hashed signature files plus JSON `inputs`) differs from the stored row; stored failures are carried. Merge validates index attribution, dispatch identity, JSON payloads and `min_success` before one write transaction, strips only `_map_index`, returns records, `MapFailure`s and a `MapVerdict` over the whole current population rebound to the supplied dispatch, and raises `MapCompletenessError` only after commit. Store corruption, schema mismatch, locks and failed writes raise `MapMemoStoreError`; a stale writer never yields a false hit. | `yamlgraph/contrib/map_memo.py`, `tests/unit/test_fr1116_map_memo.py` |
+| REQ-YG-706 | Split is read-only and returns in `todo` exactly the file items whose byte hash or computation signature (hashed signature files plus JSON `inputs`) differs from the stored row; stored failures are carried. Merge validates index attribution, dispatch identity, JSON payloads and `min_success` before one write transaction, strips only `_map_index`, returns records, `MapFailure`s and a `MapVerdict` over the whole current population rebound to the supplied dispatch, and raises `MapCompletenessError` only after commit. Store corruption, schema mismatch, locks and failed writes raise `MapMemoStoreError`; a stale writer never yields a false hit. | `examples/shared/map_memo.py`, `tests/unit/test_fr1116_map_memo.py` |
 
 ### 292. CAP-292 Census Map Memo With Caller-Supplied Versions
 
@@ -3430,7 +3430,7 @@ FR-1120: `map_memo_split` accepts caller-supplied `versions` for non-file items;
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-709 | Split with `versions` takes each item's version from a dict whose key set equals the unique non-empty string items, reads no item path, and rejects bad versions, items or `store` with `MapMemoInputError` before any store exists. `gh_authored_prs_versions` returns `{ref: updatedAt}` over discover's population with discover's failure messages and rejects unusable `updatedAt`. `pair_executed` joins bundles and judge outcomes by two exact index covers and emits nothing on malformed attribution; `reduce_pr_ledger` given `merged` writes JSONL byte-identical to its live path. The census re-run makes zero extract and classify calls for unchanged `updatedAt`, one per bumped PR, and re-runs everything when rubric, labels, model or a signature file changes; a missing `memo_store` fails before extraction. | `yamlgraph/contrib/map_memo.py`, `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/tools.py`, `tests/unit/test_fr1120_map_memo_versions.py`, `tests/unit/test_fr1120_authored_pr_versions.py`, `tests/unit/test_fr1120_census_pair_reduce.py`, `tests/unit/test_fr1120_census_memo_graph.py` |
+| REQ-YG-709 | Split with `versions` takes each item's version from a dict whose key set equals the unique non-empty string items, reads no item path, and rejects bad versions, items or `store` with `MapMemoInputError` before any store exists. `gh_authored_prs_versions` returns `{ref: updatedAt}` over discover's population with discover's failure messages and rejects unusable `updatedAt`. `pair_executed` joins bundles and judge outcomes by two exact index covers and emits nothing on malformed attribution; `reduce_pr_ledger` given `merged` writes JSONL byte-identical to its live path. The census re-run makes zero extract and classify calls for unchanged `updatedAt`, one per bumped PR, and re-runs everything when rubric, labels, model or a signature file changes; a missing `memo_store` fails before extraction. | `examples/shared/map_memo.py`, `examples/demos/corpus_census/adapters/corpus_adapters.py`, `examples/demos/person_profile_census/tools.py`, `tests/unit/test_fr1120_map_memo_versions.py`, `tests/unit/test_fr1120_authored_pr_versions.py`, `tests/unit/test_fr1120_census_pair_reduce.py`, `tests/unit/test_fr1120_census_memo_graph.py` |
 
 ### 293. CAP-293 FR Planned Operations Section
 
@@ -3472,15 +3472,15 @@ Race nodes and router nodes with race `candidates:` resolve `thinking_budget` th
 |------------|-------------|-------------|
 | REQ-YG-724 | Direct `type: race` nodes and router nodes with race `candidates:` resolve `thinking_budget` as node value → graph `defaults` → None (explicit 0 is a value, not absence) and pass it to every candidate's `create_llm(..., thinking_budget=...)` call through the shared `_build_candidate_llms` seam; existing provider dispatch is unchanged (thinking providers such as vertex receive the value, non-thinking providers such as azure are called without it). | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py`, `tests/unit/test_race_node.py`, `tests/unit/test_router_race.py` |
 
-### 302. CAP-302 Map Memo Ships As Contrib
+### 303. CAP-303 Map memo contrib retired
 
-FR-1159: the FR-1116 map memo moves to `yamlgraph/contrib/map_memo.py`, so an installed wheel can memoize a map over a file corpus. The shared manifests resolve it by `module:`; `yamlgraph.contrib` does not import it eagerly. Demo: `examples/demos/map_memo`.
+The FR-1159 relocation of the FR-1116 map memo into `yamlgraph.contrib` and its `examples/demos/map_memo` demo are removed: the operator rejected FR-1158/FR-1159 because they built a cross-run result memo, not the requested warm-first prompt-cache map. The memo is back in `examples/shared/map_memo.py`, loaded by FR-768 `path:`.
 
-**Feature Request:** FR-1159
+**Feature Request:** FR-1160
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-726 | The built wheel contains `yamlgraph/contrib/map_memo.py` and no `examples/shared/map_memo.py`; installed non-editably, its split and merge load through inline `module: yamlgraph.contrib.map_memo` tool declarations and a second split over unchanged files returns no work. Importing `yamlgraph.contrib` does not load the memo module. The `examples/demos/map_memo` graph calls its summarize prompt once per note on the first run, zero times on an unchanged re-run (reporting `reused_ok` equal to the note count), and once after one note changes. | `yamlgraph/contrib/map_memo.py`, `examples/demos/map_memo/graph.yaml`, `tests/unit/test_fr1159_map_memo_contrib.py` |
+| REQ-YG-727 | yamlgraph/contrib/map_memo.py, examples/demos/map_memo, tests/unit/test_fr1159_map_memo_contrib.py, CAP-302 and the FR-1159 changelog fragment are absent; examples/shared/map_memo.py exists and both shared manifests load it by `path: map_memo.py` with no `module:`; yamlgraph/contrib/__init__.py, vulture_whitelist.py and examples/README.md contain no `map_memo` token — witnessed by tests/unit/test_fr1160_retirements.py. | `tests/unit/test_fr1160_retirements.py` |
 
 ### 304. CAP-304 Cached Map Warm-First Dispatch
 

@@ -1,14 +1,14 @@
 id: CAP-289
 name: Map Memo For File Corpora
 description: >
-  FR-1116: `yamlgraph/contrib/map_memo.py` with two FR-768 tool manifests.
+  FR-1116: `examples/shared/map_memo.py` with two FR-768 tool manifests.
   `map_memo_split` drops file items whose bytes and computation signature
   match a stored outcome; `map_memo_merge` stores the executed outcomes in
   one SQLite transaction and returns the whole current population in
   FR-1073 shapes, judging `min_success` after commit. First consumer:
   `examples/demos/meta_map`.
 modules:
-  - yamlgraph/contrib/map_memo.py
+  - examples/shared/map_memo.py
   - examples/shared/map_memo_split.tool.yaml
   - examples/shared/map_memo_merge.tool.yaml
 requirements:
@@ -25,6 +25,6 @@ requirements:
       schema mismatch, locks and failed writes raise `MapMemoStoreError`;
       a stale writer never yields a false hit.
     modules:
-      - yamlgraph/contrib/map_memo.py
+      - examples/shared/map_memo.py
       - tests/unit/test_fr1116_map_memo.py
 fr: FR-1116

@@ -23,7 +23,7 @@ MAP, DISPATCH = "summarize", "tok-1"
 
 
 def _mm():
-    import yamlgraph.contrib.map_memo as mm
+    import examples.shared.map_memo as mm
 
     return mm
 
@@ -96,7 +96,7 @@ def test_split_leaves_existing_store_byte_identical(corpus):
 def _split_in_subprocess(c: dict) -> dict:
     code = (
         "import json,sys\n"
-        "from yamlgraph.contrib.map_memo import map_memo_split\n"
+        "from examples.shared.map_memo import map_memo_split\n"
         "a=json.loads(sys.argv[1])\n"
         "print(json.dumps(map_memo_split(items=a['items'],"
         "signature_files=a['sig'],store=a['store'])))\n"
@@ -364,12 +364,11 @@ def test_manifest_resolves_shared_module(name):
     tool = expand_tool_manifests({name: {"manifest": str(manifest)}}, None)[name]
     assert tool["type"] == "python"
     assert tool["function"] == name
-    assert tool["module"] == "yamlgraph.contrib.map_memo"
-    assert "path" not in tool
+    assert Path(tool["path"]) == (SHARED / "map_memo.py").resolve()
 
 
 def _load_via_manifest(name: str):
-    """Load the function the way a graph does: FR-768 manifest translation."""
+    """Load the function the way a graph does: FR-768 path, no sys.modules entry."""
     from yamlgraph.tools.manifest import expand_tool_manifests
     from yamlgraph.tools.python_tool import load_python_function, parse_python_tools
 

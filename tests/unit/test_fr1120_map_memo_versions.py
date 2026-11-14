@@ -13,7 +13,7 @@ ITEMS = ["acme/a#1", "acme/a#2", "acme/b#7"]
 
 
 def _mm():
-    import yamlgraph.contrib.map_memo as mm
+    import examples.shared.map_memo as mm
 
     return mm
 

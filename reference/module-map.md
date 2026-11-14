@@ -4,7 +4,7 @@
 - source_root: `yamlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 147
+- module count: 146
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
@@ -62,10 +62,8 @@
   - import dependencies: _none_
 - `yamlgraph/constants.py` - 81 lines; exports: `class NodeType`, `class ErrorHandler`, `class EdgeType`, `class SpecialNodes`
   - import dependencies: _none_
-- `yamlgraph/contrib/__init__.py` - 16 lines; exports: _none_
+- `yamlgraph/contrib/__init__.py` - 14 lines; exports: _none_
   - import dependencies: `yamlgraph.contrib.progress`, `yamlgraph.contrib.utils`
-- `yamlgraph/contrib/map_memo.py` - 439 lines; exports: `class MapMemoInputError`, `class MapMemoStoreError`, `class StoredFailure`, `class MemoItem`, `class MemoPlan`, `class MemoMerged`, `map_memo_split(items, signature_files, store, inputs, versions)`, `map_memo_merge(plan, results, failures, map_name, map_dispatch, min_success)`
-  - import dependencies: `yamlgraph.models.map_results`
 - `yamlgraph/contrib/progress.py` - 99 lines; exports: `class SkipReport`
   - import dependencies: `yamlgraph.models`
 - `yamlgraph/contrib/utils.py` - 43 lines; exports: `to_serializable(obj)`
@@ -300,5 +298,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 57/147
+- mapped modules: 57/146
 - discovered tests: 60

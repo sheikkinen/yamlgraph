@@ -140,7 +140,6 @@ Standalone demos that teach a single YAMLGraph concept. Ordered by the learning 
 | [python-variables](demos/python-variables/) | `python` | Variables expression resolution on python nodes (FR-252) |
 | [map-timeout](demos/map-timeout/) | `map`, `python` | Per-branch timeout for map nodes (FR-069) |
 | [meta_map](demos/meta_map/) | `map`, `subgraph`, `python`, `llm` | Full map feature set over the repo's own map graphs, with poison inputs (FR-1113) |
-| [map_memo](demos/map_memo/) | `tool_call`, `map`, `subgraph`, `llm` | Map memo from `yamlgraph.contrib.map_memo`: a rerun over unchanged notes makes zero LLM calls (FR-1159) |
 | [safety-guards](demos/safety-guards/) | `llm`, `map` | Execution safety with recursion limits (FR-027) |
 | [session-continuation](demos/session-continuation/) | `copilot` | Session persistence across runs |
 | [shared-vision-tool](demos/shared-vision-tool/) | `python` | Image → structured description via shared vision tool (FR-769) |

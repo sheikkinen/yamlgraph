@@ -19,5 +19,5 @@ name: map_memo_merge
 description: "Store executed map outcomes and return the whole current population with an FR-1073 verdict"
 runtime:
   type: python
-  module: yamlgraph.contrib.map_memo
+  path: map_memo.py
   function: map_memo_merge
