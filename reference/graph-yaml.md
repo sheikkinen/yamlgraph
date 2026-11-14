@@ -234,7 +234,6 @@ Execution safety configuration. Controls resource limits and guard rails.
 config:
   recursion_limit: 50     # Max LangGraph super-steps (default: 50)
   max_map_items: 100      # Default fan-out cap for map nodes (default: 100)
-  max_tokens: 4096        # Default max output tokens for LLM calls (default: provider default)
   timeout: 120            # Global execution timeout in seconds (default: none)
   max_concurrency: 4      # Cap on parallel branches per run (default: YAMLGRAPH_MAX_CONCURRENCY, else 8)
   tool_load_mode: strict  # Python tool loading policy: strict|warn (default: strict)
@@ -244,7 +243,6 @@ config:
 |----------|------|---------|-------------|
 | `recursion_limit` | `int` | `50` | Maximum LangGraph recursion depth. Prevents infinite loops in cyclic graphs. |
 | `max_map_items` | `int` | `100` | Default fan-out cap for map nodes. Can be overridden per-node with `max_items`. An over-cap list raises unless the map's `on_overflow` (or `defaults.on_overflow`) is `truncate` (FR-939). |
-| `max_tokens` | `int` | provider default | Default max output tokens for LLM calls. Can be overridden per-node. |
 | `timeout` | `int` | none | Global execution timeout in seconds. Covers the entire graph run including interrupt loops. |
 | `max_concurrency` | `int` ≥ 1 | `8` | FR-984/FR-1085. Whole-invocation cap on how many parallel branches (every `map` node's `Send` tasks, and any parallel fan-out edges) run at once. Passed as LangGraph `RunnableConfig["max_concurrency"]`; yamlgraph adds no scheduler. Resolved per run in the order caller run value (or `--max-concurrency`) → this key → `YAMLGRAPH_MAX_CONCURRENCY` → `8`, so the width never follows the host's CPU count. Applies to CLI `graph run` (sync, `--async`, `--stream`), `invoke_graph`, `run_graph_async` and `run_graph_streaming_native`; a raw compiled `app.invoke`/`ainvoke` stays caller-owned. Booleans, strings, fractions, `0` and negatives fail at load; a bad caller or environment value raises `ValueError` naming its source before any node runs. Distinct from `max_map_items`, which bounds how many items a map *has*, not how many run together. |
 | `tool_load_mode` | `string` | `strict` | Python tool load policy: `strict` fails compilation on import/symbol errors, `warn` logs warnings and compiles with a partial runtime tool registry. |
@@ -276,7 +274,7 @@ Each node in the `nodes` section defines a processing step.
 | `on_error` | `string` | `fail` for top-level `llm`; see each type | Error policy (`skip`, `retry`, `fail`, `fallback`). For a top-level `llm` node: node value > `defaults.on_error` > `fail` (FR-1124). See [Error Handling Properties](#error-handling-properties). |
 | `temperature` | `float` | from defaults | LLM temperature |
 | `provider` | `string` | from defaults | LLM provider |
-| `max_tokens` | `int` | from config | Maximum output tokens for this node's LLM call |
+| `max_tokens` | `int` | from defaults | Maximum output tokens for this node's LLM call; `defaults.max_tokens` sets it graph-wide, absent both the provider default applies. `config.max_tokens` is refused at load (FR-1165) |
 | `thinking_budget` | `int` | from defaults | Extended thinking tokens. `anthropic`: `0` turns thinking off (`{type: between_tools}` on Claude Sonnet 5.5, `{type: disabled}` elsewhere; an error on Opus 5.5 and Fable 5.x, which cannot turn it off); `≥1024` enables it and forces `temperature=1` (FR-071), while `0` does not; omitted leaves the request unchanged. `google`/`vertex`: any positive integer or `-1` for automatic mode; temperature not overridden (FR-230). `deepseek`: only `0` is meaningful — it disables thinking; omitted keeps the API default (thinking on, effort `high`); other accepted values are ignored and `≥1024` raises (FR-1056). |
 | `effort` | `str` | from defaults | Anthropic `output_config.effort`: `low`, `medium`, `high`, `xhigh` or `max` (FR-1151). Node value over `defaults.effort`. Allowed on `llm` nodes and on `router` nodes without `candidates`; refused at load on race nodes and on routers with `candidates`. Any other resolved provider raises before a client is built. |
 | `skip_if_exists` | `bool` | `true` | Skip if state key has truthy value (FR-050: `[]`, `""`, `None` do NOT skip) |

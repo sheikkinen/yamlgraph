@@ -85,7 +85,6 @@ class GraphConfig:
         graph_level_config = config.get("config", {})
         self.recursion_limit = graph_level_config.get("recursion_limit", 50)
         self.max_map_items = graph_level_config.get("max_map_items", 100)
-        self.max_tokens = graph_level_config.get("max_tokens")
         self.timeout = graph_level_config.get("timeout")
         # FR-984: whole-invoke fan-out width, delegated to LangGraph
         self.max_concurrency = validate_max_concurrency(

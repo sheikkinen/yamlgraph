@@ -61,7 +61,7 @@ requirements:
       - models/graph_schema
   - id: REQ-YG-060
     description: >
-      `max_tokens` wired from YAML config/node config through `execute_prompt()`
+      `max_tokens` wired from node config or `defaults` through `execute_prompt()`
       to `create_llm()` provider constructor
     modules:
       - config

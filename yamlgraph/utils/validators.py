@@ -310,6 +310,11 @@ def validate_config(config: dict[str, Any]) -> None:
         ValueError: If required fields are missing or invalid
     """
     validate_required_sections(config)
+    if "max_tokens" in (config.get("config") or {}):  # FR-1165: never applied
+        raise ValueError(
+            "config.max_tokens is not applied to any LLM call; set "
+            "defaults.max_tokens (graph-wide) or max_tokens on the node"
+        )
 
     # FR-673: Pydantic schema validation rejects unknown node keys at load time
     from pydantic import ValidationError
