@@ -4,7 +4,7 @@
 - source_root: `yamlgraph/`
 - parser: stdlib `ast.parse()`
 - deterministic ordering: modules sorted by relative path
-- module count: 146
+- module count: 147
 
 ## Module index/tree
 - `yamlgraph/__init__.py` - 63 lines; exports: `get_schema_path()`
@@ -21,10 +21,12 @@
   - import dependencies: `yamlgraph.diary.importer`
 - `yamlgraph/cli/export_commands.py` - 97 lines; exports: `cmd_graph_export(args)`
   - import dependencies: `yamlgraph.mermaid_export`, `yamlgraph.utils.artifact_hash`
-- `yamlgraph/cli/graph_commands.py` - 404 lines; exports: `cmd_graph_run(args)`, `cmd_graph_info(args)`, `cmd_graph_codegen(args)`, `cmd_graph_dispatch(args)`
-  - import dependencies: `yamlgraph.cli`, `yamlgraph.cli.graph_validate`, `yamlgraph.cli.helpers`, `yamlgraph.executor_async`, `yamlgraph.models.state_codegen`
-- `yamlgraph/cli/graph_run_helpers.py` - 387 lines; exports: `class ErrorTally`, `normalize_initial_errors(initial_state)`, `error_baseline(app, config, initial_state)`, `compute_tally(result_errors, baseline)`, `report_tally(tally)`
-  - import dependencies: `yamlgraph.cli.helpers`, `yamlgraph.models`, `yamlgraph.utils.validators`
+- `yamlgraph/cli/graph_commands.py` - 421 lines; exports: `cmd_graph_run(args)`, `cmd_graph_info(args)`, `cmd_graph_codegen(args)`, `cmd_graph_dispatch(args)`
+  - import dependencies: `yamlgraph.cli`, `yamlgraph.cli.graph_run_failure`, `yamlgraph.cli.graph_validate`, `yamlgraph.cli.helpers`, `yamlgraph.executor_async`, `yamlgraph.models.state_codegen`
+- `yamlgraph/cli/graph_run_failure.py` - 116 lines; exports: `format_token_line(s)`, `format_timing_line(ts)`, `print_usage(tracker, timing_tracker, *, on_failure, file)`, `map_failure_lines(exc)`, `report_execution_failure(exc, args, tracker, timing_tracker, *, json_mode)`
+  - import dependencies: `yamlgraph.models.map_results`
+- `yamlgraph/cli/graph_run_helpers.py` - 358 lines; exports: `class ErrorTally`, `normalize_initial_errors(initial_state)`, `error_baseline(app, config, initial_state)`, `compute_tally(result_errors, baseline)`, `report_tally(tally)`
+  - import dependencies: `yamlgraph.cli.graph_run_failure`, `yamlgraph.cli.helpers`, `yamlgraph.models`, `yamlgraph.utils.validators`
 - `yamlgraph/cli/graph_validate.py` - 286 lines; exports: `cmd_graph_validate(args)`, `cmd_graph_lint(args)`
   - import dependencies: `yamlgraph.cli.helpers`, `yamlgraph.config`, `yamlgraph.linter`, `yamlgraph.linter.checks`
 - `yamlgraph/cli/helpers.py` - 204 lines; exports: `class GraphLoadError`, `load_graph_config(path)`, `require_graph_config(path)`, `parse_vars(var_list)`, `load_var_file(path)`, `load_imported_state(import_state_path, *, error_stream)`, `handle_state_export(result, export_state_path, *, quiet, error_stream)`
@@ -32,7 +34,7 @@
 - `yamlgraph/cli/schema_commands.py` - 52 lines; exports: `cmd_schema_export(args)`, `cmd_schema_path(args)`, `cmd_schema_dispatch(args)`
   - import dependencies: `yamlgraph`, `yamlgraph.models.graph_schema`
 - `yamlgraph/compile/__init__.py` - 6 lines; exports: _none_
-- `yamlgraph/compile/cached_map_compiler.py` - 125 lines; exports: `wire_cached_map(name, config, builder, wrapped_node, resolve_items, item_var)`
+- `yamlgraph/compile/cached_map_compiler.py` - 131 lines; exports: `wire_cached_map(name, config, builder, wrapped_node, resolve_items, item_var)`
   - import dependencies: `yamlgraph.compile.map_contract`, `yamlgraph.models.map_results`, `yamlgraph.utils.route_log`
 - `yamlgraph/compile/default_overrides.py` - 23 lines; exports: `apply_default_overrides(config, provider_override, model_override)`
   - import dependencies: _none_
@@ -44,9 +46,9 @@
   - import dependencies: `yamlgraph.compile.node_otel`, `yamlgraph.constants`
 - `yamlgraph/compile/loop_limits.py` - 77 lines; exports: `validate_loop_limits(config)`
   - import dependencies: `yamlgraph.constants`
-- `yamlgraph/compile/map_compiler.py` - 438 lines; exports: `flatten_map_results(items)`, `wrap_for_reducer(node_fn, collect_key, state_key, flatten_output, timeout, *, map_name, failures_key)`, `compile_map_node(name, config, builder, defaults, tools_registry, graph_path, python_tools, tools, *, graph_max_items, graph_on_overflow)`
+- `yamlgraph/compile/map_compiler.py` - 441 lines; exports: `flatten_map_results(items)`, `wrap_for_reducer(node_fn, collect_key, state_key, flatten_output, timeout, *, map_name, failures_key)`, `compile_map_node(name, config, builder, defaults, tools_registry, graph_path, python_tools, tools, *, graph_max_items, graph_on_overflow)`
   - import dependencies: `yamlgraph.compile.cached_map_compiler`, `yamlgraph.compile.map_contract`, `yamlgraph.config`, `yamlgraph.constants`, `yamlgraph.models.schemas`, `yamlgraph.node_factory`, `yamlgraph.tools.agent`, `yamlgraph.tools.python_tool`, `yamlgraph.utils.expressions`
-- `yamlgraph/compile/map_contract.py` - 220 lines; exports: `branch_failure(map_name, state, failures_key, error_type, message, tolerated, pipeline_error)`, `classify_result(map_name, state, failures_key, result)`, `success_accounting(map_name, state)`, `make_dispatch_node(name, resolve_items)`, `make_dispatch_router(name, sub_node_name, account_name, item_var, resolve_items)`, `make_account_node(name, min_success)`, `make_join_node(name)`
+- `yamlgraph/compile/map_contract.py` - 245 lines; exports: `branch_failure(map_name, state, failures_key, error_type, message, tolerated, pipeline_error)`, `classify_result(map_name, state, failures_key, result)`, `success_accounting(map_name, state)`, `make_dispatch_node(name, resolve_items)`, `make_dispatch_router(name, sub_node_name, account_name, item_var, resolve_items)`, `make_account_node(name, min_success)`, `failures_key_of(config)`, `make_join_node(name, collect_key, failures_key)`
   - import dependencies: `yamlgraph.models.map_results`, `yamlgraph.models.schemas`, `yamlgraph.utils.route_log`
 - `yamlgraph/compile/node_compiler.py` - 450 lines; exports: `class GraphConfigError`, `class NodeCompileContext`, `resolve_cache_policy(cache_config)`, `compile_node(node_name, node_config, graph, config, tools, python_tools, callable_registry, graph_tool_configs)`, `compile_nodes(config, graph, tools, python_tools, callable_registry, graph_tool_configs)`
   - import dependencies: `yamlgraph.compile.llm_on_error`, `yamlgraph.compile.map_compiler`, `yamlgraph.compile.node_otel`, `yamlgraph.constants`, `yamlgraph.models.guard_schema`, `yamlgraph.node_factory`, `yamlgraph.node_timeout`, `yamlgraph.tools.agent`, `yamlgraph.tools.nodes`, `yamlgraph.tools.python_tool`, `yamlgraph.utils.guard_runtime`
@@ -137,7 +139,7 @@
   - import dependencies: `yamlgraph.constants`, `yamlgraph.models.guard_schema`, `yamlgraph.models.node_schema`
 - `yamlgraph/models/guard_schema.py` - 124 lines; exports: `class CacheConfig`, `class VerificationConfig`, `class GuardRuleBase`, `class PreGuardRule`, `class PostGuardRule`, `class GuardConfig`, `class GraphVerifyRule`
   - import dependencies: _none_
-- `yamlgraph/models/map_results.py` - 125 lines; exports: `class MapFailure`, `class MapAccounting`, `class MapVerdict`, `class CachedMapSnapshot`, `class MapCompletenessError`, `class MapAccountingError`, `add_by_index(existing, new)`, `merge_map_open(existing, new)`, `merge_by_key(existing, new)`, `compute_verdict(dispatch, dispatched, rows, min_success)`
+- `yamlgraph/models/map_results.py` - 140 lines; exports: `class MapFailure`, `class MapAccounting`, `class MapVerdict`, `class CachedMapSnapshot`, `class MapCompletenessError`, `class MapAccountingError`, `add_by_index(existing, new)`, `merge_map_open(existing, new)`, `merge_by_key(existing, new)`, `compute_verdict(dispatch, dispatched, rows, min_success)`
   - import dependencies: _none_
 - `yamlgraph/models/node_schema.py` - 399 lines; exports: `class SubgraphNodeConfig`, `class NodeConfig`
   - import dependencies: `yamlgraph.constants`, `yamlgraph.models.guard_schema`
@@ -298,5 +300,5 @@
 ## test_map
 
 - deterministic mapping: derive `test_<stem>.py` and `test_<flattened_path>.py`, then resolve in `tests/`.
-- mapped modules: 57/146
+- mapped modules: 57/147
 - discovered tests: 60

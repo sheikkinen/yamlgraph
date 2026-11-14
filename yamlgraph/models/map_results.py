@@ -5,6 +5,7 @@ also produces one `MapFailure`. The join turns the rows of one dispatch
 into a `MapVerdict`.
 """
 
+from collections.abc import Sequence
 from typing import Any, Literal
 
 from pydantic import BaseModel
@@ -53,11 +54,25 @@ class CachedMapSnapshot(BaseModel):
 
 
 class MapCompletenessError(RuntimeError):
-    """The join found fewer accepted branches than `min_success` allows."""
+    """The join found fewer accepted branches than `min_success` allows.
 
-    def __init__(self, map_name: str, verdict: MapVerdict):
+    FR-1163: carries the collect key, a shallow snapshot of the whole
+    collect channel and the failing dispatch's `MapFailure` records.
+    """
+
+    def __init__(
+        self,
+        map_name: str,
+        verdict: MapVerdict,
+        collect_key: str = "",
+        collected: Sequence[Any] = (),
+        failures: Sequence[MapFailure] = (),
+    ):
         self.map_name = map_name
         self.verdict = verdict
+        self.collect_key = collect_key
+        self.collected = list(collected)
+        self.failures = list(failures)
         super().__init__(
             f"Map node '{map_name}' incomplete: accepted {verdict.accepted}"
             f"/{verdict.dispatched} (succeeded={verdict.succeeded}, "

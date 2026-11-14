@@ -17,6 +17,7 @@ from yamlgraph.compile.cached_map_compiler import wire_cached_map
 from yamlgraph.compile.map_contract import (
     branch_failure,
     classify_result,
+    failures_key_of,
     make_account_node,
     make_dispatch_node,
     make_dispatch_router,
@@ -272,7 +273,7 @@ def compile_map_node(
         tools,
     )
 
-    failures_key = config.get("failures") or f"{collect_key}_failures"
+    failures_key = failures_key_of(config)
     wrapped_node = wrap_for_reducer(
         sub_node,
         collect_key,
@@ -427,7 +428,9 @@ def _wire_map(
     builder.add_node(name, make_dispatch_node(name, resolve_items))
     builder.add_node(sub_node_name, wrapped_node)
     builder.add_node(account_name, make_account_node(name, config.get("min_success")))
-    builder.add_node(join_name, make_join_node(name))
+    builder.add_node(
+        join_name, make_join_node(name, config["collect"], failures_key_of(config))
+    )
     map_edge = make_dispatch_router(
         name, sub_node_name, account_name, item_var, resolve_items
     )

@@ -13,7 +13,7 @@ import textwrap
 from contextlib import ExitStack
 from dataclasses import dataclass
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -58,6 +58,8 @@ USAGE_LINE = (
 TIMING_LINE = "⏱ Timing: 1.5s total (2 calls, 0.75s mean)"
 ZERO_USAGE_LINE = "\U0001f4ca Token usage: 0 in / 0 out (0 calls)"
 ZERO_TIMING_LINE = "⏱ Timing: 0.0s total (0 calls, 0.0s mean)"
+# collect rows keep their branch index, as on success (FR-052)
+COLLECTED = [{"_map_index": 0, "v": "a"}, {"_map_index": 2, "v": "c"}]
 
 
 def _fan(kind: str = "map", fn: str = "sub", extra: str = "") -> str:
@@ -174,7 +176,7 @@ def test_ac01_completeness_error_carries_collect_and_failures(tmp_path, node, mo
     exc = info.value
     assert str(exc).startswith(f"Map node '{node}' incomplete: accepted 2/3")
     assert exc.collect_key == "results"
-    assert list(exc.collected) == [{"v": "a"}, {"v": "c"}]
+    assert list(exc.collected) == COLLECTED
     assert [(f.index, f.error_type) for f in exc.failures] == [(1, "ValueError")]
     assert "poison b" in exc.failures[0].message
 
@@ -232,7 +234,7 @@ def test_ac02_join_selects_own_dispatch_and_snapshots_whole_channel():
 
     from yamlgraph.cli.graph_run_failure import map_failure_lines
 
-    text = "\n".join(map_failure_lines(exc, full=False))
+    text = "\n".join(map_failure_lines(exc))
     assert "3 collected results in 'results' (1 succeeded in failing dispatch)" in text
 
 
@@ -255,14 +257,15 @@ def test_ac03_text_report_names_failures_and_count(tmp_path, capsys):
     assert "❌ Error: Map node 'fan' incomplete" in o.out
     assert "#1 ValueError: poison b" in o.out
     assert "2 collected results in 'results' (2 succeeded in failing dispatch)" in o.out
-    assert "{'v': 'a'}" not in o.out
+    assert "'v': 'a'" not in o.out
 
 
 @pytest.mark.req("REQ-YG-692")
 def test_ac03_full_prints_collected_snapshot(tmp_path, capsys):
     o = _run(capsys, _graph(tmp_path, ["fan"]), "--full")
     assert o.code == 1
-    assert "{'v': 'a'}" in o.out and "{'v': 'c'}" in o.out
+    assert "{'_map_index': 0, 'v': 'a'}" in o.out
+    assert "{'_map_index': 2, 'v': 'c'}" in o.out
 
 
 @pytest.mark.req("REQ-YG-692")
@@ -347,7 +350,7 @@ def test_ac05_json_failure_object(tmp_path, capsys):
     m = payload["map"]
     assert (m["name"], m["collect_key"]) == ("fan", "results")
     assert m["verdict"]["met"] is False and m["verdict"]["succeeded"] == 2
-    assert m["collected"] == [{"v": "a"}, {"v": "c"}]
+    assert m["collected"] == COLLECTED
     assert [(f["index"], f["error_type"]) for f in m["failures"]] == [(1, "ValueError")]
     tok, tim = _preset_trackers()
     assert payload["token_usage"] == tok.summary()
@@ -371,6 +374,7 @@ def test_ac05_json_non_map_failure_has_no_map_or_usage_keys(tmp_path, capsys):
 
 @pytest.mark.req("REQ-YG-692")
 def test_ac07_timeout_reports_usage_once(tmp_path, capsys):
+    teardown = MagicMock()
     o = _run(
         capsys,
         _graph(tmp_path, ["py_ok"]),
@@ -381,11 +385,14 @@ def test_ac07_timeout_reports_usage_once(tmp_path, capsys):
                 "yamlgraph.cli.graph_commands._run_graph_until_complete",
                 side_effect=TimeoutError("Graph execution timed out after 5s"),
             ),
+            patch("yamlgraph.cli.graph_commands._teardown_timeout", teardown),
         ),
     )
+    assert teardown.call_count == 1
     assert o.code == 1
     assert o.out.count(USAGE_LINE) == 1
-    assert o.out.count("❌ Error:") == 1
+    assert o.out.count("❌") == 1
+    assert "❌ Graph execution timed out after 5s" in o.out
 
 
 @pytest.mark.req("REQ-YG-692")
@@ -437,6 +444,26 @@ def test_ac09_success_prints_usage_once_and_no_failure_report(tmp_path, capsys):
     assert o.out.count(USAGE_LINE) == 1
     assert o.out.count(TIMING_LINE) == 1
     assert "❌" not in o.out
+
+
+# Captured from main before FR-1163 (tmp/fr1163_snap.py, identical on branch).
+SUCCESS_GOLDEN = (
+    "\n🚀 Running graph: g.yaml\n\n" + "=" * 60 + "\nRESULT\n" + "=" * 60 + "\n"
+    "  current_step: py_ok\n  result: 1\n  items: ['a', 'b', 'c']\n\n"
+    f"{USAGE_LINE}\n\n{TIMING_LINE}\n\n"
+)
+
+
+@pytest.mark.req("REQ-YG-692")
+def test_ac09_success_text_byte_identical(tmp_path, capsys):
+    o = _run(
+        capsys,
+        _graph(tmp_path, ["py_ok"]),
+        "--token-usage",
+        "--timing",
+        preset=True,
+    )
+    assert o.out == SUCCESS_GOLDEN
 
 
 @pytest.mark.req("REQ-YG-692")

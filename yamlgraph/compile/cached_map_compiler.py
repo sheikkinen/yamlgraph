@@ -20,7 +20,11 @@ from typing import Any
 from langgraph.graph import StateGraph
 from langgraph.types import Send
 
-from yamlgraph.compile.map_contract import make_account_node, make_join_node
+from yamlgraph.compile.map_contract import (
+    failures_key_of,
+    make_account_node,
+    make_join_node,
+)
 from yamlgraph.models.map_results import CachedMapSnapshot, MapAccountingError
 from yamlgraph.utils.route_log import emit_route
 
@@ -117,7 +121,9 @@ def wire_cached_map(
     builder.add_node(warm_name, wrapped_node)
     builder.add_node(sub_name, wrapped_node)
     builder.add_node(account_name, account_and_close)
-    builder.add_node(join_name, make_join_node(name))
+    builder.add_node(
+        join_name, make_join_node(name, config["collect"], failures_key_of(config))
+    )
     builder.add_conditional_edges(name, warm_route, [warm_name, account_name])
     builder.add_conditional_edges(warm_name, release_route, [sub_name, account_name])
     builder.add_edge(sub_name, account_name)

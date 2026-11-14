@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS (R-1..R-4 folded)
+**Status:** Enforced — judged APPROVED WITH REVISIONS (R-1..R-4 folded)
 **Requested:** 2026-11-14
 **First consumer / first event:** the next `yamlgraph graph run --token-usage`
 of a graph whose `map` or `cached_map` has no `min_success` and one failing
@@ -137,44 +137,44 @@ No paid run is part of acceptance (judgement R-4, C-7).
 
 (Revised per judgement R-4.)
 
-- [ ] AC-01: for each of `map` and `cached_map`, a real compiled three-item
+- [x] AC-01: for each of `map` and `cached_map`, a real compiled three-item
   Python-worker graph with index 1 failing and no `min_success` raises the
   completeness error, via both `invoke` and `ainvoke`, with unchanged
   message/verdict, the configured `collect_key`, two collected rows ordered
   0 then 2, and one typed index-1 failure.
-- [ ] AC-02: a join state holding historical and other-map failures selects
+- [x] AC-02: a join state holding historical and other-map failures selects
   only records matching its map and verdict dispatch; the collected
   snapshot keeps the whole channel unmutated; a fixture whose channel
   length differs from `verdict.succeeded` shows both numbers correctly
   labelled in the text.
-- [ ] AC-03: non-stream failure text has the original error line, the
+- [x] AC-03: non-stream failure text has the original error line, the
   collect label and the index/type/message failure line; `--full` shows the
   snapshot, without it result values are absent; a long message is intact
   in exception and JSON but cut in text.
-- [ ] AC-04: a controlled-usage map failure with `--token-usage --timing`
+- [x] AC-04: a controlled-usage map failure with `--token-usage --timing`
   reports the expected token totals, call count, reasoning/cache totals and
   timing totals exactly once, and exits 1; with both flags off neither
   summary appears.
-- [ ] AC-05: JSON failure stdout parses as exactly one object; verdict and
+- [x] AC-05: JSON failure stdout parses as exactly one object; verdict and
   failures are objects, collected matches the exception, enabled summaries
   equal the controlled tracker summaries; a non-map failure omits `map`;
   disabled tracker fields are absent; nothing decorative on stdout.
-- [ ] AC-06: a zero-call Python-node failure prints zero-call summaries for
+- [x] AC-06: a zero-call Python-node failure prints zero-call summaries for
   enabled flags and exits 1; a run that records nonzero usage before a
   non-map exception keeps those exact summaries.
-- [ ] AC-07: an invocation raising `TimeoutError` exits 1 after one usage
+- [x] AC-07: an invocation raising `TimeoutError` exits 1 after one usage
   report with timeout cleanup done; a streaming error event exits 1 after
   one stderr usage report, keeping token stdout and adding no partial-map
   payload.
-- [ ] AC-08: for an unmet join a downstream sentinel never runs and neither
+- [x] AC-08: for an unmet join a downstream sentinel never runs and neither
   `--export` outputs nor the `--export-state` file is created; an unmet
   explicit non-default threshold uses the same path; met-policy and
   completed-error exit 3 unchanged.
-- [ ] AC-09: deterministic success snapshots stay byte-identical for text,
+- [x] AC-09: deterministic success snapshots stay byte-identical for text,
   `--full`, tracked/untracked usage, JSON and streaming; configuration
   refusal and post-success export failure add no summaries and no second
   JSON object.
-- [ ] AC-10: a behavior-failing RED commit precedes GREEN; the targeted
+- [x] AC-10: a behavior-failing RED commit precedes GREEN; the targeted
   tests, unit suite, lint/format and `python scripts/req_coverage.py
   --strict` pass and are recorded here; every new test carries a
   requirement marker.
@@ -198,6 +198,57 @@ boundary):
   keep per-item results queryable. Same split as chosen here, in-process.
 - Change the default `min_success`: changes FR-1073's contract and hides
   failures. Rejected.
+
+## Implementation Status
+
+RED `4de69fd4` (17 of 23 tests failing on behaviour: missing
+`collect_key` attribute, old `make_join_node` arity, absent report text and
+JSON object); GREEN follows on the same branch.
+
+| Item | Where | Witness |
+|---|---|---|
+| Exception evidence | `models/map_results.py` `MapCompletenessError(map_name, verdict, collect_key="", collected=(), failures=())` | AC-01, AC-02 two-argument test |
+| Join capture | `compile/map_contract.py` `make_join_node(name, collect_key, failures_key)`, `failures_key_of(config)`; both compilers pass their keys | AC-01 (map + cached_map, invoke + ainvoke), AC-02 |
+| Text / JSON report, usage on failure | new `cli/graph_run_failure.py` (`report_execution_failure`, `map_failure_lines`, `print_usage`, line formatters); `graph_commands.py` reports once in the inner `except` and re-raises | AC-03..AC-07 |
+| Success output | `_emit_success_output` calls `print_usage(on_failure=False)` | AC-09 golden + byte comparison below |
+| Blocking unchanged | no change to edges/exports | AC-08; FR-1097 suite (exit 3) passes |
+
+Verification (2026-11-14, Windows host):
+
+- `tests/unit/test_fr1163_map_failure_report.py`: 24 passed. With the
+  FR-1073, FR-1161, FR-1097 and FR-335 suites: 138 passed.
+- Full unit suite `-n 4`: 328 failed / 7513 passed / 19 errors. All 327
+  failing ids also fail on main `c91e862d` when the same 69 files run there
+  (main: 329 failing); none is introduced here (shell, hook, ramp and Unix
+  signal tests on this Windows host). CI is the authority.
+- Success bytes: `tmp/fr1163_snap.py` run against main and the branch
+  produced identical stdout/stderr for text tracked, `--full` tracked, text
+  untracked, JSON tracked and JSON untracked.
+- `python scripts/req_coverage.py --strict`: exit 0. ruff check/format clean.
+
+Decisions and deviations:
+
+- The RED probe found no wrapping: LangGraph re-raises the join's
+  exception unchanged on `invoke` and `ainvoke`, so the `__cause__` branch
+  in Planned Operations was not taken.
+- Collected rows are the channel as stored, so they keep `_map_index`
+  (`{"_map_index": 0, "v": "a"}`), the same rows a successful run collects.
+  The RED test expected stripped rows; GREEN corrected the expectation,
+  not the snapshot.
+- The timeout path is merged into the generic execution handler; the
+  reporter keeps the old `❌ <timeout message>` headline for
+  `TimeoutError`. Reason: ruff C901 (`cmd_graph_run` 17 > 15). The same
+  reason moved the streaming branch to `_stream_or_exit`. Teardown still
+  runs in `finally` (asserted).
+- `map_failure_lines(exc)` takes no `full` flag: `--full` prints the
+  snapshot, and failure messages are always cut at 200 characters in text.
+- `failures_key_of(config)` replaces the inline default in
+  `map_compiler.compile_map_node` and feeds both joins. The state builder,
+  codegen and linter copies are out of scope.
+- `reference/module-map.md` budget 302 -> 304 for the new module (the
+  FR-1124/1150/1161 precedent).
+- Streaming success bytes are not separately pinned; the streaming code is
+  unchanged except the error-event branch.
 
 ## Related
 

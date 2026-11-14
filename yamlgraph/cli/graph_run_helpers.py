@@ -12,6 +12,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, Field, ValidationError
 
+from yamlgraph.cli.graph_run_failure import print_usage
 from yamlgraph.cli.helpers import handle_state_export
 from yamlgraph.models import PipelineError
 from yamlgraph.utils.validators import resolve_max_concurrency
@@ -259,37 +260,7 @@ def _emit_success_output(
 
     _display_result(result, truncate=not getattr(args, "full", False))
 
-    if tracker is not None and tracker.total_calls > 0:
-        s = tracker.summary()
-        print(
-            f"\n\U0001f4ca Token usage: "
-            f"{s['total_input_tokens']} in / "
-            f"{s['total_output_tokens']} out "
-            f"({s['total_calls']} call{'s' if s['total_calls'] != 1 else ''})"
-            + (
-                f", {s['total_reasoning_tokens']} thinking"
-                if s["total_reasoning_tokens"]
-                else ""
-            )
-            + (
-                f", {s['total_cache_read_tokens']} cache read"
-                if s["total_cache_read_tokens"]
-                else ""
-            )
-            + (
-                f", {s['total_cache_write_tokens']} cache write"
-                if s["total_cache_write_tokens"]
-                else ""
-            )
-        )
-
-    if timing_tracker is not None and timing_tracker.total_calls > 0:
-        ts = timing_tracker.summary()
-        print(
-            f"\n⏱ Timing: {ts['total_duration_s']}s total "
-            f"({ts['call_count']} call{'s' if ts['call_count'] != 1 else ''}, "
-            f"{ts['mean_duration_s']}s mean)"
-        )
+    print_usage(tracker, timing_tracker, on_failure=False)
 
 
 def _handle_optional_exports(
