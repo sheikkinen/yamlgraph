@@ -52,7 +52,7 @@ searchable; the comment itself is visible at once.
 
 - `doctrine.md` — what the reader is, its inverted input closure, the three
   readers of its output, what it is not
-- `adapters/` — graph (copilot node, `gpt-5.6-sol`, no path/tool grants),
+- `adapters/` — graph (copilot node, `gpt-6.1-sol`, no path/tool grants),
   prompt (copied from the spike), typed tool module; execution notes in
   `adapters/README.md`; operator wrapper `scripts/outsider.sh`
 - `fixtures/` — the historical canaries and their pre-written expectations

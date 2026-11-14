@@ -275,7 +275,7 @@ class TestGraphRouting:
         assert all(v["prompt"] == "judge" for v in copilot_nodes.values())
         judge = copilot_nodes["judge"]
         assert judge["backend"] == "cli"
-        assert judge["cli_flags"]["model"] == "gpt-5.6-sol"
+        assert judge["cli_flags"]["model"] == "gpt-6.1-sol"
         claude = copilot_nodes["judge_claude"]
         assert claude["backend"] == "claude"
         assert claude["cli_flags"]["model"] == "claude-opus-5"

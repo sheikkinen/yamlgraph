@@ -1,7 +1,7 @@
 name: Sole-Route Judge and Review Wrappers
 id: CAP-211
 status: active
-fr: FR-758, FR-960, FR-1022, FR-1049
+fr: FR-758, FR-931, FR-960, FR-1022, FR-1049, FR-1162
 feature_request: FR-758
 description: >
   The judge and review governance pipelines execute through exactly one
@@ -128,7 +128,7 @@ requirements:
       copilot node on either route (FR-960's `judge_claude`) carries its
       own explicit, non-empty model. The two Copilot-CLI pins are equal
       to each other and equal to the model this repository chose
-      deliberately (gpt-5.6-sol); changing either requires editing the
+      deliberately (gpt-6.1-sol); changing either requires editing the
       witness, which requires an FR. The authoring adapter is
       deliberately outside this invariant and may diverge.
     modules:

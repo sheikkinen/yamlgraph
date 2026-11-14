@@ -56,7 +56,7 @@ requirements:
   - id: REQ-YG-663
     description: >
       The wrapper runs the graph with the child working directory outside the
-      repository and containing no `.github/`, pins gpt-5.6-sol with neither
+      repository and containing no `.github/`, pins gpt-6.1-sol with neither
       allow_all_paths nor allow_all_tools in the adapter, removes the
       temporary input on success and failure, preserves the validated report
       under repo tmp/, rejects recursive execution via OUTSIDER_EXECUTION,

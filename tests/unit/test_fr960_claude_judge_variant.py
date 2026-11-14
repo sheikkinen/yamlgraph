@@ -252,7 +252,7 @@ class TestGraphRouting:
         assert all(v["prompt"] == "judge" for v in copilot_nodes.values())
         judge = copilot_nodes["judge"]
         assert judge["backend"] == "cli"
-        assert judge["cli_flags"]["model"] == "gpt-5.6-sol"
+        assert judge["cli_flags"]["model"] == "gpt-6.1-sol"
         assert judge["cli_flags"]["allow_all_paths"] is True
         assert judge["cli_flags"]["allow_all_tools"] is True
         claude = copilot_nodes["judge_claude"]
@@ -289,7 +289,7 @@ class TestGraphRouting:
         assert len(calls) == 1
         argv = calls[0]
         assert argv[0] == "copilot"
-        assert "--model" in argv and argv[argv.index("--model") + 1] == "gpt-5.6-sol"
+        assert "--model" in argv and argv[argv.index("--model") + 1] == "gpt-6.1-sol"
         prompt = argv[argv.index("-p") + 1]
         assert "feature-requests/X.md" in prompt and "tmp/a.md" in prompt
         assert final["judge_result"].backend == "cli"

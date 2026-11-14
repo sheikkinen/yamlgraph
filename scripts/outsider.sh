@@ -21,7 +21,7 @@ WORKDIR="${OUTSIDER_WORKDIR:-$REPO_ROOT}"
 LOCK="$WORKDIR/tmp/.outsider.lock"
 STALE_MIN=10
 GH_REPO="${OUTSIDER_GH_REPO:-sheikkinen/yamlgraph}"
-MODEL="gpt-5.6-sol"   # pinned literally in the adapter; echoed here for the observation marker
+MODEL="gpt-6.1-sol"   # pinned literally in the adapter; echoed here for the observation marker
 
 fail() { echo "outsider.sh: $1" >&2; exit "$2"; }
 

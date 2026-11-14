@@ -20,7 +20,7 @@ nodes:
     type: copilot
     backend: cli
     cli_flags:
-      model: gpt-5.5
+      model: gpt-6.1-sol
       allow_all_paths: true
       allow_all_tools: true  # NC-414: required for non-interactive tool use;
                              # without it file writes (authored graphs, the

@@ -179,7 +179,7 @@ def _tools():
 def test_adapter_pins_model_and_grants_no_access():
     text = (SKILL / "adapters/graph.yaml").read_text(encoding="utf-8")
     node = yaml.safe_load(text)["nodes"]["outsider"]
-    assert node["type"] == "copilot" and node["cli_flags"]["model"] == "gpt-5.6-sol"
+    assert node["type"] == "copilot" and node["cli_flags"]["model"] == "gpt-6.1-sol"
     assert "allow_all" not in text
 
 
@@ -312,7 +312,7 @@ def test_pr_comment_posts_the_enriched_report_byte_for_byte(tmp_path: Path):
     assert obs.pr == 4242 and obs.head_sha == FAKE_HEAD
     assert obs.input_sha256 == hashlib.sha256(FAKE_PR_TEXT.encode()).hexdigest()
     assert obs.derived_verdict == "YES" and obs.s3 == 0 and obs.s4 == 1
-    assert obs.model == "gpt-5.6-sol" and obs.repo == "sheikkinen/yamlgraph"
+    assert obs.model == "gpt-6.1-sol" and obs.repo == "sheikkinen/yamlgraph"
     assert len(obs.prompt_digest) == 16 and obs.tool_sha not in ("", "-")
     assert "comment posted on #4242" in proc.stdout
     # fetched PR text lived only in the child directory, which is gone
