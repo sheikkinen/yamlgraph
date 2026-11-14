@@ -420,11 +420,18 @@ explicit collision error.
 
 ---
 
+## Warm-first: `cached_map` (FR-1161)
+
+`type: cached_map` takes the same keys and returns the same results as `type: map`. It runs item 0 alone, then items 1..N-1 in parallel. With a provider prompt cache (Anthropic), item 0 writes the shared prefix once and the rest read it. A plain `map` sends all items at once, so each concurrent call writes the same entry. Use it only when the prompt has a cached segment above the model's cache minimum. Otherwise it adds one item's latency and saves nothing. Full contract: [graph-yaml.md § cached_map](graph-yaml.md#type-cached_map---warm-first-fan-out-fr-1161); demo: [examples/demos/cached_map](../examples/demos/cached_map/).
+
+---
+
 ## Comparison with Other Patterns
 
 | Pattern | Use Case | Parallelism |
 |---------|----------|-------------|
 | **Map** | Same operation on each item | Native parallel via `Send()` |
+| **Cached map** | Same operation, long shared cached prompt prefix | Item 0 alone, then 1..N-1 in parallel |
 | **Loop** | Iterative refinement | Sequential |
 | **Router** | Different paths based on classification | Single path |
 | **Agent** | Autonomous tool selection | Sequential tool calls |

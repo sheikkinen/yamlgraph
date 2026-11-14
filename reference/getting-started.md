@@ -91,6 +91,7 @@ result = execute_prompt(
 | `tool` | Execute a registered tool |
 | `tool_call` | Dynamic tool from state |
 | `map` | Parallel execution over list |
+| `cached_map` | `map` that runs item 0 first so the rest read its prompt cache |
 | `python` | Custom Python function |
 | `interrupt` | Human-in-the-loop pause/resume |
 | `passthrough` | State transformation without LLM |
