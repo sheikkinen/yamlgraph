@@ -5,7 +5,7 @@ Needs ANTHROPIC_API_KEY (read from the environment or a .env above this
 file; never printed). Writes sanitized evidence to
 feature-requests/evidence/FR-1164-truncation-probe.json.
 
-    python scripts/probe_fr1164_truncation.py
+    python scripts/probe_fr1164_truncation.py [OUT.json]
 
 Requests (max_tokens=16, claude-haiku-4-5-20251001):
   1. plain invoke                                -> raw response_metadata
@@ -20,6 +20,7 @@ from __future__ import annotations
 import importlib.metadata
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 from dotenv import find_dotenv, load_dotenv
@@ -115,7 +116,10 @@ def main() -> int:
     except Exception as err:
         result["structured_today"] = {"error": _error(err)}
 
-    OUT.write_text(json.dumps(result, indent=2, default=str) + "\n", encoding="utf-8")
+    out_path = Path(sys.argv[1]) if len(sys.argv) > 1 else OUT
+    out_path.write_text(
+        json.dumps(result, indent=2, default=str) + "\n", encoding="utf-8"
+    )
     print(json.dumps(result, indent=2, default=str))
     return 0
 

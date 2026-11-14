@@ -324,8 +324,15 @@ Implemented 2026-11-14 on branch `fix/fr1164-output-truncated-error`.
   `main` at `6239c99b` (the remaining Windows shell/hook failures are
   identical on `main`); `req_coverage --strict`, `lint-imports`, ruff check
   and format clean.
-- AC-11: no paid post-GREEN re-run occurred; the unit witnesses built from
-  the recorded envelope stand.
+- AC-11: post-GREEN paid re-run approved by the operator ("proceed with
+  probe", 2026-11-14) and run once (3 requests) at `9ae3a93d`; evidence in
+  [evidence/FR-1164-truncation-probe-post-green.json](evidence/FR-1164-truncation-probe-post-green.json),
+  the baseline file left unchanged (the probe script now takes an output
+  path). `plain` and `structured_include_raw` still report
+  `stop_reason=max_tokens` (the latter still parses to
+  `Countries([..., 'Angola', ''])`); `structured_today` now records
+  `OutputTruncatedError`: "16 output tokens, unknown of them thinking; 68
+  visible characters".
 
 ## Related
 
