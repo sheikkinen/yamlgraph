@@ -2,11 +2,11 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS, R-1..R-4 folded ([judgement](FR-1167-release-flow-branch-pr-tag-squash.judgement.md))
 **Requested:** 2026-11-16
 **First consumer / first event:** the next agent or operator asked to "release" — at the moment they open `reference/release-checklist.md` or load the `release-version` skill, and at the moment `scripts/release.sh` prints its next-step hint.
 **Research:** in-body dispositioned alternatives table — [Alternatives Considered](#alternatives-considered) (FR-890 equivalent committed record)
-**Prior art:** [FR-192-draconian-changelog-release-gate.md](FR-192-draconian-changelog-release-gate.md) — created `release.sh` and the checklist's "canonical" section under a direct-push-to-main model; this FR keeps its freeze/bump/aggregate/commit contract and changes only where the tag is made and what the operator is told to do next. [FR-728-session-safe-release-commit-hygiene.md](FR-728-session-safe-release-commit-hygiene.md) (Proposed) — release-commit atomicity against parallel sessions (shared index, `tmp/msg.txt`); orthogonal, untouched here. [FR-1107-changelog-release-sync-context-false-positive.md](FR-1107-changelog-release-sync-context-false-positive.md) (Proposed) — pre-commit version-bump detector false positive; orthogonal. [FR-906-release-tool-slots-to-pypi.md](FR-906-release-tool-slots-to-pypi.md) — publishes tool slots, not the release route; no overlap.
+**Prior art:** [FR-192-draconian-changelog-release-gate.md](FR-192-draconian-changelog-release-gate.md) — created `release.sh` and the checklist's "canonical" section under a direct-push-to-main model; this FR keeps its freeze/bump/aggregate/commit contract and changes only where the tag is made and what the operator is told to do next. [FR-728-session-safe-release-commit-hygiene.md](FR-728-session-safe-release-commit-hygiene.md) (Proposed) — release-commit atomicity against parallel sessions (shared index, `tmp/msg.txt`); orthogonal, untouched here. [FR-1107-changelog-release-sync-context-false-positive.md](FR-1107-changelog-release-sync-context-false-positive.md) (Proposed) — pre-commit version-bump detector false positive; orthogonal. [FR-906-release-tool-slots-to-pypi.md](FR-906-release-tool-slots-to-pypi.md) — executed the old `release.sh → tag → push` route (its lines 74–93); this FR supersedes that route for future releases without rewriting FR-906's historical record. FR-192 rejected docs-only enforcement; this FR is a script correction with docs following, not docs-only.
 
 ## Summary
 
@@ -37,8 +37,8 @@ probes:
   - "grep -rn 'push --tags' reference/ .github/skills/ scripts/ — enumerates every place teaching the old route (decides edit set)"
   - "grep -n 'git tag' tests/unit/test_changelog_release_sync.py — finds the existing witness pinning the old tag-in-script contract"
 branches:
-  - "another file teaches direct push → add it to the edit set (partial_remediation)"
-  - "removing the tag breaks a CI or hook consumer of release.sh → keep tag, print a warning instead; record deviation"
+  - "another active instructional surface teaches direct push → record it and amend this FR before editing it; historical FRs are not rewritten"
+  - "removing the tag breaks a CI or hook consumer of release.sh → stop enforcement and return to planning; automatic tagging is never retained as a fallback"
 delegations:
   - "judge.sh: 1 run"
 waits:
@@ -52,33 +52,77 @@ commands:
 
 ## Proposed Solution
 
-1. **`scripts/release.sh`** — keep steps 1–5 (validate fragments, freeze, bump, aggregate, commit with `-F`). Remove step 6 (`git tag`). Replace the final hint with the remaining route, in order:
-   ```
-   ✓ Release vX.Y.Z committed on <branch>.
-     Next: git push -u origin <branch>
-           gh pr create --title "chore(release): vX.Y.Z changelog freeze" --fill
-           gh pr merge <N> --squash --delete-branch   (after CI is green)
-           git tag vX.Y.Z <squash-commit-on-main> && git push origin vX.Y.Z
-   ```
-   Refuse to run on `main` (exit non-zero with a message pointing at `release/vX.Y.Z`): the commit it makes must go through a PR.
-2. **`reference/release-checklist.md`** — the canonical section becomes the branch → PR → squash-merge → tag-the-squash-commit route, including the post-merge verification (`gh run list --branch vX.Y.Z`, PyPI version check, `gh release view`). Delete the "Expected CI behavior on direct push to main" table and the manual flow's `git push` / `git push --tags` to main. Add one line on recovery: a merged freeze without a tag is unpublished — tag the squash commit, after confirming its CI is green.
-3. **`.github/skills/release-version/SKILL.md`** — same route; it stays a discovery wrapper pointing at the checklist.
-4. **`capabilities/CAP-71-release-changelog-sync.yaml` REQ-YG-190** — description says the script commits (no tag) and refuses `main`; regenerate `ARCHITECTURE.md`.
-5. **Witnesses** in `tests/unit/test_changelog_release_sync.py` (REQ-YG-190):
-   - `release.sh` does not run `git tag`; its output hint names `gh pr create` and tagging the squash commit.
-   - `release.sh` refuses to run on `main` — executed in a throwaway git repo, asserted by exit code and message.
-   - Neither the checklist nor the skill contains `git push --tags` or `git push && git push --tags`; both name `release/v`, `--squash` and the squash commit as the tag target.
-   - The existing `test_release_script_commits_and_tags` is replaced: it pins the retired contract.
+Folded from judgement R-1..R-4.
+
+1. **`scripts/release.sh`** (D-1)
+   - Keep steps 1–5 unchanged: validate fragments, freeze, bump `pyproject.toml` and `yamlgraph/__init__.py`, aggregate, commit with `-F`.
+   - **Refuse `main`** before the first filesystem mutation: exit non-zero with a message naming `release/vX.Y.Z`. No other branch-name restriction.
+   - **Execute no tag creation** (R-1). The printed handoff may contain a `git tag` *instruction*; tests distinguish `echo`ed text from executed lines.
+   - Final output is a concise ordered handoff with a pointer to `reference/release-checklist.md`:
+     1. push the branch;
+     2. `gh pr create`;
+     3. human-authorized squash merge after green PR checks;
+     4. get the PR's `mergeCommit.oid` and fetch `origin/main`;
+     5. `git tag vX.Y.Z <squash-sha>`;
+     6. `git push origin vX.Y.Z`.
+2. **`reference/release-checklist.md`** (D-2): the ordered route.
+   1. `git fetch origin` and create `release/vX.Y.Z` from `origin/main` in a worktree (`scripts/worktree.sh new vX.Y.Z --prefix release/`); main stays locked.
+   2. Run `scripts/release.sh X.Y.Z`, push only the branch, then `gh pr create`.
+   3. Wait for the required PR checks (and merge-group checks if any), then the **human merge decision**, then `gh pr merge <N> --squash`.
+   4. `gh pr view <N> --json state,mergeCommit`: require `MERGED`, take `mergeCommit.oid`, `git fetch origin`, and check `git merge-base --is-ancestor <sha> origin/main`.
+   5. At `<sha>`, check that `pyproject.toml` and `yamlgraph/__init__.py` both read X.Y.Z and that `changelog/X.Y.Z/` exists.
+   6. If the tag `vX.Y.Z` already exists, **stop and inspect**; never delete or force it.
+   7. `git tag vX.Y.Z <sha>`, then `git push origin vX.Y.Z` (only that tag).
+   8. Verify:
+      - the tag workflow run (`gh run list --branch vX.Y.Z --workflow CI`) shows `build`, `publish` and `create-release` successful;
+      - `gh release view vX.Y.Z`;
+      - `https://pypi.org/pypi/yamlgraph/X.Y.Z/json` returns version X.Y.Z.
+
+   No ordinary push-to-main CI run is claimed, because `workflow.yml` triggers on PRs, merge groups and tags. **Recovery** for a merged but untagged freeze uses the same steps 4–8 on that PR's squash SHA, and stops on failed checks. Also remove:
+   - the direct-push CI table;
+   - every `push --tags`;
+   - the normal-path manual `gh release create` (the workflow creates the release).
+3. **`.github/skills/release-version/SKILL.md`** (D-3): discovery metadata, the same concise route, and the checklist link. Delete the duplicated manual procedure and the unconditional `gh release create`.
+4. **CAP-71 REQ-YG-190** (D-4): text says commit-only preparation plus main refusal; regenerate `ARCHITECTURE.md` with `python scripts/aggregate_capabilities.py`.
+5. **Witnesses** (D-5, REQ-YG-190, in `tests/unit/test_changelog_release_sync.py`):
+   - **Executed-line parse of `release.sh`.** Comment lines and `echo`/`printf` lines are excluded:
+     - no executed `git tag`;
+     - `commit -F` is retained;
+     - the printed handoff appears in the order branch push → `gh pr create` → `--squash` → `mergeCommit` → `git tag` → `git push origin v`.
+   - **Isolated `main` fixture.** A temp git repo:
+     - initialised on `main`, with local identity and no hooks;
+     - has an initial commit, a real unreleased fragment, and both version files.
+
+     The real script runs there with that cwd. Assert:
+     - a non-zero exit;
+     - the message names `release/v`;
+     - files, HEAD, index and tags are unchanged.
+   - **Ordered documentation assertions** for the checklist and the skill, plus absence of `push --tags`.
+   - **`test_release_script_commits_and_tags` is replaced**; the other existing witnesses are kept.
+
+**`is_this_a_graph`: No.** This is a deterministic git release handoff with a human merge authorization. The existing shell script, `gh` commands and publishing workflow suffice; no graph or LLM orchestration is proposed.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `scripts/release.sh` contains no `git tag` invocation; its final output names push branch, `gh pr create`, squash merge, and tagging the squash commit on main, in that order.
-- [ ] AC-02: `scripts/release.sh` exits non-zero on branch `main` before modifying any file; witnessed by executing it in a temp git repo.
-- [ ] AC-03: `reference/release-checklist.md` and `.github/skills/release-version/SKILL.md` contain no `push --tags` and no instruction to push to main; both document release branch → PR → squash merge → tag the squash commit → push the tag → verify PyPI.
-- [ ] AC-04: The checklist's "direct push to main" CI table is removed; a recovery line covers a merged-but-untagged freeze.
-- [ ] AC-05: CAP-71 REQ-YG-190 text matches the new contract; `ARCHITECTURE.md` regenerated; `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-06: `pytest tests/unit/test_changelog_release_sync.py` passes; RED and GREEN committed separately.
-- [ ] AC-07: Changelog fragment (`type: fix`, `scope: release`) and diary entry.
+- [ ] AC-01: `release.sh` retains fragment validation, freeze, both version bumps, aggregation and commit-with-`-F`. It executes no tag creation, and prints:
+  - branch push → PR creation → human-authorized squash merge → tag the fetched release-PR squash SHA → single-tag push;
+  - a checklist pointer.
+- [ ] AC-02: The populated isolated `main` fixture exits non-zero with a main-specific refusal naming `release/vX.Y.Z`. Files, HEAD, index and tags are unchanged, and no broader branch-name restriction is added.
+- [ ] AC-03: The checklist and skill contain no `push --tags` and no direct-main-push instruction. The ordered route:
+  - identifies the exact merged PR and obtains its squash SHA;
+  - fetches main, checks ancestry and release metadata;
+  - pushes only the intended tag.
+
+  The skill is a concise wrapper.
+- [ ] AC-04: The direct-main-push CI table and normal-path manual `gh release create` are removed. Recovery uses the merged PR's exact squash SHA with the same checks, stops on failed checks or an existing tag, and never force-replaces a tag.
+- [ ] AC-05: Verification distinguishes PR/merge-group checks from tag CI. It:
+  - selects the tag workflow and its successful `build`, `publish` and `create-release` jobs;
+  - uses `gh release view` and an exact-version PyPI assertion;
+  - claims no ordinary main-push CI run.
+- [ ] AC-06: CAP-71 REQ-YG-190 matches the commit-only/main-refusal contract; `ARCHITECTURE.md` is regenerated; `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-07: The changed-contract witnesses fail before implementation and `pytest tests/unit/test_changelog_release_sync.py` passes after. RED and GREEN are committed separately, and new tests carry REQ-YG-190.
+- [ ] AC-08: A `fix`/`release` changelog fragment and a diary reflection with **Seed:** exist. The FR records implementation status and decisions.
+- [ ] AC-09: The FR contains R-1..R-4, the graph-fit answer, the corrected FR-906 disposition and the bounded edit set. No new dependencies, no workflow changes and no live publication.
 
 ## Alternatives Considered
 
@@ -89,6 +133,14 @@ commands:
 | A3 | Automate tagging: a workflow on push to main that tags any `chore(release): vX.Y.Z` squash commit | **Deferred, not in scope.** It would have prevented the v0.6.6 gap, but it gives a workflow write access to tags, adding trusted CI surface; it needs its own FR and judge. Recorded as the follow-up. |
 | A4 | `release.sh` does the whole route (push, PR, wait for CI, merge, tag) | **Rejected.** It merges without a human merge decision, which doctrine reserves for the human (Submit step). |
 | A5 | Allow direct push to main for release commits | **Rejected.** Contradicts FR-889's OS lock and the squash-merge branch protection. |
+
+## Judgement fold (2026-11-16)
+
+- **R-1:** the no-automatic-tag rule is unconditional, and the edit set is bounded. See the Planned Operations branches and AC-01.
+- **R-2:** added the graph-fit answer, corrected the FR-906 disposition and distinguished this FR from FR-192.
+- **R-3:** the post-merge route now has the exact squash SHA, an ancestry check, a metadata check, a stop on an existing tag, tag CI distinguished from PR checks, and an exact-version PyPI check. It keeps the human merge decision.
+- **R-4:** the witnesses parse executed lines rather than searching for substrings, use the isolated `main` fixture with before/after snapshots, and assert documentation order.
+- **Conditions C-2 and C-3** are human gates. C-2 needs the operator to approve the main refusal and moving tagging to the post-merge step before merge. C-3 requires each real release to keep its own merge decision.
 
 ## Out of Scope
 
