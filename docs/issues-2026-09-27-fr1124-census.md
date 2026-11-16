@@ -32,8 +32,8 @@ class. Counts above are the 2026-09-27 census and are not restated.
 | `examples/book_reviewer/graph.yaml` | `synopsis_beats` | `synopsis_beats` | -> compute | A | census `NODES_REFERENCING_STATE_KEY: none` (census said `b`; reconciled: edge `-> compute`; the next node is python and reads state directly; the dossier's substring scan cannot see python readers, so its `none` is not evidence of an unread output) | fail (default) |
 | `examples/book_reviewer/graph.yaml` | `verdict` | `verdict` | -> finalize | A | census `Attach verdict, write review.md` | fail (default) |
 | `examples/book_translator/graph.yaml` | `identify_chapters` | `chapter_markers` | -> split_book | A | census `description: "Split text using LLM-identified markers"` | fail (default) |
-| `examples/booking/graph.yaml` | `greet` | `greeting` | -> await_request | A | census `message: "{{greeting}}"` | fail (default) |
-| `examples/booking/graph.yaml` | `present_slots` | `slots_response` | -> await_selection | A | census `message: "{{slots_response}}"` | fail (default) |
+| `examples/booking/graph.yaml` | `greet` | `greeting` | -> await_request | A | census `message: "{% raw %}{{greeting}}{% endraw %}"` | fail (default) |
+| `examples/booking/graph.yaml` | `present_slots` | `slots_response` | -> await_selection | A | census `message: "{% raw %}{{slots_response}}{% endraw %}"` | fail (default) |
 | `examples/booking/graph.yaml` | `farewell` | `confirmation` | -> END | A | census `- from: farewell     to: END` | fail (default) |
 | `examples/codegen/impl-agent.yaml` | `parse_story` | `parsed_request` | -> plan_discovery | A | census `requires: [parsed_request]` | fail (default) |
 | `examples/codegen/impl-agent.yaml` | `plan_discovery` | `discovery_plan` | -> execute_discovery | A | census `NODES_REFERENCING_STATE_KEY: ['execute_discovery']` | fail (default) |

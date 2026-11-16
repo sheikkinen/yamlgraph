@@ -105,7 +105,7 @@ Counts for store-read, two methods that disagree:
 - Regex census in this investigation (2026-09-25): 70 map nodes with
   `collect` in 54 graph files under `examples/`; 89 (graph, key, file)
   reader pairs in 74 distinct files. The regex matches `state.<key>`,
-  `state["<key>"]`, `{<key>`, `{{ <key>` and `.get("<key>")` in the graph's
+  `state["<key>"]`, `{<key>`, `{% raw %}{{ <key>{% endraw %}` and `.get("<key>")` in the graph's
   own directory. It over-counts (a downstream map's `over:` reading the key
   is a consumer, but a same-named key in an unrelated file in the same
   directory is not) and is an **upper bound**.

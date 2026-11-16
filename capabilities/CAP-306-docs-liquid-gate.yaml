@@ -1,0 +1,28 @@
+id: CAP-306
+name: Docs Liquid Gate
+description: >
+  FR-1168: `scripts/check_docs_liquid.py` fails when a docs file that GitHub
+  Pages renders (Jekyll 3.10 + Liquid 4.0.4) holds active Liquid outside a
+  canonical raw region. Selection mirrors the pinned Jekyll reader (Markdown
+  extensions, front-matter files, special-prefix and `_config.yml` exclude
+  skips, dated `_posts`). Wired as the `docs-liquid` pre-commit hook and the
+  always-run `Docs Liquid (Pages build)` CI job, which also builds the site
+  with `actions/jekyll-build-pages` and asserts wrapped tokens render
+  literally.
+modules:
+  - scripts/check_docs_liquid.py
+  - .pre-commit-config.yaml
+  - .github/workflows/commitlint.yml
+requirements:
+  - id: REQ-YG-731
+    description: >
+      The docs Liquid gate reports L001 for `{{` and L002 for `{%` outside a
+      canonical `{% raw %}` region, L003 for a raw region left open at end of
+      file, and L004 for a non-canonical `endraw` (closing raw when Liquid
+      would). It scans only files Jekyll renders, strips front matter while
+      keeping source line numbers, exits 1 on findings and 2 on a missing or
+      malformed `_config.yml`, a bad `exclude`, or non-UTF-8 input.
+    modules:
+      - scripts/check_docs_liquid.py
+      - tests/unit/test_fr1168_docs_liquid_gate.py
+fr: FR-1168

@@ -602,6 +602,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 303 | CAP-303 Map memo contrib retired | `tests/unit/test_fr1160_retirements.py` | REQ-YG-727 |
 | 304 | CAP-304 Cached Map Warm-First Dispatch | `yamlgraph/compile/cached_map_compiler.py`, `yamlgraph/compile/map_compiler.py`, `yamlgraph/models/map_results.py` | REQ-YG-728 |
 | 305 | CAP-305 Lint Unread LLM Settings | `yamlgraph/constants.py`, `yamlgraph/linter/checks_providers.py`, `yamlgraph/linter/graph_linter.py` | REQ-YG-730 |
+| 306 | CAP-306 Docs Liquid Gate | `scripts/check_docs_liquid.py`, `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml` | REQ-YG-731 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3503,6 +3504,16 @@ FR-1166: `yamlgraph graph lint` warns when an LLM tuning setting (`thinking_budg
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-730 | Lint emits W072 (warning) for each `LLMSetting` key present, any value including null, in graph `metadata:` or in a referenced prompt's `metadata:` (each prompt once; missing prompts left to E004), naming the location, the key and `defaults.<key>`. Lint emits W073 (warning) per extra key on a direct-race or router-race candidate, naming the node, the zero-based candidate index and the key, with a fix that matches the key's race behaviour. Neither code changes load or runtime behaviour. | `yamlgraph/linter/checks_providers.py`, `tests/unit/test_fr1166_lint_unread_llm_settings.py` |
+
+### 306. CAP-306 Docs Liquid Gate
+
+FR-1168: `scripts/check_docs_liquid.py` fails when a docs file that GitHub Pages renders (Jekyll 3.10 + Liquid 4.0.4) holds active Liquid outside a canonical raw region. Selection mirrors the pinned Jekyll reader (Markdown extensions, front-matter files, special-prefix and `_config.yml` exclude skips, dated `_posts`). Wired as the `docs-liquid` pre-commit hook and the always-run `Docs Liquid (Pages build)` CI job, which also builds the site with `actions/jekyll-build-pages` and asserts wrapped tokens render literally.
+
+**Feature Request:** FR-1168
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-731 | The docs Liquid gate reports L001 for `{{` and L002 for `{%` outside a canonical `{% raw %}` region, L003 for a raw region left open at end of file, and L004 for a non-canonical `endraw` (closing raw when Liquid would). It scans only files Jekyll renders, strips front matter while keeping source line numbers, exits 1 on findings and 2 on a missing or malformed `_config.yml`, a bad `exclude`, or non-UTF-8 input. | `scripts/check_docs_liquid.py`, `tests/unit/test_fr1168_docs_liquid_gate.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

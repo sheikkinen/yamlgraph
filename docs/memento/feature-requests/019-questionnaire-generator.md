@@ -63,6 +63,7 @@ yamlgraph questionnaire generate \
 
 ### Example Usage (YAML)
 
+{% raw %}
 ```yaml
 # examples/questionnaire_gen/graph.yaml (sketch)
 version: "1.0"
@@ -151,6 +152,7 @@ edges:
   - from: finalize
     to: END
 ```
+{% endraw %}
 
 ## Lint Rules (Initial Set)
 

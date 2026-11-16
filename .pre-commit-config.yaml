@@ -169,6 +169,15 @@ repos:
 
   - repo: local
     hooks:
+      - id: docs-liquid
+        name: docs Liquid gate (FR-1168)
+        entry: python scripts/check_docs_liquid.py
+        language: system
+        files: ^docs/
+        stages: [pre-commit]
+
+  - repo: local
+    hooks:
       - id: forbid-terms
         name: forbid TODOs and compatibility drift
         entry: bash -c '! find yamlgraph -type f -name "*.py" ! -path "*/__pycache__/*" ! -path "*/.pytest_cache/*" ! -path "*/.mypy_cache/*" ! -path "*/.ruff_cache/*" ! -path "*/.venv/*" -print0 | xargs -0 grep -nE "TODO|FIXME|backward compati(bility)?"'

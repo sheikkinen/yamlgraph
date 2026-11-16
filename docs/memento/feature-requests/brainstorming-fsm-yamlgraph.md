@@ -121,7 +121,7 @@ def notify_controller(state):
 | **LLM support** | None (custom action needed) | Native multi-provider |
 | **Human-in-loop** | Via events/UI | `type: interrupt` nodes |
 | **Visualization** | Kanban + FSM diagrams | Mermaid diagrams |
-| **Variable interpolation** | `{var}`, `{nested.path}` | `{var}`, Jinja2 `{{ }}` |
+| **Variable interpolation** | `{var}`, `{nested.path}` | `{var}`, Jinja2 `{% raw %}{{ }}{% endraw %}` |
 
 ### Codebase Stats
 
@@ -148,6 +148,7 @@ Both projects follow:
 
 Both use `{variable}` syntax with slight differences:
 
+{% raw %}
 ```yaml
 # statemachine-engine
 command: "echo Processing job {job_id}"
@@ -158,6 +159,7 @@ payload:
 system: "You are helping with {concept}"
 user: "{{ items | join(', ') }}"  # Jinja2 mode
 ```
+{% endraw %}
 
 ---
 
