@@ -4,7 +4,7 @@ Validates:
   - check_changelog_release_sync.py blocks version bump when unreleased/ has fragments
   - check_changelog_release_sync.py allows version bump when unreleased/ is empty
   - check_changelog_release_sync.py allows normal commits (no version change)
-  - release.sh performs atomic freeze → bump → aggregate → commit → tag
+  - release.sh performs atomic freeze → bump → aggregate → commit (tag is post-merge, FR-1167)
   - release.sh fails when no fragments exist in unreleased/
   - CI release-hygiene job validates tag-to-changelog alignment
   - Pre-commit hook changelog-release-sync registered in .pre-commit-config.yaml
@@ -181,12 +181,11 @@ class TestReleaseScript:
             "release.sh must run aggregate_changelog.py"
         )
 
-    def test_release_script_commits_and_tags(self) -> None:
-        """release.sh must create commit and tag."""
+    def test_release_script_commits(self) -> None:
+        """release.sh must commit; tagging is post-merge (FR-1167)."""
         script = REPO_ROOT / "scripts" / "release.sh"
         content = script.read_text(encoding="utf-8")
         assert "git commit" in content, "release.sh must commit"
-        assert "git tag" in content, "release.sh must create tag"
 
     def test_release_script_uses_file_for_commit_msg(self) -> None:
         """release.sh must use -F for commit message (avoid dquote trap)."""

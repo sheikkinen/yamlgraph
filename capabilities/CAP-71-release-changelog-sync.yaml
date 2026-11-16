@@ -24,15 +24,19 @@ requirements:
       - tests/unit/test_changelog_release_sync.py
   - id: REQ-YG-190
     description: >
-      Atomic release script `scripts/release.sh` validates unreleased/ has
-      fragments, freezes them to changelog/{VERSION}/, bumps pyproject.toml
-      version, regenerates CHANGELOG.md via aggregate_changelog.py, commits
-      with -F (file-based message to avoid dquote trap), and creates git tag;
-      reference/release-checklist.md documents release.sh as canonical command.
+      Atomic release script `scripts/release.sh` refuses to run on main,
+      validates unreleased/ has fragments, freezes them to changelog/{VERSION}/,
+      bumps pyproject.toml and yamlgraph/__init__.py, regenerates CHANGELOG.md
+      via aggregate_changelog.py, and commits with -F (file-based message to
+      avoid dquote trap) without tagging; reference/release-checklist.md
+      documents the release-branch PR, human squash merge, and tagging of the
+      verified squash commit as the canonical route (FR-1167).
     modules:
       - scripts/release.sh
       - reference/release-checklist.md
+      - .github/skills/release-version/SKILL.md
       - tests/unit/test_changelog_release_sync.py
+      - tests/unit/test_fr1167_release_pr_flow.py
   - id: REQ-YG-191
     description: >
       CI `release-hygiene` job in commitlint.yml triggers on tag push (v*),

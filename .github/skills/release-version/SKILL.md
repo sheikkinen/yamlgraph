@@ -6,121 +6,18 @@ argument-hint: "version number like '0.4.62'"
 
 # Release Version
 
-Bump, commit, push, and tag a YAMLGraph release. Canonical source: `reference/release-checklist.md`.
+Discovery wrapper. The canonical procedure, including checks, recovery and verification, is [`reference/release-checklist.md`](../../../reference/release-checklist.md); follow it, not this summary.
 
-## Recommended: Atomic Release Script
+## Route (FR-1167)
 
-```bash
-scripts/release.sh 0.4.XX
-git push && git push --tags
-```
+1. `git fetch origin`, then `scripts/worktree.sh new vX.Y.Z --prefix release/`. This branches `release/vX.Y.Z` from origin/main; main stays locked.
+2. `scripts/release.sh X.Y.Z`: freezes, bumps and commits. It refuses to run on main and does not tag.
+3. `git push -u origin release/vX.Y.Z` and `gh pr create`.
+4. Required PR checks green, then **the human merge decision**, then `gh pr merge <N> --squash --delete-branch`.
+5. Get `mergeCommit` from `gh pr view <N> --json state,mergeCommit` and `git fetch origin`. Confirm that `git merge-base --is-ancestor <sha> origin/main` succeeds and that the version files read X.Y.Z at `<sha>`.
+6. `git tag vX.Y.Z <sha>`, then `git push origin vX.Y.Z`. If the tag already exists, stop.
+7. Verify the tag CI run (`build`, `publish`, `create-release`), `gh release view vX.Y.Z`, and the exact version on PyPI.
 
-The script handles: validate changelog fragments → freeze to `changelog/0.4.XX/` → bump `pyproject.toml` → regenerate `CHANGELOG.md` → commit → tag.
+The tag push publishes. A merged release PR without a tag publishes nothing; see the checklist's Recovery section.
 
-## Manual Flow
-
-### 1. Pull First
-
-```bash
-git pull
-```
-
-### 2. Add Changelog Fragments
-
-```bash
-cat > changelog/unreleased/FR-XXX-feature-name.md << 'EOF'
----
-type: feat
-scope: component
-req: REQ-YG-XXX
----
-- **FR-XXX Feature Name**: Description. (REQ-YG-XXX)
-EOF
-```
-
-Fragment `type:` values: `feat` → Added, `fix` → Fixed, `removal` → Removed.
-
-### 3. Bump Version
-
-```bash
-sed -i '' 's/version = "X.Y.Z"/version = "X.Y.W"/' pyproject.toml
-```
-
-### 4. Freeze Changelog
-
-```bash
-VERSION="X.Y.W"
-mkdir -p "changelog/${VERSION}"
-mv changelog/unreleased/*.md "changelog/${VERSION}/"
-python scripts/aggregate_changelog.py > CHANGELOG.md
-```
-
-### 5. Commit (Handle Hook Cascade)
-
-```bash
-cat > tmp/msg.txt << 'EOF'
-chore(release): vX.Y.W
-EOF
-git add -A
-git commit -F tmp/msg.txt
-```
-
-Hooks will likely auto-fix files on first attempt. Re-stage and retry:
-
-```bash
-git add -A && git commit -F tmp/msg.txt
-```
-
-### 6. Push and Tag
-
-```bash
-git push
-git tag vX.Y.W
-git push --tags
-```
-
-### 7. Post-Push Verification
-
-```bash
-gh run list --limit 5 --json name,status,conclusion,headBranch \
-  --jq '.[] | "\(.status) \(.conclusion // "—") \(.name) \(.headBranch)"'
-gh release create vX.Y.W --title "vX.Y.W" --generate-notes
-```
-
-## Common Hook Failures
-
-| Hook | Fix |
-|------|-----|
-| `ruff` | Auto-fixes style; re-stage |
-| `ruff-format` | Auto-fixes format; re-stage |
-| `trailing-whitespace` | Auto-fixes; re-stage |
-| `req_coverage` | Add capability YAML to `capabilities/` |
-
-## Phantom Requirement Fix
-
-When `req_coverage --strict` fails:
-
-```bash
-cat > capabilities/CAP-XX-feature-name.yaml << 'EOF'
-id: CAP-XX
-name: Feature Name
-fr: FR-XXX
-requirements:
-  - id: REQ-YG-XXX
-    description: Brief description
-EOF
-```
-
-## Multi-line Commit Messages
-
-Always write to file to avoid dquote trap:
-
-```bash
-cat > tmp/msg.txt << 'EOF'
-feat(scope): FR-XXX summary
-
-- Detail 1
-- Detail 2
-EOF
-git commit -F tmp/msg.txt
-```
+Hook failures during step 2, phantom requirements and multi-line commit messages: see the checklist.
