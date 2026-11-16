@@ -146,6 +146,13 @@ Found 0 error(s) and 1 warning(s)
 | W007 | warn | Variable `{name}` missing `state.` prefix |
 | W801 | warn | Condition uses `{braces}` instead of bare names |
 
+### LLM Setting Placement (`checks_providers.py`, FR-1166)
+
+| Code | Sev | What it catches |
+|------|-----|-----------------|
+| W072 | warn | `thinking_budget`, `temperature`, `max_tokens` or `effort` in graph `metadata:` or in the `metadata:` of a referenced prompt. Never read there; move it to `defaults.<key>` or the node |
+| W073 | warn | A `race` or router-race candidate key other than `provider` / `model`. One issue per key, naming the node and zero-based candidate index. `temperature` / `thinking_budget` belong on the node or under `defaults:`; races do not apply `max_tokens` / `effort`; any other key is unread |
+
 ### Pattern Checks (`patterns/`)
 
 | Code | Sev | Pattern | What it catches |

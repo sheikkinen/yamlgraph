@@ -72,6 +72,16 @@ Human-readable description of what the graph does.
 description: Content generation pipeline (generate → analyze → summarize)
 ```
 
+### `metadata`
+**Type:** `object`
+**Default:** none
+
+Free-form annotations (owner, version, notes). yamlgraph never reads it for
+LLM settings, and neither does it read a prompt file's `metadata:`. Put
+`thinking_budget`, `temperature`, `max_tokens` and `effort` under
+[`defaults`](#defaults) or on the node; lint reports them in `metadata:` as
+W072 (FR-1166).
+
 ### `defaults`
 **Type:** `object`
 
@@ -1050,7 +1060,7 @@ nodes:
 
 | Property | Type | Required | Description |
 |----------|------|----------|-------------|
-| `candidates` | `list[{provider, model}]` | Yes | Provider/model pairs to race (minimum 2) |
+| `candidates` | `list[{provider, model}]` | Yes | Provider/model pairs to race (minimum 2). Only `provider` and `model` are read; set tuning on the node or under `defaults:`. Lint reports any other candidate key as W073 (FR-1166) |
 | `timeout` | `int` | No | Per-candidate timeout in seconds (default: 30) |
 | `prompt` | `string` | Yes | Prompt template name |
 | `state_key` | `string` | Yes | State key for the winning response |
