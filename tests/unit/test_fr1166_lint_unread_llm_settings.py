@@ -282,6 +282,7 @@ def test_cli_graph_lint_reports_w072_and_w073(
 
     graph = _race_graph([CANDIDATE_A, {**CANDIDATE_B, "thinking_budget": 0}])
     graph["metadata"] = {"thinking_budget": 0}
+    graph["defaults"] = {"prompts_relative": True, "prompts_dir": "prompts"}
     _write(tmp_path / "prompts" / "ask.yaml", _prompt())
     graph_path = _write(tmp_path / "graph.yaml", graph)
 

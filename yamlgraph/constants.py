@@ -12,6 +12,19 @@ EffortLevel = Literal["low", "medium", "high", "xhigh", "max"]
 EFFORT_LEVELS = get_args(EffortLevel)
 
 
+class LLMSetting(StrEnum):
+    """LLM tuning settings read from a node or graph ``defaults:`` (FR-1166).
+
+    Never read from graph or prompt ``metadata:``; race candidates take only
+    provider and model. The linter reports these names in those places.
+    """
+
+    TEMPERATURE = "temperature"
+    MAX_TOKENS = "max_tokens"
+    THINKING_BUDGET = "thinking_budget"
+    EFFORT = "effort"
+
+
 class NodeType(StrEnum):
     """Valid node types in YAML graph configuration."""
 

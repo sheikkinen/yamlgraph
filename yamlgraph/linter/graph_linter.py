@@ -44,7 +44,10 @@ from yamlgraph.linter.checks_prompts import (
     check_unanchored_prompt_variables,
     check_unrenderable_simple_messages,
 )
-from yamlgraph.linter.checks_providers import check_thinking_budget
+from yamlgraph.linter.checks_providers import (
+    check_thinking_budget,
+    check_unread_llm_settings,
+)
 from yamlgraph.linter.checks_schema import check_unconstrainable_schemas
 from yamlgraph.linter.checks_semantic import (
     check_cross_references,
@@ -192,6 +195,9 @@ def lint_graph(
 
     # FR-071: Thinking budget checks
     all_issues.extend(check_thinking_budget(graph_path))
+
+    # FR-1166: W072/W073 LLM settings written where they are never read
+    all_issues.extend(check_unread_llm_settings(graph_path, project_root))
 
     # Determine validity (no errors)
     has_errors = any(issue.severity == "error" for issue in all_issues)
