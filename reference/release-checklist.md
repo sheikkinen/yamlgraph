@@ -1,72 +1,64 @@
 # Release Checklist
 
-Quick reference for the bump → commit → push → tag flow when pre-commit hooks and merge conflicts complicate the dance.
+How to release yamlgraph `X.Y.Z` to PyPI. Main is locked (FR-889) and only takes squash-merged PRs, so the release commit reaches main through a PR. Publishing starts when the tag `vX.Y.Z` is pushed: `.github/workflows/workflow.yml` then runs `build → publish → create-release`. **A merged release PR without a pushed tag publishes nothing** (FR-1167: v0.6.6).
 
-## Canonical Approach: scripts/release.sh
-
-The **recommended** way to release is using the atomic release script:
+## Route
 
 ```bash
-scripts/release.sh 0.4.XX
-git push && git push --tags
+# 1. Branch from an up-to-date origin/main in a worktree (main stays locked)
+git fetch origin
+scripts/worktree.sh new vX.Y.Z --prefix release/
+cd tmp/worktrees/release/vX.Y.Z
+
+# 2. Freeze, bump and commit. release.sh refuses to run on main and does not tag.
+scripts/release.sh X.Y.Z
+
+# 3. Push only the branch and open the PR
+git push -u origin release/vX.Y.Z
+gh pr create --title "chore(release): vX.Y.Z changelog freeze" --fill
 ```
 
-This script handles all steps atomically:
-1. Validates `changelog/unreleased/` has fragments
-2. Freezes fragments to `changelog/0.4.XX/`
-3. Bumps version in `pyproject.toml`
-4. Regenerates `CHANGELOG.md`
-5. Commits with proper message
-6. Creates the tag
-
-## Manual Flow (Advanced)
+4. Wait for the required PR checks, and merge-group checks if any, to pass.
+5. **The human merge decision.** Green checks are not merge authority; the operator decides.
 
 ```bash
-# 1. Pull first (avoid divergence)
-git pull
+gh pr merge <N> --squash --delete-branch
 
-# 2. If conflicts: stash local, pull, pop stash
-mv conflicting-file.md conflicting-file-local.md  # if untracked conflicts
-git stash
-git pull
-git stash pop
-# Resolve conflicts, then: git add <resolved-files>
+# 6. Find the exact squash commit and check it
+gh pr view <N> --json state,mergeCommit        # state must be MERGED
+SHA=$(gh pr view <N> --json mergeCommit -q .mergeCommit.oid)
+git fetch origin
+git merge-base --is-ancestor "$SHA" origin/main && echo on-main
+git show "$SHA:pyproject.toml" | grep '^version = "X.Y.Z"'
+git show "$SHA:yamlgraph/__init__.py" | grep '__version__ = "X.Y.Z"'
+git ls-tree -d "$SHA" changelog/X.Y.Z               # frozen fragments exist
 
-# 3. Add changelog fragments (FR-179)
-cat > changelog/unreleased/FR-XXX-feature-name.md << 'EOF'
----
-type: feat
-scope: component
-req: REQ-YG-XXX
----
-- **FR-XXX Feature Name**: Description. (REQ-YG-XXX)
-EOF
-
-# 4. Bump version
-sed -i '' 's/version = "X.Y.Z"/version = "X.Y.W"/' pyproject.toml
-
-# 5. Freeze changelog (move unreleased to versioned folder)
-VERSION="X.Y.W"
-mkdir -p "changelog/${VERSION}"
-mv changelog/unreleased/*.md "changelog/${VERSION}/"
-python scripts/aggregate_changelog.py > CHANGELOG.md
-
-# 6. Stage and commit (expect hook failures)
-git add -A
-git commit -F tmp/msg.txt  # Will likely fail on first try
-
-# 7. Handle hook cascade (repeat until green)
-# - ruff: auto-fixes, re-stage
-# - ruff-format: auto-fixes, re-stage
-# - trailing-whitespace: auto-fixes, re-stage
-# - req_coverage: Add missing capability/requirement to capabilities/*.yaml
-git add -A && git commit -F tmp/msg.txt  # Repeat
-
-# 8. Push and tag
-git push
-git tag v0.4.XX
-git push --tags
+# 7. Tag that commit and push only that tag
+git tag -l vX.Y.Z      # must print nothing; if the tag already exists, stop and inspect
+git tag vX.Y.Z "$SHA"
+git push origin vX.Y.Z
 ```
+
+Never tag the release branch commit, and never tag "whatever main is now". The squash merge creates a new commit; that commit is the one that publishes. Never delete or force-move an existing tag.
+
+## Verify publication
+
+There is no ordinary push-to-main CI run: `workflow.yml` triggers on PRs, merge groups and tags. The tag run is the publishing gate.
+
+```bash
+gh run list --branch vX.Y.Z --workflow CI --limit 1   # then: gh run watch <id>
+gh run view <id> --json jobs -q '.jobs[]|.conclusion+" "+.name'
+# build, publish, create-release: all success
+gh release view vX.Y.Z                                 # created by the workflow
+curl -s https://pypi.org/pypi/yamlgraph/X.Y.Z/json | python3 -c "import sys,json;print(json.load(sys.stdin)['info']['version'])"
+# must print X.Y.Z
+```
+
+The workflow creates the GitHub release. Do not create it by hand.
+
+## Recovery: merged but untagged
+
+The freeze PR was merged but no tag was pushed, so PyPI still shows the previous version. Run steps 6–7 with **that PR's** squash SHA, then verify. If the tag CI fails, stop: fix the cause in a new FR and release the next version. Do not retarget the tag to dodge the failure. If the tag already exists, stop and inspect.
 
 ## Common Hook Failures
 
@@ -109,30 +101,3 @@ git commit -F tmp/msg.txt
 ```
 
 This avoids the dquote trap from special characters in shell strings.
-
-## Post-Push Verification
-
-After `git push && git push --tags`, verify the release landed cleanly:
-
-```bash
-# 1. Check CI workflows triggered by the push
-gh run list --limit 5 --json name,status,conclusion,headBranch \
-  --jq '.[] | "\(.status) \(.conclusion // "—") \(.name) \(.headBranch)"'
-
-# 2. Check if GH release was created (manual step if no auto-release workflow)
-gh release view v0.X.Y 2>&1
-
-# 3. Create GH release manually if needed
-gh release create v0.X.Y --title "v0.X.Y" --generate-notes
-```
-
-### Expected CI behavior on direct push to main
-
-| Workflow | Expected | Notes |
-|----------|----------|-------|
-| **CI** (test + lint) | Pass | Main gate — must be green |
-| **Commitlint** | Fail | Requires PR event; harmless on direct push |
-| **Security scan** | Fail | `pip-audit` can't find private package on PyPI |
-| **Pages** | May fail | Separate concern, not release-blocking |
-
-The commitlint and security failures are **structural** — they only pass in PR context or with a published package. They do not indicate a broken release.

@@ -3,6 +3,14 @@ set -euo pipefail
 
 VERSION="${1:?Usage: scripts/release.sh <VERSION>}"
 
+# FR-1167: the release commit must reach main through a squash-merged PR
+BRANCH=$(git rev-parse --abbrev-ref HEAD)
+if [ "$BRANCH" = "main" ]; then
+    echo "❌ Refusing to release on main: run on release/v${VERSION} and open a PR"
+    echo "   See reference/release-checklist.md"
+    exit 1
+fi
+
 # Step 1: Validate unreleased has fragments
 FRAGMENTS=$(find changelog/unreleased -name '*.md' ! -name '.gitkeep' 2>/dev/null)
 if [ -z "$FRAGMENTS" ]; then
@@ -30,8 +38,12 @@ echo "chore(release): v${VERSION} changelog freeze" > tmp/msg.txt
 git add changelog/ pyproject.toml yamlgraph/__init__.py CHANGELOG.md
 git commit -F tmp/msg.txt
 
-# Step 6: Tag
-git tag "v${VERSION}"
 echo ""
-echo "✓ Release v${VERSION} prepared."
-echo "  Run: git push && git push --tags"
+echo "✓ Release v${VERSION} committed on ${BRANCH} (not tagged: the tag goes on the squash commit)."
+echo "  Next (reference/release-checklist.md):"
+echo "    git push -u origin ${BRANCH}"
+echo "    gh pr create --title \"chore(release): v${VERSION} changelog freeze\" --fill"
+echo "    after green PR checks and the human merge decision: gh pr merge <N> --squash --delete-branch"
+echo "    SHA=\$(gh pr view <N> --json state,mergeCommit -q .mergeCommit.oid); git fetch origin"
+echo "    git tag v${VERSION} \$SHA"
+echo "    git push origin v${VERSION}"
