@@ -693,3 +693,69 @@ class TestRouterRaceThinkingBudget:
             c.kwargs.get("thinking_budget", "MISSING")
             for c in mock_create_llm.call_args_list
         ] == [expected, expected]
+
+
+# FR-1166: router race forwards temperature and thinking_budget only.
+@pytest.mark.req("REQ-YG-730")
+@pytest.mark.parametrize(
+    ("node_extra", "defaults", "temperature", "budget"),
+    [
+        ({}, {}, 0.7, None),
+        ({}, {"temperature": 0.2, "thinking_budget": 512}, 0.2, 512),
+        (
+            {"temperature": None, "thinking_budget": None},
+            {"temperature": 0.2, "thinking_budget": 512},
+            0.2,
+            512,
+        ),
+        ({"temperature": 0, "thinking_budget": 0}, {"temperature": 0.2}, 0, 0),
+    ],
+    ids=["unset", "defaults", "node-null-inherits", "node-zero"],
+)
+@patch("yamlgraph.node_factory.router_race_node.prepare_messages")
+@patch("yamlgraph.node_factory.race_node.create_llm")
+def test_fr1166_router_race_forwards_only_temperature_and_budget(
+    mock_create_llm,
+    mock_prepare,
+    sample_state,
+    node_extra,
+    defaults,
+    temperature,
+    budget,
+):
+    from yamlgraph.node_factory.llm_nodes import create_node_function
+
+    mock_prepare.return_value = ([MagicMock()], "vertex", None)
+    mock_create_llm.side_effect = [
+        _make_mock_llm('{"intent": "a"}'),
+        _make_mock_llm('{"intent": "b"}', delay=0.2),
+    ]
+    node_config = {
+        "type": "router",
+        "prompt": "classify",
+        "parse_json": True,
+        "route_field": "intent",
+        "routes": {"a": "node_a", "b": "node_b"},
+        "default_route": "node_a",
+        "state_key": "intent",
+        "max_tokens": 100,
+        "effort": "low",
+        "candidates": [
+            {"provider": "vertex", "model": "gemini-2.5-flash"},
+            {"provider": "azure", "model": "aaa-gpt-5.4-mini"},
+        ],
+        **node_extra,
+    }
+
+    create_node_function("classify", node_config, defaults)(sample_state)
+
+    calls = mock_create_llm.call_args_list
+    assert [c.kwargs["temperature"] for c in calls] == [temperature] * 2
+    assert [c.kwargs["thinking_budget"] for c in calls] == [budget] * 2
+    for call in calls:
+        assert set(call.kwargs) == {
+            "temperature",
+            "provider",
+            "model",
+            "thinking_budget",
+        }

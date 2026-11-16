@@ -836,3 +836,37 @@ def test_pydantic_model_normalized_to_dict_at_boundary():
     assert isinstance(result["drafted_page"], dict)
     assert result["drafted_page"]["id"] == "nodejs"
     assert result["drafted_page"]["summary"] == "A JS runtime"
+
+
+# FR-1166: LLMSetting names drive resolution; semantics unchanged.
+@pytest.mark.req("REQ-YG-730")
+@pytest.mark.parametrize(
+    ("key", "node_extra", "defaults", "expected"),
+    [
+        ("temperature", {}, {}, 0.7),
+        ("temperature", {}, {"temperature": 0.2}, 0.2),
+        ("temperature", {"temperature": 0}, {"temperature": 0.2}, 0),
+        ("temperature", {"temperature": None}, {"temperature": 0.2}, 0.2),
+        ("max_tokens", {}, {}, None),
+        ("max_tokens", {}, {"max_tokens": 900}, 900),
+        ("max_tokens", {"max_tokens": 50}, {"max_tokens": 900}, 50),
+        ("max_tokens", {"max_tokens": None}, {"max_tokens": 900}, None),
+        ("thinking_budget", {}, {"thinking_budget": 512}, 512),
+        ("thinking_budget", {"thinking_budget": 0}, {"thinking_budget": 512}, 0),
+        ("thinking_budget", {"thinking_budget": None}, {"thinking_budget": 512}, 512),
+        ("effort", {}, {}, None),
+        ("effort", {}, {"effort": "low"}, "low"),
+        ("effort", {"effort": "high"}, {"effort": "low"}, "high"),
+        ("effort", {"effort": None}, {"effort": "low"}, "low"),
+    ],
+)
+def test_fr1166_llm_setting_resolution_unchanged(
+    minimal_node_config, key, node_extra, defaults, expected
+):
+    """Null inherits, except max_tokens where an explicit node null suppresses."""
+    from yamlgraph.node_factory.llm_nodes import resolve_llm_node_config
+
+    cfg = resolve_llm_node_config(
+        "test_node", {**minimal_node_config, **node_extra}, defaults, None
+    )
+    assert getattr(cfg, key) == expected

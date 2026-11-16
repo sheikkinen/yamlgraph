@@ -1567,3 +1567,79 @@ class TestRaceThinkingBudgetProviderDispatch:
 
         vertex_factory.assert_called_once_with("gemini-2.5-flash", 0.0, 0)
         azure_factory.assert_called_once_with("aaa-gpt-5.4-mini", 0.0)
+
+
+# =============================================================================
+# FR-1166: race resolution unchanged; only temperature/thinking_budget forwarded
+# =============================================================================
+
+
+class TestRaceSettingsFR1166:
+    @pytest.mark.req("REQ-YG-730")
+    @pytest.mark.parametrize(
+        ("node_extra", "defaults", "temperature", "budget"),
+        [
+            ({}, {}, 0.7, None),
+            ({}, {"temperature": 0.2, "thinking_budget": 512}, 0.2, 512),
+            ({"temperature": 0}, {"temperature": 0.2}, 0, None),
+            (
+                {"temperature": None, "thinking_budget": None},
+                {"temperature": 0.2, "thinking_budget": 512},
+                0.2,
+                512,
+            ),
+        ],
+        ids=["unset", "defaults", "node-zero", "node-null-inherits"],
+    )
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_forwarded_settings(
+        self,
+        mock_prepare,
+        mock_create_llm,
+        sample_state,
+        node_extra,
+        defaults,
+        temperature,
+        budget,
+    ):
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "vertex", None)
+        mock_create_llm.side_effect = [
+            _make_mock_llm("a"),
+            _make_mock_llm("b", delay=0.2),
+        ]
+
+        create_race_node("race_s", _race_config(**node_extra), defaults)(sample_state)
+
+        calls = mock_create_llm.call_args_list
+        assert [c.kwargs["temperature"] for c in calls] == [temperature] * 2
+        assert [c.kwargs["thinking_budget"] for c in calls] == [budget] * 2
+
+    @pytest.mark.req("REQ-YG-730")
+    @patch("yamlgraph.node_factory.race_node.create_llm")
+    @patch("yamlgraph.node_factory.race_node.prepare_messages")
+    def test_max_tokens_and_effort_not_forwarded(
+        self, mock_prepare, mock_create_llm, sample_state
+    ):
+        from yamlgraph.node_factory.race_node import create_race_node
+
+        mock_prepare.return_value = ([MagicMock()], "vertex", None)
+        mock_create_llm.side_effect = [
+            _make_mock_llm("a"),
+            _make_mock_llm("b", delay=0.2),
+        ]
+        config = _race_config(max_tokens=100, effort="low")
+
+        create_race_node("race_s", config, {"max_tokens": 900, "effort": "high"})(
+            sample_state
+        )
+
+        for call in mock_create_llm.call_args_list:
+            assert set(call.kwargs) == {
+                "temperature",
+                "provider",
+                "model",
+                "thinking_budget",
+            }
