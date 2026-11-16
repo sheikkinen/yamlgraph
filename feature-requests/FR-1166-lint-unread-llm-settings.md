@@ -2,7 +2,10 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Judged — APPROVED WITH REVISIONS 2026-11-16
+([judgement](FR-1166-lint-unread-llm-settings.judgement.md)); R-1..R-5 folded
+(see [Judgement fold](#judgement-fold-2026-11-16))
+**Capability:** CAP-305 / REQ-YG-730
 **Requested:** 2026-11-16
 **First consumer / first event:** csap (customer-service-agent-platform). After
 this FR, the first `yamlgraph graph lint` run on `graphs/flex_navigator/graph_v2.yaml`
@@ -71,29 +74,32 @@ out when they lint, not weeks later from a latency chart.
 
 ## Ideal Result
 
-Every LLM setting a graph author writes is either applied or reported by
-`yamlgraph graph lint` with its location and the place it should go. The list
-of setting names exists once, and the lint check and node-level resolution
-both use it, so a new setting (as `effort` was in FR-1151) is covered without
-editing the linter. `metadata:` stays free-form for every key that is not an
-LLM setting.
+The four tuning settings `thinking_budget`, `temperature`, `max_tokens` and
+`effort` produce a `yamlgraph graph lint` warning when written in graph
+`metadata:` or in the `metadata:` of a prompt a node references. Any key other
+than `provider` / `model` on a `race` or router-race candidate does too. Each
+warning names its location and a fix that is true for that key on that path.
+The setting names are declared once, in `yamlgraph/constants.py`; the lint
+check and the regular-LLM and direct-race resolution sites read them from
+there. `metadata:` stays free-form for every other key. (Narrowed by R-2: this
+FR does not promise that every written setting is applied or diagnosed
+everywhere.)
 
 ## Planned Operations
 
 ```yaml
 probes:
-  - "grep every node_config.get / defaults.get of an LLM setting in yamlgraph/node_factory/ — the union decides the setting list; a setting read in only one node type is listed with that scope"
-  - "lint-imports with the linter importing the new constant's module — a contract violation moves the constant to a module both layers may import"
-  - "read yamlgraph/linter/checks_prompts.py prompt discovery — decides whether prompt metadata is reachable from lint_graph or needs prompt-file lint"
-  - "yamlgraph graph lint on every graph under examples/ and graphs/ before and after — any new W072/W073 finding in a shipped example is a real defect to list, not to suppress"
-  - "yamlgraph graph lint on the 3 csap graphs read-only — must show the new findings (csap is not edited)"
+  - "lint-imports after adding LLMSetting to yamlgraph/constants.py and importing it from yamlgraph/linter — must pass with no contract edit (R-3)"
+  - "wc -l yamlgraph/node_factory/race_node.py (450, the size-gate max) and llm_nodes.py (448) — the name-sharing edits must not add lines"
+  - "yamlgraph graph lint on every graph.yaml under examples/ and graphs/, before and after — any new W072/W073 is listed by path and key"
+  - "read-only yamlgraph graph lint on csap a60fb2b9 graphs/flex_navigator/graph.yaml, graphs/flex_navigator/graph_v2.yaml, graphs/post_call/graph.yaml"
 branches:
-  - "a shipped example carries a metadata LLM setting → fix it in this FR's PR as a witness, through scripts/author.sh (governed graph path)"
-  - "prompt metadata not reachable from lint_graph → cover graph metadata and candidates only; prompt metadata returns as its own FR"
-  - "judge prefers load refusal for candidate extra keys (FR-1165 shape) → W073 becomes a schema error; metadata stays a warning"
+  - "a shipped example carries a metadata tuning key → fix it through scripts/author.sh (governed path), or keep it with a recorded rationale"
+  - "a size-gate overflow in race_node.py → move a literal-free line, never split the module under this FR"
+  - "csap a60fb2b9 unavailable → committed self-contained reproducer, labelled as such (R-5)"
 delegations:
   - "research.sh: 4 runs (3 reducer rejections, 1 accepted)"
-  - "judge.sh: 1 run, 2 if revisions are disputed"
+  - "judge.sh: 1 run (APPROVED WITH REVISIONS)"
   - "author.sh: 1 run only if the shipped-example branch fires"
 waits:
   - "judge"
@@ -102,93 +108,146 @@ commands:
   - scripts/judge.sh feature-requests/FR-1166-lint-unread-llm-settings.md
   - yamlgraph graph lint
   - lint-imports
-  - pytest tests/unit/ -q --no-cov -m "not slow" -n auto
+  - pytest tests/unit/test_fr1166_lint_unread_llm_settings.py -q --no-cov
+  - pytest tests/unit/ -q --no-cov -m "not slow" -n 4
   - python scripts/req_coverage.py --strict
 ```
 
 ## Proposed Solution
 
-1. **One list.** Add a module-level constant naming the node-level LLM
-   settings (initially `thinking_budget`, `temperature`, `max_tokens`,
-   `effort`) next to the node-level resolution in `yamlgraph/node_factory/`.
-   `llm_nodes.py` and `race_node.py` use it where they resolve node-then-defaults,
-   and the linter imports it. Where the constant lives is set by the
-   `lint-imports` probe.
-2. **W072 — LLM setting in `metadata:`.** Flag any key from that list found in
-   graph `metadata:` or in a referenced prompt file's `metadata:`. Other
-   `metadata:` keys stay silent.
+1. **One declaration (R-3).** `yamlgraph/constants.py` gains
+   `class LLMSetting(StrEnum)` with `TEMPERATURE`, `MAX_TOKENS`,
+   `THINKING_BUDGET` and `EFFORT`, following the `NodeType` pattern. The
+   module is pure (stdlib only), so the linter imports it without reaching
+   any runtime module or touching `.importlinter`. A StrEnum member is
+   equal to and hashes like its string, so the resolution sites swap only
+   the literal: `llm_nodes.py` (all four) and `race_node.py` (temperature
+   and thinking budget). Each site keeps its own semantics, which this FR
+   does not change:
+
+   | Site | Setting | Resolution kept as is |
+   |---|---|---|
+   | regular LLM (`llm_nodes.py`) | `temperature` | node, else defaults, else 0.7; null inherits |
+   | regular LLM | `max_tokens` | `node_config.get(key, defaults.get(key))`; explicit node null suppresses the default |
+   | regular LLM | `thinking_budget`, `effort` | `node_or_default`; null inherits |
+   | direct race (`race_node.py`) | `temperature` | node, else defaults, else 0.7 |
+   | direct race | `thinking_budget` | node, else defaults; null inherits |
+   | direct and router race | `max_tokens`, `effort` | **not forwarded** to candidates (unchanged; parked) |
+   | router race (`router_race_node.py`) | `temperature`, `thinking_budget` | read from the regular-LLM config (unchanged) |
+
+2. **W072, a tuning key in `metadata:` (warning).** Implemented in
+   `yamlgraph/linter/checks_providers.py` and registered in `graph_linter.py`.
+   It checks each `LLMSetting` key, by presence rather than truthiness, in:
+   - graph top-level `metadata:`;
+   - the top-level `metadata:` of each existing prompt that a node references,
+     resolved with the existing `resolve_prompts_dir` and `get_prompt_path`
+     helpers. Each prompt is reported once. A missing prompt stays E004's
+     job.
+
+   The message names the location and the key. The fix names
+   `defaults.<key>` (or the node), and for `max_tokens` / `effort` adds that
+   race and router-race nodes do not apply it.
    ```
-   W072 graph metadata: thinking_budget is not read from metadata
+   W072 graph metadata: 'thinking_budget' is not read from metadata
         fix: move it to defaults.thinking_budget (or onto the node)
    ```
-3. **W073 — unread key on a race candidate.** Flag any key other than
-   `provider` or `model` on a `race` or router-race candidate.
-   ```
-   W073 node 'classify': candidate 0 key 'thinking_budget' is ignored
-        fix: race candidates take only provider and model; set
-        thinking_budget on the node or under defaults
-   ```
-4. **Docs.** Add W072/W073 to the lint-code reference. In `reference/graph-yaml.md`,
-   add one line saying `metadata:` is not read for LLM settings.
+3. **W073, an extra key on a race candidate (warning).** Same module and
+   registration. It runs for `type: race` and for any node with
+   `candidates:`, which covers the FR-272 router race. It reports one issue
+   per extra key, naming the node and the zero-based candidate index. The
+   fix depends on the key (R-4):
+   - `temperature`, `thinking_budget`: move it onto the node or under
+     `defaults:`; it then applies to every candidate.
+   - `max_tokens`, `effort`: race nodes do not apply this setting today;
+     remove it.
+   - any other key: candidates take only `provider` and `model`; remove it.
+4. **Docs.** `docs/demos/linter.md` lists W072/W073. `reference/graph-yaml.md`
+   states that `metadata:` is not read for LLM settings, and that race
+   candidates take only `provider` and `model`.
 
-No runtime behaviour changes, and nothing starts reading `metadata:`
-(FR-1144 rejected that).
+No runtime behaviour changes, no load refusal, and nothing starts reading
+`metadata:`.
 
 ## Acceptance Criteria
 
-- [ ] `yamlgraph graph lint` emits W072 for an LLM-setting key in graph
-      `metadata:` and its message names `defaults.<key>`. Witness test.
-- [ ] W072 fires for the same key in a referenced prompt's `metadata:`, unless
-      the prompt-reachability branch fires (then recorded as deferred).
-- [ ] W072 stays silent for non-setting keys in `metadata:` (e.g. `owner`,
-      `description`), and for top-level prompt `provider` / `model`. Witness test.
-- [ ] W073 fires for an extra key on a `race` candidate and on a router-race
-      candidate, and stays silent for `{provider, model}`. Witness tests.
-- [ ] The setting list exists once. A test asserts that each listed name is
-      resolved by `llm_nodes.py`, so a rename breaks the test, not the lint.
-- [ ] `lint-imports` passes.
-- [ ] Every graph under `examples/` and `graphs/` is linted. Any new
-      W072/W073 is listed in this FR as fixed or dispositioned.
-- [ ] Read-only lint of csap's `flex_navigator/graph_v2.yaml` shows W072,
-      recorded in Implementation Status.
-- [ ] New REQ ID in `ARCHITECTURE.md`; tests carry `@pytest.mark.req`;
-      `python scripts/req_coverage.py --strict` passes.
-- [ ] Changelog fragment in `changelog/unreleased/`.
+The binding criteria are the judgement's AC-01..AC-11
+([judgement](FR-1166-lint-unread-llm-settings.judgement.md#revised-acceptance-criteria)),
+restated here:
+
+- [ ] AC-01: Through `lint_graph` and a CLI witness, each of the four keys in
+      graph `metadata:` gives W072 naming the location, the key and
+      `defaults.<key>`; values `0` and `null` are detected.
+- [ ] AC-02: Each key in a referenced prompt's `metadata:` gives W072, both for
+      a graph-relative `prompts_dir` and for project-root resolution.
+- [ ] AC-03: Non-setting `metadata:` keys, prompt top-level `provider` /
+      `model`, and missing prompts produce no W072/W073.
+- [ ] AC-04: Direct race and router race emit W073 for every extra key
+      (`thinking_budget`, `temperature`, `max_tokens`, `effort`, arbitrary),
+      with node and index; provider-only, model-only, and provider+model
+      candidates produce none.
+- [ ] AC-05: Fix wording per R-4; both codes are warnings; no load refusal.
+- [ ] AC-06: `LLMSetting` drives lint membership and the named resolution
+      sites. Behaviour witnesses cover all four regular-LLM settings and
+      temperature/thinking_budget through the direct and router race.
+      Absent/default/node/null/zero semantics are unchanged, and nothing new
+      is forwarded to candidates.
+- [ ] AC-07: Defect-specific RED is committed before GREEN; all new tests
+      carry `REQ-YG-730`; CAP-305 exists; `req_coverage.py --strict` passes.
+- [ ] AC-08: `lint-imports` passes with no contract edit; the focused pytest,
+      the unit suite at `-n 4`, `req_coverage --strict`, and ruff check/format
+      on touched Python all pass.
+- [ ] AC-09: Before/after lint census of `examples/` and `graphs/`, with each
+      new W072/W073 recorded by path and key.
+- [ ] AC-10: Read-only lint of csap `a60fb2b9` (the three graphs named in
+      Planned Operations) shows W072, or a labelled reproducer is used
+      instead.
+- [ ] AC-11: Docs, changelog fragment, the FR implementation record, and a
+      Distill entry with **Seed:**.
+
+Tests: `tests/unit/test_fr1166_lint_unread_llm_settings.py` holds the lint
+witnesses. Preservation witnesses go in the existing LLM, direct-race and
+router-race test files.
 
 ## Alternatives Considered
 
-Research rows from [FR-1166.research.md](FR-1166.research.md):
+The five solution classes in the research record
+([FR-1166.research.md](FR-1166.research.md)), dispositioned per R-1.
+Persona convergence labels (`convergent x3`) are not counted as independent
+classes.
 
-| Row | Disposition |
-|---|---|
-| os-infra: allowlist constant shared with the factory | **Adopted** as step 1. The constant sits next to the node-level resolution rather than in `llm_factory.py`, because `create_llm` also takes `provider` / `model`, which prompts legitimately supply. |
-| data-process: canonical settings registry | **Adopted**; same as above. Its proposed codes W027/E028 are not taken: these warnings belong beside the W071 provider-settings family. |
-| yamlgraph-native: introspect `llm_factory.py` / `race_node.py` at lint time | **Rejected.** Introspecting source at lint time is fragile, and a shared constant gets the same freedom from drift. |
-| subtractionist: keep `metadata:` uninspected; migrate csap only | **Rejected.** That migration was named in FR-1144's prose seven weeks ago and has not happened in any of the 18 files. With no check, the next project repeats it. |
-| librarian: actionlint-style unknown-key-by-location schema | **Partly adopted.** It is the right pattern for candidates (W073 flags every key outside `{provider, model}`). Not adopted for `metadata:`, which is user-owned, so only listed setting names are flagged there. |
+| Class | Research rows (verbatim persona) | Decision | Committed precedent |
+|---|---|---|---|
+| A. Shared declarative names + narrow lint warnings | os-infra-primitivist ("allowlist constant … in `llm_factory.py`") and data-process ("canonical LLM settings registry", codes W027/E028), merged | **Adopt**, with two disagreements resolved. The declaration lives in `yamlgraph/constants.py`, not `llm_factory.py`, because the linter may not import factory or executor modules (`.importlinter:16-33`; `llm_nodes.py:15`). The codes are W072/W073, beside the W071 provider-settings family (`yamlgraph/linter/checks_providers.py:28`), not W027/E028; E028 would be an error, contradicting the warning-only freeze (R-2). | `yamlgraph/constants.py:15` (`NodeType` StrEnum pattern); FR-1165 (removed an unapplied key) |
+| B. Source introspection at lint time | yamlgraph-native-planner | **Reject.** Parsing `llm_factory.py` / `race_node.py` source at lint time is fragile, and class A gets the same freedom from drift with one declaration. Its `is_this_a_graph: none` answer is right: this extends a deterministic analyzer, not an LLM orchestration graph. | `yamlgraph/linter/checks_providers.py:45-51` (raw-YAML key checks, no introspection) |
+| C. csap-only migration, no new check | subtractionist | **Reject.** FR-1144 named the migration in prose on 2026-09-30 (`FR-1144-race-node-thinking-budget.md:244-246`) and none of the 18 files changed. The row's advice to put tuning "as top-level race-candidate dict keys" is **wrong**: candidates are read only for `provider` and `model` (`yamlgraph/node_factory/race_node.py:201-206`). Its `is_this_a_graph: Yes` answer is also wrong: that metadata is a tree of keys does not make a lint check a graph. | `FR-1144-race-node-thinking-budget.md:244-251` |
+| D. Location-schema unknown-key validation (actionlint style) | librarian | **Partly adopt.** The location-scoped idea is used for candidates only: W073 flags every key outside `{provider, model}`. Broad unknown-key validation of graph or prompt YAML is rejected; `metadata:` is user-owned, so only `LLMSetting` names are flagged there. The actionlint URL is cited as an analogy, not as verified implementation evidence. Its `is_this_a_graph: Yes` answer is wrong for the same reason as class C. | `yamlgraph/models/node_schema.py:384-396` (candidate contract) |
+| E. Load-time refusal (FR-1165 shape) | not in research; added by the author | **Reject for this FR (R-2).** It changes loading behaviour beyond a lint-only fix. "No known csap user" does not prove that no other consumer has extra candidate keys. | FR-1165 (`feature-requests/FR-1165-config-max-tokens-refused.md:78-107`), applicable to framework-owned documented keys |
 
-Not from research:
+Also rejected: reading `thinking_budget` from `metadata:` at runtime. FR-1144
+already rejected it as a separate framework-wide change.
 
-- **Refuse at load (FR-1165 shape).** Right for framework-owned keys; wrong
-  for `metadata:`, where it would stop csap loading the day it upgrades instead
-  of telling the author. For candidates, this is a judge question (see below).
-- **Read `thinking_budget` from `metadata:`.** Rejected by FR-1144 as a
-  separate framework-wide change, and it would make `metadata:` a second
-  config block.
+## Judgement fold (2026-11-16)
 
-## Questions for the judge
-
-- **W073 severity:** keep it a lint warning, or make candidate extra keys a
-  schema error at load (FR-1165 shape)? Candidates are framework-owned, which
-  favours an error. A csap search found no candidate with extra keys today, so
-  an error would break no known graph. Recommended default: warning, the
-  smaller change.
+- **R-1** folded into the Alternatives table above (five classes, with
+  research errors corrected).
+- **R-2** folded: both codes are warnings; the prompt-deferral and
+  load-refusal branches are removed; the Ideal Result is narrowed.
+- **R-3** folded: `LLMSetting` lives in `yamlgraph/constants.py`; the scope
+  inventory table is in Proposed Solution §1.
+- **R-4** folded: key-specific fix wording is in Proposed Solution §2-3.
+- **R-5** folded: the doc targets are named; CAP-305 / REQ-YG-730 are
+  recorded; the test file is named; the csap revision `a60fb2b9` and its
+  three graphs are named; the census is per graph.
 
 ## Out of Scope
 
 - csap migration of the 18 files and the pin bump (csap-side work).
-- Per-candidate LLM settings (FR-1144 C-6; a separate FR if wanted).
+- Per-candidate LLM settings (FR-1144 C-6).
+- **Parked finding:** direct and router races do not forward `max_tokens` or
+  `effort` to candidates (`race_node.py:201-206`). That is a separate FR if
+  wanted; W072/W073 messages state it truthfully instead.
 - `reasoning_effort` for Azure/OpenAI and `thinking_level` for Gemini 3.x.
+- Standalone or unreferenced prompt lint; top-level prompt tuning keys.
 
 ## Related
 
