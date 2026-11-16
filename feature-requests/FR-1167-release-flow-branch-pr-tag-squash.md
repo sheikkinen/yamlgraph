@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Judged — APPROVED WITH REVISIONS, R-1..R-4 folded ([judgement](FR-1167-release-flow-branch-pr-tag-squash.judgement.md))
+**Status:** Completed — implemented on `feat/fr-1167-release-pr-flow` ([judgement](FR-1167-release-flow-branch-pr-tag-squash.judgement.md)); merge awaits human approval of C-2
 **Requested:** 2026-11-16
 **First consumer / first event:** the next agent or operator asked to "release" — at the moment they open `reference/release-checklist.md` or load the `release-version` skill, and at the moment `scripts/release.sh` prints its next-step hint.
 **Research:** in-body dispositioned alternatives table — [Alternatives Considered](#alternatives-considered) (FR-890 equivalent committed record)
@@ -104,25 +104,56 @@ Folded from judgement R-1..R-4.
 
 ## Acceptance Criteria
 
-- [ ] AC-01: `release.sh` retains fragment validation, freeze, both version bumps, aggregation and commit-with-`-F`. It executes no tag creation, and prints:
+- [x] AC-01: `release.sh` retains fragment validation, freeze, both version bumps, aggregation and commit-with-`-F`. It executes no tag creation, and prints:
   - branch push → PR creation → human-authorized squash merge → tag the fetched release-PR squash SHA → single-tag push;
   - a checklist pointer.
-- [ ] AC-02: The populated isolated `main` fixture exits non-zero with a main-specific refusal naming `release/vX.Y.Z`. Files, HEAD, index and tags are unchanged, and no broader branch-name restriction is added.
-- [ ] AC-03: The checklist and skill contain no `push --tags` and no direct-main-push instruction. The ordered route:
+- [x] AC-02: The populated isolated `main` fixture exits non-zero with a main-specific refusal naming `release/vX.Y.Z`. Files, HEAD, index and tags are unchanged, and no broader branch-name restriction is added.
+- [x] AC-03: The checklist and skill contain no `push --tags` and no direct-main-push instruction. The ordered route:
   - identifies the exact merged PR and obtains its squash SHA;
   - fetches main, checks ancestry and release metadata;
   - pushes only the intended tag.
 
   The skill is a concise wrapper.
-- [ ] AC-04: The direct-main-push CI table and normal-path manual `gh release create` are removed. Recovery uses the merged PR's exact squash SHA with the same checks, stops on failed checks or an existing tag, and never force-replaces a tag.
-- [ ] AC-05: Verification distinguishes PR/merge-group checks from tag CI. It:
+- [x] AC-04: The direct-main-push CI table and normal-path manual `gh release create` are removed. Recovery uses the merged PR's exact squash SHA with the same checks, stops on failed checks or an existing tag, and never force-replaces a tag.
+- [x] AC-05: Verification distinguishes PR/merge-group checks from tag CI. It:
   - selects the tag workflow and its successful `build`, `publish` and `create-release` jobs;
   - uses `gh release view` and an exact-version PyPI assertion;
   - claims no ordinary main-push CI run.
-- [ ] AC-06: CAP-71 REQ-YG-190 matches the commit-only/main-refusal contract; `ARCHITECTURE.md` is regenerated; `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-07: The changed-contract witnesses fail before implementation and `pytest tests/unit/test_changelog_release_sync.py` passes after. RED and GREEN are committed separately, and new tests carry REQ-YG-190.
-- [ ] AC-08: A `fix`/`release` changelog fragment and a diary reflection with **Seed:** exist. The FR records implementation status and decisions.
-- [ ] AC-09: The FR contains R-1..R-4, the graph-fit answer, the corrected FR-906 disposition and the bounded edit set. No new dependencies, no workflow changes and no live publication.
+- [x] AC-06: CAP-71 REQ-YG-190 matches the commit-only/main-refusal contract; `ARCHITECTURE.md` is regenerated; `python scripts/req_coverage.py --strict` passes.
+- [x] AC-07: The changed-contract witnesses fail before implementation and `pytest tests/unit/test_changelog_release_sync.py` passes after. RED and GREEN are committed separately, and new tests carry REQ-YG-190.
+- [x] AC-08: A `fix`/`release` changelog fragment and a diary reflection with **Seed:** exist. The FR records implementation status and decisions.
+- [x] AC-09: The FR contains R-1..R-4, the graph-fit answer, the corrected FR-906 disposition and the bounded edit set. No new dependencies, no workflow changes and no live publication.
+
+## Implementation Status (2026-11-16)
+
+Completed. Commits on `feat/fr-1167-release-pr-flow`:
+
+| Commit | Kind | Content |
+|--------|------|---------|
+| `9b2c9ff2` | docs(fr) | FR filed |
+| `d642efb3` | docs(fr) | Judgement promoted; R-1..R-4 folded |
+| `a164a8db` | test (RED) | `tests/unit/test_fr1167_release_pr_flow.py` (9 witnesses, REQ-YG-190); `test_release_script_commits_and_tags` retired to `test_release_script_commits`. 9 failed / 21 passed before GREEN |
+| `63d07d85` | fix (GREEN) | `release.sh` main refusal + tag removal + handoff; checklist rewrite; skill reduced to wrapper; CAP-71 REQ-YG-190; ARCHITECTURE.md regenerated; fragment |
+
+Verification: the 30 FR-1167 and release-sync witnesses pass. With `.venv/bin` on PATH, the unit suite (`-m "not slow" -n auto`) is green. `req_coverage --strict` passes, `ruff check` is clean and `lint-imports` keeps 3/3 contracts. The first suite run had 13 failures (FR-806 preflight, FR-331/335 module map). All 13 came from invoking `.venv/bin/pytest` without `.venv/bin` on PATH, so the `yamlgraph` executable did not resolve. They pass when rerun with PATH set.
+
+### Decisions
+
+- The main refusal is the first executable check after argument and VERSION parsing. It runs before fragment validation or any file mutation, and its witness uses an isolated `git init -b main` repo with before/after snapshots.
+- Handoff instructions are printed with `echo` and never executed. The witness parses executed lines only.
+- The skill is a discovery wrapper over the checklist, which is the single canonical source. The hook-failure, phantom-requirement and multi-line-commit sections stay only in the checklist.
+
+### Reconciliation (plan vs. delivered)
+
+| Planned | Delivered | Note |
+|---------|-----------|------|
+| D-1 `release.sh` | ✅ | as planned |
+| D-2 checklist | ✅ | as planned |
+| D-3 skill | ✅ | reduced to wrapper rather than mirrored copy (prevents second-source drift) |
+| D-4 CAP-71 / ARCHITECTURE.md | ✅ | also lists the skill and new test module under REQ-YG-190 tests/modules |
+| D-5 witnesses | ✅ | in a new module so `test_changelog_release_sync.py` stays under the 400-line target (unplanned split) |
+| D-6 fragment + diary | ✅ | |
+| — | unplanned | Shared `.venv` console-script shebangs and the editable finder were repaired by hand. They still pointed at the deleted FR-1166 worktree and broke `scripts/judge.sh`. These are environment repairs, not repository changes |
 
 ## Alternatives Considered
 
