@@ -1,61 +1,68 @@
-# Feature Request: Gate docs against Liquid syntax that breaks the GitHub Pages build
+# Feature Request: Pages docs gate — no active Liquid outside `{% raw %}`
 
-**Priority:** MEDIUM
+**Priority:** HIGH
 **Type:** Bug
-**Status:** Proposed
+**Status:** Proposed (round 2: rescoped to the strict rule after round-1 judgement)
 **Requested:** 2026-11-16
-**First consumer / first event:** the author of the next PR that touches `docs/**` — at the moment pre-commit or the PR's CI run reports a Liquid break that today only surfaces, after merge, as a failed `pages build and deployment` run nobody reads.
-**Research:** in-body dispositioned alternatives table — [Alternatives Considered](#alternatives-considered) (FR-890 equivalent committed record)
-**Prior art:** commit `1c5061aa` (2026-02-26, `fix(docs): add Jekyll config to disable Liquid processing`) — set `render_with_liquid: false`, which Jekyll 3.10 (the github-pages gem) silently ignores, as `docs/_config.yml` itself now records. Commit `013ff5ae` (2026-07-14, `fix(docs): exclude diary from Pages build`) — excluded `docs/diary` after quoted Jinja2 broke the build; the config comment calls this "the enforcement that actually works". Both were per-incident patches with no gate; this is the third occurrence of the same failure class, which is the Scripture's graduation threshold (`process.graduation`, `detection_without_enforcement`). No FR covers the Pages build.
+**First consumer / first event:** the author of the next PR that touches `docs/**` — at the moment pre-commit or the PR's `docs-liquid` CI job names a `{{`/`{%` that would either break the Pages build or silently render as empty text on the site.
+**Research:** in-body dispositioned alternatives table — [Alternatives Considered](#alternatives-considered), with pinned parser evidence in [Evidence](#evidence) (FR-890 equivalent committed record). Classification: `enforcement/latency-critical`; `is_this_a_graph: no` — a deterministic delimiter check at a commit/merge boundary has no model judgement in it (FR-890 classification rule).
+**Prior art:** [FR-751-liquid-safety-precommit-gate.md](FR-751-liquid-safety-precommit-gate.md) — **Proposed**, never judged, no judgement sibling; same jurisdiction and the same strict rule. This FR **supersedes** it for implementation (FR-751 is not edited). Differences: FR-751's merge ring was a unit test, but `workflow.yml`'s `test` job no-ops on Markdown-only diffs (`changes.code` filter `'!**/*.md'`), so that ring would not bite on docs-only PRs; this FR uses an always-run CI job instead, and adds a real Jekyll build. Commit `1c5061aa` (2026-02-26) set `render_with_liquid: false`, which Jekyll 3.10 ignores. Commit `013ff5ae` (2026-07-14, FR-425 incident) excluded `docs/diary`. FR-748 (2026-07-18) raw-wrapped one generator's output after `{% set %}` broke 6 deployments. Each was a point fix; this is the fourth incident of the class.
 
 ## Summary
 
-GitHub Pages has failed on every push to main since 2026-09-25 (60 of 60 recent `pages build and deployment` runs; last success `011317a8`, 2026-09-25T14:35Z). The cause is one line: `docs/investigations/fr1065-resumable-map.md:108`, added by `5ecbc2dc` (#696), quotes `` `{{ <key>` `` in inline code. Jekyll 3.10 runs Liquid over every Markdown page before Markdown rendering, and Liquid 4 raises `Variable '{{' was not properly terminated`. Fix the line, and add a stdlib scanner that reproduces Liquid 4's tokenizer-level errors over the files Jekyll actually renders, wired into pre-commit and into a CI job that runs on every PR including docs-only ones.
+GitHub Pages has failed on every push to main since 2026-09-25 (60 of 60 recent `pages build and deployment` runs; last success `011317a8`). Cause: `docs/investigations/fr1065-resumable-map.md:108` (added by `5ecbc2dc`, #696) quotes `` `{{ <key>` `` and Liquid 4 raises *Variable '{{' was not properly terminated*. A scan of the rendered tree finds 23 further active Liquid tokens that do not break the build but render as **empty text** — e.g. `docs/sheikkinen-process.md:201-206` publishes a workflow snippet whose `{{ secrets.AZURE_SPEECH_KEY }}` lines are blank on the site.
+
+Rule (from FR-751): in every file Jekyll renders with Liquid, any `{{` or `{%` outside a `{% raw %}…{% endraw %}` region is a violation. Wrap all 24 current tokens; add `scripts/check_docs_liquid.py`; run it in pre-commit and in an always-run CI job that also performs a real `actions/jekyll-build-pages` build of `docs/`.
 
 ## Value Statement
 
-Docs authors learn of a Pages-breaking edit before merge instead of the public docs site silently freezing at an eight-week-old snapshot.
+Docs authors learn before merge that a Jinja2 quote will break the site or vanish from it, instead of the public docs freezing for weeks or silently dropping text.
 
 ## Problem
 
-Witnessed 2026-11-16 (`gh run view --log-failed` on the latest Pages run):
-
-```
-Liquid Exception: Liquid syntax error (line 108): Variable '{{' was not properly
-terminated with regexp: /\}\}/ in investigations/fr1065-resumable-map.md
-```
-
-1. **Nothing gates it.** `pages-build-deployment` is GitHub's own workflow; it runs after merge, on main, and is not a required check. `workflow.yml`'s `test` job no-ops on docs-only diffs (`changes.code` filter `'!**/*.md'`), so no CI step ever parses docs as Liquid.
-2. **The failure is silent.** 60 consecutive failures over seven weeks went unnoticed until a manual `status` read on 2026-11-16.
-3. **The class recurs.** Third occurrence (see Prior art). Each previous fix patched the instance; the config comment documents why the one config-level cure (`render_with_liquid: false`) is ineffective on Jekyll 3.
-4. **Jekyll stops at the first error**, so the build log cannot tell us whether `fr1065` is the only break.
+1. **Build break, unseen for seven weeks.** `pages-build-deployment` runs after merge on main and is not a required check; 60 consecutive failures went unnoticed until a manual status read on 2026-11-16.
+2. **Silent content loss.** 23 balanced `{{ … }}` tokens in 9 files render as empty strings. Not an error, so neither Jekyll nor any check reports it — a `plausible_wrong_answer` on the published site.
+3. **No gate on docs-only changes.** `workflow.yml`'s `test` job skips its steps when only `*.md` changed.
+4. **Recurrence.** Fourth incident (Prior art). This project documents Jinja2, which shares Liquid's delimiters, so every new doc is a candidate.
+5. **Jekyll stops at the first error**, so a build log never lists all breaks.
 
 ## Ideal Result
 
-A docs edit that would make Jekyll 3.10 raise a Liquid syntax error fails locally at commit and fails the PR, with `path:line` and the Liquid error class, before merge. The Pages build on main is green.
+No published docs page contains active Liquid. A commit or PR introducing `{{`/`{%` outside `raw` in a rendered docs file fails with `path:line`; the PR also proves the site builds with the real Pages action. The Pages build on main is green, and the 24 current tokens display literally.
+
+## Evidence
+
+Pinned Liquid 4.0.4 (the github-pages gem's Liquid; the failing log names `liquid-4.0.4` and `jekyll-3.10.0`), `https://github.com/Shopify/liquid/blob/v4.0.4/`:
+
+- `lib/liquid.rb:28-40` — `TagStart = /\{\%/`, `VariableStart = /\{\{/`, `TemplateParser = /(#{PartialTemplateParser}|#{AnyStartingTag})/om`: every `{{` and `{%` in the page body is a Liquid token, including inside Markdown code fences (Liquid runs before Markdown in Jekyll 3).
+- `lib/liquid/tags/raw.rb:3-4,12-22` — `Syntax = /\A\s*\z/` (raw takes no arguments); the block ends at the first token matching `FullTokenPossiblyInvalid = /\A(.*)#{TagStart}\s*(\w+)\s*(.*)?#{TagEnd}\z/om` with `$2 == "endraw"`; tokens before it are emitted as literal text; no end → `tag_never_closed`. Consequence: `{%- endraw %}` (whitespace control) does **not** close raw in 4.0.4 (`\s*(\w+)` cannot match `-`), so only `{% raw %}` / `{% endraw %}` without `-` are accepted markers.
+- Jekyll 3.10 renders Liquid in a page only when the body contains a Liquid construct, and strips YAML front matter (`\A---\s*\r?\n … ^---`) before rendering. `jekyll-optional-front-matter` (enabled by github-pages, visible in the failing log's `Requiring:` list) makes every `.md`/`.markdown` a page without front matter.
+
+Current-tree inventory (2026-11-16, `docs/_config.yml` excludes applied): 24 active tokens in 10 files — `sheikkinen-process.md` 6; `memento/feature-requests/019-questionnaire-generator.md` 3, `011-yamlgraph-web-ui.md` 3, `017-mermaid-improvements.md` 3, `brainstorming-fsm-yamlgraph.md` 2; `issues-2026-09-24.md` 2; `issues-2026-09-27-fr1124-census.md` 2; `plan-dm.md` 1; `research-wiki-format.md` 1; `investigations/fr1065-resumable-map.md` 1. Non-Markdown files under `docs/` (html, json, jsonl, txt, yaml, py, sh, mermaid, webp): none starts with front matter, so none is Liquid-rendered; no file uses `{%-`/`-%}`.
 
 ## Planned Operations
 
 ```yaml
 probes:
-  - "scan the docs tree at 011317a8 (last green Pages build) — must report zero findings; any finding there is a false positive and the rule is wrong"
-  - "scan the docs tree at 5ecbc2dc (first red build) — must report exactly docs/investigations/fr1065-resumable-map.md:108"
-  - "scan the current docs tree — decides whether fr1065:108 is the only break (Jekyll stops at the first)"
-  - "read docs/_config.yml exclude list — decides which paths the scanner skips"
+  - "isolated scratch tree (git archive) of docs/ at 011317a8 — record findings; balanced tokens there are expected (they render empty), so this calibrates file selection, not zero findings"
+  - "isolated scratch tree at 5ecbc2dc — findings must include docs/investigations/fr1065-resumable-map.md:108"
+  - "full scan of the worktree before wrapping — must equal the 24-token inventory in Evidence; a difference means selection or raw handling is wrong"
+  - "after wrapping, render check: the wrapped text appears literally in the jekyll-build-pages output (_site) for sheikkinen-process.md and fr1065-resumable-map.md"
 branches:
-  - "calibration at 011317a8 reports any finding → narrow the rule to what Liquid 4 actually raises, re-run both calibration points"
-  - "current tree has breaks beyond fr1065:108 → fix each in the same GREEN commit and list them in Implementation Status"
-  - "a finding is inside text that Jekyll does not render (excluded path, no-front-matter static file) → fix the file-selection rule, not the finding"
+  - "scan count differs from the 24-token inventory → fix the selection/raw rule before wrapping anything"
+  - "jekyll-build-pages fails on the wrapped tree with an error the scanner does not flag → stop; record it; scope decision (C-6)"
+  - "a token sits in a file that should be excluded rather than published → raise it to the operator; do not add excludes inside this FR"
 delegations:
-  - "judge.sh: 1 run"
+  - "judge.sh: 1 run (round 2)"
 waits:
   - "judge"
-  - "PR CI including the new docs-liquid job"
+  - "PR CI including docs-liquid job"
   - "post-merge pages build and deployment run on main"
 commands:
   - scripts/judge.sh
   - python scripts/check_docs_liquid.py
   - pytest tests/unit/test_fr1168_docs_liquid_gate.py
+  - pre-commit run docs-liquid --files
   - python scripts/req_coverage.py --strict
   - python scripts/aggregate_capabilities.py
   - gh run list --workflow pages-build-deployment
@@ -63,48 +70,58 @@ commands:
 
 ## Proposed Solution
 
-1. **Fix the instance.** Wrap the quoted Jinja fragment on `fr1065-resumable-map.md:108` in `{% raw %}…{% endraw %}`, following the repo's existing pattern (`docs/2026-07-18-fr-atlas.md`, `docs/ebook/v3/07-yamlgraph-core.md`). The rendered site shows `` `{{ <key>` `` unchanged.
-2. **`scripts/check_docs_liquid.py`** (stdlib + PyYAML; PyYAML is already a core dependency):
-   - **File selection** mirrors Jekyll 3.10 on this site: `*.md` / `*.markdown` under `docs/` (jekyll-optional-front-matter renders them without front matter) and any other file starting with a `---` front-matter line; skip paths matched by `docs/_config.yml` `exclude` (fnmatch on the relative path and each leading directory) and any path component starting with `_` or `.` (Jekyll defaults, covers `_site`).
-   - **Tokenizer** is a port of Liquid 4.0.4's `TemplateParser` regex: `(\{%.*?%\}|\{\{.*?\}\}?|\{%|\{\{)` with DOTALL. Rules, each a Liquid 4 parse error:
-     - `L001` a `{{` token that does not end with `}}` — *Variable was not properly terminated* (the incident class);
-     - `L002` a `{%` token that does not match `{%-?\s*\w+.*?-?%}` — *Tag was not properly terminated*;
-     - `L003` a `{% raw %}` / `{% comment %}` with no matching end tag before EOF.
-   - Content between `{% raw %}` and `{% endraw %}` (and `comment`/`endcomment`) is not tokenized, as in Liquid.
-   - Output: one `path:line: Lxxx message` per finding; exit 1 on any finding, 0 otherwise. Optional positional paths restrict the scan (pre-commit passes changed files); the selection and exclude rules still apply.
-3. **Wiring.**
-   - `.pre-commit-config.yaml`: local hook `docs-liquid`, `files: ^docs/`, `pass_filenames: true`.
-   - `.github/workflows/commitlint.yml`: job `docs-liquid` ("Docs Liquid syntax (Pages build)") with no title or path condition, so it runs on docs-only PRs and on `merge_group`; installs PyYAML and runs the full scan.
-4. **Traceability.** `capabilities/CAP-306-docs-liquid-gate.yaml` with `REQ-YG-731`; tests tagged `REQ-YG-731`; `ARCHITECTURE.md` regenerated.
+1. **`scripts/check_docs_liquid.py`** — stdlib + PyYAML (core dependency), read-only.
+   - **Selection** (mirrors Jekyll 3.10 + github-pages plugins): files under `docs/` that are `.md`/`.markdown`, or any other file whose first line matches `^---\s*$`; skip any path whose relative path or a leading directory matches a `docs/_config.yml` `exclude` entry (fnmatch), and any path component starting with `_` or `.`. The exclude list is read at run time, never copied. Missing/unparseable `_config.yml`, an `exclude` that is not a list, or a selected file that is not valid UTF-8 → exit 2 with the reason (never an empty pass).
+   - **Body**: strip leading YAML front matter (`---` … `---`) but keep original line numbers for diagnostics.
+   - **Rule**: scan the body left to right. `{% raw %}` (regex `\{%\s*raw\s*%\}`) opens a raw region; the first `{% endraw %}` (`\{%\s*endraw\s*%\}`) closes it; text inside is ignored. Outside raw, any other `{{` or `{%` — including `{% comment %}` and whitespace-control forms — is a violation `L001` (`{{`) or `L002` (`{%`). An unclosed raw is `L003` at its opening line.
+   - **Output**: `docs/<path>:<line>: Lxxx <message> — wrap in {% raw %}…{% endraw %}` per finding; exit 1 if any, 0 if none.
+   - **Arguments**: optional file paths restrict the scan (pre-commit fast path); selection and excludes still apply. If `docs/_config.yml` is among the arguments, scan the full selected tree (a changed exclude list can expose files not in the changed set).
+2. **Fix the tree**: wrap each of the 24 tokens in `{% raw %}…{% endraw %}` (inline around the token's span, or around the whole fenced block where a block holds several), matching existing usage in `docs/ebook/v3/07-yamlgraph-core.md`. No other text changes; no new excludes.
+3. **Ring 1 — pre-commit**: local hook `docs-liquid`, `entry: python scripts/check_docs_liquid.py`, `files: ^docs/`, `pass_filenames: true`.
+4. **Ring 2 — CI**: job `docs-liquid` in `.github/workflows/commitlint.yml` ("Docs Liquid (Pages build)"), no title/path/`changes` condition, runs on `pull_request` and `merge_group`: checkout the candidate, `pip install pyyaml`, `python scripts/check_docs_liquid.py` (full tree), then `actions/jekyll-build-pages@v1` with `source: ./docs`, `destination: ./_site` (the action GitHub's own Pages workflow uses) — the real-build witness on every PR.
+5. **Traceability**: `capabilities/CAP-306-docs-liquid-gate.yaml`, `REQ-YG-731` — "rendered docs contain no active Liquid outside raw; PRs build the site with the Pages action". Tests tagged `REQ-YG-731`; `ARCHITECTURE.md` regenerated.
 
-Out of scope: unknown-tag and unclosed-block detection (`{% for %}` without `endfor`, `{% set %}`). Those are real Liquid errors but the calibration probe decides whether today's tree contains any; adding them without a witness is speculative. Making the gate a required status check is a branch-protection change for the human operator.
+The scanner claims only the delimiter rule; it does not claim a full Liquid parse. Build safety is witnessed by the `jekyll-build-pages` step, not by the scanner.
+
+Out of scope: making `docs-liquid` a required status check (operator decision, C-3); Pages migration to Jekyll 4; auto-wrapping; editing FR-751; adding excludes.
 
 ## Acceptance Criteria
 
-- [ ] `docs/investigations/fr1065-resumable-map.md:108` renders the same text and no longer contains an unterminated `{{` outside `raw`.
-- [ ] `python scripts/check_docs_liquid.py` exits 0 on the fixed tree and exits 1 naming `fr1065-resumable-map.md:108 L001` on the tree at `5ecbc2dc`.
-- [ ] The same command reports zero findings on the docs tree at `011317a8` (last green Pages build).
-- [ ] Unit tests (REQ-YG-731) cover L001, L002, L003, content inside `raw`, a balanced `{{ x }}` that is not flagged, an `exclude`d path that is not scanned, a `_`-prefixed path that is not scanned, and a non-Markdown file without front matter that is not scanned.
-- [ ] Pre-commit hook `docs-liquid` and CI job `docs-liquid` exist; the CI job has no path or title condition.
-- [ ] After merge, the `pages build and deployment` run on main succeeds (post-cutoff; recorded on the PR).
-- [ ] CAP-306 / REQ-YG-731 registered; `python scripts/req_coverage.py --strict` passes.
-- [ ] Changelog fragment and diary entry.
+- [ ] AC-01: FR folds round-1 R-1..R-4 (see [Round-1 judgement disposition](#round-1-judgement-disposition)) and is re-judged.
+- [ ] AC-02: Full scan of the unwrapped worktree reports exactly the 24 tokens in Evidence (count and paths); after wrapping it exits 0.
+- [ ] AC-03: Isolated scratch-tree scan at `5ecbc2dc` includes `docs/investigations/fr1065-resumable-map.md:108: L001`; scan at `011317a8` recorded (command, SHA, exit, findings) in Implementation Status.
+- [ ] AC-04: Unit tests (REQ-YG-731) in isolated `tmp_path` trees: L001, L002 (incl. `{% comment %}` and `{%- raw %}`), L003; inline and block raw pass; `{%- endraw %}` does not close raw; tokens inside fenced code are flagged; front matter is stripped with correct line numbers; excluded dir and glob not scanned; `_`-prefixed path not scanned; `.markdown` scanned; `.yaml` with front matter scanned, without front matter not; invalid UTF-8 and missing config exit 2; `_config.yml` argument triggers full scan.
+- [ ] AC-05: Gate-bite: recorded `pre-commit run docs-liquid --files <scratch incident>` fails, passes once wrapped.
+- [ ] AC-06: CI job `docs-liquid` has no `if:` and runs both the scanner and `actions/jekyll-build-pages`; it succeeds on the PR.
+- [ ] AC-07: Rendered text preserved: in the PR's `jekyll-build-pages` output (or a local run), `{{ secrets.AZURE_SPEECH_KEY }}` and `` `{{ <key>` `` appear literally.
+- [ ] AC-08: Post-merge (recorded on the PR, not a merge prerequisite): the `pages build and deployment` run on the merge SHA succeeds.
+- [ ] AC-09: CAP-306 / REQ-YG-731 registered; `python scripts/req_coverage.py --strict` passes.
+- [ ] AC-10: Changelog fragment and diary entry with **Seed:**.
+
+## Round-1 judgement disposition
+
+Round 1 (narrow L001–L003 subset, APPROVED WITH REVISIONS, kept as `tmp/judgement-round1.md`, not promoted) required:
+
+- **R-1** disposition FR-751, classification, pinned evidence → Prior art, Research and Evidence above. FR-751's strict rule was **adopted** (operator decision 2026-11-16) rather than distinguished.
+- **R-2** freeze a subset, no full-parser claim, raw/comment semantics, real build before merge → the strict rule needs no parser-equivalence claim; raw/comment/whitespace-control semantics are fixed from `raw.rb`; the real build runs on every PR via `jekyll-build-pages`.
+- **R-3** front matter, selection matrix, explicit errors, config-change full scan → Proposed Solution §1 and AC-04.
+- **R-4** gate-bite witnesses, isolated calibration, pre-/post-merge separation → AC-03, AC-05, AC-06, AC-08.
 
 ## Alternatives Considered
 
 | # | Alternative | Disposition |
 |---|---|---|
-| A1 | Fix line 108 only | Rejected: third occurrence of the class; `detection_without_enforcement`. |
-| A2 | Exclude `docs/investigations` from the build (the `013ff5ae` cure) | Rejected: hides investigations from the site and moves the next break to whichever directory is not excluded. |
-| A3 | `render_with_liquid: false` | Rejected: already present, ignored by Jekyll 3.10 (`1c5061aa`). |
-| A4 | Run real Jekyll (`github-pages` gem) in CI | Rejected for now: adds a Ruby toolchain and minutes to every PR; the incident class is tokenizer-level and a port of one regex reproduces it. Revisit if a non-tokenizer Liquid error reaches main. |
-| A5 | `python-liquid` package as the parser | Rejected: new dev dependency under FR-761 governance, and it implements Liquid 5 / Shopify semantics rather than Jekyll 3.10's Liquid 4.0.4. |
-| A6 | Switch Pages to an Actions-built Jekyll 4 site where `render_with_liquid` works | Rejected: larger migration, and Jekyll 4 still parses Liquid in pages that do not opt out. |
-| A7 | Port Liquid 4's tokenizer regex in a stdlib script (chosen) | Accepted: proper parser for the boundary (not an ad-hoc regex list), no new dependency, calibrated against the last green and first red builds. |
+| A1 | Fix `fr1065:108` only | Rejected: fourth incident; leaves 23 silent blanks; `detection_without_enforcement`. |
+| A2 | Narrow tokenizer-error subset (round-1 draft) | Rejected by operator: does not catch silent empty renders or `{% set %}` (the FR-748 incident); needs a parser-equivalence claim the strict rule does not. |
+| A3 | Exclude more directories (FR-425 cure) | Rejected: hides published content; moves the next break elsewhere. |
+| A4 | `render_with_liquid: false` | Rejected: present already, ignored by Jekyll 3.10 (`1c5061aa`). |
+| A5 | Real Jekyll build only, no scanner | Rejected: a build passes while balanced tokens vanish; the scanner gives edit-time `path:line`. Kept as the CI second step. |
+| A6 | Unit test over the tree (FR-751 ring 2) | Rejected: the `test` job no-ops on Markdown-only diffs. |
+| A7 | `python-liquid` dependency | Rejected: new dependency under FR-761; Liquid 5 semantics; unnecessary for a delimiter rule. |
+| A8 | Migrate Pages to an Actions-built Jekyll 4 | Rejected: separate migration; Jekyll 4 still renders Liquid unless every page opts out. |
+| A9 | Strict delimiter rule + always-run CI job with real build (chosen) | Accepted. |
 
 ## Related
 
-- `docs/_config.yml` — exclude list and the Jekyll 3 note
-- `.github/workflows/commitlint.yml` — always-run hygiene jobs
-- `docs/investigations/fr1065-resumable-map.md` — the break
-- FR-1065 — the investigation that added the line
+- `docs/_config.yml`, `.github/workflows/commitlint.yml`, `.pre-commit-config.yaml`
+- FR-751 (superseded proposal), FR-748, FR-425, FR-1065
