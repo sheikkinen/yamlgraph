@@ -69,7 +69,8 @@ def test_author_sh_extracts_backslash_artifact_paths(tmp_path):
     report = tmp_path / "report.md"
     report.write_text(REPORT, encoding="utf-8")
     script = (
-        f'source <(sed -n "/^artifact_candidates()/,/^}}/p" "{AUTHOR_SH.as_posix()}"); '
+        # eval, not `source <(...)`: macOS /bin/bash 3.2 sources nothing from it
+        f'eval "$(sed -n "/^artifact_candidates()/,/^}}/p" "{AUTHOR_SH.as_posix()}")"; '
         f'artifact_candidates "{report.as_posix()}"'
     )
     out = subprocess.run(
