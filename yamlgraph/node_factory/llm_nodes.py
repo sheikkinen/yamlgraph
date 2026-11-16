@@ -10,7 +10,7 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from yamlgraph.constants import NodeType
+from yamlgraph.constants import LLMSetting, NodeType
 from yamlgraph.error_handlers import check_loop_limit, check_requirements
 from yamlgraph.executor import execute_prompt
 from yamlgraph.models import PipelineError
@@ -118,9 +118,7 @@ def resolve_llm_node_config(
         )
 
     # Temperature: node > defaults > 0.7
-    temperature = node_config.get("temperature")
-    if temperature is None:
-        temperature = defaults.get("temperature")
+    temperature = _node_or_default(node_config, defaults, LLMSetting.TEMPERATURE)
     if temperature is None:
         temperature = 0.7
 
@@ -153,9 +151,13 @@ def resolve_llm_node_config(
         default_provider=defaults.get("provider"),
         default_model=defaults.get("model"),
         temperature=temperature,
-        max_tokens=node_config.get("max_tokens", defaults.get("max_tokens")),
-        thinking_budget=_node_or_default(node_config, defaults, "thinking_budget"),
-        effort=_node_or_default(node_config, defaults, "effort"),
+        max_tokens=node_config.get(
+            LLMSetting.MAX_TOKENS, defaults.get(LLMSetting.MAX_TOKENS)
+        ),
+        thinking_budget=_node_or_default(
+            node_config, defaults, LLMSetting.THINKING_BUDGET
+        ),
+        effort=_node_or_default(node_config, defaults, LLMSetting.EFFORT),
         output_model=output_model,
         parse_json=parse_json,
         variable_templates=node_config.get("variables", {}),

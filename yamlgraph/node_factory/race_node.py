@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID, uuid4
 
-from yamlgraph.constants import ErrorHandler
+from yamlgraph.constants import ErrorHandler, LLMSetting
 from yamlgraph.error_handlers import check_loop_limit
 from yamlgraph.executor_base import build_schema_hint, prepare_messages
 from yamlgraph.models import PipelineError
@@ -341,11 +341,11 @@ def create_race_node(
     state_key = node_config.get("state_key", node_name)
     candidates = node_config.get("candidates", [])
     timeout = node_config.get("timeout", 30)
-    temperature = node_config.get("temperature")
+    temperature = node_config.get(LLMSetting.TEMPERATURE)
     if temperature is None:
-        temperature = defaults.get("temperature", 0.7)
-    if (budget := node_config.get("thinking_budget")) is None:
-        budget = defaults.get("thinking_budget")
+        temperature = defaults.get(LLMSetting.TEMPERATURE, 0.7)
+    if (budget := node_config.get(LLMSetting.THINKING_BUDGET)) is None:
+        budget = defaults.get(LLMSetting.THINKING_BUDGET)
     on_error = node_config.get("on_error")
     variable_templates = node_config.get("variables", {})
     parse_json = node_config.get("parse_json", False)

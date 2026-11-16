@@ -601,6 +601,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 301 | CAP-301 Race Node Thinking Budget | `yamlgraph/node_factory/race_node.py`, `yamlgraph/node_factory/router_race_node.py`, `tests/unit/test_race_node.py`, `tests/unit/test_router_race.py` | REQ-YG-724 |
 | 303 | CAP-303 Map memo contrib retired | `tests/unit/test_fr1160_retirements.py` | REQ-YG-727 |
 | 304 | CAP-304 Cached Map Warm-First Dispatch | `yamlgraph/compile/cached_map_compiler.py`, `yamlgraph/compile/map_compiler.py`, `yamlgraph/models/map_results.py` | REQ-YG-728 |
+| 305 | CAP-305 Lint Unread LLM Settings | `yamlgraph/constants.py`, `yamlgraph/linter/checks_providers.py`, `yamlgraph/linter/graph_linter.py` | REQ-YG-730 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3492,6 +3493,16 @@ FR-1161: `type: cached_map` takes the YAML of `type: map`, freezes its populatio
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-728 | A `type: cached_map` node runs item 0's worker to a settled outcome before any other item's worker starts, then runs items 1..N-1 in parallel under `max_concurrency`. Both waves use the items, indices, dispatch token and common inputs frozen at dispatch, with Python and Pydantic values unchanged. Every warm outcome (success, exception, tolerated skip, timeout) releases the rest; accounting covers indices exactly 0..N-1 under one token; the verdict follows `accepted = succeeded + tolerated`. Load, lint, inferred and generated state, the published schema, cap/overflow and composition with `type: map` treat it as a map. | `yamlgraph/compile/cached_map_compiler.py`, `tests/unit/test_fr1161_cached_map.py` |
+
+### 305. CAP-305 Lint Unread LLM Settings
+
+FR-1166: `yamlgraph graph lint` warns when an LLM tuning setting (`thinking_budget`, `temperature`, `max_tokens`, `effort`) is written in graph `metadata:` or in the `metadata:` of a referenced prompt (W072), and when a `race` or router-race candidate carries any key other than `provider` / `model` (W073). The setting names are declared once in `yamlgraph/constants.py` (`LLMSetting`) and shared by the linter and the LLM and race resolution sites. Runtime behaviour is unchanged.
+
+**Feature Request:** FR-1166
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-730 | Lint emits W072 (warning) for each `LLMSetting` key present, any value including null, in graph `metadata:` or in a referenced prompt's `metadata:` (each prompt once; missing prompts left to E004), naming the location, the key and `defaults.<key>`. Lint emits W073 (warning) per extra key on a direct-race or router-race candidate, naming the node, the zero-based candidate index and the key, with a fix that matches the key's race behaviour. Neither code changes load or runtime behaviour. | `yamlgraph/linter/checks_providers.py`, `tests/unit/test_fr1166_lint_unread_llm_settings.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 
