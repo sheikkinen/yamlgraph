@@ -27,6 +27,7 @@ The concept is the marriage of the two: **eBook's preplanned skeleton + NPC's pa
 
 ## Architecture
 
+{% raw %}
 ```mermaid
 flowchart TD
   subgraph PRE["Phase 1 — Preplan (runs once)"]
@@ -48,6 +49,7 @@ flowchart TD
     P -- end --> Z([END])
   end
 ```
+{% endraw %}
 
 **Commit-after-decision:** `weave` writes only `state.beat`; the file write and turn/history advance happen in `commit_beat`, reached only on committing actions. Retry re-rolls the same turn with no commit and no counter change.
 

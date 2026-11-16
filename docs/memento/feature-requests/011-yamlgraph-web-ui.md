@@ -217,6 +217,7 @@ Integrate into `node_compiler.py` and `llm_nodes.py`.
 
 **Recommendation:** Start with HTMX for simplicity, upgrade later if needed.
 
+{% raw %}
 ```html
 <!-- templates/studio.html -->
 <div id="graph-view">
@@ -230,6 +231,7 @@ Integrate into `node_compiler.py` and `llm_nodes.py`.
 
 <div id="state-view" hx-get="/api/runs/{{run_id}}/state" hx-trigger="every 2s"></div>
 ```
+{% endraw %}
 
 #### Phase 4: CLI Integration (0.5 day)
 

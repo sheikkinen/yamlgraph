@@ -21,7 +21,7 @@ Backstory prose here...
 ```
 
 - **Hugo** (Go): YAML/TOML/JSON frontmatter between `---` or `+++` delimiters. Custom fields under `params:`.
-- **Jekyll** (Ruby): YAML frontmatter between `---`. Custom variables accessible via `{{ page.variable }}`.
+- **Jekyll** (Ruby): YAML frontmatter between `---`. Custom variables accessible via `{% raw %}{{ page.variable }}{% endraw %}`.
 - **MkDocs** (Python): YAML frontmatter via `meta` plugin. Primarily for metadata, less wiki-like.
 - **Obsidian** (Electron): YAML frontmatter rendered as "Properties" panel. Wiki links via `[[page_id]]`. Graph view built-in.
 

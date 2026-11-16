@@ -79,6 +79,46 @@ jobs:
             echo "✅ No conflict markers found"
           fi
 
+  # FR-1168: docs/ is rendered by GitHub Pages (Jekyll 3.10 + Liquid 4.0.4).
+  # Active Liquid outside {% raw %} breaks the build or blanks text. Runs on
+  # every event: workflow.yml's test job no-ops on .md-only diffs.
+  docs-liquid:
+    name: Docs Liquid (Pages build)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan docs for active Liquid
+        run: |
+          pip install pyyaml
+          python scripts/check_docs_liquid.py
+
+      - name: Build docs with the Pages Jekyll action
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./docs
+          destination: ./_site
+
+      - name: Assert wrapped tokens render literally
+        shell: python
+        run: |
+          import html, pathlib, sys
+          checks = {
+              "_site/sheikkinen-process.html": "{{ secrets.AZURE_SPEECH_KEY }}",
+              "_site/investigations/fr1065-resumable-map.html": "{{ <key>",
+          }
+          missing = [
+              f"{page}: {literal!r}"
+              for page, literal in checks.items()
+              if literal not in html.unescape(pathlib.Path(page).read_text(encoding="utf-8"))
+          ]
+          if missing:
+              print("::error::Liquid literals lost in rendered site: " + "; ".join(missing))
+              sys.exit(1)
+          print("✅ Wrapped Liquid renders literally")
+
   copilot-trailer-gate:
     name: Block Co-authored-by trailers
     runs-on: ubuntu-latest

@@ -60,6 +60,7 @@ yamlgraph graph mermaid graph.yaml --theme minimal
 
 **Output with styling:**
 
+{% raw %}
 ```mermaid
 flowchart TD
     classify{{"🔀 classify"}}
@@ -70,6 +71,7 @@ flowchart TD
     style ask_probe fill:#d97706,stroke:#f59e0b
     style calculate_score fill:#059669,stroke:#10b981
 ```
+{% endraw %}
 
 ### 2. Subgraph Grouping
 
@@ -91,6 +93,7 @@ nodes:
 
 **Output:**
 
+{% raw %}
 ```mermaid
 flowchart TB
     subgraph NAV[" 🧭 Navigator "]
@@ -105,6 +108,7 @@ flowchart TB
 
     style NAV fill:#1e3a8a,stroke:#3b82f6,stroke-width:2px
 ```
+{% endraw %}
 
 ### 3. Loop Indicators
 
@@ -211,7 +215,7 @@ Update shapes to match Mermaid best practices:
 
 | Type | Shape | Mermaid Syntax |
 |------|-------|----------------|
-| router | Hexagon | `{{"node"}}` |
+| router | Hexagon | `{% raw %}{{"node"}}{% endraw %}` |
 | interrupt | Parallelogram | `[/"node"/]` |
 | llm | Rectangle | `["node"]` |
 | tool | Rectangle | `["node"]` |

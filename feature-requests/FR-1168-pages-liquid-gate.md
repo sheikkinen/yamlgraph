@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** Judged — round 2 [judgement](FR-1168-pages-liquid-gate.judgement.md) APPROVED WITH REVISIONS; R-1..R-4 folded below
+**Status:** In Progress — enforced (RED a1f06742, GREEN `fix(docs): FR-1168`); awaiting PR CI (AC-06/07), C-4 human review and merge. Round 2 [judgement](FR-1168-pages-liquid-gate.judgement.md) APPROVED WITH REVISIONS; R-1..R-4 folded below
 **Requested:** 2026-11-16
 **First consumer / first event:** the author of the next PR that touches `docs/**` — at the moment pre-commit or the PR's `docs-liquid` CI job names a `{{`/`{%` that would either break the Pages build or silently render as empty text on the site.
 **Research:** in-body dispositioned alternatives table — [Alternatives Considered](#alternatives-considered), with pinned parser evidence in [Evidence](#evidence) (FR-890 equivalent committed record). Classification: `enforcement/latency-critical`; `is_this_a_graph: no` — a deterministic delimiter check at a commit/merge boundary has no model judgement in it (FR-890 classification rule).
@@ -108,21 +108,60 @@ Out of scope: changing branch protection from automation (the operator adds the 
 
 ## Acceptance Criteria
 
-- [ ] AC-01: FR folds round-1 R-1..R-4 (see [Round-1 judgement disposition](#round-1-judgement-disposition)) and is re-judged.
-- [ ] AC-02: Full scan of the unwrapped worktree reports exactly the 24 tokens in Evidence (count and paths); after wrapping it exits 0.
-- [ ] AC-03: Isolated scratch-tree scan at `5ecbc2dc` includes `docs/investigations/fr1065-resumable-map.md:108: L001`; scan at `011317a8` recorded (command, SHA, exit, findings) in Implementation Status.
-- [ ] AC-04: Unit tests (REQ-YG-731) in isolated `tmp_path` trees:
+- [x] AC-01: FR folds round-1 R-1..R-4 (see [Round-1 judgement disposition](#round-1-judgement-disposition)) and is re-judged.
+- [x] AC-02: Full scan of the unwrapped worktree reports exactly the 24 tokens in Evidence (count and paths); after wrapping it exits 0.
+- [x] AC-03: Isolated scratch-tree scan at `5ecbc2dc` includes `docs/investigations/fr1065-resumable-map.md:108: L001`; scan at `011317a8` recorded (command, SHA, exit, findings) in Implementation Status.
+- [x] AC-04: Unit tests (REQ-YG-731) in isolated `tmp_path` trees:
   - rules: L001, L002 (incl. `{% comment %}`, `{%- raw %}`, `{% raw x %}`), L003; inline and block raw pass; tokens inside fenced code flagged;
   - raw closers (R-1): `{% raw %}literal{% endraw ignored %}{{ secret }}{% raw %}tail{% endraw %}` fails with L004 and L001; `{% endraw -%}` → L004 and leaves raw; `{%- endraw %}` → L004 and stays raw (L003 if nothing closes it);
   - selection (R-2): front matter stripped with correct line numbers; `.markdown` and `.mkd` scanned; `.yaml` with front matter scanned, without not; excluded dir and glob not scanned; `_drafts/` and `.hidden/` not scanned; dated `_posts/2026-01-01-x.md` scanned;
   - errors: missing, malformed and non-mapping config; non-list `exclude`; non-string `exclude` member; invalid UTF-8 — each exit 2;
   - a `_config.yml` argument triggers a full-tree scan.
-- [ ] AC-05: Gate-bite (R-3): in a throwaway `git init` tree holding the candidate checker, hook config and `docs/_config.yml`, a tracked `docs/liquid-gate-witness.md` containing `{{ x }}` makes `pre-commit run docs-liquid --files docs/liquid-gate-witness.md` fail naming the file; after raw-wrapping it passes. Command, exit codes and output recorded.
+- [x] AC-05: Gate-bite (R-3): in a throwaway `git init` tree holding the candidate checker, hook config and `docs/_config.yml`, a tracked `docs/liquid-gate-witness.md` containing `{{ x }}` makes `pre-commit run docs-liquid --files docs/liquid-gate-witness.md` fail naming the file; after raw-wrapping it passes. Command, exit codes and output recorded.
 - [ ] AC-06: CI job `docs-liquid` has no `if:`, job-level `permissions: contents: read`, and runs the scanner, `actions/jekyll-build-pages` and the literal-output step; it succeeds on the PR.
 - [ ] AC-07: The CI literal-output step passes: HTML-unescaped `_site` pages contain `{{ secrets.AZURE_SPEECH_KEY }}` and `{{ <key>`.
 - [ ] AC-08: Post-merge (recorded on the PR, not a merge prerequisite): the `pages build and deployment` run on the merge SHA succeeds.
-- [ ] AC-09: CAP-306 / REQ-YG-731 registered; `python scripts/req_coverage.py --strict` passes.
-- [ ] AC-10: Changelog fragment and diary entry with **Seed:**.
+- [x] AC-09: CAP-306 / REQ-YG-731 registered; `python scripts/req_coverage.py --strict` passes.
+- [x] AC-10: Changelog fragment and diary entry with **Seed:**.
+
+## Implementation Status
+
+Enforced on `fix/fr-1168-pages-liquid-gate`: FR fold and judgement e4ad7504; RED a1f06742 (28 tests: 25 setup errors from the missing scanner, 3 wiring/bite failures); GREEN `fix(docs): FR-1168 …` (scanner, 24 wraps, hook, CI job, CAP-306, changelog, diary).
+
+**Probe records (AC-02, AC-03)** — `python scripts/check_docs_liquid.py [--root <scratch>/docs]`, scratch trees from `git archive <sha> docs`:
+
+| Tree | Exit | Findings |
+|---|---|---|
+| worktree at a1f06742, before wrapping | 1 | 24 × L001 in the 10 Evidence files, counts per file identical to Evidence |
+| `5ecbc2dc` (first failing Pages SHA) | 1 | 22 × L001, including `docs/investigations/fr1065-resumable-map.md:108` |
+| `011317a8` (last green Pages SHA) | 1 | 21 × L001 — all balanced; Jekyll built them and rendered them as empty text |
+| worktree after wrapping | 0 | none |
+
+**Wrapping:** inline tokens wrapped in place (fr1065:108, issues-2026-09-24:460/764, fr1124-census:35/36, 017:214, brainstorming:124, research-wiki-format:24); tokens inside fenced blocks wrapped by `{% raw %}`/`{% endraw %}` lines around the whole fence (011, 017 ×2, 019, brainstorming, plan-dm, sheikkinen-process), so the tags never appear inside rendered code.
+
+**Gate bite (AC-05):** `test_precommit_hook_bites_in_throwaway_repo` runs `pre-commit run docs-liquid --files docs/liquid-gate-witness.md` in a `git init` tmp tree: exit 1 naming `liquid-gate-witness.md:1: L001`, exit 0 after wrapping. Also run against the real `.pre-commit-config.yaml` in the worktree: Passed on the 10 wrapped files + `_config.yml`; Failed (exit 1, `docs/liquid-gate-witness.md:1: L001`) on a staged witness, then removed.
+
+**Decisions / deviations:**
+- `Finding` is a `NamedTuple`, not a dataclass: `spec_from_file_location` loading (the test pattern) leaves the module out of `sys.modules`, which breaks dataclass annotation resolution under `from __future__ import annotations`.
+- REQ markers: `scripts/req_coverage.py` reads only per-test decorators, so GREEN moves `REQ-YG-731` from the RED module-level `pytestmark` onto each of the 24 tests (marker-only change); the module keeps `pytest.mark.process` (FR-756 boundary guard).
+- The local `_site` render probe did not run: the Docker daemon is not running on this host. The literal-output assertion runs in the PR's `docs-liquid` job (AC-07).
+
+| Planned operation | Outcome (ran / did not run / changed) | Witness |
+|---|---|---|
+| probe: scratch tree at 011317a8 | ran | table above; audit.jsonl `git archive 011317a8` |
+| probe: scratch tree at 5ecbc2dc | ran | table above; audit.jsonl `git archive 5ecbc2dc` |
+| probe: full worktree scan before wrapping = 24 | ran | table above; audit.jsonl `check_docs_liquid.py` |
+| probe: `_site` render check | changed | moved to the PR CI literal-output step (Docker not running locally) |
+| branch: count differs from 24 | did not run | count matched (table above) |
+| branch: build fails unflagged | did not run | no local build; PR CI decides |
+| branch: token in should-be-excluded file | did not run | no such file found in the 24 |
+| delegation: judge.sh round 2 | ran | e4ad7504 judgement file |
+| command: `pytest tests/unit/test_fr1168_docs_liquid_gate.py` | ran | a1f06742 (RED), GREEN commit (28 passed) |
+| command: `pre-commit run docs-liquid --files` | ran | audit.jsonl; Implementation Status gate-bite paragraph |
+| command: `python scripts/req_coverage.py --strict` | ran | exit 0 at GREEN |
+| command: `python scripts/aggregate_capabilities.py` | ran | ARCHITECTURE.md in GREEN commit |
+
+**Unplanned operations:** an inline Python wrap script applied the 24 wraps (diff in GREEN commit); `ruff format` on the scanner and test.
 
 ## Conditions for enforcement
 

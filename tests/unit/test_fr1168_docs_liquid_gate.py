@@ -19,7 +19,7 @@ SCRIPT = REPO_ROOT / "scripts" / "check_docs_liquid.py"
 WORKFLOW = REPO_ROOT / ".github" / "workflows" / "commitlint.yml"
 PRECOMMIT = REPO_ROOT / ".pre-commit-config.yaml"
 
-pytestmark = [pytest.mark.req("REQ-YG-731"), pytest.mark.process]
+pytestmark = pytest.mark.process
 
 
 def _load():
@@ -58,14 +58,17 @@ def _codes(gate, text: str) -> list[tuple[int, str]]:
 # --- rule -------------------------------------------------------------------
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_unterminated_variable_is_l001(gate):
     assert _codes(gate, "a\nquote `{{ <key>` here\n") == [(2, "L001")]
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_balanced_variable_is_l001(gate):
     assert _codes(gate, "x: ${{ secrets.KEY }}\n") == [(1, "L001")]
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_tags_are_l002(gate):
     assert _codes(gate, "{% set x = 1 %}\n{% comment %}c{% endcomment %}\n") == [
         (1, "L002"),
@@ -74,14 +77,17 @@ def test_tags_are_l002(gate):
     ]
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_noncanonical_raw_openers_are_l002(gate):
     assert _codes(gate, "{%- raw %}a\n{% raw x %}b\n") == [(1, "L002"), (2, "L002")]
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_fenced_code_is_not_protected(gate):
     assert _codes(gate, "```yaml\nk: {{ v }}\n```\n") == [(2, "L001")]
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_inline_and_block_raw_pass(gate):
     text = (
         "inline `{% raw %}{{ <key>{% endraw %}` ok\n"
@@ -90,15 +96,18 @@ def test_inline_and_block_raw_pass(gate):
     assert _codes(gate, text) == []
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_unclosed_raw_is_l003_at_opener(gate):
     assert _codes(gate, "ok\n{% raw %}\n{{ a }}\n") == [(2, "L003")]
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_closer_with_arguments_closes_raw_early(gate):
     text = "{% raw %}literal{% endraw ignored %}{{ secret }}{% raw %}tail{% endraw %}\n"
     assert _codes(gate, text) == [(1, "L004"), (1, "L001")]
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_endraw_with_right_trim_closes_and_is_l004(gate):
     assert _codes(gate, "{% raw %}a{% endraw -%}{{ b }}\n") == [
         (1, "L004"),
@@ -106,6 +115,7 @@ def test_endraw_with_right_trim_closes_and_is_l004(gate):
     ]
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_left_trim_endraw_does_not_close(gate):
     assert _codes(gate, "{% raw %}a{%- endraw %}{{ b }}{% endraw %}\n") == [(1, "L004")]
     assert _codes(gate, "{% raw %}a\n{%- endraw %}\n") == [(2, "L004"), (1, "L003")]
@@ -122,11 +132,13 @@ def _scan_tree(gate, root: Path) -> list[tuple[str, int, str]]:
     return sorted(out)
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_front_matter_stripped_with_source_lines(gate, tmp_path):
     root = _docs(tmp_path, {"p.md": "---\ntitle: '{{ x }}'\n---\nbody {{ y }}\n"})
     assert _scan_tree(gate, root) == [("p.md", 4, "L001")]
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_markdown_extensions_scanned(gate, tmp_path):
     root = _docs(
         tmp_path, {"a.markdown": "{{ a }}", "b.mkd": "{{ b }}", "c.md": "{{ c }}"}
@@ -134,6 +146,7 @@ def test_markdown_extensions_scanned(gate, tmp_path):
     assert [p for p, _, _ in _scan_tree(gate, root)] == ["a.markdown", "b.mkd", "c.md"]
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_non_markdown_scanned_only_with_front_matter(gate, tmp_path):
     root = _docs(
         tmp_path,
@@ -146,6 +159,7 @@ def test_non_markdown_scanned_only_with_front_matter(gate, tmp_path):
     assert _scan_tree(gate, root) == [("fm.yaml", 3, "L001")]
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_excludes_and_special_paths_not_scanned(gate, tmp_path):
     root = _docs(
         tmp_path,
@@ -162,6 +176,7 @@ def test_excludes_and_special_paths_not_scanned(gate, tmp_path):
     assert _scan_tree(gate, root) == [("_posts/2026-01-01-post.md", 1, "L001")]
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_excludes_read_from_config_at_run_time(gate, tmp_path):
     root = _docs(tmp_path, {"inv/a.md": "{{ a }}"}, config="exclude:\n  - inv\n")
     assert _scan_tree(gate, root) == []
@@ -172,6 +187,7 @@ def test_excludes_read_from_config_at_run_time(gate, tmp_path):
 # --- errors and CLI ---------------------------------------------------------
 
 
+@pytest.mark.req("REQ-YG-731")
 @pytest.mark.parametrize(
     "config",
     [
@@ -191,12 +207,14 @@ def test_config_errors_exit_2(gate, tmp_path, config, capsys):
     assert "_config.yml" in capsys.readouterr().err
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_invalid_utf8_exits_2(gate, tmp_path, capsys):
     root = _docs(tmp_path, {"bad.md": b"\xff\xfe{{"})
     assert gate.main(["--root", str(root)]) == 2
     assert "bad.md" in capsys.readouterr().err
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_cli_reports_and_exits_1(gate, tmp_path, capsys):
     root = _docs(tmp_path, {"a.md": "ok\n{{ x }}\n", "b.md": "clean\n"})
     assert gate.main(["--root", str(root)]) == 1
@@ -204,17 +222,20 @@ def test_cli_reports_and_exits_1(gate, tmp_path, capsys):
     assert "a.md:2: L001" in out and "{% raw %}" in out and "b.md" not in out
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_cli_clean_tree_exits_0(gate, tmp_path):
     root = _docs(tmp_path, {"a.md": "{% raw %}{{ x }}{% endraw %}\n"})
     assert gate.main(["--root", str(root)]) == 0
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_cli_paths_restrict_scan(gate, tmp_path):
     root = _docs(tmp_path, {"a.md": "{{ x }}", "b.md": "clean"})
     assert gate.main(["--root", str(root), str(root / "b.md")]) == 0
     assert gate.main(["--root", str(root), str(root / "a.md")]) == 1
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_config_path_argument_triggers_full_scan(gate, tmp_path):
     root = _docs(tmp_path, {"a.md": "{{ x }}", "b.md": "clean"})
     assert gate.main(["--root", str(root), str(root / "_config.yml")]) == 1
@@ -223,6 +244,7 @@ def test_config_path_argument_triggers_full_scan(gate, tmp_path):
 # --- wiring -----------------------------------------------------------------
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_precommit_hook_wired():
     hooks = [
         h
@@ -235,6 +257,7 @@ def test_precommit_hook_wired():
     assert hook.get("pass_filenames", True) is True
 
 
+@pytest.mark.req("REQ-YG-731")
 def test_ci_job_always_runs_scanner_and_real_build():
     wf = yaml.safe_load(WORKFLOW.read_text(encoding="utf-8"))
     job = wf["jobs"]["docs-liquid"]
@@ -257,6 +280,7 @@ def test_ci_job_always_runs_scanner_and_real_build():
 # --- gate bite --------------------------------------------------------------
 
 
+@pytest.mark.req("REQ-YG-731")
 @pytest.mark.skipif(shutil.which("pre-commit") is None, reason="pre-commit not on PATH")
 def test_precommit_hook_bites_in_throwaway_repo(tmp_path):
     repo = tmp_path / "repo"

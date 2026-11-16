@@ -160,6 +160,7 @@ echo "All evaluation suites passed."
 
 Create `.github/workflows/promptfoo-eval.yml`:
 
+{% raw %}
 ```yaml
 name: Promptfoo Evaluation
 
@@ -205,6 +206,7 @@ jobs:
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
 ```
+{% endraw %}
 
 ### Phase 3: Trigger scope — what activates the gate
 
