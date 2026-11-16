@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Enhancement
-**Status:** Judged — APPROVED WITH REVISIONS 2026-11-16
+**Status:** Completed 2026-11-16 (enforced; see [Implementation Status](#implementation-status)). Judged APPROVED WITH REVISIONS 2026-11-16
 ([judgement](FR-1166-lint-unread-llm-settings.judgement.md)); R-1..R-5 folded
 (see [Judgement fold](#judgement-fold-2026-11-16))
 **Capability:** CAP-305 / REQ-YG-730
@@ -174,34 +174,34 @@ The binding criteria are the judgement's AC-01..AC-11
 ([judgement](FR-1166-lint-unread-llm-settings.judgement.md#revised-acceptance-criteria)),
 restated here:
 
-- [ ] AC-01: Through `lint_graph` and a CLI witness, each of the four keys in
+- [x] AC-01: Through `lint_graph` and a CLI witness, each of the four keys in
       graph `metadata:` gives W072 naming the location, the key and
       `defaults.<key>`; values `0` and `null` are detected.
-- [ ] AC-02: Each key in a referenced prompt's `metadata:` gives W072, both for
+- [x] AC-02: Each key in a referenced prompt's `metadata:` gives W072, both for
       a graph-relative `prompts_dir` and for project-root resolution.
-- [ ] AC-03: Non-setting `metadata:` keys, prompt top-level `provider` /
+- [x] AC-03: Non-setting `metadata:` keys, prompt top-level `provider` /
       `model`, and missing prompts produce no W072/W073.
-- [ ] AC-04: Direct race and router race emit W073 for every extra key
+- [x] AC-04: Direct race and router race emit W073 for every extra key
       (`thinking_budget`, `temperature`, `max_tokens`, `effort`, arbitrary),
       with node and index; provider-only, model-only, and provider+model
       candidates produce none.
-- [ ] AC-05: Fix wording per R-4; both codes are warnings; no load refusal.
-- [ ] AC-06: `LLMSetting` drives lint membership and the named resolution
+- [x] AC-05: Fix wording per R-4; both codes are warnings; no load refusal.
+- [x] AC-06: `LLMSetting` drives lint membership and the named resolution
       sites. Behaviour witnesses cover all four regular-LLM settings and
       temperature/thinking_budget through the direct and router race.
       Absent/default/node/null/zero semantics are unchanged, and nothing new
       is forwarded to candidates.
-- [ ] AC-07: Defect-specific RED is committed before GREEN; all new tests
+- [x] AC-07: Defect-specific RED is committed before GREEN; all new tests
       carry `REQ-YG-730`; CAP-305 exists; `req_coverage.py --strict` passes.
-- [ ] AC-08: `lint-imports` passes with no contract edit; the focused pytest,
+- [x] AC-08: `lint-imports` passes with no contract edit; the focused pytest,
       the unit suite at `-n 4`, `req_coverage --strict`, and ruff check/format
       on touched Python all pass.
-- [ ] AC-09: Before/after lint census of `examples/` and `graphs/`, with each
+- [x] AC-09: Before/after lint census of `examples/` and `graphs/`, with each
       new W072/W073 recorded by path and key.
-- [ ] AC-10: Read-only lint of csap `a60fb2b9` (the three graphs named in
+- [x] AC-10: Read-only lint of csap `a60fb2b9` (the three graphs named in
       Planned Operations) shows W072, or a labelled reproducer is used
       instead.
-- [ ] AC-11: Docs, changelog fragment, the FR implementation record, and a
+- [x] AC-11: Docs, changelog fragment, the FR implementation record, and a
       Distill entry with **Seed:**.
 
 Tests: `tests/unit/test_fr1166_lint_unread_llm_settings.py` holds the lint
@@ -238,6 +238,102 @@ already rejected it as a separate framework-wide change.
 - **R-5** folded: the doc targets are named; CAP-305 / REQ-YG-730 are
   recorded; the test file is named; the csap revision `a60fb2b9` and its
   three graphs are named; the census is per graph.
+
+## Implementation Status
+
+Enforced 2026-11-16 on branch `docsfr-1166-lint-unread-llm-keys` (PR #780).
+
+| Commit | Step |
+|---|---|
+| `73792a49` | judgement promoted, R-1..R-5 folded |
+| `45197ee5` | RED: 27 failing lint witnesses, 8 negatives passing; CAP-305 / REQ-YG-730 |
+| `98235362` | unplanned: FR-1161 test made bash 3.2 compatible (see below) |
+| `d3a24078` | GREEN: `LLMSetting`, W072/W073, registration, changelog fragment |
+| `1d08064f` | preservation witnesses (LLM, direct race, router race) |
+| `fde34f0b` | docs: `docs/demos/linter.md`, `reference/graph-yaml.md` |
+
+**Decisions and deviations**
+
+- `llm_nodes.py` temperature now resolves through `node_or_default` and then
+  0.7. That is the same node → defaults → 0.7 chain with null inheriting; the
+  witness matrix pins it. It was needed because `ruff format` split two
+  `LLMSetting` lines and the file would have reached 452 lines (gate: 450).
+  The file is back to 450. The shifted lines moved five line-keyed entries:
+  CONF-039, CONF-221 and CONF-243..245 in `docs/confessions.md`, plus the
+  matching `scripts/hedging_check.py` allowlist keys.
+- The race forwarding set (`temperature`, `thinking_budget`) is declared once,
+  in the linter, as `RACE_FORWARDED_SETTINGS`. It chooses the W072/W073 fix
+  wording. The race runtime does not read it; the race preservation witnesses
+  pin the actual forwarding instead.
+- W073 message: `node '<name>' race candidate <i>: '<key>' is not read from
+  race candidates`. One wording covers the direct race and the router race.
+- The CLI witness fixture uses graph-relative prompts, because `graph lint`
+  resolves project-root prompts against `WORKING_DIR`.
+- R-3 witness check: changing each `LLMSetting` value in turn fails 18
+  (temperature), 8 (max_tokens), 24 (thinking_budget) and 9 (effort) tests in
+  the touched suites.
+
+**AC-09 census.** `tmp/census.py` linted 208 graphs (every YAML with a
+`nodes:` map under `examples/` and `graphs/`), first at base `73792a49` and
+then at `fde34f0b`. Result: 14 W072 added, 0 issues removed, 0 crashes, no
+W073. Every hit is `temperature` in a referenced prompt's `metadata:`:
+
+| Graph | Prompts with `metadata.temperature` |
+|---|---|
+| `examples/beautify/graph.yaml` | `analyze`, `mermaid` |
+| `examples/demos/feature-brainstorm/graph.yaml` | `ideate`, `prioritize` |
+| `examples/plot_modeller/graphs/interiority_ab.yaml` | `interiority/derive_cast`, `interiority/interiority_sheets`, `interiority/judge_pair`, `interiority/judge_pair_a0`, `interiority/sketch_bare`, `interiority/sketch_interiority`, `interiority/sketch_surface`, `interiority/surface_sheets` |
+| `examples/plot_modeller/graphs/roundtrip_skeleton.yaml` | `roundtrip/derive_cast`, `roundtrip/outline_briefs` |
+
+All 14 are true positives. For example, `examples/beautify/prompts/analyze.yaml:73`
+asks for `temperature: 0.4`, but the node runs at 0.7. **Kept, with this
+rationale** (the "keep" side of the Planned Operations branch): moving the
+values onto the nodes would change the runtime output of four shipped
+examples, and those governed artifacts may only be edited through
+`scripts/author.sh`. That is a behaviour change for the example owners, not
+part of a lint-only FR. W072 now makes the gap visible.
+
+**AC-10 csap probe.** Read-only `python -m yamlgraph.cli graph lint --json`
+from the csap root: yamlgraph `fde34f0b`, csap `a60fb2b9`, probed paths clean.
+
+| Graph | W072 | W073 |
+|---|---|---|
+| `graphs/flex_navigator/graph.yaml` | 11 (graph metadata + 10 prompts, all `thinking_budget`) | 0 |
+| `graphs/flex_navigator/graph_v2.yaml` | 11 (same) | 0 |
+| `graphs/post_call/graph.yaml` | 2 (graph metadata + `select_queue`) | 0 |
+
+No W073 is expected: csap's 46 candidates carry only `provider` / `model`.
+
+**AC-08 verification** (`tmp/verify.log`): `lint-imports` 3 kept / 0 broken;
+ruff check and format clean; `req_coverage.py --strict` exit 0 (CAP-305 1/1,
+16 tests); unit suite `-m "not slow" -n 4` 7902 passed, 47 skipped,
+1 xfailed; radon (C or worse) and vulture (80%) silent on touched modules.
+
+| Planned operation | Outcome | Witness |
+|---|---|---|
+| probe: `lint-imports` after `LLMSetting` import | ran | audit.jsonl `lint-imports`; `tmp/verify.log` |
+| probe: `wc -l` race_node/llm_nodes | changed: llm_nodes reached 452; folded temperature into `node_or_default` | `d3a24078` |
+| probe: before/after lint of examples/ and graphs/ | ran | census table above; `fde34f0b` |
+| probe: read-only csap lint of 3 graphs | ran | csap probe table above |
+| branch: shipped example carries a metadata tuning key | ran (keep, with rationale) | census rationale above; operator review at PR #780 |
+| branch: size-gate overflow in race_node.py | did not run (race_node stayed at 450) | `d3a24078` |
+| branch: csap unavailable → reproducer | did not run | csap probe table above |
+| delegation: research.sh, 4 runs | ran | audit.jsonl `scripts/research.sh feature-requests/research-briefs/lint-unread-llm-keys` (5 matches) |
+| delegation: judge.sh, 1 run | ran | audit.jsonl `scripts/judge.sh feature-requests/FR-1166` |
+| delegation: author.sh if the example branch fires | did not run (keep chosen) | census rationale above |
+| wait: judge | ran | [judgement](FR-1166-lint-unread-llm-settings.judgement.md), `73792a49` |
+| command: focused pytest | ran | audit.jsonl `test_fr1166_lint_unread_llm_settings.py -q --no-cov` |
+| command: unit suite `-n 4` | ran | `tmp/verify.log`; GREEN pre-commit pytest hook at `d3a24078` |
+| command: `req_coverage.py --strict` | ran | audit.jsonl `req_coverage.py --strict`; `45197ee5` pre-commit hook |
+
+**Unplanned operations:**
+- The GREEN pre-commit pytest hook failed in
+  `tests/unit/test_fr1161_authoring_proof_separators.py`. On macOS,
+  `/bin/bash` is 3.2, and there `source <(...)` defines nothing (exit 127), so
+  the test failed on every macOS checkout, main included. Fixed with
+  `eval "$(...)"` in its own commit, `98235362`.
+- Line-keyed confession and hedging-allowlist updates, forced by the line
+  shift (`d3a24078`).
 
 ## Out of Scope
 
