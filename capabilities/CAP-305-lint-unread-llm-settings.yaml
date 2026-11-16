@@ -1,0 +1,28 @@
+id: CAP-305
+name: Lint Unread LLM Settings
+description: >
+  FR-1166: `yamlgraph graph lint` warns when an LLM tuning setting
+  (`thinking_budget`, `temperature`, `max_tokens`, `effort`) is written in
+  graph `metadata:` or in the `metadata:` of a referenced prompt (W072), and
+  when a `race` or router-race candidate carries any key other than
+  `provider` / `model` (W073). The setting names are declared once in
+  `yamlgraph/constants.py` (`LLMSetting`) and shared by the linter and the
+  LLM and race resolution sites. Runtime behaviour is unchanged.
+modules:
+  - yamlgraph/constants.py
+  - yamlgraph/linter/checks_providers.py
+  - yamlgraph/linter/graph_linter.py
+requirements:
+  - id: REQ-YG-730
+    description: >
+      Lint emits W072 (warning) for each `LLMSetting` key present, any value
+      including null, in graph `metadata:` or in a referenced prompt's
+      `metadata:` (each prompt once; missing prompts left to E004), naming the
+      location, the key and `defaults.<key>`. Lint emits W073 (warning) per
+      extra key on a direct-race or router-race candidate, naming the node,
+      the zero-based candidate index and the key, with a fix that matches the
+      key's race behaviour. Neither code changes load or runtime behaviour.
+    modules:
+      - yamlgraph/linter/checks_providers.py
+      - tests/unit/test_fr1166_lint_unread_llm_settings.py
+fr: FR-1166
