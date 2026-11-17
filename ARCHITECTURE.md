@@ -759,7 +759,7 @@ Parallel fan-out and nested subgraph execution.
 
 Logging, templating, JSON extraction, environment handling, and shared utilities.
 
-**Feature Request:** legacy, FR-1169
+**Feature Request:** legacy, FR-799, FR-1169
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|

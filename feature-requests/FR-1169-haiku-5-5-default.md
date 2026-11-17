@@ -120,6 +120,12 @@ that use the id only as an arbitrary string or as a fact about Haiku 4.5
   its committed proofs, `scripts/probe_fr1164_truncation.py`,
   `scripts/fr711_conn_witness.py` (FR-711's measurement instrument), and
   tests that use the id as a pass-through string or as a fact about Haiku 4.5.
+- **CI fix, 2026-11-17:** `test (3.14)` failed one test,
+  `test_no_req_collision_across_unrelated_frs`: FR-799's 0.5.19 fragment
+  claims REQ-YG-043, but FR-799 was never listed on CAP-12, and this FR's
+  fragment made REQ-YG-043 a shared claim. CAP-12 now lists FR-799 (its fix
+  was to `yamlgraph.config`'s module identity, which REQ-YG-043 covers).
+  `test (3.11)` was cancelled by the matrix's fail-fast, not failed.
 - **Deviation:** no judge run. The change is a model-id move requested by a
   consuming project, with the same shape as FR-1162; the judge route needs a
   `bash` this Windows host lacks. The PR review stands in for it.

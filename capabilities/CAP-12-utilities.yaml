@@ -29,4 +29,4 @@ requirements:
     modules:
       - utils/logging
       - utils/parsing
-fr: legacy, FR-1169
+fr: legacy, FR-799, FR-1169
