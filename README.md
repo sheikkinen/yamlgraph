@@ -227,7 +227,7 @@ See [ARCHITECTURE.md](ARCHITECTURE.md#file-reference) for detailed module line c
 | `MISTRAL_API_KEY` | No | Mistral API key (required if using Mistral) |
 | `OPENAI_API_KEY` | No | OpenAI API key (required if using OpenAI) |
 | `PROVIDER` | No | Default LLM provider (anthropic/azure/deepseek/google/inception/lmstudio/mistral/openai/replicate/vertex/xai) |
-| `ANTHROPIC_MODEL` | No | Anthropic model (default: claude-haiku-4-5) |
+| `ANTHROPIC_MODEL` | No | Anthropic model (default: claude-haiku-5-5) |
 | `MISTRAL_MODEL` | No | Mistral model (default: mistral-large-latest) |
 | `OPENAI_MODEL` | No | OpenAI model (default: gpt-4o) |
 | `REPLICATE_API_TOKEN` | No | Replicate API token |

@@ -33,7 +33,7 @@ change. It ends in one named dominant lever (or "multi-cause -> split successors
 
 Run:
   set -a; source .env; set +a
-  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 \
+  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-5-5 \
     .venv/bin/python examples/plot_modeller/probe_l7_misses.py
 
 REQ-YG-020.
@@ -890,7 +890,7 @@ def absent_report() -> int:
 
 def main() -> int:
     provider = os.getenv("PROVIDER", "anthropic")
-    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
+    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5")
 
     # window -> bucket -> {open, close}
     pooled: dict[int, dict] = {w: _blank_buckets() for w in WINDOWS}

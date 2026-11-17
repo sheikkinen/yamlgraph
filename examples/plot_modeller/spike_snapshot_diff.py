@@ -20,7 +20,7 @@ Pipeline:
 
 Run:
   set -a; source .env; set +a
-  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 \
+  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-5-5 \
     python examples/plot_modeller/spike_snapshot_diff.py
 
 Gate 1 decider (FR-587 corrections #1/#2): `at`-FP falling materially below the
@@ -118,7 +118,7 @@ def _run_fixture(gt_path: Path, provider: str, model: str) -> list:
 
 def main() -> int:
     provider = os.getenv("PROVIDER", "anthropic")
-    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
+    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5")
     l5_dir = RESULTS_DIR / "l5"
     l5_dir.mkdir(parents=True, exist_ok=True)
 

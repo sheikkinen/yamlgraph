@@ -124,7 +124,7 @@ declares the tool via [describe_image.tool.yaml](describe_image.tool.yaml).
 | Provider | Default model | Required env |
 |----------|---------------|--------------|
 | `google` (default) | `GOOGLE_MODEL` or `gemini-2.0-flash` | `GOOGLE_API_KEY` |
-| `anthropic` | `ANTHROPIC_MODEL` or `claude-haiku-4-5` | `ANTHROPIC_API_KEY` |
+| `anthropic` | `ANTHROPIC_MODEL` or `claude-haiku-5-5` | `ANTHROPIC_API_KEY` |
 
 **Failure modes:** unsupported providers raise `ValueError` (naming the
 supported set) before any LLM call; missing local files raise

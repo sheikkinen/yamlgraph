@@ -1,2 +1,19 @@
-✅ Live run postponed until map proven to work (FR-1073, PR #702; operator ruling 2026-09-26).
-This file is not a run log. The previous live run is in git history: git log -p -- examples/demos/book-summary/demo-output.log
+# FR-1169 (2026-11-17): model id claude-haiku-4-5 -> claude-haiku-5-5 in this demo's graph, code or README only; lint + validate of this graph. No live run (cost and inputs outside FR-1169; the default-model live proof is ramp_rtm's log). The previous log is in git history.
+⚠️ graph.yaml
+   ⚠ [W012] Node 'fetch_batch' is in a cycle but has no loop_limits entry
+      Fix: Add 'fetch_batch: <limit>' to loop_limits section
+   ⚠ [W012] Node 'render_pages' is in a cycle but has no loop_limits entry
+      Fix: Add 'render_pages: <limit>' to loop_limits section
+   ⚠ [W012] Node 'summarize_pages' is in a cycle but has no loop_limits entry
+      Fix: Add 'summarize_pages: <limit>' to loop_limits section
+   ⚠ [W012] Node 'transcribe_pages' is in a cycle but has no loop_limits entry
+      Fix: Add 'transcribe_pages: <limit>' to loop_limits section
+   ⚠ [W806] z3 not installed — SMT condition checks (W803–W805) skipped; install yamlgraph[verify] to enable
+
+Found 0 error(s) and 4 warning(s)
+
+
+✅ graph.yaml (book-summary) - VALID
+
+   Nodes: 16
+   Edges: 19

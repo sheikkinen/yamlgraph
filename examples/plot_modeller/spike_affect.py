@@ -37,7 +37,7 @@ the aggregate:
 
 Run:
   set -a; source .env; set +a
-  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 \
+  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-5-5 \
     python examples/plot_modeller/spike_affect.py
 """
 
@@ -191,7 +191,7 @@ def _pred_by_id(combined: list) -> dict:
 
 def main() -> int:
     provider = os.getenv("PROVIDER", "anthropic")
-    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
+    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5")
     l7_dir = RESULTS_DIR / "l7"
     tl_root = l7_dir / "throughlines"
     l7_dir.mkdir(parents=True, exist_ok=True)

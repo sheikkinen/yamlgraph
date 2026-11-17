@@ -2,7 +2,7 @@ version: "1.0"
 name: changelog-req-cross-check
 defaults:
   provider: anthropic
-  model: claude-haiku-4-5
+  model: claude-haiku-5-5
   temperature: 0
 prompts_relative: true
 prompts_dir: prompts

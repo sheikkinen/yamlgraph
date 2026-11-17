@@ -70,7 +70,7 @@ concept + style + count
 
 | Model | ~Time | ~Cost (5 prompts) |
 |-------|-------|--------------------|
-| `claude-haiku-4-5` | 5-10s | ~$0.005 |
+| `claude-haiku-5-5` | 5-10s | ~$0.0005 |
 | `claude-sonnet-4-5` | 10-20s | ~$0.05 |
 
 ## Error Handling

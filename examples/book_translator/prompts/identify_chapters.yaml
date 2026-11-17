@@ -1,7 +1,7 @@
 # Identify chapter/section boundary markers in text
 # Returns exact strings that can be used to split the document
 
-model: claude-haiku-4-5
+model: claude-haiku-5-5
 temperature: 0.1
 max_tokens: 1500
 

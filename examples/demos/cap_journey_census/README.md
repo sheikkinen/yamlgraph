@@ -6,7 +6,7 @@ Capability-registry census for `docs/2026-09-05-research-plan-cap-journey-census
 PYTHONPATH=$PWD yamlgraph graph run examples/demos/cap_journey_census/graph.yaml \
   --var source="capabilities:ids=CAP-131,CAP-81,CAP-126" \
   --var provider=anthropic \
-  --var model=claude-haiku-4-5 \
+  --var model=claude-haiku-5-5 \
   --var journey_ids="author_graph,run_operate,debug_observe,integrate,serve_embed,census_classify,govern_process,audit_comply,conversational_app,none_internal" \
   --var journeys_path=examples/demos/cap_journey_census/journeys.yaml \
   --var canaries_path="" \

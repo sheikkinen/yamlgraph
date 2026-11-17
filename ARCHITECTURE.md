@@ -759,6 +759,8 @@ Parallel fan-out and nested subgraph execution.
 
 Logging, templating, JSON extraction, environment handling, and shared utilities.
 
+**Feature Request:** legacy, FR-799, FR-1169
+
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-043 | Configuration and constants management | `config`, `constants` |
@@ -1663,7 +1665,7 @@ Demo graph that reads diary entries from docs/diary/*.md, extracts structured da
 
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
-| REQ-YG-257 | Diary index graph: map node fans out over diary files, LLM extracts traps/heuristics/seeds/FR refs per entry, deterministic Python aggregate_index() builds cross-reference index (traps_index sorted by frequency, seeds_index with dedup, fr_index reverse mapping, heuristics_candidates with 2+ threshold, statistics by category). write_index() persists to docs/diary-index.yaml. Graph lints clean. Inline schema on extraction prompt. model: claude-haiku-4-5 for cost. | `examples/demos/diary_index` |
+| REQ-YG-257 | Diary index graph: map node fans out over diary files, LLM extracts traps/heuristics/seeds/FR refs per entry, deterministic Python aggregate_index() builds cross-reference index (traps_index sorted by frequency, seeds_index with dedup, fr_index reverse mapping, heuristics_candidates with 2+ threshold, statistics by category). write_index() persists to docs/diary-index.yaml. Graph lints clean. Inline schema on extraction prompt. model: claude-haiku-5-5 for cost. | `examples/demos/diary_index` |
 
 ### 111. CAP-111 Shared Graph Invocation
 
@@ -3045,7 +3047,7 @@ LLM batch review of REQ-test-code triples answering the spine's one non-mechanic
 | REQ-YG-606 | scripts/req_audit_questions.py deterministically emits one JSON question file per current registry requirement (never a hard-coded count) with the frozen schema — req_id, req_text, cap_id, cap_name, declared_modules, tests each carrying a resolution class from the frozen enum coverage\|ast\|no-link-ran\|no-link-unrecorded\|doc-witness, resolved_files, evidence_depth, and the fixed audit question — plus batches ordered by req_id under a chars/4 token estimator with a configurable maximum (default 8000) where an oversized requirement is isolated in its own batch untruncated; output is byte-identical for the same tree; stage-2 emission includes test bodies for flagged requirements; no LLM is invoked. | `scripts` |
 | REQ-YG-607 | scripts/req_audit_report.py reconciles model verdicts against batch inputs at the boundary: a returned req_id outside the batch's input set rejects that batch result and re-queues its inputs, duplicate req_ids keep the first occurrence and are logged, missing req_ids re-queue once then surface as unaudited; no input requirement disappears silently (audited plus unaudited equals inputs); the rendered report ranks no, partial, and unaudited first with gap and suggestion, collapses yes to counts, and carries model/provider, tree SHA, batch count, reconciliation summary, and the stage labeling (plausibility vs entailment). | `scripts` |
 | REQ-YG-608 | scripts/coverage_contexts.py is the single coverage-context boundary (FR-850) consumed by both req_coverage.py --implementation and req_audit_questions.py: it hard-refuses missing, context-free, or first-test-wins-poisoned .coverage DBs (distinct contexts below 0.25 of tagged tests) with a remedy naming COVERAGE_CORE=ctrace, --cov-context=test, and sequential recording; normalizes [param]-suffixed context ids to marker keys; owns the shared five-class derive_resolution so no second resolution truth exists; and partitions declared-module reconciliation into measured yamlgraph/ never-hit findings versus unmeasured declarations, with the implementation report emitting a question-headed five-class split whose counts sum to the test-req pair denominator. | `scripts` |
-| REQ-YG-609 | scripts/req_audit.sh (FR-860) orchestrates the audit as four fail-fast sequential phases — record, construct, audit, report — each tee'd to a per-phase log under the output directory; the record phase is exactly the full sequential framework-suite coverage command (COVERAGE_CORE=ctrace pytest tests/unit tests/integration -q --cov-report= --cov=yamlgraph --cov-context=test, no -n, no mark exclusions); --skip-record reuses .coverage only through the FR-850 boundary whose hard refusal exits non-zero with the remedy and no report; the CLI is --out/--skip-record/--model/--provider with frozen defaults (claude-haiku-4-5/anthropic) and no environment precedence; the script writes a frozen-schema run-manifest.json carrying git SHA, dirty flag, pytest command, coverage core, recorded-context and tagged-test counts, skip count, versions, provider, model, and per-phase command/exit/log; the report header embeds the same provenance; no report.md exists unless every phase succeeded. | `scripts` |
+| REQ-YG-609 | scripts/req_audit.sh (FR-860) orchestrates the audit as four fail-fast sequential phases — record, construct, audit, report — each tee'd to a per-phase log under the output directory; the record phase is exactly the full sequential framework-suite coverage command (COVERAGE_CORE=ctrace pytest tests/unit tests/integration -q --cov-report= --cov=yamlgraph --cov-context=test, no -n, no mark exclusions); --skip-record reuses .coverage only through the FR-850 boundary whose hard refusal exits non-zero with the remedy and no report; the CLI is --out/--skip-record/--model/--provider with frozen defaults (claude-haiku-5-5/anthropic) and no environment precedence; the script writes a frozen-schema run-manifest.json carrying git SHA, dirty flag, pytest command, coverage core, recorded-context and tagged-test counts, skip count, versions, provider, model, and per-phase command/exit/log; the report header embeds the same provenance; no report.md exists unless every phase succeeded. | `scripts` |
 
 ### 244. CAP-244 Ramp Installer
 
@@ -3876,7 +3878,7 @@ edges:
 1. **Add to config.py** `DEFAULT_MODELS`:
    ```python
    DEFAULT_MODELS = {
-       "anthropic": os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5"),
+       "anthropic": os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5"),
        "my_provider": os.getenv("MY_PROVIDER_MODEL", "my-model"),
    }
    ```

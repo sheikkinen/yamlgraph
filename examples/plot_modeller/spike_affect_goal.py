@@ -29,7 +29,7 @@ Verdict (J corrections 2-4):
 
 Run from repo root (mode B is gated on mode A clearing, to bound API cost):
   set -a; source .env; set +a; \
-  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 \
+  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-5-5 \
     .venv/bin/python examples/plot_modeller/spike_affect_goal.py --draws 2
 """
 
@@ -347,7 +347,7 @@ def main() -> int:
     )
     args = ap.parse_args()
     provider = os.getenv("PROVIDER", "anthropic")
-    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
+    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5")
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     descs = yaml.safe_load(GOAL_DESCS.read_text(encoding="utf-8"))
 
@@ -443,8 +443,7 @@ def _explain_autopsy(provider: str, model: str, descs: dict) -> int:
     hits = [r for r in rows if r["hit"]]
     misses = [r for r in rows if not r["hit"]]
     print(
-        f"referent binding: {len(hits)}/{len(rows)} hit "
-        f"({len(hits) / len(rows):.3f})\n"
+        f"referent binding: {len(hits)}/{len(rows)} hit ({len(hits) / len(rows):.3f})\n"
         if rows
         else "no rows\n"
     )

@@ -204,7 +204,7 @@ intervention: "penisilliini"
 duration: "7 vrk"
 salient_other: "penicillin tolerance confirmed; no prior reaction"
 confidence: high
-model: "claude-haiku-4-5"
+model: "claude-haiku-5-5"
 prompt_version: 3
 ```
 

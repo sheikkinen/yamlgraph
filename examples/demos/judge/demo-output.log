@@ -1,36 +1,13 @@
-yamlgraph graph run examples/demos/judge/graph.yaml \
-  --var fr_path=tmp/fr777-enforcer-demo-fr.md --json  # PROVIDER=google (FR-777 toolbelt witness)
-2026-08-06 07:11:47,900 [INFO] yamlgraph.compile.graph_loader: Parsed 5 shell tools: read_file, search, list_dir, git_log, run_tests
-2026-08-06 07:11:47,907 [INFO] yamlgraph.compile.node_compiler: Added node: judge (type=agent)
-2026-08-06 07:11:48,008 [INFO] yamlgraph.utils.llm_factory: Creating LLM: google/gemini-3.5-flash (temp=0)
-2026-08-06 07:11:49,570 [INFO] yamlgraph.tools.agent: 🤖 Starting agent loop: judge (max 12 iterations)
-2026-08-06 07:11:50,545 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
-2026-08-06 07:11:50,547 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'tmp/fr777-enforcer-demo-fr.md'})
-2026-08-06 07:11:51,599 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
-2026-08-06 07:11:51,601 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'pattern': 'FR-777', 'glob': 'ARCHITECTURE.md'})
-2026-08-06 07:11:52,735 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
-2026-08-06 07:11:52,737 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': '.'})
-2026-08-06 07:11:54,056 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
-2026-08-06 07:11:54,059 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'ARCHITECTURE.md'})
-2026-08-06 07:11:55,797 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
-2026-08-06 07:11:55,799 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'feature-requests'})
-2026-08-06 07:11:57,538 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
-2026-08-06 07:11:57,541 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: git_log({'pattern': 'FR-777'})
-2026-08-06 07:11:59,484 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
-2026-08-06 07:11:59,487 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'feature-requests/FR-777-shared-shell-toolbelt-manifests.md'})
-2026-08-06 07:12:02,525 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
-2026-08-06 07:12:02,527 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'pattern': 'FR-777', 'glob': 'tests/**/*.py'})
-2026-08-06 07:12:04,193 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
-2026-08-06 07:12:04,196 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: list_dir({'dir': 'tests/unit'})
-2026-08-06 07:12:06,137 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
-2026-08-06 07:12:06,157 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: run_tests({'test_file': 'tests/unit/test_fr777_shell_toolbelt.py'})
-2026-08-06 07:12:13,511 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
-2026-08-06 07:12:13,514 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: search({'glob': 'tests/**/*.py', 'pattern': 'witness'})
-2026-08-06 07:12:15,764 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
-2026-08-06 07:12:15,768 [INFO] yamlgraph.tools.agent: 🔧 Calling tool: read_file({'file': 'tests/unit/test_fr777_shell_toolbelt.py'})
-2026-08-06 07:12:15,800 [WARNING] yamlgraph.tools.agent: Agent hit max iterations (12)
-2026-08-06 07:12:15,911 [INFO] google_genai.models: AFC is enabled with max remote calls: 10.
-2026-08-06 07:12:22,420 [INFO] httpx: HTTP Request: POST https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent "HTTP/1.1 200 OK"
-Saved verdict to examples/demos/judge/judgement.json
+# FR-1169 (2026-11-17): model id claude-haiku-4-5 -> claude-haiku-5-5 in this demo's graph, code or README only; lint + validate of this graph. No live run (cost and inputs outside FR-1169; the default-model live proof is ramp_rtm's log). The previous log is in git history.
+⚠️ graph.yaml
+   ⚠ [W026] Prompt 'judge' (node 'judge') declares 5 top-level output fields (>= 4) — it may fuse that many independent judgements into one call; the hardest judgement can starve under load
+      Fix: Consider splitting discrimination from bookkeeping (see FR-585 decode pattern) or pushing global cross-unit constraints to a deterministic post-pass.
+   ⚠ [W806] z3 not installed — SMT condition checks (W803–W805) skipped; install yamlgraph[verify] to enable
 
-✓ Graph execution completed successfully
+Found 0 error(s) and 1 warning(s)
+
+
+✅ graph.yaml (fr-judge) - VALID
+
+   Nodes: 1
+   Edges: 2

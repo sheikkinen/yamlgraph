@@ -137,7 +137,7 @@ items:
 The prompt may repeat collector-owned IDs for attribution, but those IDs remain
 claims until the reducer checks them. Use a pinned cheap model when the task is
 narrow and structured. Demonstrated choices include
-`inception/mercury-2` and `anthropic/claude-haiku-4-5`; they are examples, not
+`inception/mercury-2` and `anthropic/claude-haiku-5-5`; they are examples, not
 universal defaults.
 
 Map errors must fail the overall run. They may fail directly, or a map may use
