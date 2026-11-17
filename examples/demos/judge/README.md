@@ -91,7 +91,7 @@ EVAL_TIMEOUT=600 ./examples/demos/judge/eval.sh feature-requests/FR-452.md
 | Label | Provider | Model | Role |
 |-------|----------|-------|------|
 | anthropic-sonnet | Anthropic | claude-sonnet-4-6 | Critical judge |
-| anthropic-haiku | Anthropic | claude-haiku-4-5 | Fast critical judge |
+| anthropic-haiku | Anthropic | claude-haiku-5-5 | Fast critical judge |
 | openai-o4mini | OpenAI | o4-mini | Reasoning judge |
 | google-flash | Google | gemini-2.5-flash | Fast baseline |
 | google-pro | Google | gemini-2.5-pro | Thorough baseline |

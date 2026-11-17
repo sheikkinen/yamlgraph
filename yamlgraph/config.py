@@ -64,7 +64,7 @@ DEFAULT_TEMPERATURE = 0.7
 #   ANTHROPIC_API_KEY, GOOGLE_API_KEY, MISTRAL_API_KEY, OPENAI_API_KEY,
 #   REPLICATE_API_TOKEN, XAI_API_KEY
 DEFAULT_MODELS = {
-    "anthropic": os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5"),
+    "anthropic": os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5"),
     "deepseek": os.getenv("DEEPSEEK_MODEL", "deepseek-chat"),
     "google": os.getenv("GOOGLE_MODEL", "gemini-2.0-flash"),
     "inception": os.getenv("INCEPTION_MODEL", "mercury-2"),

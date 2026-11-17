@@ -33,7 +33,7 @@ Raw detector output is stored under results/l7_perkind/throughlines/<genre>/
 
 Run:
   set -a; source .env; set +a
-  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 \
+  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-5-5 \
     python examples/plot_modeller/spike_affect_per_kind.py --draws 3
 """
 
@@ -343,7 +343,7 @@ def main() -> int:
     ap.add_argument("--draws", type=int, default=3)
     args = ap.parse_args()
     provider = os.getenv("PROVIDER", "anthropic")
-    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
+    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5")
     PERKIND_L7.mkdir(parents=True, exist_ok=True)
 
     arm_a = _arm_a_baseline()

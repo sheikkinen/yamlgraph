@@ -63,7 +63,7 @@ yamlgraph graph run examples/demos/person_profile_census/SMOKE_ONLY.yaml \
   --tool extract=examples/demos/corpus_census/adapters/gh-pr-extract.tool.yaml \
   --var source='sheikkinen@sheikkinen:2026-08-25' \
   --var visibility='["public"]' \
-  --var smoke_model='claude-haiku-4-5' \
+  --var smoke_model='claude-haiku-5-5' \
   --var problem_labels='["doctrine","enforcement","cleanup","infra","research","tests","hotfix","tooling","governance"]' \
   --var surface_labels='["backend","infra","docs","tests","tooling","ci","graphs","hooks","adapters"]' \
   --var rubric='Classify this authored PR by problem_class, change_kind (feat|fix|docs|refactor|chore|infra|ops|test|revert), 1-5 distinct surfaces, one-sentence intent (<=280 chars), and one evidence_span copied verbatim from the title or body_head.' \

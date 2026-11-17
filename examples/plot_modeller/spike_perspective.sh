@@ -12,7 +12,7 @@
 #   examples/plot_modeller/spike_perspective.sh detective  # one genre
 #
 # Env: reads .env for ANTHROPIC_API_KEY etc.; PROVIDER/ANTHROPIC_MODEL select
-# the model (defaults: anthropic / claude-haiku-4-5).
+# the model (defaults: anthropic / claude-haiku-5-5).
 set -euo pipefail
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -31,7 +31,7 @@ fi
 
 PYTHON="${PYTHON:-.venv/bin/python}"
 export PROVIDER="${_CALLER_PROVIDER:-${PROVIDER:-anthropic}}"
-export ANTHROPIC_MODEL="${_CALLER_MODEL:-${ANTHROPIC_MODEL:-claude-haiku-4-5}}"
+export ANTHROPIC_MODEL="${_CALLER_MODEL:-${ANTHROPIC_MODEL:-claude-haiku-5-5}}"
 
 GENRE_ARG=()
 if [[ $# -ge 1 ]]; then

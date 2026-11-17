@@ -51,7 +51,7 @@ nodes:
     type: llm
     prompt: execute_query
     provider: anthropic
-    model: claude-haiku-4-5
+    model: claude-haiku-5-5
     temperature: 0.7
     variables:
       query: "{state.query}"
@@ -71,7 +71,7 @@ nodes:
   log_complex:
     type: passthrough
     output:
-      provider_used: "anthropic/claude-haiku-4-5"
+      provider_used: "anthropic/claude-haiku-5-5"
 
 edges:
   - from: START

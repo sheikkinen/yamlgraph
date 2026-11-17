@@ -92,7 +92,7 @@ def test_readme_has_the_showcase_section() -> None:
         "output_schema",
         "demo-output.log",
         "PROVIDER=anthropic yamlgraph graph lint",
-        "PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 yamlgraph graph run",
+        "PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-5-5 yamlgraph graph run",
         "reference/prompt-yaml.md",
     ):
         assert needle in text, f"README lacks {needle!r}"

@@ -69,7 +69,7 @@ page before summarization — the same window discipline as `accumulate`.
 Constraints:
 
 - Only vision-capable providers are allowed: `google` (gemini-2.0-flash)
-  and `anthropic` (claude-haiku-4-5). `preflight_vision` validates the
+  and `anthropic` (claude-haiku-5-5). `preflight_vision` validates the
   provider BEFORE the loop starts, so an unsupported provider (e.g. the
   repo default deepseek) fails without rendering a single page:
   `PROVIDER=google` or `PROVIDER=anthropic` is required with the flag on.

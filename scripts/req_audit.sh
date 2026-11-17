@@ -8,7 +8,7 @@
 # measured. Run from the repo root.
 set -euo pipefail
 
-MODEL="claude-haiku-4-5"
+MODEL="claude-haiku-5-5"
 PROVIDER="anthropic"
 SKIP_RECORD=0
 OUT=""
@@ -30,7 +30,7 @@ Flags (no environment-variable precedence; flags or defaults only):
   --out DIR       Output directory (default: tmp/req-audit-<shortsha>)
   --skip-record   Reuse the existing .coverage; the FR-850 boundary still
                   hard-refuses missing/context-free/poisoned DBs
-  --model M       Audit/report model (default: claude-haiku-4-5)
+  --model M       Audit/report model (default: claude-haiku-5-5)
   --provider P    LLM provider (default: anthropic)
   --help          This text
 EOF

@@ -1,7 +1,7 @@
 metadata:
   description: "Plan discovery tasks for systematic code investigation"
   provider: anthropic
-  model: claude-haiku-4-5
+  model: claude-haiku-5-5
   temperature: 0.3
 
 system: |

@@ -31,7 +31,7 @@ from pydantic import (
 from yamlgraph.models.map_results import MapFailure
 
 ERROR_STRINGS = ("Error:", "No results")
-MODEL = "claude-haiku-4-5"
+MODEL = "claude-haiku-5-5"
 PROMPT_VERSION = "judge_item.v1"
 SYNTHESIS_PROMPT_VERSION = "synthesize_brief.v1"
 

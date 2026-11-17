@@ -34,7 +34,7 @@ uvicorn examples.openai_proxy.api.app:app --reload --factory
 curl http://localhost:8000/v1/chat/completions \
   -H "Authorization: Bearer test-key" \
   -H "Content-Type: application/json" \
-  -d '{"model": "claude-haiku-4-5", "messages": [{"role": "user", "content": "Hello"}]}'
+  -d '{"model": "claude-haiku-5-5", "messages": [{"role": "user", "content": "Hello"}]}'
 ```
 
 ## Test with OpenAI SDK
@@ -44,7 +44,7 @@ from openai import OpenAI
 
 client = OpenAI(base_url="http://localhost:8000/v1", api_key="test-key")
 r = client.chat.completions.create(
-    model="claude-haiku-4-5",
+    model="claude-haiku-5-5",
     messages=[{"role": "user", "content": "Hello"}],
 )
 print(r.choices[0].message.content)

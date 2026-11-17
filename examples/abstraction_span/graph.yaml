@@ -5,7 +5,7 @@
 #       the map node; orchestration is YAML, file I/O + the gate are Python.
 #
 # Run:
-#   PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 \
+#   PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-5-5 \
 #     yamlgraph graph run examples/abstraction_span/graph.yaml --full
 
 version: "1.0"

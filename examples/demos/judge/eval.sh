@@ -29,7 +29,7 @@ source .env 2>/dev/null || true
 # Model configurations: provider|model|label|api_key_var
 MODELS=(
   "anthropic|claude-sonnet-4-6|anthropic-sonnet|ANTHROPIC_API_KEY"
-  "anthropic|claude-haiku-4-5|anthropic-haiku|ANTHROPIC_API_KEY"
+  "anthropic|claude-haiku-5-5|anthropic-haiku|ANTHROPIC_API_KEY"
   "openai|o4-mini|openai-o4mini|OPENAI_API_KEY"
   "google|gemini-2.5-flash|google-flash|GOOGLE_API_KEY"
   "google|gemini-2.5-pro|google-pro|GOOGLE_API_KEY"

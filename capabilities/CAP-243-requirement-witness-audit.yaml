@@ -77,7 +77,7 @@ requirements:
       reuses .coverage only through the FR-850 boundary whose hard
       refusal exits non-zero with the remedy and no report; the CLI is
       --out/--skip-record/--model/--provider with frozen defaults
-      (claude-haiku-4-5/anthropic) and no environment precedence; the
+      (claude-haiku-5-5/anthropic) and no environment precedence; the
       script writes a frozen-schema run-manifest.json carrying git SHA,
       dirty flag, pytest command, coverage core, recorded-context and
       tagged-test counts, skip count, versions, provider, model, and

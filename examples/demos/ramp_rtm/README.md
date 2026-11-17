@@ -83,7 +83,7 @@ Run the filled form (two calls; both variables set explicitly because the
 model is an environment-overridable default):
 
 ```bash
-PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 yamlgraph graph run examples/demos/ramp_rtm/graph.yaml   --var target=tests/fixtures/ramp_target --full
+PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-5-5 yamlgraph graph run examples/demos/ramp_rtm/graph.yaml   --var target=tests/fixtures/ramp_target --full
 ```
 
 The committed `demo-output.log` is that run from 2026-09-27: two map
@@ -92,4 +92,3 @@ branches, five entries, every one carrying `req_id`, `statement`,
 forms are documented in
 [reference/prompt-yaml.md](../../../reference/prompt-yaml.md) under
 "Unconstrainable schema fields on Anthropic".
-

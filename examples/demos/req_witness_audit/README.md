@@ -18,7 +18,7 @@ yamlgraph graph run examples/demos/req_witness_audit/graph.yaml \
 
 # 3. Deterministic: reconcile + ranked report
 python scripts/req_audit_report.py --audit-dir tmp/req-audit \
-  --model claude-haiku-4-5 --provider anthropic
+  --model claude-haiku-5-5 --provider anthropic
 ```
 
 ## What It Does

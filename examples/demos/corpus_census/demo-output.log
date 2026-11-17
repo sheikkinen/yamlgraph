@@ -1,7 +1,11 @@
-# FR-1120: adapters changed (gh_authored_prs_versions added), graph unchanged; lint + validate of this graph. Live run still postponed (FR-1073 ruling 2026-09-26).
-✅ graph.yaml - No issues found
+# FR-1169 (2026-11-17): model id claude-haiku-4-5 -> claude-haiku-5-5 in this demo's graph, code or README only; lint + validate of this graph. No live run (cost and inputs outside FR-1169; the default-model live proof is ramp_rtm's log). The previous log is in git history.
+⚠️ graph.yaml
+   ⚠ [W029] Prompt 'synthesize_brief' (node 'synthesize', model '{state.brief_llm.model}'): field 'claims.items' is an object with no declared properties; Anthropic constrained decoding reduces it to {} and the model can only answer empty. Declare its properties with the output_schema form (items: {type: object, properties: {...}}) or use a provider that accepts open objects. (provider is chosen at run time; Anthropic would reject it)
+      Fix: Declare the object's properties with the output_schema form (items: {type: object, properties: {...}}), or run the node on a provider that accepts open objects.
+   ⚠ [W806] z3 not installed — SMT condition checks (W803–W805) skipped; install yamlgraph[verify] to enable
 
-✅ All graphs passed linting
+Found 0 error(s) and 1 warning(s)
+
 
 ✅ graph.yaml (corpus-census) - VALID
 

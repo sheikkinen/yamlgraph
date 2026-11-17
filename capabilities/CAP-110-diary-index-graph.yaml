@@ -16,7 +16,7 @@ requirements:
       by frequency, seeds_index with dedup, fr_index reverse mapping,
       heuristics_candidates with 2+ threshold, statistics by category).
       write_index() persists to docs/diary-index.yaml. Graph lints clean.
-      Inline schema on extraction prompt. model: claude-haiku-4-5 for cost.
+      Inline schema on extraction prompt. model: claude-haiku-5-5 for cost.
     modules:
       - examples/demos/diary_index
 fr: FR-254
