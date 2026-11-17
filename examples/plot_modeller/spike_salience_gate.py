@@ -16,7 +16,7 @@ Pipeline:
      the unchanged evaluator, and dissected by analyze_l5_confusion.py.
 
 Run:
-  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 \
+  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-5-5 \
     python examples/plot_modeller/spike_salience_gate.py
 
 Gate 1 verdict (FR-585 AC#1, C3): PASS needs `at`-FP to fall from the baseline
@@ -153,7 +153,7 @@ def _run_fixture(gt_path: Path, provider: str, model: str) -> list:
 
 def main() -> int:
     provider = os.getenv("PROVIDER", "anthropic")
-    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
+    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5")
     l5_dir = RESULTS_DIR / "l5"
     l5_dir.mkdir(parents=True, exist_ok=True)
 

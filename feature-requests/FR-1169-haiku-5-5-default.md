@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Enhancement
-**Status:** Proposed
+**Status:** Implemented 2026-11-17, awaiting CI and review (AC-04 open). Not judged: see Deviation.
 **Requested:** 2026-11-17
 **First consumer / first event:** game-engine (brief 487). Its operator asked on
 2026-11-17 that Haiku 4.5 be upgraded to 5.5 wherever a graph still picks it.
@@ -81,14 +81,45 @@ that use the id only as an arbitrary string or as a fact about Haiku 4.5
 
 ## Acceptance Criteria
 
-- [ ] AC-01: With `ANTHROPIC_MODEL` unset, `DEFAULT_MODELS["anthropic"]` is
+- [x] AC-01: With `ANTHROPIC_MODEL` unset, `DEFAULT_MODELS["anthropic"]` is
   `claude-haiku-5-5` (witness RED before the change).
-- [ ] AC-02: No graph or prompt YAML under `examples/` or `graphs/` names
+- [x] AC-02: No graph or prompt YAML under `examples/` or `graphs/` names
   `claude-haiku-4-5` (witness RED before the change).
-- [ ] AC-03: A live run with `ANTHROPIC_MODEL` unset logs
+- [x] AC-03: A live run with `ANTHROPIC_MODEL` unset logs
   `Creating LLM: anthropic/claude-haiku-5-5` and completes.
 - [ ] AC-04: The unit suite passes in CI.
 
 ## Implementation Status
 
-Not started.
+- **Commits:** `0912a667` (this FR), `a20675c8` (RED: both witnesses in
+  `tests/unit/test_fr1169_haiku_5_5_default.py` fail: the default is
+  `claude-haiku-4-5`, and 19 graph and prompt YAML files pin it), then GREEN
+  (default, 58 live files, CAP-110 and CAP-243 descriptions, CAP-12 `fr` list,
+  ARCHITECTURE.md regenerated, the three tests that assert the moved
+  defaults).
+- **Count correction:** the Problem section names 13 places; they hold 19
+  YAML files (beautify 2, codegen 2, storyboard 4).
+- **Live run (AC-03), 2026-11-17:** a one-node graph from a folder with no
+  `.env`, `PROVIDER=anthropic`, `ANTHROPIC_MODEL` unset, exit 0:
+  `Omitting temperature for model without sampling control: claude-haiku-5-5`,
+  `Creating LLM: anthropic/claude-haiku-5-5 (temp=None)`, `HTTP/1.1 200 OK`,
+  `Token usage: 21 in / 4 out (1 call)`.
+- **Demo proof (FR-206 gate):** `ramp_rtm` ran live on the new default
+  (`Creating LLM: anthropic/claude-haiku-5-5`, 2 calls, 2079 in / 699 out,
+  exit 0). The other nine touched demos record lint + validate (the FR-1120
+  form): their change is the model id only, and their live runs need inputs
+  or spend outside this FR (book-summary, cap_journey_census and
+  session-shapes are postponed by the FR-1073 ruling).
+- **Local suite:** 7609 passed; the 415 failures and errors are this Windows
+  host's (no `/bin/bash`, WinError 193, path separators), none naming a model.
+  Four `llm_factory` tests had relied on the default accepting temperature;
+  they now pin `claude-haiku-4-5` as their sampling model.
+- **Left unchanged as records:** demo logs, `proofs/`, `run-evidence.txt`,
+  `manifest.json`, `gate1-result.md`, outsider-view fixtures, plan documents
+  under `examples/*/docs/`, `person_profile_census` README lines describing
+  its committed proofs, `scripts/probe_fr1164_truncation.py`,
+  `scripts/fr711_conn_witness.py` (FR-711's measurement instrument), and
+  tests that use the id as a pass-through string or as a fact about Haiku 4.5.
+- **Deviation:** no judge run. The change is a model-id move requested by a
+  consuming project, with the same shape as FR-1162; the judge route needs a
+  `bash` this Windows host lacks. The PR review stands in for it.

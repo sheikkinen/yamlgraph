@@ -43,4 +43,4 @@ mandatory `**Research:**` field. Exemplar of a full run:
 `feature-requests/FR-888.research.md` — where the route surfaced the
 OS-permissions solution class the original planning session missed.
 
-All LLM nodes pin `claude-haiku-4-5` at temperature 0.
+All LLM nodes pin `claude-haiku-5-5` at temperature 0.

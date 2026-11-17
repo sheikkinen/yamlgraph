@@ -28,7 +28,7 @@ Frozen gate (ev._l7_counts / main_l7) is byte-identical; this is additive.
 
 Run from repo root (mode B gated on mode A clearing KILL, to bound API cost):
   set -a; source .env; set +a; \
-  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 \
+  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-5-5 \
     .venv/bin/python examples/plot_modeller/spike_affect_graph.py --draws 3
 """
 
@@ -398,7 +398,7 @@ def main() -> int:
         return _print_topology()
 
     provider = os.getenv("PROVIDER", "anthropic")
-    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
+    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5")
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     descs = yaml.safe_load(GOAL_DESCS.read_text(encoding="utf-8"))
 

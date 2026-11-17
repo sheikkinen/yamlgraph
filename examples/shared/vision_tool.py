@@ -37,7 +37,7 @@ logger = logging.getLogger(__name__)
 # Initial support matrix (FR-769 R-1): provider -> (model env var, default).
 SUPPORTED_PROVIDERS: dict[str, tuple[str, str]] = {
     "google": ("GOOGLE_MODEL", "gemini-2.0-flash"),
-    "anthropic": ("ANTHROPIC_MODEL", "claude-haiku-4-5"),
+    "anthropic": ("ANTHROPIC_MODEL", "claude-haiku-5-5"),
 }
 
 

@@ -1,2 +1,10 @@
-✅ Live run postponed until map proven to work (FR-1073, PR #702; operator ruling 2026-09-26).
-This file is not a run log. The previous live run is in git history: git log -p -- examples/demos/cap_journey_census/demo-output.log
+# FR-1169 (2026-11-17): model id claude-haiku-4-5 -> claude-haiku-5-5 in this demo's graph, code or README only; lint + validate of this graph. No live run (cost and inputs outside FR-1169; the default-model live proof is ramp_rtm's log). The previous log is in git history.
+✅ graph.yaml - No issues found
+
+✅ All graphs passed linting
+
+
+✅ graph.yaml (cap-journey-census) - VALID
+
+   Nodes: 4
+   Edges: 5

@@ -190,7 +190,7 @@ def _default_synthesize(
         variables={"rubric": rubric, "rows": json.dumps(rows, ensure_ascii=False)},
         output_model=output_model,
         provider="anthropic",
-        model="claude-haiku-4-5",
+        model="claude-haiku-5-5",
         temperature=0.0,
         prompts_dir=prompts_dir,
     )

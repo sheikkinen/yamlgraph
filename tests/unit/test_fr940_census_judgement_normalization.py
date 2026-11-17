@@ -240,4 +240,4 @@ class TestEffectiveModel:
     @pytest.mark.req("REQ-YG-633")
     def test_model_defaults_to_pinned_haiku(self, tmp_path):
         _run(tmp_path, [_finding("steering")], labels=LABELS)
-        assert _rows(tmp_path)[0]["model"] == "claude-haiku-4-5"
+        assert _rows(tmp_path)[0]["model"] == "claude-haiku-5-5"

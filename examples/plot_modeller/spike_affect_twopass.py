@@ -24,7 +24,7 @@ recall up but precision below arm A 0.375 = REFUTED (FR-604 precedent).
 
 Run from repo root:
   set -a; source .env; set +a; \
-  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 \
+  PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-5-5 \
     .venv/bin/python examples/plot_modeller/spike_affect_twopass.py --draws 3
 """
 
@@ -418,7 +418,7 @@ def main() -> int:
     )
     args = ap.parse_args()
     provider = os.getenv("PROVIDER", "anthropic")
-    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-4-5")
+    model = os.getenv("ANTHROPIC_MODEL", "claude-haiku-5-5")
     TWOPASS_L7.mkdir(parents=True, exist_ok=True)
 
     if args.explain:

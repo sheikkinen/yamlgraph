@@ -13,12 +13,12 @@ deterministic verdict; the single LLM call sits inside the map node.
 ## Run
 
 ```bash
-PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 \
+PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-5-5 \
   yamlgraph graph run examples/abstraction_span/graph.yaml --full
 ```
 
 The run prints a ranking table and the verdict (GO / KILL). Confirm the
-`Creating LLM: anthropic/claude-haiku-4-5` log line — the **actual** model is set
+`Creating LLM: anthropic/claude-haiku-5-5` log line — the **actual** model is set
 by `ANTHROPIC_MODEL`, not a `--model` flag.
 
 ## Flow

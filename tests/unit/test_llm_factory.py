@@ -12,6 +12,9 @@ from yamlgraph.utils.llm_factory import clear_cache, create_llm
 
 _REAL_API_VERSION = getattr(llm_factory, "_anthropic_api_version", None)
 
+# A model that accepts temperature (FR-1146); the default Haiku 5.5 does not (FR-1169)
+SAMPLING_MODEL = "claude-haiku-4-5"
+
 
 class TestCreateLLM:
     """Test the create_llm factory function."""
@@ -25,14 +28,14 @@ class TestCreateLLM:
         """Should use Anthropic by default."""
         # Clear PROVIDER from environment to ensure default behavior
         with patch.dict(os.environ, {"PROVIDER": ""}, clear=False):
-            llm = create_llm(temperature=0.7)
+            llm = create_llm(model=SAMPLING_MODEL, temperature=0.7)
             assert isinstance(llm, ChatAnthropic)
             assert llm.temperature == 0.7
 
     @pytest.mark.req("REQ-YG-010", "REQ-YG-011")
     def test_explicit_anthropic_provider(self):
         """Should create Anthropic LLM when provider='anthropic'."""
-        llm = create_llm(provider="anthropic", temperature=0.5)
+        llm = create_llm(provider="anthropic", model=SAMPLING_MODEL, temperature=0.5)
         assert isinstance(llm, ChatAnthropic)
         assert llm.temperature == 0.5
 
@@ -113,12 +116,12 @@ class TestCreateLLM:
     @pytest.mark.req("REQ-YG-010", "REQ-YG-011")
     def test_caching(self):
         """Should cache LLM instances for same parameters."""
-        llm1 = create_llm(provider="anthropic", temperature=0.7)
-        llm2 = create_llm(provider="anthropic", temperature=0.7)
+        llm1 = create_llm(provider="anthropic", model=SAMPLING_MODEL, temperature=0.7)
+        llm2 = create_llm(provider="anthropic", model=SAMPLING_MODEL, temperature=0.7)
         assert llm1 is llm2
 
         # Different temperature = different instance
-        llm3 = create_llm(provider="anthropic", temperature=0.5)
+        llm3 = create_llm(provider="anthropic", model=SAMPLING_MODEL, temperature=0.5)
         assert llm1 is not llm3
 
     @pytest.mark.req("REQ-YG-010", "REQ-YG-011")

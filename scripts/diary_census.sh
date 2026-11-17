@@ -44,6 +44,6 @@ PYTHONPATH=$PWD python -m examples.demos.corpus_census.adapters.diary_recurrence
   --inbox-threshold 10 \
   --brief-path "docs/diary/census/brief-$(date +%Y-%m-%d).md" \
   --brief-rubric 'What does the diary corpus say: which trap families recur most, what should graduate, and what is already doctrine?' \
-  --meta model=claude-haiku-4-5 --meta git_sha="$sha" \
+  --meta model=claude-haiku-5-5 --meta git_sha="$sha" \
   --meta duration_s="$duration" --meta corpus="$DIARY (all months, decade-batched)"
 echo "diary_census: done in ${duration}s"

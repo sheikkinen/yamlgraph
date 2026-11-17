@@ -69,7 +69,9 @@ class TestCreateLLMAsync:
     @pytest.mark.req("REQ-YG-010", "REQ-YG-011")
     async def test_creates_llm(self):
         """Should create an LLM instance."""
-        llm = await create_llm_async(provider="anthropic", temperature=0.5)
+        llm = await create_llm_async(
+            provider="anthropic", model="claude-haiku-4-5", temperature=0.5
+        )
         assert llm is not None
         assert llm.temperature == 0.5
 

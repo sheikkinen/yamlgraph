@@ -13,7 +13,7 @@ yamlgraph graph run examples/demos/session-shapes/graph.yaml \
 ```
 
 The classifier is pinned to `provider: anthropic` and
-`model: claude-haiku-4-5` because FR-884 needs a cheap, consistent mini model
+`model: claude-haiku-5-5` because FR-884 needs a cheap, consistent mini model
 for many independent session judgements.
 
 Privacy note: the only written output is `tmp/fr884-classified.json`, and the

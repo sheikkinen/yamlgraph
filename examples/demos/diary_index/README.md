@@ -19,7 +19,7 @@ Output saved to: `docs/diary-index.yaml`
 
 ## Expected Cost
 
-- **Model:** `claude-haiku-4-5` (~$0.25/MTok input)
+- **Model:** `claude-haiku-5-5` (~$0.10/MTok input)
 - **Corpus:** ~450 entries × ~2KB avg = ~900K input tokens
 - **Estimated cost:** $0.25–0.50 per full run
 - **Latency:** 2–5 minutes with map node parallelism

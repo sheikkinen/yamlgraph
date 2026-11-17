@@ -2,7 +2,7 @@ name: expand_character_story
 description: Expand a concept into a character-driven story with consistent character across 3 panels
 
 provider: anthropic
-model: claude-haiku-4-5
+model: claude-haiku-5-5
 
 schema:
   name: CharacterStory

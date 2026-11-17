@@ -239,10 +239,10 @@ def test_default_model_provider_recorded_and_passed(skeleton):
     manifest = json.loads(
         (skeleton / "out" / "run-manifest.json").read_text(encoding="utf-8")
     )
-    assert manifest["model"] == "claude-haiku-4-5"
+    assert manifest["model"] == "claude-haiku-5-5"
     assert manifest["provider"] == "anthropic"
     calls = (skeleton / "calls-report.txt").read_text(encoding="utf-8")
-    assert "--model claude-haiku-4-5" in calls
+    assert "--model claude-haiku-5-5" in calls
     assert "--provider anthropic" in calls
 
 

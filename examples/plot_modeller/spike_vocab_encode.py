@@ -7,7 +7,7 @@ on disk so ONLY the encode step varies (single-variable test).
 
 Usage:
     set -a; source .env; set +a; \
-    PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-4-5 \
+    PROVIDER=anthropic ANTHROPIC_MODEL=claude-haiku-5-5 \
     .venv/bin/python examples/plot_modeller/spike_vocab_encode.py [genre]
 """
 
@@ -142,6 +142,6 @@ if __name__ == "__main__":
         main(
             g,
             os.environ.get("PROVIDER", "anthropic"),
-            os.environ.get("ANTHROPIC_MODEL", "claude-haiku-4-5"),
+            os.environ.get("ANTHROPIC_MODEL", "claude-haiku-5-5"),
         )
     )

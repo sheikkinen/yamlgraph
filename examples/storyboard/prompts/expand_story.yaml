@@ -2,7 +2,7 @@ name: expand_story
 description: Expand a concept into a visual story with 3-5 panels
 
 provider: anthropic
-model: claude-haiku-4-5
+model: claude-haiku-5-5
 
 schema:
   name: StoryPanels

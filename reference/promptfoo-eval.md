@@ -403,7 +403,7 @@ providers:
   - id: "file://provider.py"
     config: {provider: openai, model: gpt-4o-mini}
   - id: "file://provider.py"
-    config: {provider: anthropic, model: claude-haiku-4-5}
+    config: {provider: anthropic, model: claude-haiku-5-5}
 ```
 
 ---
