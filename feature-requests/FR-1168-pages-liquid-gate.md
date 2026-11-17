@@ -2,7 +2,7 @@
 
 **Priority:** HIGH
 **Type:** Bug
-**Status:** In Progress — enforced (RED a1f06742, GREEN `fix(docs): FR-1168`); awaiting PR CI (AC-06/07), C-4 human review and merge. Round 2 [judgement](FR-1168-pages-liquid-gate.judgement.md) APPROVED WITH REVISIONS; R-1..R-4 folded below
+**Status:** Completed — merged in #783 (a4c88861); Pages green on the merge SHA. `Docs Liquid (Pages build)` is advisory until the operator adds it as a required check (C-3). Round 2 [judgement](FR-1168-pages-liquid-gate.judgement.md) APPROVED WITH REVISIONS; R-1..R-4 folded below
 **Requested:** 2026-11-16
 **First consumer / first event:** the author of the next PR that touches `docs/**` — at the moment pre-commit or the PR's `docs-liquid` CI job names a `{{`/`{%` that would either break the Pages build or silently render as empty text on the site.
 **Research:** in-body dispositioned alternatives table — [Alternatives Considered](#alternatives-considered), with pinned parser evidence in [Evidence](#evidence) (FR-890 equivalent committed record). Classification: `enforcement/latency-critical`; `is_this_a_graph: no` — a deterministic delimiter check at a commit/merge boundary has no model judgement in it (FR-890 classification rule).
@@ -118,9 +118,9 @@ Out of scope: changing branch protection from automation (the operator adds the 
   - errors: missing, malformed and non-mapping config; non-list `exclude`; non-string `exclude` member; invalid UTF-8 — each exit 2;
   - a `_config.yml` argument triggers a full-tree scan.
 - [x] AC-05: Gate-bite (R-3): in a throwaway `git init` tree holding the candidate checker, hook config and `docs/_config.yml`, a tracked `docs/liquid-gate-witness.md` containing `{{ x }}` makes `pre-commit run docs-liquid --files docs/liquid-gate-witness.md` fail naming the file; after raw-wrapping it passes. Command, exit codes and output recorded.
-- [ ] AC-06: CI job `docs-liquid` has no `if:`, job-level `permissions: contents: read`, and runs the scanner, `actions/jekyll-build-pages` and the literal-output step; it succeeds on the PR.
-- [ ] AC-07: The CI literal-output step passes: HTML-unescaped `_site` pages contain `{{ secrets.AZURE_SPEECH_KEY }}` and `{{ <key>`.
-- [ ] AC-08: Post-merge (recorded on the PR, not a merge prerequisite): the `pages build and deployment` run on the merge SHA succeeds.
+- [x] AC-06: CI job `docs-liquid` has no `if:`, job-level `permissions: contents: read`, and runs the scanner, `actions/jekyll-build-pages` and the literal-output step; it succeeds on the PR.
+- [x] AC-07: The CI literal-output step passes: HTML-unescaped `_site` pages contain `{{ secrets.AZURE_SPEECH_KEY }}` and `{{ <key>`.
+- [x] AC-08: Post-merge (recorded on the PR, not a merge prerequisite): the `pages build and deployment` run on the merge SHA succeeds.
 - [x] AC-09: CAP-306 / REQ-YG-731 registered; `python scripts/req_coverage.py --strict` passes.
 - [x] AC-10: Changelog fragment and diary entry with **Seed:**.
 
@@ -162,6 +162,12 @@ Enforced on `fix/fr-1168-pages-liquid-gate`: FR fold and judgement e4ad7504; RED
 | command: `python scripts/aggregate_capabilities.py` | ran | ARCHITECTURE.md in GREEN commit |
 
 **Unplanned operations:** an inline Python wrap script applied the 24 wraps (diff in GREEN commit); `ruff format` on the scanner and test.
+
+**Post-merge record (C-3, C-5, AC-06..AC-08):**
+- AC-06/07: PR #783 head b7e9f6a7: job `Docs Liquid (Pages build)` passed (run 43880266326). The real `jekyll-build-pages` build ran, and the literal step printed `✅ Wrapped Liquid renders literally`.
+- C-4: operator reviewed and merged #783 (squash, a4c88861).
+- AC-08: `pages build and deployment` run 43881368501 on a4c88861 succeeded, the first green Pages build since 011317a8. The live pages `sheikkinen-process.html` and `investigations/fr1065-resumable-map.html` show `{{ secrets.AZURE_SPEECH_KEY }}` and `{{ <key>` literally.
+- C-3: as of 2026-11-17 the required contexts are `commitlint`, `test (3.11)` and `test (3.14)`. The docs-liquid job runs on every PR but does **not** block merge until the operator adds `Docs Liquid (Pages build)` to branch protection.
 
 ## Conditions for enforcement
 
