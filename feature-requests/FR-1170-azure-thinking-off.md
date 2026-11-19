@@ -1,0 +1,209 @@
+# Feature Request: FR-1170 Azure Non-Thinking Mode (`thinking_budget: 0`)
+
+**Priority:** MEDIUM
+**Type:** Bug
+**Status:** Proposed
+**Effort:** 0.5 days
+**Requested:** 2026-11-19
+**First consumer / first event:** the CSAP voicebot race
+(`terveystalo/customer-service-agent-platform`,
+`graphs/flex_navigator/graph_v2.yaml`). That graph sets
+`defaults: thinking_budget: 0` and races `provider: azure` candidates with
+`temperature: 0.0`. The first event is a race node that includes the Azure
+deployment `aaa-gpt-6-luna`. Today that request reaches Azure with thinking on
+and `temperature: 0`, and the API rejects it with 400 `unsupported_value`
+(param `temperature`), so the candidate loses every race.
+**Research:** in-body dispositioned alternatives table, each row with a probe
+result. The evidence is CSAP NC-584 (live HTTP probes against the CSAP TEST
+Azure AI Services account, 2026-11-19, merged as
+`terveystalo/customer-service-agent-platform#884`) plus one offline payload
+probe against the installed `langchain-azure-ai` 1.2.9.
+**`is_this_a_graph`:** No. This is a one-value mapping at the provider
+construction boundary, with no per-item model calls and no LLM pipeline. Its
+witness is a request-payload assertion, not an LLM judgement.
+**Prior art:**
+- [FR-1056-deepseek-thinking-off.md](FR-1056-deepseek-thinking-off.md) is the
+  direct precedent. It made DeepSeek map `thinking_budget: 0` to
+  `reasoning_effort: "none"` and ignore other values. This FR applies the
+  identical contract to `azure`.
+- [FR-263-azure-openai-provider.md](FR-263-azure-openai-provider.md)
+  introduced `_create_azure_llm`; its construction is unchanged apart from
+  the new keyword.
+- [FR-680-provider-dispatch-registry.md](FR-680-provider-dispatch-registry.md)
+  introduced the `_THINKING_PROVIDERS` registry this FR widens.
+- [FR-455-reasoning-model-temperature-guard.md](FR-455-reasoning-model-temperature-guard.md)
+  drops `temperature` for `o1`/`o3`/`o4` model names. It doesn't apply here,
+  because Azure deployment names are chosen by the operator (`aaa-gpt-6-luna`).
+- FR-1144 (race thinking A/B on `image-that-speaks`): its
+  `FR-1144-No-Thinking.yaml` treatment arm races `azure / aaa-gpt-5.4-mini`
+  with `thinking_budget: 0`. Under the current code the Azure arm never
+  received that setting.
+
+## Summary
+
+`provider: azure` can't be put into non-thinking mode from YAML.
+`dispatch_provider` calls `_create_azure_llm` without `thinking_budget`
+because `azure` is absent from `_THINKING_PROVIDERS`, so `thinking_budget: 0`
+is silently dropped. The fix: map `thinking_budget: 0` to
+`reasoning_effort: "none"` for `azure`, exactly as FR-1056 does for DeepSeek.
+
+## Value Statement
+
+Graph authors on Azure reasoning deployments (the gpt-5.x and gpt-6 families)
+can turn reasoning off from YAML. This cuts latency, and it makes
+`temperature: 0` acceptable to models that reject it while thinking.
+
+## Problem
+
+Three facts, each verified on 2026-11-19:
+
+1. **The knob is silently dropped.** `azure` is not in `_THINKING_PROVIDERS`
+   (`yamlgraph/utils/llm_providers.py`), and `_create_azure_llm(model,
+   temperature, **kwargs)` has no `thinking_budget` parameter. A node, race or
+   graph default with `thinking_budget: 0` therefore has no effect on Azure
+   candidates. This is the `plausible_wrong_answer` shape: a setting that
+   looks applied and isn't.
+2. **On Azure reasoning models, thinking on and `temperature: 0` together are
+   rejected.** CSAP NC-584 probe, deployment `aaa-gpt-6-luna`:
+   - with default reasoning, `temperature: 0` returned 400 `unsupported_value`
+     (param `temperature`);
+   - with `reasoning_effort: "none"` and `temperature: 0` the request returned
+     200, both alone (N-T0) and with strict `json_schema` output (N-TS).
+   The race node forwards its `temperature` to every candidate, so a
+   temperature-pinned race can't use these deployments today.
+3. **Latency.** In the same probe, `aaa-gpt-6-luna` with default reasoning
+   took 1.26–1.98 × the median latency of `aaa-gpt-5.4-mini`, using 16–25
+   reasoning tokens. With `reasoning_effort: "none"` it took 1.09–1.26 × and
+   used 0 reasoning tokens.
+
+## Ideal Result
+
+An Azure candidate obeys the reasoning switch it appears to have:
+- `thinking_budget: 0` sends `reasoning_effort: "none"`;
+- omitting it leaves the deployment's API default untouched.
+
+No new YAML field, and no change for any other provider.
+
+## Proposed Solution
+
+### YAML interface (no new field)
+
+```yaml
+defaults:
+  thinking_budget: 0            # Azure candidates: reasoning_effort "none"
+
+nodes:
+  classify_intents:
+    type: race
+    temperature: 0.0
+    candidates:
+      - { provider: vertex, model: gemini-3.5-flash-lite }
+      - { provider: azure,  model: aaa-gpt-6-luna }
+```
+
+### Implementation
+
+1. `llm_providers.py`:
+   - add `azure` to `_THINKING_PROVIDERS`;
+   - give `_create_azure_llm` a parameter
+     `thinking_budget: int | None = None`;
+   - set `reasoning_effort="none"` only when `thinking_budget == 0`;
+   - for any other non-`None` value, send nothing and log at DEBUG, naming
+     the ignored value and the provider (FR-1056 wording).
+   - Update the `_THINKING_PROVIDERS` comment to name Azure next to DeepSeek.
+2. `llm_factory.py`: no change. `azure` stays out of `THINKING_PROVIDERS`, so
+   `thinking_budget >= 1024` on Azure still raises `ValueError`.
+3. The cache key already includes `thinking_budget`, so no cache change.
+4. The offline probe shows `AzureAIOpenAIApiChatModel` subclasses
+   `ChatOpenAI` and has a `reasoning_effort` field. `_get_request_payload`
+   emits
+   `{'model': 'aaa-gpt-6-luna', 'stream': False, 'temperature': 0.0,
+   'reasoning_effort': 'none'}` verbatim. No `extra_body` workaround is needed.
+
+### Behaviour change for existing Azure graphs
+
+Any Azure node that already has `thinking_budget: 0` will start sending
+`reasoning_effort: "none"`.
+- A deployment that doesn't accept the field fails with a provider 400. The
+  failure is loud, not silent, and the fix is to remove `thinking_budget: 0`
+  from that node.
+- Known consumers:
+  - the CSAP flex navigator (graph default; its Azure candidate is
+    `aaa-gpt-5.4-mini`);
+  - `examples/demos/image-that-speaks/FR-1144-No-Thinking.yaml` (also
+    `aaa-gpt-5.4-mini`).
+  Both use the same deployment, which AC-10 witnesses live.
+- No other `thinking_budget: 0` in this repository pairs with `azure`
+  (`git grep "thinking_budget: 0"` returns 4 files; the other three are
+  google/vertex/anthropic demos).
+
+## Acceptance Criteria
+
+- [ ] AC-01: With the LLM cache isolated and dummy `AZURE_AI_ENDPOINT` /
+      `AZURE_AI_API_KEY`, `create_llm(provider="azure",
+      model="aaa-gpt-6-luna", temperature=0.0, thinking_budget=0)` returns
+      `AzureAIOpenAIApiChatModel`, and `_get_request_payload(...)` contains
+      `reasoning_effort == "none"` and `temperature == 0.0`.
+- [ ] AC-02: The same call with `thinking_budget` omitted produces a payload
+      with no `reasoning_effort` key.
+- [ ] AC-03: The same call with `thinking_budget=512` doesn't raise, produces
+      no `reasoning_effort` key, and emits a DEBUG record naming the ignored
+      value and `azure`.
+- [ ] AC-04: `create_llm(provider="azure", ..., thinking_budget=8000)` raises
+      `ValueError` naming the supported token-budget providers.
+- [ ] AC-05: A race node with `thinking_budget: 0` and an `azure` candidate
+      constructs that candidate with `reasoning_effort == "none"` in its
+      payload. This proves the race path, not only `create_llm`.
+- [ ] AC-06: Existing DeepSeek, Anthropic, Google and Vertex thinking tests
+      pass unchanged; omitted, zero and 512 Azure budgets don't alias in the
+      cache.
+- [ ] AC-07: Every new test is keyless and carries
+      `@pytest.mark.req("REQ-YG-732")`; `python scripts/req_coverage.py
+      --strict` passes.
+- [ ] AC-08: `capabilities/CAP-307-azure-non-thinking.yaml` defines
+      REQ-YG-732, and `ARCHITECTURE.md` registers it (regenerated with
+      `scripts/aggregate_capabilities.py`). If a parallel PR claims those
+      numbers first, take the next free pair and record it here.
+- [ ] AC-09: `reference/graph-yaml.md` and the `create_llm` docstring state
+      the Azure contract: zero disables thinking, omission keeps the API
+      default, other accepted values are ignored, and an Azure deployment
+      that doesn't support `reasoning_effort` returns a provider error.
+- [ ] AC-10: One-time live evidence, recorded in this FR and not a unit test.
+      Against the CSAP TEST Azure account, a chat completion with
+      `temperature: 0` and `reasoning_effort: "none"` returns 200 for both
+      `aaa-gpt-6-luna` and `aaa-gpt-5.4-mini`. Record the status, model and
+      reasoning-token count only, with no content and no key.
+- [ ] AC-11: A `changelog/unreleased/` fragment has `type: fix`,
+      `scope: providers`, and names FR-1170 / REQ-YG-732.
+- [ ] AC-12: Git history has a failing RED test commit before the GREEN
+      implementation commit.
+
+## Alternatives Considered
+
+<a id="alternatives-considered"></a>
+
+| # | Alternative | Probe / evidence | Disposition |
+|---|-------------|------------------|-------------|
+| A1 | Per-candidate `reasoning_effort:` (or free `extra:` kwargs) on race candidates | Candidates carry only `provider`/`model` (`race_node.py` `create_llm(...)` call). A new field would be a second reasoning knob next to `thinking_budget`, and FR-1056 A1 rejected that for the same reason | **Rejected.** `thinking_budget: 0` already expresses "off". Revisit if a graph needs per-candidate effort tuning. |
+| A2 | Gate the mapping on model-family prefixes (`gpt-5`, `gpt-6`, `o*`) | Azure deployment names are free-form; the CSAP names are `aaa-gpt-5.4-mini` and `aaa-gpt-6-luna`, so prefixes on the deployment name are unreliable | **Rejected.** Guessing from names is a plausible wrong answer; a loud 400 from an unsupported deployment is safer. |
+| A3 | Use `extra_body={"reasoning_effort": "none"}` | Offline probe: `ChatOpenAI.reasoning_effort` is a first-class field and is emitted verbatim | **Rejected.** The workaround isn't needed. |
+| A4 | Drop `temperature` for Azure reasoning models (FR-455 style) | Fixes the 400 but leaves thinking on, which keeps the latency cost (1.26–1.98 ×) and discards the determinism pin that CSAP classification nodes need | **Rejected.** Treats the symptom, not the cause. |
+| A5 | Do nothing and use only non-reasoning Azure models | The 400 and the latency in the Problem section stay, and `thinking_budget: 0` remains silently inert on Azure | **Rejected.** |
+
+## Related
+
+- `yamlgraph/utils/llm_providers.py`: `_create_azure_llm`,
+  `_THINKING_PROVIDERS`, `dispatch_provider`
+- `yamlgraph/utils/llm_factory.py`: `THINKING_PROVIDERS`, the `>= 1024` guard
+- `yamlgraph/node_factory/race_node.py`: candidate construction passes
+  `thinking_budget` from the node or graph defaults
+- CSAP NC-584 evidence: `feature-requests/evidence/NC-584-luna-probe.md`
+  (sections 7–9) in `terveystalo/customer-service-agent-platform`
+
+## Out of Scope
+
+- Effort tuning (`low`/`medium`/`high`) on Azure; see A1.
+- The CSAP-side change (yamlgraph version bump and race candidate list). It
+  belongs to its own CSAP FR after this ships.
+- The `openai` provider (direct OpenAI) has the same gap. It is unused by the
+  first consumer; the same mapping can follow in its own FR if needed.
