@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.8]
+
+### Added
+- **FR-1169 Haiku 5.5 is the Anthropic default**: with `ANTHROPIC_MODEL` unset, Anthropic runs now use `claude-haiku-5-5` instead of `claude-haiku-4-5` ($0.10 / $0.50 per MTok against $1 / $5). The 19 example and enforcement graphs and prompts that pinned Haiku 4.5, the script defaults (`req_audit.sh`, `diary_census.sh`, `examples/shared/vision_tool.py`, corpus_census, the plot_modeller spikes), run commands, `.env.sample`, README and reference guides move with it. Haiku 5.5 takes no sampling parameters; `llm_factory` already omits temperature for it. Recorded runs, logs and proofs keep the model they ran on. (REQ-YG-043)
+
+### Fixed
+- **FR-1170 Azure thinking can be turned off**: `thinking_budget: 0` on an `azure` node or race candidate now sends `reasoning_effort: "none"` instead of being silently discarded, so Azure reasoning deployments (gpt-5.x, gpt-6) accept `temperature: 0`. Omitting the field keeps the deployment default, an accepted sub-1024 budget stays a logged no-op, and `≥1024` still raises. A deployment that does not support `reasoning_effort` returns a provider error; to keep an inherited `0` off one node, set `thinking_budget: 512` on it. (REQ-YG-732)
+- **FR-1168 Pages docs Liquid gate**: GitHub Pages had failed on every push since one docs line carried an unterminated `{{`, and 23 other balanced `{{ … }}` tokens rendered as empty text. All 24 are now wrapped in `{% raw %}…{% endraw %}`. `scripts/check_docs_liquid.py` rejects active Liquid outside raw in every file Pages renders; it runs as the `docs-liquid` pre-commit hook and the always-run `Docs Liquid (Pages build)` CI job, which also builds the site with the Pages Jekyll action and checks the wrapped tokens render literally. Supersedes FR-751. (REQ-YG-731)
+- **FR-1167 Release flow: branch → PR → tag the squash commit**: `scripts/release.sh` refuses to run on main and no longer tags the branch commit, which squash merge never puts on main. Its output, `reference/release-checklist.md` and the `release-version` skill document the actual route: freeze on `release/vX.Y.Z`, PR, human squash merge, tag the verified squash commit, push that one tag, and verify the tag CI run, the GitHub release and the exact PyPI version. Includes recovery for a merged but untagged freeze, the cause of the unpublished v0.6.6. (REQ-YG-190)
+
 ## [0.6.7]
 
 ### Added
