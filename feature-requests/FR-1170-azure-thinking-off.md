@@ -2,7 +2,7 @@
 
 **Priority:** MEDIUM
 **Type:** Bug
-**Status:** Approved with revisions (folded 2026-11-19)
+**Status:** Enforced 2026-11-19 on `docs/fr-1170-azure-thinking-off`; awaiting PR, CI and review
 **Effort:** 0.5 days
 **Requested:** 2026-11-19
 **First consumer / first event:** the CSAP voicebot race
@@ -159,44 +159,44 @@ Any Azure node that already has `thinking_budget: 0` will start sending
 
 *Revised by the judgement (R-1 … R-3 folded 2026-11-19).*
 
-- [ ] AC-01: With the LLM cache isolated and dummy `AZURE_AI_ENDPOINT` /
+- [x] AC-01: With the LLM cache isolated and dummy `AZURE_AI_ENDPOINT` /
       `AZURE_AI_API_KEY`, `create_llm(provider="azure",
       model="aaa-gpt-6-luna", temperature=0.0, thinking_budget=0)` returns
       `AzureAIOpenAIApiChatModel`, and its request payload contains
       `reasoning_effort == "none"` and `temperature == 0.0`.
-- [ ] AC-02: The same call with `thinking_budget` omitted produces a payload
+- [x] AC-02: The same call with `thinking_budget` omitted produces a payload
       with no `reasoning_effort` key.
-- [ ] AC-03: The same call with `thinking_budget=512` doesn't raise, omits
+- [x] AC-03: The same call with `thinking_budget=512` doesn't raise, omits
       the field, and emits a DEBUG record naming `512` and `azure`.
-- [ ] AC-04: `thinking_budget=8000` on Azure raises `ValueError` naming the
+- [x] AC-04: `thinking_budget=8000` on Azure raises `ValueError` naming the
       supported token-budget providers; Azure stays outside the native-budget
       `THINKING_PROVIDERS` in `llm_factory.py`.
-- [ ] AC-05: Through a real race node's candidate-construction path (model
+- [x] AC-05: Through a real race node's candidate-construction path (model
       invocation mocked, factory/dispatch real): node-level `0` produces an
       Azure payload with `reasoning_effort == "none"`; node-level `512`
       overriding graph-default `0` produces a payload without the field.
-- [ ] AC-06: Existing DeepSeek, Anthropic, Google and Vertex thinking
+- [x] AC-06: Existing DeepSeek, Anthropic, Google and Vertex thinking
       behaviour is unchanged; omitted, `0` and `512` Azure calls don't alias
       in the cache. The FR-1144 witness
       `test_vertex_factory_gets_zero_azure_factory_gets_none` is renamed and
       expects the Azure factory to receive `0`, keeping its Vertex and
       mixed-race assertions; affected race/provider-dispatch tests pass.
-- [ ] AC-07: New tests are keyless and carry
+- [x] AC-07: New tests are keyless and carry
       `@pytest.mark.req("REQ-YG-732")`; retained race-forwarding witnesses
       keep their existing REQ mapping; `python scripts/req_coverage.py
       --strict` passes.
-- [ ] AC-08: `capabilities/CAP-307-azure-non-thinking.yaml` defines
+- [x] AC-08: `capabilities/CAP-307-azure-non-thinking.yaml` defines
       REQ-YG-732 (zero, omission/accepted non-zero, and unsupported
       token-budget cases), and `ARCHITECTURE.md` is regenerated with
       `scripts/aggregate_capabilities.py`. If those IDs are taken, use the
       next verified free pair consistently and record it here.
-- [ ] AC-09: `reference/graph-yaml.md` and the `create_llm` docstring state
+- [x] AC-09: `reference/graph-yaml.md` and the `create_llm` docstring state
       the Azure contract: zero disables thinking, omission keeps the API
       default, other accepted values are ignored, `>= 1024` is still
       rejected, and an Azure deployment that doesn't support
       `reasoning_effort` returns a provider error. The guidance explains how
       to override an inherited zero (see Behaviour change).
-- [ ] AC-10: Record HTTP 200 compatibility evidence for the combined
+- [x] AC-10: Record HTTP 200 compatibility evidence for the combined
       `temperature: 0` + `reasoning_effort: "none"` payload on both
       `aaa-gpt-6-luna` and `aaa-gpt-5.4-mini`. Luna may reuse the immutable
       NC-584 N-T0 record (cite it by merge commit). The missing mini
@@ -206,10 +206,10 @@ Any Azure node that already has `thinking_budget: 0` will start sending
       is "unavailable", not zero); no content, no credentials.
       **Owner authorization: granted 2026-11-19** — operator: "azure
       endpoints can be used for testing as needed."
-- [ ] AC-11: A `changelog/unreleased/` fragment has `type: fix`,
+- [x] AC-11: A `changelog/unreleased/` fragment has `type: fix`,
       `scope: providers`, and names FR-1170 / REQ-YG-732 (or the recorded
       replacement IDs).
-- [ ] AC-12: Git history has a genuinely failing RED behavioural test commit
+- [x] AC-12: Git history has a genuinely failing RED behavioural test commit
       before the GREEN implementation commit; this FR records implementation
       status, decisions, evidence and deviations.
 
@@ -254,3 +254,49 @@ R-2 (inherited-default remedies in Behaviour change, AC-05 and AC-09; the
 owner-authorized live witness in AC-10) are folded in above. Owner decision
 C-6 answered: authorized. Frozen deliverables D-1 … D-6 and gates C-1 … C-7
 are binding; the not-authorized list stands.
+
+## Implementation Status
+
+**Enforced 2026-11-19.** RED `d7ae3014` (5 failing witnesses, `KeyError:
+'reasoning_effort'` and the FR-1144 call mismatch) precedes GREEN.
+
+| Deliverable | Landed as |
+|---|---|
+| D-1 | `yamlgraph/utils/llm_providers.py`: `azure` added to the dispatch-side `_THINKING_PROVIDERS`; `_create_azure_llm` gained `thinking_budget`; `reasoning_effort="none"` only for `0`, other non-`None` values DEBUG-logged and dropped |
+| D-2 | `tests/unit/test_fr1170_azure_thinking.py` (9 tests); `tests/unit/test_race_node.py` FR-1144 witness renamed `test_vertex_and_azure_factories_both_get_zero`, Azure factory now expects `0`, REQ-YG-724 kept |
+| D-3 | `create_llm` docstring only; both `thinking_budget` rows in `reference/graph-yaml.md`, including the inherited-zero override |
+| D-4 | `capabilities/CAP-307-azure-non-thinking.yaml` (REQ-YG-732, no ID collision); `ARCHITECTURE.md` regenerated |
+| D-5 | `changelog/unreleased/fr-1170-azure-thinking-off.md` (`type: fix`, `scope: providers`) |
+
+### Decisions
+
+- **Two test layers, because CI does not install the `azure` extra.**
+  `TestAzureThinkingKwargs` swaps in a fake `langchain_azure_ai` module and
+  asserts the constructor kwargs (AC-01..AC-04), so the mapping is witnessed
+  in CI. The real-SDK payload tests (AC-01, AC-02, AC-05 race path, AC-06
+  cache) use `pytest.importorskip("langchain_azure_ai")` and run wherever the
+  extra is installed (locally: 1.2.9, all pass). In CI the race composition is
+  covered by its two halves: the renamed FR-1144 witness (race → factory
+  receives `0`) and the kwargs layer (factory `0` → `reasoning_effort`).
+  Adding `azure` to the CI extras is left as a separate proposal.
+- **CAP-307 landed in the RED commit.** The `req-coverage-strict` hook rejects
+  an undefined REQ, so the capability record had to precede the witnesses.
+
+### AC-10 live evidence (2026-11-19, CSAP TEST Azure account)
+
+Owner-authorized. Each request went through the GREEN `_create_azure_llm`
+with `max_retries=0`, `timeout=30`, `max_tokens=32` and a one-line
+non-sensitive prompt. No content or credentials recorded.
+
+| Deployment | Served model | `temperature` | `reasoning_effort` | HTTP | Reasoning tokens |
+|---|---|---|---|---|---|
+| `aaa-gpt-5.4-mini` | `gpt-5.4-mini-2026-03-17` | 0.0 | `none` | 200 | 0 |
+| `aaa-gpt-6-luna` | `gpt-6-luna-2026-09-22` | 0.0 | `none` | 200 | 0 |
+| `aaa-gpt-6-luna` (contrast: budget omitted) | — | 0.0 | absent | 400 `temperature` unsupported | — |
+
+Luna was probed fresh, so the NC-584 N-T0 record was not needed. The contrast
+row reproduces the Problem section's failure through the same code path.
+
+### Deviations
+
+None from the frozen scope.
