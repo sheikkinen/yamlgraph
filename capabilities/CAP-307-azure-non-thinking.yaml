@@ -1,0 +1,35 @@
+name: Azure Non-Thinking Mode
+id: CAP-307
+status: active
+fr: FR-1170
+feature_request: FR-1170
+description: >
+  Azure reasoning deployments (gpt-5.x and gpt-6 families) think by default
+  and then reject `temperature: 0`. Azure exposes no token budget, only an
+  effort enum, so the one `thinking_budget` value with an exact Azure meaning
+  is `0`, which maps to `reasoning_effort: "none"`. Omission preserves the
+  deployment default, an accepted sub-1024 budget stays a logged no-op, and a
+  real token budget still fails loudly. This is the FR-1056 DeepSeek contract
+  applied to `provider: azure`.
+modules:
+  - yamlgraph/utils/llm_providers.py
+  - yamlgraph/utils/llm_factory.py
+requirements:
+  - id: REQ-YG-732
+    description: >
+      Azure reasoning toggle at the provider boundary (FR-1170).
+      `dispatch_provider` forwards `thinking_budget` to `_create_azure_llm`,
+      which sets `reasoning_effort="none"` on the `AzureAIOpenAIApiChatModel`
+      client if and only if `thinking_budget == 0`. Omission and any accepted
+      non-zero value leave `reasoning_effort` off the request payload, and an
+      ignored non-zero value emits a DEBUG record naming the provider and the
+      value. `thinking_budget >= 1024` still raises `ValueError` from
+      `create_llm` because `azure` stays outside
+      `llm_factory.THINKING_PROVIDERS`. Race candidates receive the resolved
+      budget, so a graph-default zero reaches Azure and a node-level `512`
+      overrides it without sending the field. Omitted, zero and 512 clients
+      never alias in the LLM cache.
+    modules:
+      - yamlgraph/utils/llm_providers.py
+      - yamlgraph/utils/llm_factory.py
+      - tests/unit/test_fr1170_azure_thinking.py

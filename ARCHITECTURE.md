@@ -603,6 +603,7 @@ Run `python scripts/aggregate_capabilities.py` to regenerate the sections below.
 | 304 | CAP-304 Cached Map Warm-First Dispatch | `yamlgraph/compile/cached_map_compiler.py`, `yamlgraph/compile/map_compiler.py`, `yamlgraph/models/map_results.py` | REQ-YG-728 |
 | 305 | CAP-305 Lint Unread LLM Settings | `yamlgraph/constants.py`, `yamlgraph/linter/checks_providers.py`, `yamlgraph/linter/graph_linter.py` | REQ-YG-730 |
 | 306 | CAP-306 Docs Liquid Gate | `scripts/check_docs_liquid.py`, `.pre-commit-config.yaml`, `.github/workflows/commitlint.yml` | REQ-YG-731 |
+| 307 | CAP-307 Azure Non-Thinking Mode | `yamlgraph/utils/llm_providers.py`, `yamlgraph/utils/llm_factory.py` | REQ-YG-732 |
 
 > Capability numbers are stable identifiers. Gaps (e.g. 27, 29, 52, 58) indicate retired capabilities.
 
@@ -3516,6 +3517,16 @@ FR-1168: `scripts/check_docs_liquid.py` fails when a docs file that GitHub Pages
 | Requirement | Description | Key Modules |
 |------------|-------------|-------------|
 | REQ-YG-731 | The docs Liquid gate reports L001 for `{{` and L002 for `{%` outside a canonical `{% raw %}` region, L003 for a raw region left open at end of file, and L004 for a non-canonical `endraw` (closing raw when Liquid would). It scans only files Jekyll renders, strips front matter while keeping source line numbers, exits 1 on findings and 2 on a missing or malformed `_config.yml`, a bad `exclude`, or non-UTF-8 input. | `scripts/check_docs_liquid.py`, `tests/unit/test_fr1168_docs_liquid_gate.py` |
+
+### 307. CAP-307 Azure Non-Thinking Mode
+
+Azure reasoning deployments (gpt-5.x and gpt-6 families) think by default and then reject `temperature: 0`. Azure exposes no token budget, only an effort enum, so the one `thinking_budget` value with an exact Azure meaning is `0`, which maps to `reasoning_effort: "none"`. Omission preserves the deployment default, an accepted sub-1024 budget stays a logged no-op, and a real token budget still fails loudly. This is the FR-1056 DeepSeek contract applied to `provider: azure`.
+
+**Feature Request:** FR-1170
+
+| Requirement | Description | Key Modules |
+|------------|-------------|-------------|
+| REQ-YG-732 | Azure reasoning toggle at the provider boundary (FR-1170). `dispatch_provider` forwards `thinking_budget` to `_create_azure_llm`, which sets `reasoning_effort="none"` on the `AzureAIOpenAIApiChatModel` client if and only if `thinking_budget == 0`. Omission and any accepted non-zero value leave `reasoning_effort` off the request payload, and an ignored non-zero value emits a DEBUG record naming the provider and the value. `thinking_budget >= 1024` still raises `ValueError` from `create_llm` because `azure` stays outside `llm_factory.THINKING_PROVIDERS`. Race candidates receive the resolved budget, so a graph-default zero reaches Azure and a node-level `512` overrides it without sending the field. Omitted, zero and 512 clients never alias in the LLM cache. | `yamlgraph/utils/llm_providers.py`, `yamlgraph/utils/llm_factory.py`, `tests/unit/test_fr1170_azure_thinking.py` |
 
 <!-- END GENERATED CAPABILITIES -->
 

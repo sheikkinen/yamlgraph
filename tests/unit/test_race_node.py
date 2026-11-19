@@ -1534,7 +1534,8 @@ class TestRaceThinkingBudget:
 
 
 class TestRaceThinkingBudgetProviderDispatch:
-    """AC-06: through the real create_llm, only the thinking provider gets it."""
+    """FR-1144 AC-06, superseded by FR-1170: through the real create_llm, both
+    the Vertex and the Azure factory receive the resolved budget."""
 
     @pytest.fixture(autouse=True)
     def _fresh_llm_cache(self):
@@ -1546,9 +1547,7 @@ class TestRaceThinkingBudgetProviderDispatch:
 
     @pytest.mark.req("REQ-YG-724")
     @patch("yamlgraph.node_factory.race_node.prepare_messages")
-    def test_vertex_factory_gets_zero_azure_factory_gets_none(
-        self, mock_prepare, sample_state
-    ):
+    def test_vertex_and_azure_factories_both_get_zero(self, mock_prepare, sample_state):
         from yamlgraph.node_factory.race_node import create_race_node
         from yamlgraph.utils import llm_providers
 
@@ -1566,7 +1565,7 @@ class TestRaceThinkingBudgetProviderDispatch:
             node_fn(sample_state)
 
         vertex_factory.assert_called_once_with("gemini-2.5-flash", 0.0, 0)
-        azure_factory.assert_called_once_with("aaa-gpt-5.4-mini", 0.0)
+        azure_factory.assert_called_once_with("aaa-gpt-5.4-mini", 0.0, 0)
 
 
 # =============================================================================

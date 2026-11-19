@@ -165,6 +165,10 @@ def create_llm(
                         omitting the field preserves DeepSeek's default (thinking on, effort
                         "high"); any other accepted value is ignored (DeepSeek has no token
                         budget and effort tuning is unsupported); ≥1024 still raises.
+                        For Azure (FR-1170): the same contract as DeepSeek — 0 sends
+                        reasoning_effort="none", omission keeps the deployment default,
+                        other accepted values are ignored, ≥1024 raises; a deployment
+                        without reasoning_effort support returns a provider error.
 
     Returns:
         Configured LLM instance.

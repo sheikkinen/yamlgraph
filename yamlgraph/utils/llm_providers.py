@@ -35,16 +35,23 @@ logger = logging.getLogger(__name__)
 
 
 def _create_azure_llm(
-    model: str, temperature: float, **kwargs: object
+    model: str, temperature: float, thinking_budget: int | None = None, **kwargs: object
 ) -> BaseChatModel:
     """Create Azure AI LLM via langchain-azure-ai.
 
     Uses AzureAIOpenAIApiChatModel which covers both Azure OpenAI deployments
     and Azure AI Foundry model catalog (GPT-4o, Llama, Mistral, Cohere).
 
+    FR-1170: Azure reasoning deployments have no token budget, so only
+    ``thinking_budget == 0`` is expressible — it becomes
+    ``reasoning_effort="none"`` (FR-1056 contract). Any other value is left off
+    the request. A deployment that does not support ``reasoning_effort``
+    returns a provider error.
+
     Args:
         model: Deployment/model name (e.g., "gpt-4o")
         temperature: Temperature for generation
+        thinking_budget: ``0`` disables reasoning; other values are ignored
 
     Returns:
         LangChain-compatible chat model
@@ -69,12 +76,23 @@ def _create_azure_llm(
             "Get your key from the Azure Portal under your resource's Keys section."
         )
 
+    azure_kwargs = dict(kwargs)
+    if thinking_budget == 0:
+        azure_kwargs["reasoning_effort"] = "none"
+    elif thinking_budget is not None:
+        logger.debug(
+            "Ignoring thinking_budget=%s for provider 'azure': Azure has no "
+            "token budget, only reasoning_effort; reasoning stays at the "
+            "deployment default. Use thinking_budget=0 to disable thinking.",
+            thinking_budget,
+        )
+
     return AzureAIOpenAIApiChatModel(
         endpoint=endpoint,
         credential=api_key,
         model=model,
         temperature=temperature,
-        **_bounded(dict(kwargs)),
+        **_bounded(azure_kwargs),
     )
 
 
@@ -317,10 +335,10 @@ def _create_runpod_llm(
 
 
 # Providers whose factory accepts a `thinking_budget` argument (FR-680).
-# Deliberately wider than `llm_factory.THINKING_PROVIDERS` (FR-1056): DeepSeek
-# can only be told to STOP thinking, so a real token budget must still fail
-# there while `0` is routed here.
-_THINKING_PROVIDERS = frozenset({"anthropic", "deepseek", "google", "vertex"})
+# Deliberately wider than `llm_factory.THINKING_PROVIDERS` (FR-1056, FR-1170):
+# DeepSeek and Azure can only be told to STOP thinking, so a real token budget
+# must still fail there while `0` is routed here.
+_THINKING_PROVIDERS = frozenset({"anthropic", "azure", "deepseek", "google", "vertex"})
 
 # Data-driven provider registry (FR-680). Adding a provider is one entry here
 # plus its `_create_*_llm` factory — no edit to `dispatch_provider`.
